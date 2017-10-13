@@ -12,9 +12,26 @@ Project intent: Develop an integrated control system (MCU based - currenlty prot
  - Provide a basic UI via an LCD screen for viewing key data and making manual overrides and setting changes
  - Provide a command and reporting interface via digital radio (900Mhz) to a base station for data upload and remote configuration and control
 
-As at Sepatember 2017:
+# Update 2017-10-13:
 
-Operational System Components
+ - Earlier version running on the factory.
+ - This version after some further development - will go into production.
+ - Thanks heaps to:
+ 	- the arduino community
+	- jantje for sloeber arduino eclipse plugin. Use it - https://github.com/Sloeber/arduino-eclipse-plugin
+	- Steve Marple for IniFile  (which I'm still working on) - https://github.com/stevemarple/IniFile
+	
+# Disclaimers 
+ - Please excuse the kindergarten code - still revisiting C and C++ fundamentals after 25 years absence (I hate C strings! - and arduino String library is too easy, though bad for portability - removed mostly.)
+- First time using eclipse in anger.
+- First time laying out a multi file project with my own includes (currently nicely mixed up spagetti).
+- I'm still ANSI C. C++ is arriving slowing and painfully. 
+- First time github user - no idea yet how to integrate it properly, so just uploading here for a snapshop.
+- This mess is what you get when you let an architect get into the detail.
+
+# Operational System Components
+
+As at Sepatember 2017:
 
 	Highly customised older Fodder Solutions developed transportable growing room. See http://www.foddersolutions.com.au/system-specs/
 		- 6x levels of growing racks each holding 6x growing trays
