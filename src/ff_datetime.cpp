@@ -233,7 +233,7 @@ char* FFTimeCString(char* hms_str, FFDateTime dt) {
 	strcat(hms_str, ":");
 
 	if (s >= 10) {
-		strcat(hms_str, sm);
+		strcat(hms_str, ss);
 	} else {
 		strcat(hms_str, "0");
 		strcat(hms_str, ss);
@@ -245,40 +245,20 @@ char* FFTimeCString(char* hms_str, FFDateTime dt) {
 char* FFDateCString(char* ymd_str, FFDateTime dt) {
 	uint16_t y;
 	uint8_t m, d;
-	char sy[6];
-	char sm[4];
-	char sd[4];
+	char ys[6];
+	char ms[4];
+	char ds[4];
 	y = dt.year;
 	m = dt.month;
 	d = dt.day;
 
+	sprintf(ys, "%d", y);
 
-	sprintf(sy, "%d", y);
+	m >= 10 ? sprintf(ms, "%d", m) : sprintf(ms, "0%d", m);
 
-	m >= 10 ? sprintf(sm, "%d", m) : sprintf(sm, "0%d", m);
+	d >= 10 ? sprintf(ds, "%d", d) : sprintf(ds, "0%d", d);
 
-	d >= 10 ? sprintf(sd, "%d", d) : sprintf(sd, "0%d", d);
-
-	//strcpy(ymd_str, sy);  //sets it up as a string
-	//strcat(ymd_str, "-");
-
-	//if (m >= 10) {
-	//	strcat(ymd_str, sm);
-	//} else {
-	//	strcat(ymd_str, "0");
-	//	strcat(ymd_str, sm);
-	//}
-
-	//strcat(ymd_str, "-");
-
-	//if (d >= 10) {
-	//	strcat(ymd_str, sm);
-	//} else {
-	//	strcat(ymd_str, "0");
-	//	strcat(ymd_str, sd);
-	//}
-
-	sprintf(ymd_str, "%s-%s-%s", sy, sm, sd);
+	sprintf(ymd_str, "%s-%s-%s", ys, ms, ds);
 	return ymd_str;
 }
 
@@ -298,7 +278,7 @@ char* FFDateTimeCStringNow (char* dt_str) {
 }
 
 #ifdef FF_ARDUINO
-String FFTimeString(FFDateTime dt) {
+String FFShortTimeString(FFDateTime dt) {
 	uint8_t h, m;
 	String sh, sm, shm;
 	h = dt.hour;
@@ -358,13 +338,16 @@ FFDateTime DateTimeToFFDateTime(DateTime rtcDT) {
 }
 */
 
+/*
 String FFDateTimeStringNow(void) {
 	// Generate a date and time stamp as a string
 	FFDateTime dt = FFDTNow();
 	String date = FFDateString(dt);
-	String time = FFTimeString(dt);
+	String time = FFShortTimeString(dt);
 	return date + " " + time;
 }
+*/
+
 #endif
 
 void InitRTC(void) {		//setup the Real Time Clock

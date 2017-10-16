@@ -48,7 +48,7 @@ void UpdateUI(void) {
 	FFDateTime dt_now = FFDTNow();
 
 	//XXX put back in
-	HALDrawDataScreen(ui_data_ptr, dt_now);
+	HALDrawDataScreenCV(ui_data_ptr, dt_now);
 
 }
 

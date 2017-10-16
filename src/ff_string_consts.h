@@ -52,7 +52,8 @@ typedef struct BLOCK_CATS {
 /**************************************************************
  * Block Category Definitions
  **************************************************************/
-typedef enum {
+//typedef
+enum {
 	FF_SYSTEM,
 	FF_INPUT,
 	FF_MONITOR,
@@ -61,8 +62,70 @@ typedef enum {
 	FF_CONTROLLER,
 	FF_OUTPUT,
 	LAST_BLOCK_CAT,
-} BlockCatEnum;
+};//BlockCatEnum;
 
+enum {
+	IN_TYPE = 0,
+	IN_DISPLAY_NAME,
+	IN_DESCRIPTION,
+	IN_INTERFACE,
+	IN_IF_NUM,
+	IN_LOG_RATE_DAY,
+	IN_LOG_RATE_HOUR,
+	IN_LOG_RATE_MINUTE,
+	IN_LOG_RATE_SECOND,
+	IN_LOG_RATE_MILLISEC,
+	IN_DATA_UNITS,
+	IN_DATA_TYPE,
+	LAST_IN_KEY_TYPE
+};// InputConfKeyList;
+
+enum {
+	MON_TYPE,
+	MON_DISPLAY_NAME,
+	MON_DESCRIPTION,
+	MON_INPUT,
+	MON_ACT_VAL,
+	MON_DEACT_VAL,
+	LAST_MON_KEY_TYPE
+};
+
+enum {
+	SCH_TYPE,
+	SCH_DAYS,
+	SCH_TIME_START,
+	SCH_TIME_DURATION,
+	SCH_TIME_END,
+	LAST_SCH_KEY_TYPE
+};
+
+enum {
+	RL_TYPE,
+	RL_DISPLAY_NAME,
+	RL_DESCRIPTION,
+	RL_PARAM_1,
+	RL_PARAM_2,
+	RL_PARAM_3,
+	RL_PARAM_NOT,
+	RL_CONTROLLER,
+	LAST_RL_KEY_TYPE
+};
+
+enum {
+	CON_TYPE,
+	CON_OUTPUT,
+	CON_ACT_CMD,
+	CON_DEACT_CMD,
+	LAST_CON_KEY_TYPE
+};
+
+enum {
+	OUT_TYPE,
+	OUT_DISPLAY_NAME,
+	OUT_DESCRIPTION,
+	OUT_DIGITAL_PIN,
+	LAST_OUT_KEY_TYPE
+};
 
 static const BlockCatArray block_cat_defs[LAST_BLOCK_CAT] = {
 	FF_SYSTEM, "system", "", {
@@ -96,6 +159,7 @@ static const BlockCatArray block_cat_defs[LAST_BLOCK_CAT] = {
 			"type",
 			"days",
 			"time_start",
+			"time_duration",
 			"time_end",
 	},
 	FF_RULE, "rules", "rule", {
@@ -104,6 +168,7 @@ static const BlockCatArray block_cat_defs[LAST_BLOCK_CAT] = {
 			"description",
 			"param1",
 			"param2",
+			"param3",
 			"param_not",
 			"controller",
 	},
@@ -131,27 +196,27 @@ static const BlockCatArray block_cat_defs[LAST_BLOCK_CAT] = {
  * Block Type Definitions
  **************************************************************/
 
-typedef enum {
+enum {
 	IN_ONEWIRE,
 	IN_DIGITAL,
 	LAST_IN_TYPE
-} InputTypes;
+};// InputTypes;
 
-typedef enum {
+enum {
 	MON_CONDITION_LOW,
 	MON_CONDITION_HIGH,
 	MON_AVERAGE_CONDITION_LOW,
 	MON_AVERAGE_CONDITION_HIGH,
 	MON_TRIGGER,
 	LAST_MON_TYPE
-} MonitorTypes;
+};// MonitorTypes;
 
-typedef enum {
+enum {
 	SCH_START_STOP,
 	SCH_ONE_SHOT,
 	SCH_START_DURATION_REPEAT,
 	LAST_SCH_TYPE
-} SCH_TYPES;
+};// SCH_TYPES;
 
 typedef enum {
 	RL_LOGIC_ANDNOT,
@@ -232,7 +297,7 @@ static const StringArray message_type_strings[LAST_MESSAGE_TYPE] = {
 	12, { "DEBUG",				"DEBUGGEN" },
 	12, { "INFO",				"INFO" },
 	12, { "DATA",				"DATEN" },
-	10, { "WARNING"				"WARNUNG" },
+	10, { "WARNING",			"WARNUNG" },
 	12, { "ERROR",				"FEHLER" },
 	24, { "SCHED_DAILY_ON",		"ZEITPLAN_TÄGLICH_AUF" },
 	24,	{ "SCHED_DAILY_OFF",	"ZEITPLAN_TÄGLICH_AUS" },
@@ -283,9 +348,9 @@ typedef enum {
 	M_SIM_CONSOLE,
 	M_NO_CONFIG,
 	M_CONFIG_NOT_VALID,
-	M33,
-	M34,
-	M35,
+	M_SD_NO_FILE_HANDLE,
+	M_ERROR_EVENTS_EMPTY,
+	M_SD_BEGIN_FAIL,
 	M36,
 	M37,
 	M38,
@@ -327,9 +392,9 @@ static const StringArray message_strings[LAST_MESSAGE] = {
 	14, { "Simulator using console for UI",		"M30" },
 	14, { "Config not found. Can't continue",	"M31" },
 	14, { "Config file failed validation",		"M32" },
-	14, { "M33",								"M33" },
-	14, { "M34",								"M34" },
-	14, { "M35",								"M35" },
+	14, { "DEBUG ERROR SD File Handle NULL",	"M33" },
+	14, { "DEBUG ERROR Event Buffer Empty",		"M34" },
+	14, { "DEBUG ERROR SD.begin FAIL",			"M35" },
 	14, { "M36",								"M36" },
 	14, { "M37",								"M37" },
 	14, { "M38",								"M38" },
@@ -348,6 +413,7 @@ static const StringArray message_strings[LAST_MESSAGE] = {
 //  errorEndOfFile,
 //	errorUnknownError,
 
+
 static const char* ini_error_strings[INI_ERROR_TYPES] = {
 	"No Error",
 	"Config file not found",
@@ -359,6 +425,7 @@ static const char* ini_error_strings[INI_ERROR_TYPES] = {
 	"Reached end of Config File Unexpectedly",
 	"Config Unknown Error",
 };
+
 
 /**************************************************************
  * Device Strings

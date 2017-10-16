@@ -13,6 +13,8 @@
 #ifndef FF_SYS_CONFIG_H_
 #define FF_SYS_CONFIG_H_
 
+#define VERSION v0.2dev
+
 //#include "ff_string_consts.h"
 
 /************************************************
@@ -20,10 +22,16 @@
  ************************************************/
 
 #define FF_ARDUINO
+//#define FF_TEMP_SIM  //optionally
 //OR
 //#define FF_SIMULATOR
 
+
 #ifdef FF_SIMULATOR
+#define FF_TEMP_SIM
+#endif
+
+#ifdef FF_TEMP_SIM
 #define SIM_TEMP_0 18
 #define SIM_TEMP_1 21
 #define SIM_TEMP_2 26
@@ -38,9 +46,10 @@
 #ifdef DEBUG
 
 #ifdef FF_ARDUINO
-#define DEBUG_SERIAL                  	// For use when USB connected
+//#define DEBUG_SERIAL                  	// For use when USB connected
 #define DEBUG_SERIAL_BAUDRATE 9600
-//#define DEBUG_LCD                     	// Debug to a connected LCD screen
+#define DEBUG_LCD                     	// Debug to a connected LCD screen
+#define DEBUG_LCD_DELAY 3000
 #endif
 
 //#define DEBUG_FILE						//write a debug file on SD or locally
@@ -50,7 +59,7 @@
 #define DEBUG_CONSOLE					//write to stdout
 #endif
 
-#define MAX_DEBUG_LENGTH 100			//line buffer length for debug messages "stack smashing if too short"
+#define MAX_DEBUG_LENGTH 150			//line buffer length for debug messages "stack smashing if too short"
 
 #endif //DEBUG
 
@@ -160,8 +169,8 @@
 
 */
 
-#define C1_CONTROL_NO			0
-#define C1_LABEL			"TURN_ON_WATER_HEAT"
+#define C1_CONTROL_NO		0
+#define C1_LABEL			"TURN_ON_WATER_HEAT_18:00"
 #define	C1_TYPE				SCHED_DAILY_ON
 //#define C1_DESCR			"Turn on the water heater"
 #define C1_INPUT			""
@@ -176,40 +185,39 @@
 #define C1_SCHED_SECOND		0
 
 #define C2_CONTROL_NO		1
-#define C2_LABEL			"TURN_OFF_WATER_HEAT"
-#define	C2_TYPE				SCHED_DAILY_OFF
-//#define C2_DESCR			"Turn off the water heater"
+#define C2_LABEL			"TURN_ON_LIGHTS_22:00"
+#define	C2_TYPE				SCHED_DAILY_ON
+//#define C2_DESCR			"Turn on the grow lights"
 #define C2_INPUT			""
-#define C2_OUTPUT			"WATER_HEATER"
+#define C2_OUTPUT			"LIGHTS"
 #define C2_ACT_COMMAND		OUTPUT_ON
 #define C2_DEACT_COMMAND	OUTPUT_OFF
 #define C2_LOW_VAL			0
 #define C2_HIGH_VAL			0
 #define C2_SCHED_DAY		0
-#define C2_SCHED_HOUR		9
+#define C2_SCHED_HOUR		22
 #define C2_SCHED_MINUTE		0
 #define C2_SCHED_SECOND		0
 
-
 #define C3_CONTROL_NO		2
-#define C3_LABEL			"TURN_ON_LIGHTS"
+#define C3_LABEL			"TURN_ON_WATER_HEAT_0:02"
 #define	C3_TYPE				SCHED_DAILY_ON
-//#define C3_DESCR			"Turn on the grow lights"
+//#define C3_DESCR			"Turn on the water heater"
 #define C3_INPUT			""
-#define C3_OUTPUT			"LIGHTS"
+#define C3_OUTPUT			"WATER_HEATER"
 #define C3_ACT_COMMAND		OUTPUT_ON
 #define C3_DEACT_COMMAND	OUTPUT_OFF
 #define C3_LOW_VAL			0
 #define C3_HIGH_VAL			0
 #define C3_SCHED_DAY		0
-#define C3_SCHED_HOUR		22
-#define C3_SCHED_MINUTE		0
+#define C3_SCHED_HOUR		0
+#define C3_SCHED_MINUTE		2
 #define C3_SCHED_SECOND		0
 
 #define C4_CONTROL_NO		3
-#define C4_LABEL			"TURN_OFF_LIGHTS"
-#define	C4_TYPE				SCHED_DAILY_OFF
-//#define C4_DESCR			"Turn off the grow lights"
+#define C4_LABEL			"TURN_ON_LIGHTS_0:02"
+#define	C4_TYPE				SCHED_DAILY_ON
+//#define C4_DESCR			"Turn on the grow lights"
 #define C4_INPUT			""
 #define C4_OUTPUT			"LIGHTS"
 #define C4_ACT_COMMAND		OUTPUT_ON
@@ -217,69 +225,70 @@
 #define C4_LOW_VAL			0
 #define C4_HIGH_VAL			0
 #define C4_SCHED_DAY		0
-#define C4_SCHED_HOUR		9
-#define C4_SCHED_MINUTE		0
+#define C4_SCHED_HOUR		0
+#define C4_SCHED_MINUTE		2
 #define C4_SCHED_SECOND		0
 
 #define C5_CONTROL_NO		4
-#define C5_LABEL			"RESET_MIN_MAX"
-#define	C5_TYPE				SYSTEM_MSG
-//#define C5_DESCR			"Reset Temperature Min and Max Daily - until we have a datalogger"
+#define C5_LABEL			"TURN_OFF_WATER_HEAT_9:00"
+#define	C5_TYPE				SCHED_DAILY_OFF
+//#define C5_DESCR			"Turn off the water heater"
 #define C5_INPUT			""
-#define C5_OUTPUT			""
-#define C5_ACT_COMMAND		0
-#define C5_DEACT_COMMAND	0
+#define C5_OUTPUT			"WATER_HEATER"
+#define C5_ACT_COMMAND		OUTPUT_ON
+#define C5_DEACT_COMMAND	OUTPUT_OFF
 #define C5_LOW_VAL			0
 #define C5_HIGH_VAL			0
 #define C5_SCHED_DAY		0
-#define C5_SCHED_HOUR		17
+#define C5_SCHED_HOUR		9
 #define C5_SCHED_MINUTE		0
 #define C5_SCHED_SECOND		0
 
 #define C6_CONTROL_NO		5
-#define C6_LABEL			"CLEAR_DONE_TODAY"
-#define	C6_TYPE				CLEAR_DONE
-//#define C6_DESCR			"Work around - clear Done Today Flags just after midnight"
+#define C6_LABEL			"TURN_OFF_LIGHTS_9:00"
+#define	C6_TYPE				SCHED_DAILY_OFF
+//#define C6_DESCR			"Turn off the grow lights"
 #define C6_INPUT			""
-#define C6_OUTPUT			""
-#define C6_ACT_COMMAND		0
-#define C6_DEACT_COMMAND	0
+#define C6_OUTPUT			"LIGHTS"
+#define C6_ACT_COMMAND		OUTPUT_ON
+#define C6_DEACT_COMMAND	OUTPUT_OFF
 #define C6_LOW_VAL			0
 #define C6_HIGH_VAL			0
 #define C6_SCHED_DAY		0
-#define C6_SCHED_HOUR		0
-#define C6_SCHED_MINUTE		1
+#define C6_SCHED_HOUR		9
+#define C6_SCHED_MINUTE		0
 #define C6_SCHED_SECOND		0
 
 #define C7_CONTROL_NO		6
-#define C7_LABEL			"TURN_ON_WATER_HEAT"
-#define	C7_TYPE				SCHED_DAILY_ON
-//#define C7_DESCR			"Turn on the water heater"
+#define C7_LABEL			"RESET_MIN_MAX"
+#define	C7_TYPE				SYSTEM_MSG
+//#define C7_DESCR			"Reset Temperature Min and Max Daily - until we have a datalogger"
 #define C7_INPUT			""
-#define C7_OUTPUT			"WATER_HEATER"
-#define C7_ACT_COMMAND		OUTPUT_ON
-#define C7_DEACT_COMMAND	OUTPUT_OFF
+#define C7_OUTPUT			""
+#define C7_ACT_COMMAND		0
+#define C7_DEACT_COMMAND	0
 #define C7_LOW_VAL			0
 #define C7_HIGH_VAL			0
 #define C7_SCHED_DAY		0
-#define C7_SCHED_HOUR		0
-#define C7_SCHED_MINUTE		2
+#define C7_SCHED_HOUR		17
+#define C7_SCHED_MINUTE		0
 #define C7_SCHED_SECOND		0
 
 #define C8_CONTROL_NO		7
-#define C8_LABEL			"TURN_ON_LIGHTS"
-#define	C8_TYPE				SCHED_DAILY_ON
-//#define C8_DESCR			"Turn on the grow lights"
+#define C8_LABEL			"CLEAR_DONE_TODAY"
+#define	C8_TYPE				CLEAR_DONE
+//#define C8_DESCR			"Work around - clear Done Today Flags just after midnight"
 #define C8_INPUT			""
-#define C8_OUTPUT			"LIGHTS"
-#define C8_ACT_COMMAND		OUTPUT_ON
-#define C8_DEACT_COMMAND	OUTPUT_OFF
+#define C8_OUTPUT			""
+#define C8_ACT_COMMAND		0
+#define C8_DEACT_COMMAND	0
 #define C8_LOW_VAL			0
 #define C8_HIGH_VAL			0
 #define C8_SCHED_DAY		0
-#define C8_SCHED_HOUR		2
-#define C8_SCHED_MINUTE		0
+#define C8_SCHED_HOUR		0
+#define C8_SCHED_MINUTE		1
 #define C8_SCHED_SECOND		0
+
 
 /************************************************
  Outputs

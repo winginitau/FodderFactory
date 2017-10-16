@@ -47,7 +47,23 @@ char* GetINIError(uint8_t e, char* msg_buf) {
 	return msg_buf;
 }
 
-
+void InitConfFile(IniFile* cf) {
+	char key_value[INI_FILE_MAX_LINE_LENGTH];
+	if (!cf->open()) {
+		DebugLog(SSS, ERROR, M_NO_CONFIG, 0, 0);
+		// Cannot do anything else
+		while (1)
+			;
+	}
+	// Check the file is valid. This can be used to warn if any lines
+	// are longer than the buffer.
+	if (!cf->validate(key_value, INI_FILE_MAX_LINE_LENGTH)) {
+		DebugLog(SSS, ERROR, M_CONFIG_NOT_VALID, 0, 0);
+		// Cannot do anything else
+		while (1)
+			;
+	}
+}
 
 void ReadAndParseConfig(void) {
 	const char f_name[] = CONFIG_FILENAME;
@@ -58,72 +74,98 @@ void ReadAndParseConfig(void) {
 	char f_mode[] = "r\0";
 	IniFile cf(f_name, f_mode);
 #endif
-	//uint8_t total_block_count = 0;
-	//char section_label[MAX_LABEL_LENGTH];
-	//char base_key[MAX_LABEL_LENGTH];
 
-	char target_key[MAX_LABEL_LENGTH];			//to search for
+	char list_section_label[MAX_LABEL_LENGTH];
+	char block_section_label[MAX_LABEL_LENGTH];
+	char target_section_key[MAX_LABEL_LENGTH];			//to search for
+	char target_conf_key[MAX_LABEL_LENGTH];
 	char key_value[INI_FILE_MAX_LINE_LENGTH];	//to read value into
 	char char_num[4];							//to add to key strings to find how many are defined
-	int bl;										//iterator - block list within block category
+	uint8_t bl;										//iterator - block list within block category
+	uint8_t block_count = 0;
+	uint8_t last_key = 0;
 
-	if (!cf.open()) {
-		DebugLog(SSS, ERROR, M_NO_CONFIG, 0, 0);
-		// Cannot do anything else
-		while (1);
-	}
-	// Check the file is valid. This can be used to warn if any lines
-	// are longer than the buffer.
-	if (!cf.validate(key_value, INI_FILE_MAX_LINE_LENGTH)) {
-		DebugLog(SSS, ERROR, M_CONFIG_NOT_VALID, 0, 0);
-		// Cannot do anything else
-		while (1);
-	}
-
-	/*  errorNoError = 0,
-    errorFileNotFound,
-    errorFileNotOpen,
-    errorBufferTooSmall,
-    errorSeekError,
-    errorSectionNotFound,
-    errorKeyNotFound,
-    errorEndOfFile,
-    errorUnknownError,
-    */
+	InitConfFile(&cf);
 
 	//TODO read system block and set language and scale
 
-	char debug_msg[MAX_LABEL_LENGTH * 3];
+	char debug_msg[MAX_DEBUG_LENGTH];
 	char ini_error_string[MAX_LABEL_LENGTH];
 
 	//Block type 0 will always be SYSTEM - special case - start from b_cat=1
 
 	for (int b_cat = 1; b_cat < LAST_BLOCK_CAT; b_cat++) {    //iterate each block category
-		int block_count = 0;
 
 		bl = 1; 	//block list start from "1" in config file
 		uint8_t last_found = 0;
 		while (bl < MAX_BLOCKS_PER_CATEGORY && !last_found) {
-		//for (bl = 1; bl < MAX_BLOCKS_PER_CATEGORY; bl++) {  //check up to MAX for defined blocks per category
 
-			strcpy(target_key, block_cat_defs[b_cat].conf_section_key_base);
+			strcpy(target_section_key, block_cat_defs[b_cat].conf_section_key_base);
 			sprintf(char_num, "%d", bl);
-			strcat(target_key, char_num);
+			strcat(target_section_key, char_num);
+			strcpy(list_section_label, block_cat_defs[b_cat].conf_section_label);
 			key_value[0] = '\0';
 
-			if (cf.getValue(block_cat_defs[b_cat].conf_section_label, target_key, key_value, INI_FILE_MAX_LINE_LENGTH)) {
+			if (cf.getValue(list_section_label, target_section_key, key_value, INI_FILE_MAX_LINE_LENGTH)) {
 
-				sprintf(debug_msg, "[%s][%s] = %s", block_cat_defs[b_cat].conf_section_label, target_key, key_value);
+				sprintf(debug_msg, "[%s][%s] = %s", list_section_label, target_section_key, key_value);
 				DebugLog(debug_msg);
+
+				strcpy(block_section_label, key_value); //look for a block section with that label
+
+				switch (block_cat_defs[b_cat].cat_id) {
+					case FF_INPUT:
+						last_key = LAST_IN_KEY_TYPE;
+						break;
+					case FF_MONITOR :
+						last_key = LAST_MON_KEY_TYPE;
+						break;
+					case FF_SCHEDULE :
+						last_key = LAST_SCH_KEY_TYPE;
+						break;
+					case FF_RULE :
+						last_key = LAST_RL_KEY_TYPE;
+						break;
+					case FF_CONTROLLER :
+						last_key = LAST_CON_KEY_TYPE;
+						break;
+					case FF_OUTPUT :
+						last_key = LAST_OUT_KEY_TYPE;
+						break;
+
+					default:
+						;
+				}
+
+				for (int conf_key = 0; conf_key < last_key; conf_key++) {
+
+					strcpy(target_conf_key, block_cat_defs[b_cat].conf_keys[conf_key]);
+
+					if (cf.getValue(block_section_label, target_conf_key, key_value, INI_FILE_MAX_LINE_LENGTH)) {
+						sprintf(debug_msg, "[%s][%s][%s] = %s", list_section_label, block_section_label, target_conf_key, key_value);
+						//store it in block list (or otherwsie)
+						DebugLog(debug_msg);
+					} else {
+						sprintf(debug_msg, "[%s][%s][%s]: %s ", list_section_label, target_section_key, target_conf_key, GetINIError(cf.getError(), ini_error_string));
+						DebugLog(debug_msg);
+						//handle error - could be ok if key not required for that block sub type
+					}
+				}
+
 				block_count++;
 				bl++;
 
 			} else {
-				sprintf(debug_msg, "ERROR[%s][%s]: %s ",block_cat_defs[b_cat].conf_section_label, target_key, GetINIError(cf.getError(), ini_error_string));
+				sprintf(debug_msg, "LAST [%s] REACHED - [%s]: %s ",block_cat_defs[b_cat].conf_section_label, target_section_key, GetINIError(cf.getError(), ini_error_string));
 				DebugLog(debug_msg);
 				last_found = 1;
 			}
+
 		}
+		//int dyn_arry[block_count];
+		//for (int i = 0; i < block_count; i++) {
+		//	dyn_arry[i] = 0;
+		//}
 	}
 	cf.close();
 
