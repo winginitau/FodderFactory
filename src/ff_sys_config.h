@@ -17,7 +17,7 @@
 
 //#include "ff_string_consts.h"
 
-#define VERSION v0.1dev
+#define VERSION v0.3dev
 
 /************************************************
  PLATFORM Directives
