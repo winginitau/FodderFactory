@@ -25,17 +25,20 @@
 #include <OneWire.h>                  // comms to Dallas temprature sensors
 #include <DallasTemperature.h>
 #include <U8g2lib.h>                  // LCD display library
+#include <U8x8lib.h>
 #include "RTClib.h"
 #include "SD.h"
 #include <time.h>
-//#include "Wire.h"
+#include "Wire.h"
 #endif
 
 #ifdef U8X8_HAVE_HW_SPI
-#include <SPI.h>
+#undef U8X8_HAVE_HW_SPI
+//#include <SPI.h>
 #endif
 #ifdef U8X8_HAVE_HW_I2C
-#include <Wire.h>
+#undef U8X8_HAVE_HW_I2C
+//#include <Wire.h>
 #endif
 
 #ifdef FF_SIMULATOR
@@ -56,8 +59,13 @@
 //OneWire one_wire(ONE_WIRE_BUS);            		// oneWire instance to communicate with any OneWire devices
 //DallasTemperature temp_sensors(&one_wire);     // Pass our one_wire reference to Dallas Temperature
 
-//moving this to local too (try)
-//U8G2_ST7920_128X64_F_SW_SPI lcd_128_64(U8G2_R0, /* clock=*/ 40 /* A4 */ , /* data=*/ 42 /* A2 */, /* CS=*/ 44 /* A3 */, /* reset=*/ U8X8_PIN_NONE); //LCD Device Object and Definition
+//moving this to local too (try - result: flashing. moved back)
+U8G2_ST7920_128X64_1_SW_SPI lcd_128_64(U8G2_R0, /* clock=*/ 40 /* A4 */ , /* data=*/ 42 /* A2 */, /* CS=*/ 44 /* A3 */, /* reset=*/ U8X8_PIN_NONE); //LCD Device Object and Definition
+//U8X8_ST7920_128X64_SW_SPI(uint8_t clock, uint8_t data, uint8_t cs, uint8_t reset = U8X8_PIN_NONE)
+//trying 8x8 version - no frame buffer!!! less RAM
+//U8X8_ST7920_128X64_SW_SPI lcd_128_64(40, 42, 44, U8X8_PIN_NONE);
+
+//U8X8_ST7920_128X64_SW_SPI u8x8(40, 42, 44, U8X8_PIN_NONE);
 
 RTC_DS1307 rtc;
 #endif
@@ -88,46 +96,53 @@ uint8_t HALSaveEventBuffer(void) {
 	pinMode(53, OUTPUT);
 	// see if the card is present and can be initialized:
 	if (SD.begin(10, 11, 12, 13)) {
-		DebugLog("DEBUG INFO sd.begin"); //cant use EventMsg
+		//DebugLog("DEBUG INFO sd.begin"); //cant use EventMsg
 
 		EventNode* e;
-		String e_str;
+		char e_str[MAX_DEBUG_LENGTH];
+		char ymd_str[12];
+		char hms_str[12];
+		const char* source_str;
+		const char* msg_type_str;
+		const char* msg_str;
+		char float_str[20];
 
 		if (!EventBufferEmpty()) {
 			e_file = SD.open(EVENT_FILENAME, FILE_WRITE);
 			if (e_file) {
-				DebugLog("DEBUG INFO SD.open");
+				//DebugLog("DEBUG INFO SD.open");
 				while (!EventBufferEmpty()) {
 
 					e = EventBufferPop();
 
-					e_str = FFDateString(e->time_stamp) + ","
-							+ FFTimeString(e->time_stamp) + ","
-							+ GetBlockLabelString(e->source) + ","
-							+ GetMessageTypeString(e->message_type) + ","
-							+ GetMessageString(e->message) + ","
-							+ e->int_val + ","
-							+ e->float_val; //assemble entry to write
+					FFDateCString((char *)ymd_str, e->time_stamp);
+					FFTimeCString((char *)hms_str, e->time_stamp);
+					source_str = GetBlockLabelString(e->source);
+					msg_type_str = GetMessageTypeString(e->message_type);
+					msg_str = GetMessageString(e->message);
+					FFFloatToCString((char *)float_str, e->float_val);
+
+					sprintf(e_str,"%s, %s, %s, %s, %s, %d, %s",  ymd_str, hms_str, source_str, msg_type_str, msg_str, e->int_val, float_str);
 
 					e_file.println(e_str);
 
 				}
 				e_file.flush();
 				e_file.close();
-				DebugLog("DEBUG INFO Event Buffer Saved");
+				//DebugLog("DEBUG INFO Event Buffer Saved");
 				save_success = 1;
 			} else {
-				DebugLog("DEBUG ERROR SD File Handle NULL");
+				DebugLog(GetMessageString(M_SD_NO_FILE_HANDLE));
 			}
 
 		} else {
-			DebugLog("DEBUG ERROR Event Buffer Empty - Nothing to Save");
+			DebugLog(GetMessageString(M_ERROR_EVENTS_EMPTY));
 		}
 
 		SD.end();
-		DebugLog("DEBUG INFO SD.end");
+		//DebugLog("DEBUG INFO SD.end");
 	} else {
-		DebugLog("DEBUG ERROR SD.begin FAIL");
+		DebugLog(GetMessageString(M_SD_BEGIN_FAIL));
 	}
 #endif
 #ifdef FF_SIMULATOR
@@ -173,42 +188,51 @@ uint8_t HALSaveEventBuffer(void) {
 #ifdef FF_ARDUINO
 #ifdef DEBUG_LCD
 void HALDebugLCD(String log_entry) {
-	U8G2_ST7920_128X64_F_SW_SPI lcd_128_64(U8G2_R0, /* clock=*/ 40 /* A4 */ , /* data=*/ 42 /* A2 */, /* CS=*/ 44 /* A3 */, /* reset=*/ U8X8_PIN_NONE); //LCD Device Object and Definition
-	lcd_128_64.begin();
+	//U8G2_ST7920_128X64_F_SW_SPI lcd_128_64(U8G2_R0, /* clock=*/ 40 /* A4 */ , /* data=*/ 42 /* A2 */, /* CS=*/ 44 /* A3 */, /* reset=*/ U8X8_PIN_NONE); //LCD Device Object and Definition
+	//lcd_128_64.begin();
 
-	lcd_128_64.clearBuffer();                     // clear the internal memory
-//  u8g2.setFont(u8g2_font_ncenB08_tr); // choose a suitable font
+	//lcd_128_64.clearBuffer();                     // clear the internal memory
+	//lcd_128_64.clearDisplay();
+	//  u8g2.setFont(u8g2_font_ncenB08_tr); // choose a suitable font
 	lcd_128_64.setFont(u8g2_font_6x12_tr);
+	lcd_128_64.firstPage();
+	//lcd_128_64.setFont(u8x8_font_chroma48medium8_r);
+	do {
 	lcd_128_64.drawStr(0, 10, "                                "); // clear the screen
 	lcd_128_64.drawStr(0, 20, "                                "); // clear the screen
 	lcd_128_64.drawStr(0, 30, "                                "); // clear the screen
 	lcd_128_64.drawStr(0, 40, "                                "); // clear the screen
 	lcd_128_64.drawStr(0, 50, "                                "); // clear the screen
 	lcd_128_64.drawStr(0, 60, "                                "); // clear the screen
-	lcd_128_64.sendBuffer();          // transfer internal memory to the display
+	} while (lcd_128_64.nextPage());
+	//lcd_128_64.sendBuffer();          // transfer internal memory to the display
 //delay(1000);
 
-	lcd_128_64.clearBuffer();                     // clear the internal memory
+	//lcd_128_64.clearBuffer();                     // clear the internal memory
 //  u8g2.setFont(u8g2_font_ncenB08_tr); // choose a suitable font
-	lcd_128_64.setFont(u8g2_font_6x12_tr);
+	//lcd_128_64.setFont(u8g2_font_6x12_tr);
+	//lcd_128_64.setFont(u8x8_font_chroma48medium8_r);
 	int a, b, c, d, e;
 	a = log_entry.indexOf(",");       //time stamp
-	b = log_entry.indexOf(",", a + 1);  //device
+	b = log_entry.indexOf(",", a + 1);  //source
 	c = log_entry.indexOf(",", b + 1);  //msg type
 	d = c + 23;  //msg
 	e = d + 23;
 // 170812 00:00:00, TEMP_1, DEBUG, Temparature is 23.56
 // 0123456789012345678901234567890123456789012345678901234567890
 // 0              a       b      c
+	lcd_128_64.firstPage();
+	do {
 	lcd_128_64.drawStr(0, 10, log_entry.substring(0, a).c_str()); // write something to the internal memory (forcing String Obj to be a char string)
 	lcd_128_64.drawStr(0, 20, log_entry.substring(a + 2, b).c_str()); // write something to the internal memory (forcing String Obj to be a char string)
 	lcd_128_64.drawStr(0, 30, log_entry.substring(b + 2, c).c_str()); // write something to the internal memory (forcing String Obj to be a char string)
 	lcd_128_64.drawStr(0, 40, log_entry.substring(c + 2, d).c_str()); // write something to the internal memory (forcing String Obj to be a char string)
 	lcd_128_64.drawStr(0, 50, log_entry.substring(d, e).c_str()); // write something to the internal memory (forcing String Obj to be a char string)
 	lcd_128_64.drawStr(0, 60, log_entry.substring(e).c_str()); // write something to the internal memory (forcing String Obj to be a char string)
+	} while (lcd_128_64.nextPage());
 
-	lcd_128_64.sendBuffer();          // transfer internal memory to the display
-//delay(1000);
+	//lcd_128_64.sendBuffer();          // transfer internal memory to the display
+	delay(DEBUG_LCD_DELAY);
 }
 #endif
 #endif
@@ -223,23 +247,35 @@ float GetTemperature(int if_num) {
 	temp_sensors.begin();
 	temp_sensors.requestTemperatures();  //tell them to take a reading (stored on device)
 
-	//orgianl code
+	//original code
 	temp_c = temp_sensors.getTempCByIndex(if_num);
 #endif
-#ifdef FF_SIMULATOR
+#ifdef FF_TEMP_SIM
 
 	switch (if_num) {
 	case 0:
 		temp_c = SIM_TEMP_0;
+#ifdef FF_ARDUINO
+		temp_c = random(5.01, 39.99);
+#endif
 		break;
 	case 1:
 		temp_c = SIM_TEMP_1;
+#ifdef FF_ARDUINO
+		temp_c = random(5.01, 39.99);
+#endif
 		break;
 	case 2:
 		temp_c = SIM_TEMP_2;
+#ifdef FF_ARDUINO
+		temp_c = random(5.01, 39.99);
+#endif
 		break;
 	case 3:
 		temp_c = SIM_TEMP_2;
+#ifdef FF_ARDUINO
+		temp_c = random(5.01, 39.99);
+#endif
 		break;
 	default:
 		temp_c = -50;
@@ -282,20 +318,22 @@ void InitTempSensors(void) {
 
 void HALInitUI(void) {
 #ifdef FF_ARDUINO
-	//lcd_128_64.begin();
+	lcd_128_64.begin();
 #endif
 #ifdef FF_SIMULATOR
 #endif
 }
 
-void HALDrawDataScreen(const UIDataSet* uids, FFDateTime dt) {
+
+void HALDrawDataScreenCV(const UIDataSet* uids, FFDateTime dt) {
 #ifdef FF_ARDUINO
-	U8G2_ST7920_128X64_F_SW_SPI lcd_128_64(U8G2_R0, /* clock=*/ 40 /* A4 */ , /* data=*/ 42 /* A2 */, /* CS=*/ 44 /* A3 */, /* reset=*/ U8X8_PIN_NONE); //LCD Device Object and Definition
-	lcd_128_64.begin();
+	//U8G2_ST7920_128X64_F_SW_SPI lcd_128_64(U8G2_R0, /* clock=*/ 40 /* A4 */ , /* data=*/ 42 /* A2 */, /* CS=*/ 44 /* A3 */, /* reset=*/ U8X8_PIN_NONE); //LCD Device Object and Definition
+	//lcd_128_64.begin();
 
-	lcd_128_64.clearBuffer();                     // clear the internal memory
+	//lcd_128_64.clearBuffer();                     // clear the internal memory
+	//lcd_128_64.clearDisplay();
 	lcd_128_64.setFont(u8g2_font_6x12_tr);
-
+	//lcd_128_64.setFont(u8x8_font_chroma48medium8_r);
 	//template with u8g2_font_6x12_tr font
 	//lcd_128_64.drawStr(0, 10, "16:23 IN   OUT  WATER");
 	//lcd_128_64.drawStr(0, 20, "NOW 20.23 20.45 25.34");
@@ -304,7 +342,11 @@ void HALDrawDataScreen(const UIDataSet* uids, FFDateTime dt) {
 	//lcd_128_64.drawStr(0, 50, "MAX 20.23 20.45 25.34");
 	//lcd_128_64.drawStr(0, 60, "    03:24 04:15 05:00");
 
-	lcd_128_64.drawStr(0, 7, FFTimeString(dt).c_str());
+	char str_buf[8]; //assuming that lcd extracts display chars from the string and builds a separate buffer.
+
+	lcd_128_64.firstPage();
+	do {
+	lcd_128_64.drawStr(0, 7, FFShortTimeCString(str_buf, dt));
 	lcd_128_64.drawStr(0, 18, "");
 	lcd_128_64.drawStr(0, 31, "Min");
 	lcd_128_64.drawStr(0, 41, "  @");
@@ -312,27 +354,28 @@ void HALDrawDataScreen(const UIDataSet* uids, FFDateTime dt) {
 	lcd_128_64.drawStr(0, 64, "  @");
 
 	lcd_128_64.drawStr(43, 7, "IN");
-	lcd_128_64.drawStr(25, 18, FFFloatString(uids->inside_current).c_str());
-	lcd_128_64.drawStr(25, 31, FFFloatString(uids->inside_min).c_str());
-	lcd_128_64.drawStr(25, 41, FFTimeString(uids->inside_min_dt).c_str());
-	lcd_128_64.drawStr(25, 54, FFFloatString(uids->inside_max).c_str());
-	lcd_128_64.drawStr(25, 64, FFTimeString(uids->inside_max_dt).c_str());
+	lcd_128_64.drawStr(25, 18, FFFloatToCString(str_buf, uids->inside_current));
+	lcd_128_64.drawStr(25, 31, FFFloatToCString(str_buf, uids->inside_min));
+	lcd_128_64.drawStr(25, 41, FFShortTimeCString(str_buf, uids->inside_min_dt));
+	lcd_128_64.drawStr(25, 54, FFFloatToCString(str_buf, uids->inside_max));
+	lcd_128_64.drawStr(25, 64, FFShortTimeCString(str_buf, uids->inside_max_dt));
 
 	lcd_128_64.drawStr(72, 7, "OUT");
-	lcd_128_64.drawStr(60, 18, FFFloatString(uids->outside_current).c_str());
-	lcd_128_64.drawStr(60, 31, FFFloatString(uids->outside_min).c_str());
-	lcd_128_64.drawStr(60, 41, FFTimeString(uids->outside_min_dt).c_str());
-	lcd_128_64.drawStr(60, 54, FFFloatString(uids->outside_max).c_str());
-	lcd_128_64.drawStr(60, 64, FFTimeString(uids->outside_max_dt).c_str());
+	lcd_128_64.drawStr(60, 18, FFFloatToCString(str_buf, uids->outside_current));
+	lcd_128_64.drawStr(60, 31, FFFloatToCString(str_buf, uids->outside_min));
+	lcd_128_64.drawStr(60, 41, FFShortTimeCString(str_buf, uids->outside_min_dt));
+	lcd_128_64.drawStr(60, 54, FFFloatToCString(str_buf, uids->outside_max));
+	lcd_128_64.drawStr(60, 64, FFShortTimeCString(str_buf, uids->outside_max_dt));
 
 	lcd_128_64.drawStr(110, 7, "WAT");
-	lcd_128_64.drawStr(95, 18, FFFloatString(uids->water_current).c_str());
-	lcd_128_64.drawStr(95, 31, FFFloatString(uids->water_min).c_str());
-	lcd_128_64.drawStr(95, 41, FFTimeString(uids->water_min_dt).c_str());
-	lcd_128_64.drawStr(95, 54, FFFloatString(uids->water_max).c_str());
-	lcd_128_64.drawStr(95, 64, FFTimeString(uids->water_max_dt).c_str());
+	lcd_128_64.drawStr(95, 18, FFFloatToCString(str_buf, uids->water_current));
+	lcd_128_64.drawStr(95, 31, FFFloatToCString(str_buf, uids->water_min));
+	lcd_128_64.drawStr(95, 41, FFShortTimeCString(str_buf, uids->water_min_dt));
+	lcd_128_64.drawStr(95, 54, FFFloatToCString(str_buf, uids->water_max));
+	lcd_128_64.drawStr(95, 64, FFShortTimeCString(str_buf, uids->water_max_dt));
+	} while (lcd_128_64.nextPage());
 
-	lcd_128_64.sendBuffer();                      // transfer internal memory to the display
+	//lcd_128_64.sendBuffer();                      // transfer internal memory to the display
 #endif
 #ifdef FF_SIMULATOR
 	char time_now_str[10];
@@ -364,7 +407,6 @@ void HALDrawDataScreen(const UIDataSet* uids, FFDateTime dt) {
 	printf("    %s %s %s\n", time_in_max, time_out_max, time_wat_max);
 #endif
 }
-
 
 
 FFDateTime HALFFDTNow(void) {

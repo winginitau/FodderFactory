@@ -19,6 +19,7 @@
 
 #ifdef FF_SIMULATOR
 #include <string.h>
+#include <stdio.h>
 #endif
 /************************************************
   Data Structures
@@ -48,13 +49,19 @@ static int outputs_command[OUTPUT_COUNT];
 
 void SetOutputCommand(char* label, uint8_t command) {
 	uint8_t i = 0;
-	while (!strcmp(outputs[i].label, label)) {
+	//printf("%s\n", label);
+	//printf("%s\n", outputs[i].label);
+	//printf("%d\n", strcmp(outputs[i].label, label));
+	while (strcmp(outputs[i].label, label)) {
 		i++;
 		if (i >= OUTPUT_COUNT) {
 			break;
 		}
 	}
 	if (i < OUTPUT_COUNT) {
+		//printf("%s\n", label);
+		//printf("%s\n", outputs[i].label);
+		//printf("i:%d  c:%d\n", i, command);
 		outputs_command[i] = command;
 	} else {
 		EventMsg(SSS, ERROR, M_OUTPUT_LABEL_NOT_FOUND, 0, 0);

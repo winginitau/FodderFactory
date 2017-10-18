@@ -22,6 +22,7 @@
 #include "ff_outputs.h"
 #include "ff_registry.h"
 #include "ff_events.h"
+#include "ff_debug.h"
 
 #ifdef FF_ARDUINO
 #include <Arduino.h>
@@ -179,24 +180,36 @@ void ProcessController(int i) {
 		}
 		break;
 	case CLEAR_DONE:
-		if (controls[i].sched_done_today == 0) {   //ie it hasn't yet been done
-			FFDateTime now, sched;
-			now = FFDTNow();
-			sched.year = now.year;
-			sched.month = now.month;
-			sched.day = now.day; 	//daily controller - do it today
-			sched.hour = controls[i].sched_hour;
-			sched.minute = controls[i].sched__minute;
-			sched.second = controls[i].sched_second;
+		FFDateTime now, sched, sched_plus20s;
+		now = FFDTNow();
 
-			if (FFDTGrEq(now, sched)) {
-				for (int d = 0; d < CONTROL_COUNT; d++) {
-					controls[d].sched_done_today = 0;
-				}
-				controls[i].sched_done_today = 1;
-				controls[i].last_action = now;
-				EventMsg(i + GetBlockTypeOffset(FF_CONTROLLER), CLEAR_DONE,	M_MIDNIGHT_DONE, 0, 0);
+		sched.year = now.year;
+		sched.month = now.month;
+		sched.day = now.day; 	//daily controller - do it today
+		sched.hour = controls[i].sched_hour;
+		sched.minute = controls[i].sched__minute;
+		sched.second = controls[i].sched_second;
+
+		sched_plus20s.year = now.year;
+		sched_plus20s.month = now.month;
+		sched_plus20s.day = now.day; 	//daily controller - do it today
+		sched_plus20s.hour = controls[i].sched_hour;
+		sched_plus20s.minute = controls[i].sched__minute;
+		sched_plus20s.second = controls[i].sched_second + 20;
+
+		if (FFDTGrEq(now, sched) && FFDTGrEq(sched_plus20s, now)) {  //ie between sched and sched + 20sec
+			for (int d = 0; d < CONTROL_COUNT; d++) {
+				controls[d].sched_done_today = 0;
 			}
+			controls[i].sched_done_today = 1;
+			controls[i].last_action = now;
+			EventMsg(i + GetBlockTypeOffset(FF_CONTROLLER), CLEAR_DONE,	M_MIDNIGHT_DONE, 0, 0);
+			DebugLog("Waiting 21 secs");
+			sched_plus20s.second++;
+			while (FFDTGrEq(sched_plus20s, now)) {
+				now = FFDTNow();
+			}
+			DebugLog("Wait Done, Continue");
 		}
 		break;
 	default:

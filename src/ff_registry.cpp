@@ -188,7 +188,7 @@ void UpdateStateRegister(uint8_t source, uint8_t msg_type, uint8_t msg_str, int 
 			sr.ui_data.water_current = f_val;
 			if (f_val < sr.ui_data.water_min) {
 				sr.ui_data.water_min = f_val;
-				sr.ui_data.outside_min_dt = FFDTNow();
+				sr.ui_data.water_min_dt = FFDTNow();
 			}
 			if (f_val > sr.ui_data.water_max) {
 				sr.ui_data.water_max = f_val;

@@ -179,15 +179,18 @@ bool IniFile::open(void)
   }
 }
 
-void IniFile::close(void)
-{
-  if (_file)
+void IniFile::close(void) {
 #ifdef FF_ARDUINO
-    _file.close();
+	if (_file) {
+		_file.close();
+		SD.end();
+	}
 #endif
 #ifdef FF_SIMULATOR
-  fclose(_file);
-  _file = NULL;
+	if (_file) {
+		fclose(_file);
+		_file = NULL;
+	}
 #endif
 
 }

@@ -59,9 +59,9 @@ char* FFDateCString(char* ymd_str, FFDateTime dt);
 char* FFDateTimeCStringNow (char* dt_str);
 
 #ifdef FF_ARDUINO
-String FFDateTimeStringNow(void);
+//String FFDateTimeStringNow(void);
 
-String FFTimeString(FFDateTime dt);
+String FFShortTimeString(FFDateTime dt);
 
 String FFDateString(FFDateTime dt);
 #endif
