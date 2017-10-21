@@ -8,7 +8,6 @@
 #ifndef SRC_FF_STRINGS_H_
 #define SRC_FF_STRINGS_H_
 
-#define VERSION "v0.2 PROD"
 
 //#include "ff_sys_config.h"
 //#include "ff_utils.h"

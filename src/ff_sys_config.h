@@ -13,21 +13,17 @@
 #ifndef FF_SYS_CONFIG_H_
 #define FF_SYS_CONFIG_H_
 
-#define VERSION v0.2dev
-
-//#include "ff_string_consts.h"
-
 #define VERSION v0.3dev
 
 /************************************************
  PLATFORM Directives
  ************************************************/
 
-#define FF_ARDUINO
+
+//#define FF_ARDUINO
 //#define FF_TEMP_SIM  //optionally
 //OR
-//#define FF_SIMULATOR
-
+#define FF_SIMULATOR
 
 #ifdef FF_SIMULATOR
 #define FF_TEMP_SIM
