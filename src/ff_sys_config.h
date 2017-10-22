@@ -57,7 +57,7 @@
 #define DEBUG_CONSOLE					//write to stdout
 #endif
 
-#define MAX_DEBUG_LENGTH 150			//line buffer length for debug messages "stack smashing if too short"
+#define MAX_DEBUG_LENGTH 255			//line buffer length for debug messages "stack smashing if too short"
 
 #endif //DEBUG
 
@@ -87,7 +87,7 @@
 
 #define SSS 0   //System Source Block index in sr.block_list
 
-#define MAX_LABEL_LENGTH 32
+#define MAX_LABEL_LENGTH 40
 #define MAX_DESCR_LENGTH 80
 #define MAX_BLOCKS 255
 #define MAX_BLOCKS_PER_CATEGORY 255

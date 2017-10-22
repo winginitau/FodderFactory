@@ -41,35 +41,6 @@
 
 #ifdef DEBUG
 
-/*
-	String log_entry;
-  log_entry = FFDateTimeStringNow() + ", " + log_message;    //assemble log entry
-  //TODO open log file and write the message
-  #ifdef DEBUG_SERIAL
-    Serial.begin(DEBUG_SERIAL_BAUDRATE);
-    int loop = 2000;
-    while (loop > 0) {
-      loop--;
-      if (Serial) {
-        break;
-      };
-    };
-    if (loop > 0) {
-      //ie. connected before timeout
-      Serial.println(log_entry);
-      Serial.flush();
-    };
-    Serial.end();
-  #endif // DEBUG_SERIAL
-
-  #ifdef DEBUG_LCD
-    DebugLCD(log_entry);
-  #endif  //DEBUG_LCD
-};
-
-*/
-
-
 
 #ifdef DEBUG_SERIAL
 void DebugSerial(char *log_entry) {
@@ -96,7 +67,6 @@ void DebugConsole (const char* str) {
 	printf("%s\n", str);
 }
 #endif //DEBUG_CONSOLE
-
 
 
 void DebugLog(const char* log_message) {
@@ -131,7 +101,6 @@ void DebugLog(uint8_t source, uint8_t msg_type, uint8_t msg_str, int i_val, floa
 	sprintf(debug_log_message, "%s, %s, %s, %d, %s", GetBlockLabelString(source), GetMessageTypeString(msg_type), GetMessageString(msg_str), i_val, f_str);
 	DebugLog(debug_log_message);
 }
-
 
 #endif //DEBUG
 

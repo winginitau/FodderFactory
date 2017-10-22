@@ -41,11 +41,15 @@ typedef struct UI_DATA_SET {
 	uint8_t water_heater_flag;		//current state of water heater
 } UIDataSet;
 
-
+typedef struct BLOCK_NODE BlockNode;
 
 /************************************************
  Function Prototypes
 ************************************************/
+
+BlockNode* GetBlock (BlockNode *list_node, uint8_t block_cat, const char *block_label);
+
+uint8_t ConfigureBlock(uint8_t block_cat, const char *block_label, const char *key_str, const char *value_str);
 
 char const* GetBlockLabelString(int idx);
 

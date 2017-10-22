@@ -36,6 +36,13 @@ typedef struct FF_DATE_TIME {
 	uint8_t second;
 } FFDateTime;
 
+typedef struct FF_TIME {
+	uint8_t hour;
+	uint8_t minute;
+	uint8_t second;
+} FFTime;
+
+
 /************************************************
  Function prototypes
  ************************************************/

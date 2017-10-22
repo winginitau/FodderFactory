@@ -13,9 +13,11 @@
 #include "ff_registry.h"
 #include "ff_sys_config.h"
 #include "ff_string_consts.h"
+#include "ff_debug.h"
 
 #ifdef FF_SIMULATOR
 #include <string.h>
+#include <stdlib.h>
 #endif
 
 
@@ -27,6 +29,84 @@ typedef struct BLOCK_TYPE {
 	char label[MAX_LABEL_LENGTH];
 	uint8_t active;
 } Block;
+
+
+
+typedef struct FF_SYSTEM_SETTINGS {
+	uint8_t temp_scale;
+	uint8_t language;
+	uint8_t week_start;
+} SystemSettings;
+
+typedef struct FF_INPUT_SETTINGS {
+	uint8_t interface;
+	uint8_t if_num;
+	uint8_t log_rate_day;
+	uint8_t log_rate_hour;
+	uint8_t log_rate_minute;
+	uint8_t log_rate_second;
+	uint16_t log_rate_millisec;
+	uint8_t data_units;
+	uint8_t data_type;		// float, int
+} InputSettings;
+
+typedef struct FF_MONITOR_SETTINGS {
+	uint16_t input1;
+	uint16_t input2;
+	uint16_t input3;
+	uint16_t input4;
+	float act_val;
+	float deact_val;
+} MonitorSettings;
+
+typedef struct FF_SCHED_SETTINGS {
+	uint8_t days[7];
+	FFTime time_start;
+	FFTime time_end;
+	FFTime time_duration;
+	FFTime time_repeat;
+} ScheduleSettings;
+
+typedef struct FF_RULE_SETTINGS {
+	uint16_t param1;
+	uint16_t param2;
+	uint16_t param3;
+	uint16_t param_not;
+} RuleSettings;
+
+typedef struct FF_CONTROLLER_SETTINGS {
+	uint16_t rule;
+	uint16_t output;
+	uint8_t act_cmd;
+	uint8_t deact_cmd;
+} ControllerSettings;
+
+typedef struct FF_OUTPUT_SETTINGS {
+	uint8_t out_digital_pin;
+} OutputSettings;
+
+
+typedef union BLOCK_SETTINGS {
+	SystemSettings sys;
+	InputSettings in;
+	MonitorSettings mon;
+	ScheduleSettings sch;
+	RuleSettings rl;
+	ControllerSettings con;
+	OutputSettings out;
+} BlockSettings;
+
+struct BLOCK_NODE {
+	struct BLOCK_NODE *next_block;
+	uint8_t block_cat;
+	uint16_t block_type;
+	char block_label[MAX_LABEL_LENGTH];
+	char display_name[MAX_LABEL_LENGTH];
+	char description[MAX_DESCR_LENGTH];
+	uint8_t active;
+	BlockSettings settings;
+};
+
 
 typedef struct FF_STATE_REGISTER {
 	//system config ad flags
@@ -78,10 +158,219 @@ typedef struct FF_STATE_REGISTER {
 ************************************************/
 
 static FFStateRegister sr;
+static BlockNode *bll;		//Block Linked List - variant record block list
 
 /************************************************
  Functions
 ************************************************/
+
+
+
+
+BlockNode* AddBlock (BlockNode *list_node, uint8_t block_cat, const char *block_label) {
+
+
+	if(list_node == NULL) {   //empty list
+		list_node = (BlockNode *)malloc(sizeof(BlockNode));
+		if (list_node) {
+			list_node->block_cat = block_cat;
+			strcpy(list_node->block_label, block_label);
+			list_node->active = 0;
+			list_node->block_type = 255;
+			list_node->next_block = NULL;
+		} else {
+			list_node = AddBlock(list_node->next_block, block_cat, block_label);
+		}
+	}
+	return list_node;
+}
+
+
+BlockNode* GetBlock (BlockNode *list_node, uint8_t block_cat, const char *block_label) {
+	BlockNode *block;
+
+	if(list_node == NULL) {   //empty list
+		return NULL;
+	} else {
+		if (strcmp(list_node->block_label, block_label) == 0) {
+			return list_node;
+		} else {
+			list_node = GetBlock(list_node->next_block, block_cat, block_label);
+		}
+	}
+	return list_node;
+}
+
+uint8_t ConfigureBlock(uint8_t block_cat, const char *block_label,
+		const char *key_str, const char *value_str) {
+	BlockNode *block_ptr;
+	uint8_t return_value = 0;  //error
+	uint8_t last_key = 255;
+
+	block_ptr = GetBlock(bll, block_cat, block_label);
+
+	if (block_ptr == NULL) {
+		block_ptr = AddBlock(bll, block_cat, block_label); //add a new one
+	}
+	if (block_ptr != NULL) {
+		return_value = 1;
+
+		//assume we now have a valid block_ptr pointing to a categorised and labelled block
+
+
+		//lock the last key index to the appropriate block category
+		switch (block_cat) {
+		case FF_INPUT:
+			last_key = LAST_IN_KEY_TYPE;
+			break;
+		case FF_MONITOR:
+			last_key = LAST_MON_KEY_TYPE;
+			break;
+		case FF_SCHEDULE:
+			last_key = LAST_SCH_KEY_TYPE;
+			break;
+		case FF_RULE:
+			last_key = LAST_RL_KEY_TYPE;
+			break;
+		case FF_CONTROLLER:
+			last_key = LAST_CON_KEY_TYPE;
+			break;
+		case FF_OUTPUT:
+			last_key = LAST_OUT_KEY_TYPE;
+			break;
+
+		default:
+			;
+		}
+
+		//check that we have a key that matches one of the keys of the block category
+		uint8_t key_idx = 0;
+		while ((strcmp(key_str, block_cat_defs[block_cat].conf_keys[key_idx])
+				!= 0) && key_idx < last_key) {
+			key_idx++;
+		}
+		if (key_idx == last_key) {
+			DebugLog(
+					"ERROR (ConFigureBlock) Key String Not Found in Block Category Definitions");
+		} else {
+			//we have a match to a valid key
+
+			//check for keys that are common to all block categories
+			if (key_idx <= IN_DESCRIPTION) {
+				switch (key_idx) {
+				case IN_TYPE:
+					// or case MON_TYPE:
+					// or case SCH_TYPE:
+					// or case RL_TYPE:
+					// or case CON_TYPE:
+					// or case OUT_TYPE:
+					block_ptr->block_type = SimpleStringArrayIndex(block_type_strings, value_str);
+					break;
+				case IN_DISPLAY_NAME:
+					// or case MON_DISPLAY_NAME:
+					// or case SCH_DISPLAY_NAME:
+					// or case RL_DISPLAY_NAME:
+					// or case CON_DISPLAY_NAME:
+					// or case OUT_DISPLAY_NAME:
+					strcpy(block_ptr->display_name, value_str);
+					break;
+				case IN_DESCRIPTION:
+					// or case MON_DESCRIPTION:
+					// or case SCH_DESCRIPTION:
+					// or case RL_DESCRIPTION:
+					// or case CON_DESCRIPTION:
+					// or case OUT_DESCRIPTION:
+					strcpy(block_ptr->description, value_str);
+					break;
+				default:
+					break;
+				} //switch key_idx
+
+			} else { //key_idx specific to category
+
+				switch (block_cat) {
+				case FF_SYSTEM:
+					//uint8_t temp_scale;
+					//uint8_t language;
+					//uint8_t week_start;
+					break;
+
+				case FF_INPUT:
+					switch (key_idx) {
+					case IN_INTERFACE:
+					case IN_IF_NUM:
+					case IN_LOG_RATE_DAY:
+					case IN_LOG_RATE_HOUR:
+					case IN_LOG_RATE_MINUTE:
+					case IN_LOG_RATE_SECOND:
+					case IN_LOG_RATE_MILLISEC:
+					case IN_DATA_UNITS:
+					case IN_DATA_TYPE:
+					default:
+						break;
+					} // switch(key_idx)
+					break; //switch (block_cat);
+
+					/*
+					 uint8_t interface;
+					 uint8_t if_num;
+					 uint8_t log_rate_day;
+					 uint8_t log_rate_hour;
+					 uint8_t log_rate_minute;
+					 uint8_t log_rate_second;
+					 uint16_t log_rate_millisec;
+					 uint8_t data_units;
+					 uint8_t data_type;		// float, int
+					 */
+
+				case FF_MONITOR:
+					uint16_t input1;
+					uint16_t input2;
+					uint16_t input3;
+					uint16_t input4;
+					float act_val;
+					float deact_val;
+					break;
+
+				case FF_SCHEDULE:
+					uint8_t days[7];
+					FFTime time_start;
+					FFTime time_end;
+					FFTime time_duration;
+					FFTime time_repeat;
+					break;
+
+				case FF_RULE:
+					uint16_t param1;
+					uint16_t param2;
+					uint16_t param3;
+					uint16_t param_not;
+					break;
+
+				case FF_CONTROLLER:
+					uint16_t rule;
+					uint16_t output;
+					uint8_t act_cmd;
+					uint8_t deact_cmd;
+					break;
+
+				case FF_OUTPUT:
+					uint8_t out_digital_pin;
+					break;
+				default:
+					DebugLog("ERROR: (ConfigureBlock) Invalid Block Category");
+					return_value = 0;
+					break;
+				} //switch(block_cat)
+			}; //else : key_idx spec to cat
+		} //else - key was found in cat idx
+	} else {
+		DebugLog("ERROR: (ConfigureBlock) Finding or Adding Block ");
+	}
+	return return_value;
+}
+
+
 
 char const* GetBlockLabelString(int idx) {
 	return sr.block_list[idx].label;
@@ -268,6 +557,8 @@ void InitStateRegister(void) {
 	//TODO these will go
 	sr.ui_data.light_flag = 0;
 	sr.ui_data.water_heater_flag = 0;
+
+	bll = NULL;
 }
 
 

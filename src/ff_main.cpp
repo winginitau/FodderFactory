@@ -75,12 +75,15 @@ void ReadAndParseConfig(void) {
 	IniFile cf(f_name, f_mode);
 #endif
 
-	char list_section_label[MAX_LABEL_LENGTH];
-	char block_section_label[MAX_LABEL_LENGTH];
-	char target_section_key[MAX_LABEL_LENGTH];			//to search for
-	char target_conf_key[MAX_LABEL_LENGTH];
+
+	char list_section[MAX_LABEL_LENGTH];		// [inputs] [controllers] etc
+	char list_section_key[MAX_LABEL_LENGTH];	// input7=    controller3=
+
+	char block_section[MAX_LABEL_LENGTH];
+	char block_section_key[MAX_LABEL_LENGTH];
+
 	char key_value[INI_FILE_MAX_LINE_LENGTH];	//to read value into
-	char char_num[4];							//to add to key strings to find how many are defined
+	//char char_num[4];							//to add to key strings to find how many are defined
 	uint8_t bl;										//iterator - block list within block category
 	uint8_t block_count = 0;
 	uint8_t last_key = 0;
@@ -94,26 +97,28 @@ void ReadAndParseConfig(void) {
 
 	//Block type 0 will always be SYSTEM - special case - start from b_cat=1
 
-	for (int b_cat = 1; b_cat < LAST_BLOCK_CAT; b_cat++) {    //iterate each block category
+	for (uint8_t block_cat = (FF_SYSTEM + 1); block_cat < LAST_BLOCK_CAT; block_cat++) {    			//iterate through each block category
 
-		bl = 1; 	//block list start from "1" in config file
+		bl = 1; 														//block list start from "1" in config file "input1=" etc
 		uint8_t last_found = 0;
-		while (bl < MAX_BLOCKS_PER_CATEGORY && !last_found) {
+		while (bl < MAX_BLOCKS_PER_CATEGORY && !last_found) {				// a b_cat<bl> = <Label> is still to process (potentially)
 
-			strcpy(target_section_key, block_cat_defs[b_cat].conf_section_key_base);
-			sprintf(char_num, "%d", bl);
-			strcat(target_section_key, char_num);
-			strcpy(list_section_label, block_cat_defs[b_cat].conf_section_label);
+			//strcpy(list_section_key, block_cat_defs[b_cat].conf_section_key_base);
+			//sprintf(char_num, "%d", bl);
+			//strcat(list_section_key, char_num);
+
+			strcpy(list_section, block_cat_defs[block_cat].conf_section_label);							//list_section
+			sprintf(list_section_key, "%s%d", block_cat_defs[block_cat].conf_section_key_base, bl);		//list_section_key
 			key_value[0] = '\0';
 
-			if (cf.getValue(list_section_label, target_section_key, key_value, INI_FILE_MAX_LINE_LENGTH)) {
+			if (cf.getValue(list_section, list_section_key, key_value, INI_FILE_MAX_LINE_LENGTH)) {
 
-				sprintf(debug_msg, "[%s][%s] = %s", list_section_label, target_section_key, key_value);
+				sprintf(debug_msg, "[%s][%s] = %s", list_section, list_section_key, key_value);
 				DebugLog(debug_msg);
 
-				strcpy(block_section_label, key_value); //look for a block section with that label
+				strcpy(block_section, key_value); //look for a block section with that label
 
-				switch (block_cat_defs[b_cat].cat_id) {
+				switch (block_cat) {
 					case FF_INPUT:
 						last_key = LAST_IN_KEY_TYPE;
 						break;
@@ -136,17 +141,21 @@ void ReadAndParseConfig(void) {
 					default:
 						;
 				}
+				for (int key = 0; key < last_key; key++) {
 
-				for (int conf_key = 0; conf_key < last_key; conf_key++) {
+					strcpy(block_section_key, block_cat_defs[block_cat].conf_keys[key]);
 
-					strcpy(target_conf_key, block_cat_defs[b_cat].conf_keys[conf_key]);
+					if (cf.getValue(block_section, block_section_key, key_value, INI_FILE_MAX_LINE_LENGTH)) {
 
-					if (cf.getValue(block_section_label, target_conf_key, key_value, INI_FILE_MAX_LINE_LENGTH)) {
-						sprintf(debug_msg, "[%s][%s][%s] = %s", list_section_label, block_section_label, target_conf_key, key_value);
-						//store it in block list (or otherwsie)
-						DebugLog(debug_msg);
+						if (ConfigureBlock(block_cat, block_section, block_section_key, key_value)) {
+							sprintf(debug_msg, "[%s][%s][%s][%s] = %s", list_section, list_section_key, block_section, block_section_key, key_value);
+							DebugLog(debug_msg);
+						} else {
+							sprintf(debug_msg, "REGISTRATION FAILED [%s][%s][%s][%s]: %s ", list_section, list_section_key, block_section, block_section_key, key_value);
+						}
+
 					} else {
-						sprintf(debug_msg, "[%s][%s][%s]: %s ", list_section_label, target_section_key, target_conf_key, GetINIError(cf.getError(), ini_error_string));
+						sprintf(debug_msg, "WARNING  [%s][%s][%s][%s]: %s ", list_section, list_section_key, block_section, block_section_key, GetINIError(cf.getError(), ini_error_string));
 						DebugLog(debug_msg);
 						//handle error - could be ok if key not required for that block sub type
 					}
@@ -156,7 +165,7 @@ void ReadAndParseConfig(void) {
 				bl++;
 
 			} else {
-				sprintf(debug_msg, "LAST [%s] REACHED - [%s]: %s ",block_cat_defs[b_cat].conf_section_label, target_section_key, GetINIError(cf.getError(), ini_error_string));
+				sprintf(debug_msg, "LAST [%s] REACHED - [%s]: %s ",block_cat_defs[block_cat].conf_section_label, list_section_key, GetINIError(cf.getError(), ini_error_string));
 				DebugLog(debug_msg);
 				last_found = 1;
 			}
@@ -268,7 +277,7 @@ void InitSystem(void) {
 	InitFileSystem(); //placeholder - not needed
 
 	//TODO
-	//ReadAndParseConfig();
+	ReadAndParseConfig();
 
 
 	// check for config file

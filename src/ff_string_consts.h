@@ -11,6 +11,9 @@
 
 //#include "ff_sys_config.h"
 //#include "ff_utils.h"
+#ifdef FF_SIMULATOR
+#include <stdint.h>
+#endif
 
 /**************************************************************
  * Platform Directives
@@ -37,7 +40,7 @@ typedef struct STRING_ARRAY_TYPE {
 } StringArray;
 
 //typedef struct SIMPLE_STRING_ARRAY_TYPE {
-	// Array of pointers to each language-specific string of type
+	// Array of strings (usually labels and messages) relating to enums
 //	const char* text;
 //} SimpleStringArray;
 
@@ -53,7 +56,7 @@ typedef struct BLOCK_CATS {
  **************************************************************/
 //typedef
 enum {
-	FF_SYSTEM,
+	FF_SYSTEM = 0,
 	FF_INPUT,
 	FF_MONITOR,
 	FF_SCHEDULE,
@@ -64,9 +67,9 @@ enum {
 };//BlockCatEnum;
 
 enum {
-	IN_TYPE = 0,
-	IN_DISPLAY_NAME,
-	IN_DESCRIPTION,
+	IN_TYPE = 0,		//common to all block categories in this order
+	IN_DISPLAY_NAME,	//common to all block categories in this order
+	IN_DESCRIPTION,		//common to all block categories in this order
 	IN_INTERFACE,
 	IN_IF_NUM,
 	IN_LOG_RATE_DAY,
@@ -80,38 +83,46 @@ enum {
 };// InputConfKeyList;
 
 enum {
-	MON_TYPE,
-	MON_DISPLAY_NAME,
-	MON_DESCRIPTION,
-	MON_INPUT,
+	MON_TYPE,			//common to all block categories in this order
+	MON_DISPLAY_NAME,	//common to all block categories in this order
+	MON_DESCRIPTION,	//common to all block categories in this order
+	MON_INPUT1,
+	MON_INPUT2,
+	MON_INPUT3,
+	MON_INPUT4,
 	MON_ACT_VAL,
 	MON_DEACT_VAL,
 	LAST_MON_KEY_TYPE
 };
 
 enum {
-	SCH_TYPE,
+	SCH_TYPE,			//common to all block categories in this order
+	SCH_DISPLAY_NAME,	//common to all block categories in this order
+	SCH_DESCRIPTION,	//common to all block categories in this order
 	SCH_DAYS,
 	SCH_TIME_START,
-	SCH_TIME_DURATION,
 	SCH_TIME_END,
+	SCH_TIME_DURATION,
+	SCH_TIME_REPEAT,
 	LAST_SCH_KEY_TYPE
 };
 
 enum {
-	RL_TYPE,
-	RL_DISPLAY_NAME,
-	RL_DESCRIPTION,
+	RL_TYPE,			//common to all block categories in this order
+	RL_DISPLAY_NAME,	//common to all block categories in this order
+	RL_DESCRIPTION,		//common to all block categories in this order
 	RL_PARAM_1,
 	RL_PARAM_2,
 	RL_PARAM_3,
 	RL_PARAM_NOT,
-	RL_CONTROLLER,
 	LAST_RL_KEY_TYPE
 };
 
 enum {
-	CON_TYPE,
+	CON_TYPE,			//common to all block categories in this order
+	CON_DISPLAY_NAME,	//common to all block categories in this order
+	CON_DESCRIPTION,	//common to all block categories in this order
+	CON_RULE,
 	CON_OUTPUT,
 	CON_ACT_CMD,
 	CON_DEACT_CMD,
@@ -119,18 +130,19 @@ enum {
 };
 
 enum {
-	OUT_TYPE,
-	OUT_DISPLAY_NAME,
-	OUT_DESCRIPTION,
+	OUT_TYPE,			//common to all block categories in this order
+	OUT_DISPLAY_NAME,	//common to all block categories in this order
+	OUT_DESCRIPTION,	//common to all block categories in this order
 	OUT_DIGITAL_PIN,
 	LAST_OUT_KEY_TYPE
 };
 
+
 static const BlockCatArray block_cat_defs[LAST_BLOCK_CAT] = {
 	FF_SYSTEM, "system", "", {
 			"temp_scale",
-			"language"
-
+			"language",
+			"week_start",
 	},
 	FF_INPUT, "inputs", "input", {
 			"type",
@@ -150,16 +162,22 @@ static const BlockCatArray block_cat_defs[LAST_BLOCK_CAT] = {
 			"type",
 			"display_name",
 			"description",
-			"input",
+			"input1",
+			"input2",
+			"input3",
+			"input4",
 			"act_val",
 			"deact_val"
 	},
 	FF_SCHEDULE, "schedules", "schedule", {
 			"type",
+			"display_name",
+			"description",
 			"days",
 			"time_start",
-			"time_duration",
 			"time_end",
+			"time_duration",
+			"time_repeat",
 	},
 	FF_RULE, "rules", "rule", {
 			"type",
@@ -169,10 +187,12 @@ static const BlockCatArray block_cat_defs[LAST_BLOCK_CAT] = {
 			"param2",
 			"param3",
 			"param_not",
-			"controller",
 	},
 	FF_CONTROLLER, "controllers", "controller", {
 			"type",
+			"display_name",
+			"description",
+			"rule",
 			"output",
 			"act_cmd",
 			"deact_cmd",
@@ -185,88 +205,51 @@ static const BlockCatArray block_cat_defs[LAST_BLOCK_CAT] = {
 			"description",
 			"out_digital_pin",
 	},
-
-
 };
 
 
 
 /**************************************************************
- * Block Type Definitions
+ * Block Types
  **************************************************************/
 
 enum {
-	IN_ONEWIRE,
+	IN_ONEWIRE = 0,
 	IN_DIGITAL,
-	LAST_IN_TYPE
-};// InputTypes;
-
-enum {
 	MON_CONDITION_LOW,
 	MON_CONDITION_HIGH,
 	MON_AVERAGE_CONDITION_LOW,
 	MON_AVERAGE_CONDITION_HIGH,
 	MON_TRIGGER,
-	LAST_MON_TYPE
-};// MonitorTypes;
-
-enum {
 	SCH_START_STOP,
 	SCH_ONE_SHOT,
 	SCH_START_DURATION_REPEAT,
-	LAST_SCH_TYPE
-};// SCH_TYPES;
-
-typedef enum {
 	RL_LOGIC_ANDNOT,
 	RL_LOGIC_SINGLE,
 	RL_LOGIC_AND,
-	LAST_RL_TYPE
-} TuleTypes;
-
-typedef enum {
 	CON_ONOFF,
 	CON_SYSTEM,
-	LAST_CON_TYPE
-} ConTypes;
-
-typedef enum {
 	OUT_DIGITAL,
-	LAST_OUT_TYPE
-} OutTypes;
+	LAST_BLOCK_TYPE
+}; // BlockTypes;
 
 
-static const char* const in_type_strings[LAST_IN_TYPE] {
+static const char* block_type_strings[LAST_BLOCK_TYPE] {
 	"IN_ONEWIRE",
-	"IN_DIGITAL"
-};
-
-static const char* const mon_type_strings[LAST_MON_TYPE] {
+	"IN_DIGITAL",
 	"MON_CONDITION_LOW",
 	"MON_CONDITION_HIGH",
 	"MON_AVERAGE_CONDITION_LOW",
 	"MON_AVERAGE_CONDITION_HIGH",
-	"MON_TRIGGER"
-};
-
-static const char* const sch_type_strings[LAST_SCH_TYPE] {
+	"MON_TRIGGER",
 	"SCH_START_STOP",
 	"SCH_ONE_SHOT",
-	"SCH_START_DURATION_REPEAT"
-};
-
-static const char* const rl_type_strings[LAST_RL_TYPE] {
+	"SCH_START_DURATION_REPEAT",
 	"RL_LOGIC_ANDNOT",
 	"RL_LOGIC_SINGLE",
-	"RL_LOGIC_AND"
-};
-
-static const char* const con_type_strings[LAST_CON_TYPE] {
+	"RL_LOGIC_AND",
 	"CON_ONOFF",
-	"CON_SYSTEM"
-};
-
-static const char* const out_type_strings[LAST_OUT_TYPE] {
+	"CON_SYSTEM",
 	"OUT_DIGITAL"
 };
 
@@ -483,6 +466,13 @@ static const StringArray unit_strings[LAST_UNIT_SCALE] = {
 //	12, {"litres", 				"litres"},
 //	12, {"Parts per Million",	"Parts per Million"}
 };
+
+/**************************************************************
+ * String Functions Prototypes
+ **************************************************************/
+
+uint8_t SimpleStringArrayIndex(const char* array[], const char* key);
+//uint8_t SimpleStringArrayIndex(const SimpleStringArray array, const char* key);
 
 
 #endif /* SRC_FF_STRINGS_H_ */
