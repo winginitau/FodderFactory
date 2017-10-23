@@ -260,7 +260,7 @@ uint8_t ConfigureBlock(uint8_t block_cat, const char *block_label,
 					// or case RL_TYPE:
 					// or case CON_TYPE:
 					// or case OUT_TYPE:
-					block_ptr->block_type = SimpleStringArrayIndex(block_type_strings, value_str);
+		//			block_ptr->block_type = SimpleStringArrayIndex(block_type_strings, value_str);
 					break;
 				case IN_DISPLAY_NAME:
 					// or case MON_DISPLAY_NAME:
