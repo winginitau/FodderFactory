@@ -51,6 +51,8 @@ FFDateTime DateTimeToFFDateTime(DateTime rtcDT);
 */
 //FFDateTime FFDT(uint16_t year, uint8_t month, uint8_t day, uint8_t hour, uint8_t min, uint8_t sec);
 
+FFTime StringToFFTime(const char* time_str);
+
 uint8_t FFDTGrEq(FFDateTime a, FFDateTime b);
 
 FFDateTime FFDTAdd(FFDateTime a, FFDateTime b);

@@ -72,11 +72,7 @@ enum {
 	IN_DESCRIPTION,		//common to all block categories in this order
 	IN_INTERFACE,
 	IN_IF_NUM,
-	IN_LOG_RATE_DAY,
-	IN_LOG_RATE_HOUR,
-	IN_LOG_RATE_MINUTE,
-	IN_LOG_RATE_SECOND,
-	IN_LOG_RATE_MILLISEC,
+	IN_LOG_RATE,
 	IN_DATA_UNITS,
 	IN_DATA_TYPE,
 	LAST_IN_KEY_TYPE
@@ -150,11 +146,7 @@ static const BlockCatArray block_cat_defs[LAST_BLOCK_CAT] = {
 			"description",
 			"interface",
 			"if_num",
-			"log_rate_day",
-			"log_rate_hour",
-			"log_rate_minute",
-			"log_rate_second",
-			"log_rate_millisec",
+			"log_rate",
 			"data_units",
 			"data_type"
 	},

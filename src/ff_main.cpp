@@ -28,7 +28,16 @@
   Data Structures
 ************************************************/
 
+typedef struct BLOCK_LABEL_NODE {
+	uint16_t block_id;
+	char block_label[MAX_LABEL_LENGTH];
+	struct BLOCK_LABLE_NODE* next_block;
+} BlockLabelNode;
 
+typedef struct BLOCK_LABEL_LIST {
+	uint16_t block_count;
+	BlockLabelNode* head;
+} BlockLabelList;
 
 /************************************************
   Globals
@@ -65,6 +74,24 @@ void InitConfFile(IniFile* cf) {
 	}
 }
 
+/*
+
+ BlockLabelNode* AddBlockLabel(BlockLabelList* list, char* label) {
+	BlockLabelNode new_label;
+	BlockLabelNode* node_ptr;
+
+	;
+
+	for (node_ptr = list->head; node_ptr != NULL; node_ptr = node_ptr->next_block);
+
+
+	}
+	if (node_ptr = NULL) {
+
+	}
+}
+*/
+
 void ReadAndParseConfig(void) {
 	const char f_name[] = CONFIG_FILENAME;
 #ifdef FF_ARDUINO
@@ -75,6 +102,9 @@ void ReadAndParseConfig(void) {
 	IniFile cf(f_name, f_mode);
 #endif
 
+	BlockLabelList bll;
+	bll.block_count = 0;
+	bll.head = NULL;
 
 	char list_section[MAX_LABEL_LENGTH];		// [inputs] [controllers] etc
 	char list_section_key[MAX_LABEL_LENGTH];	// input7=    controller3=
@@ -115,6 +145,8 @@ void ReadAndParseConfig(void) {
 
 				sprintf(debug_msg, "[%s][%s] = %s", list_section, list_section_key, key_value);
 				DebugLog(debug_msg);
+
+
 
 				strcpy(block_section, key_value); //look for a block section with that label
 
@@ -171,12 +203,10 @@ void ReadAndParseConfig(void) {
 			}
 
 		}
-		//int dyn_arry[block_count];
-		//for (int i = 0; i < block_count; i++) {
-		//	dyn_arry[i] = 0;
-		//}
 	}
 	cf.close();
+
+
 
 
 /*

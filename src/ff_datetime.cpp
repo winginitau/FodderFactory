@@ -30,6 +30,7 @@
 #include "ff_datetime.h"
 #include "ff_string_consts.h"
 #include "ff_HAL.h"
+#include "ff_debug.h"
 
 
 //#include "ff_utils.h"
@@ -81,6 +82,21 @@ FFDateTime FFDT(uint16_t year, uint8_t month, uint8_t day, uint8_t hour, uint8_t
 	return dt;
 }
 */
+
+
+FFTime StringToFFTime(const char* time_str) {
+	uint8_t hh, mm, ss;
+	FFTime fft;
+
+	if (sscanf(time_str, "%d:%d:%d", &hh, &mm, &ss) == 3) {
+		fft = {hh, mm, ss};
+		return fft;
+	} else {
+		DebugLog("ERROR: Malformed Time String");
+		fft = {255, 255, 255};
+		return fft;
+	}
+}
 
 uint8_t FFDTGrEq(FFDateTime a, FFDateTime b) {
 	if (a.year > b.year) {

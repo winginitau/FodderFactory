@@ -39,13 +39,9 @@ typedef struct FF_SYSTEM_SETTINGS {
 } SystemSettings;
 
 typedef struct FF_INPUT_SETTINGS {
-	uint8_t interface;
+	char interface[MAX_LABEL_LENGTH];
 	uint8_t if_num;
-	uint8_t log_rate_day;
-	uint8_t log_rate_hour;
-	uint8_t log_rate_minute;
-	uint8_t log_rate_second;
-	uint16_t log_rate_millisec;
+	FFTime log_rate;
 	uint8_t data_units;
 	uint8_t data_type;		// float, int
 } InputSettings;
@@ -167,27 +163,27 @@ static BlockNode *bll;		//Block Linked List - variant record block list
 
 
 
-BlockNode* AddBlock (BlockNode *list_node, uint8_t block_cat, const char *block_label) {
+BlockNode* AddBlock (BlockNode** head_ref, uint8_t block_cat, const char *block_label) {
+	BlockNode* new_block;
 
+	if(*head_ref == NULL) {   //empty list
+		new_block = (BlockNode *)malloc(sizeof(BlockNode));
 
-	if(list_node == NULL) {   //empty list
-		list_node = (BlockNode *)malloc(sizeof(BlockNode));
-		if (list_node) {
-			list_node->block_cat = block_cat;
-			strcpy(list_node->block_label, block_label);
-			list_node->active = 0;
-			list_node->block_type = 255;
-			list_node->next_block = NULL;
-		} else {
-			list_node = AddBlock(list_node->next_block, block_cat, block_label);
-		}
+		new_block->block_cat = block_cat;
+		strcpy(new_block->block_label, block_label);
+		new_block->active = 0;
+		new_block->block_type = 255;
+		new_block->next_block = NULL;
+		*head_ref = new_block;
+		return new_block;
 	}
-	return list_node;
+	return AddBlock(&((*head_ref)->next_block), block_cat, block_label);
+
 }
 
 
 BlockNode* GetBlock (BlockNode *list_node, uint8_t block_cat, const char *block_label) {
-	BlockNode *block;
+	//BlockNode *block;
 
 	if(list_node == NULL) {   //empty list
 		return NULL;
@@ -210,7 +206,7 @@ uint8_t ConfigureBlock(uint8_t block_cat, const char *block_label,
 	block_ptr = GetBlock(bll, block_cat, block_label);
 
 	if (block_ptr == NULL) {
-		block_ptr = AddBlock(bll, block_cat, block_label); //add a new one
+		block_ptr = AddBlock(&bll, block_cat, block_label); //add a new one
 	}
 	if (block_ptr != NULL) {
 		return_value = 1;
@@ -286,7 +282,7 @@ uint8_t ConfigureBlock(uint8_t block_cat, const char *block_label,
 					break;
 				} //switch key_idx
 
-			} else { //key_idx specific to category
+			} else { //key_idx specific to category ie. > IN_DESCRIPTION
 
 				switch (block_cat) {
 				case FF_SYSTEM:
@@ -297,31 +293,42 @@ uint8_t ConfigureBlock(uint8_t block_cat, const char *block_label,
 
 				case FF_INPUT:
 					switch (key_idx) {
+
 					case IN_INTERFACE:
+						strcpy(block_ptr->settings.in.interface, value_str);
+						break;
+
 					case IN_IF_NUM:
-					case IN_LOG_RATE_DAY:
-					case IN_LOG_RATE_HOUR:
-					case IN_LOG_RATE_MINUTE:
-					case IN_LOG_RATE_SECOND:
-					case IN_LOG_RATE_MILLISEC:
-					case IN_DATA_UNITS:
+						block_ptr->settings.in.if_num = atoi(value_str);
+						break;
+
+					case IN_LOG_RATE:
+						block_ptr->settings.in.log_rate = StringToFFTime(value_str);
+						break;
+
+					case IN_DATA_UNITS: {
+						uint8_t u = 0;
+						while (u < LAST_UNIT_SCALE && strcmp(unit_strings[u].text[ENGLISH], value_str)) {
+							u++;
+						}
+						if (u < LAST_UNIT_SCALE) {
+							block_ptr->settings.in.data_units = u;
+						} else {
+							block_ptr->settings.in.data_units = 255;
+							DebugLog("ERROR: Missing or malformed data_units in config file");
+						}
+						break;
+					}
+
 					case IN_DATA_TYPE:
+						//so what
+						break;
 					default:
+						DebugLog("ERROR in FF_INPUT setting data");
 						break;
 					} // switch(key_idx)
 					break; //switch (block_cat);
 
-					/*
-					 uint8_t interface;
-					 uint8_t if_num;
-					 uint8_t log_rate_day;
-					 uint8_t log_rate_hour;
-					 uint8_t log_rate_minute;
-					 uint8_t log_rate_second;
-					 uint16_t log_rate_millisec;
-					 uint8_t data_units;
-					 uint8_t data_type;		// float, int
-					 */
 
 				case FF_MONITOR:
 					uint16_t input1;
