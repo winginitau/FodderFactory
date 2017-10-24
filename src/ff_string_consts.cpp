@@ -28,10 +28,10 @@ char const* GetMessageString(int message_enum) {
 }
 
 
-uint8_t SimpleStringArrayIndex(const char* array[], const char* key) {
+uint8_t BlockTypeStringArrayIndex(const char* key) {
 	//
-	for (int i = 0; i < sizeof(array); i++) {
-		if (strcmp(key, array[i]) == 0) {
+	for (int i = 0; i < LAST_BLOCK_TYPE; i++) {
+		if (strcmp(key, block_type_strings[i]) == 0) {
 			return i;
 		}
 	}

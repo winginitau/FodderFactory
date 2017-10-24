@@ -18,6 +18,82 @@
  Public and Forward Data Structure Declarations
 ************************************************/
 
+
+typedef struct FF_SYSTEM_SETTINGS {
+	uint8_t temp_scale;
+	uint8_t language;
+	uint8_t week_start;
+} SystemSettings;
+
+typedef struct FF_INPUT_SETTINGS {
+	char interface[MAX_LABEL_LENGTH];
+	uint8_t if_num;
+	FFTime log_rate;
+	uint8_t data_units;
+	uint8_t data_type;		// float, int
+} InputSettings;
+
+typedef struct FF_MONITOR_SETTINGS {
+	uint16_t input1;
+	uint16_t input2;
+	uint16_t input3;
+	uint16_t input4;
+	float act_val;
+	float deact_val;
+} MonitorSettings;
+
+typedef struct FF_SCHED_SETTINGS {
+	uint8_t days[7];
+	FFTime time_start;
+	FFTime time_end;
+	FFTime time_duration;
+	FFTime time_repeat;
+} ScheduleSettings;
+
+typedef struct FF_RULE_SETTINGS {
+	uint16_t param1;
+	uint16_t param2;
+	uint16_t param3;
+	uint16_t param_not;
+} RuleSettings;
+
+typedef struct FF_CONTROLLER_SETTINGS {
+	uint16_t rule;
+	uint16_t output;
+	uint8_t act_cmd;
+	uint8_t deact_cmd;
+} ControllerSettings;
+
+typedef struct FF_OUTPUT_SETTINGS {
+	uint8_t out_digital_pin;
+} OutputSettings;
+
+
+typedef union BLOCK_SETTINGS {
+	SystemSettings sys;
+	InputSettings in;
+	MonitorSettings mon;
+	ScheduleSettings sch;
+	RuleSettings rl;
+	ControllerSettings con;
+	OutputSettings out;
+} BlockSettings;
+
+struct BLOCK_NODE {
+	struct BLOCK_NODE *next_block;
+	uint8_t block_cat;
+	uint16_t block_type;
+	uint16_t block_id;
+	char block_label[MAX_LABEL_LENGTH];
+	char display_name[MAX_LABEL_LENGTH];
+	char description[MAX_DESCR_LENGTH];
+	uint8_t active;
+	BlockSettings settings;
+};
+
+typedef struct BLOCK_NODE BlockNode;
+
+
 typedef struct UI_DATA_SET {
 	float inside_current;
 	float inside_min;
@@ -41,11 +117,13 @@ typedef struct UI_DATA_SET {
 	uint8_t water_heater_flag;		//current state of water heater
 } UIDataSet;
 
-typedef struct BLOCK_NODE BlockNode;
+
 
 /************************************************
  Function Prototypes
 ************************************************/
+
+void ProcessBlockList(void(*f)(BlockNode*));
 
 BlockNode* GetBlock (BlockNode *list_node, uint8_t block_cat, const char *block_label);
 

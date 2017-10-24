@@ -219,6 +219,7 @@ enum {
 	RL_LOGIC_ANDNOT,
 	RL_LOGIC_SINGLE,
 	RL_LOGIC_AND,
+	RL_LOGIC_SINGLENOT,
 	CON_ONOFF,
 	CON_SYSTEM,
 	OUT_DIGITAL,
@@ -240,6 +241,7 @@ static const char* block_type_strings[LAST_BLOCK_TYPE] {
 	"RL_LOGIC_ANDNOT",
 	"RL_LOGIC_SINGLE",
 	"RL_LOGIC_AND",
+	"RL_LOGIC_SINGLENOT",
 	"CON_ONOFF",
 	"CON_SYSTEM",
 	"OUT_DIGITAL"
@@ -376,16 +378,18 @@ static const StringArray message_strings[LAST_MESSAGE] = {
 };
 
 // INI Error enum defined in IniFile Class
-//
-// 	errorNoError = 0,
-//  errorFileNotFound,
-//  errorFileNotOpen,
-//  errorBufferTooSmall,
-//  errorSeekError,
-//  errorSectionNotFound,
-//  errorKeyNotFound,
-//  errorEndOfFile,
-//	errorUnknownError,
+
+enum {
+	errorNoError = 0,
+	errorFileNotFound,
+	errorFileNotOpen,
+	errorBufferTooSmall,
+	errorSeekError,
+	errorSectionNotFound,
+	errorKeyNotFound,
+	errorEndOfFile,
+	errorUnknownError,
+};
 
 
 static const char* ini_error_strings[INI_ERROR_TYPES] = {
@@ -413,6 +417,7 @@ typedef enum {
 //	CUBIC_M,
 //	LITRES,
 //	PPM,
+	ONOFF,
 	LAST_UNIT_SCALE
 } UnitsEnum;
 
@@ -423,7 +428,8 @@ static const StringArray unit_strings[LAST_UNIT_SCALE] = {
 //	12, {"Rel Hum",				"Rel Hum"},
 //	12, {"Cubic Metres",		"m3"},
 //	12, {"litres", 				"litres"},
-//	12, {"Parts per Million",	"Parts per Million"}
+//	12, {"Parts per Million",	"Parts per Million"},
+	12, {"ONOFF",				"ONOFF"},
 };
 
 enum {
@@ -468,7 +474,7 @@ char const* GetMessageString(int message_enum);
 
 uint8_t GetLanguage(void);
 
-uint8_t SimpleStringArrayIndex(const char* array[], const char* key);
+uint8_t BlockTypeStringArrayIndex(const char* key);
 //uint8_t SimpleStringArrayIndex(const SimpleStringArray array, const char* key);
 
 

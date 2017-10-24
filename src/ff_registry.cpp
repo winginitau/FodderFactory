@@ -34,79 +34,6 @@ typedef struct BLOCK_TYPE {
 
 
 
-typedef struct FF_SYSTEM_SETTINGS {
-	uint8_t temp_scale;
-	uint8_t language;
-	uint8_t week_start;
-} SystemSettings;
-
-typedef struct FF_INPUT_SETTINGS {
-	char interface[MAX_LABEL_LENGTH];
-	uint8_t if_num;
-	FFTime log_rate;
-	uint8_t data_units;
-	uint8_t data_type;		// float, int
-} InputSettings;
-
-typedef struct FF_MONITOR_SETTINGS {
-	uint16_t input1;
-	uint16_t input2;
-	uint16_t input3;
-	uint16_t input4;
-	float act_val;
-	float deact_val;
-} MonitorSettings;
-
-typedef struct FF_SCHED_SETTINGS {
-	uint8_t days[7];
-	FFTime time_start;
-	FFTime time_end;
-	FFTime time_duration;
-	FFTime time_repeat;
-} ScheduleSettings;
-
-typedef struct FF_RULE_SETTINGS {
-	uint16_t param1;
-	uint16_t param2;
-	uint16_t param3;
-	uint16_t param_not;
-} RuleSettings;
-
-typedef struct FF_CONTROLLER_SETTINGS {
-	uint16_t rule;
-	uint16_t output;
-	uint8_t act_cmd;
-	uint8_t deact_cmd;
-} ControllerSettings;
-
-typedef struct FF_OUTPUT_SETTINGS {
-	uint8_t out_digital_pin;
-} OutputSettings;
-
-
-typedef union BLOCK_SETTINGS {
-	SystemSettings sys;
-	InputSettings in;
-	MonitorSettings mon;
-	ScheduleSettings sch;
-	RuleSettings rl;
-	ControllerSettings con;
-	OutputSettings out;
-} BlockSettings;
-
-struct BLOCK_NODE {
-	struct BLOCK_NODE *next_block;
-	uint8_t block_cat;
-	uint16_t block_type;
-	uint16_t block_id;
-	char block_label[MAX_LABEL_LENGTH];
-	char display_name[MAX_LABEL_LENGTH];
-	char description[MAX_DESCR_LENGTH];
-	uint8_t active;
-	BlockSettings settings;
-};
-
-
 typedef struct FF_STATE_REGISTER {
 	//system config ad flags
 	uint8_t language;
@@ -164,9 +91,21 @@ static uint16_t block_count = 0;
  Functions
 ************************************************/
 
+void ProcessBlockList(void(*func)(BlockNode*)) {
+	BlockNode* temp;
+	//char debug_msg[MAX_DEBUG_LENGTH];
+
+	temp = bll;
+
+	while (temp != NULL) {
+		func(temp);
+		temp = temp->next_block;
+	}
+}
 
 uint16_t GetBlockID(const char* label) {
 	BlockNode* temp;
+	char debug_msg[MAX_DEBUG_LENGTH];
 
 	temp = bll;
 
@@ -177,16 +116,18 @@ uint16_t GetBlockID(const char* label) {
 			temp = temp->next_block;
 		}
 	}
-	DebugLog("ERROR: Block Label Not Found");
+	sprintf(debug_msg, "ERROR: Block Label Not Found: [%s]", label);
+	DebugLog(debug_msg);
 	return 65535;
 }
 
 
-BlockNode* AddBlock (BlockNode** head_ref, uint8_t block_cat, const char *block_label) {
+BlockNode* AddBlock(BlockNode** head_ref, uint8_t block_cat,
+		const char *block_label) {
 	BlockNode* new_block;
 
-	if(*head_ref == NULL) {   //empty list
-		new_block = (BlockNode *)malloc(sizeof(BlockNode));
+	if (*head_ref == NULL) {   //empty list
+		new_block = (BlockNode *) malloc(sizeof(BlockNode));
 		new_block->block_cat = block_cat;
 		strcpy(new_block->block_label, block_label);
 		new_block->block_id = block_count;
@@ -194,6 +135,51 @@ BlockNode* AddBlock (BlockNode** head_ref, uint8_t block_cat, const char *block_
 		new_block->active = 0;
 		new_block->block_type = 255;
 		new_block->next_block = NULL;
+		switch (block_cat) {
+		case FF_SYSTEM:
+//			uint8_t temp_scale;
+//			uint8_t language;
+//			uint8_t week_start;
+			//TODO
+			break;
+		case FF_INPUT:
+			strcpy(new_block->settings.in.interface, "LAST_INTERFACE");
+			new_block->settings.in.if_num = 255;
+			new_block->settings.in.log_rate = {255,255,255};
+			new_block->settings.in.data_units = 255;
+			new_block->settings.in.data_type = 255;
+			break;
+			case FF_MONITOR:
+			new_block->settings.mon.input1 = 0xFFFF;
+			new_block->settings.mon.input2 = 0xFFFF;
+			new_block->settings.mon.input3 = 0xFFFF;
+			new_block->settings.mon.input4 = 0xFFFF;
+			new_block->settings.mon.act_val = 1111.11;
+			new_block->settings.mon.deact_val = 1111.11;
+			break;
+			case FF_SCHEDULE:
+			for (int i = 0; i < LAST_DAY; i++ ) new_block->settings.sch.days[i] = 255;
+			new_block->settings.sch.time_start = {255,255,255};
+			new_block->settings.sch.time_end = {255,255,255};
+			new_block->settings.sch.time_duration = {255,255,255};
+			new_block->settings.sch.time_repeat = {255,255,255};
+			break;
+			case FF_RULE:
+			new_block->settings.rl.param1 = 0xFFFF;
+			new_block->settings.rl.param2 = 0xFFFF;
+			new_block->settings.rl.param3 = 0xFFFF;
+			new_block->settings.rl.param_not = 0xFFFF;
+			break;
+			case FF_CONTROLLER:
+			new_block->settings.con.rule = 0xFFFF;
+			new_block->settings.con.output = 0xFFFF;
+			new_block->settings.con.act_cmd = 255;
+			new_block->settings.con.deact_cmd= 255;
+			break;
+			case FF_OUTPUT:
+			new_block->settings.out.out_digital_pin = 255;
+			break;
+		}
 		*head_ref = new_block;
 		return new_block;
 	}
@@ -282,7 +268,7 @@ uint8_t ConfigureBlock(uint8_t block_cat, const char *block_label, const char *k
 					// or case RL_TYPE:
 					// or case CON_TYPE:
 					// or case OUT_TYPE:
-					block_ptr->block_type = SimpleStringArrayIndex(block_type_strings, value_str);
+					block_ptr->block_type = BlockTypeStringArrayIndex(value_str);
 					break;
 				case IN_DISPLAY_NAME:
 					// or case MON_DISPLAY_NAME:
@@ -370,10 +356,26 @@ uint8_t ConfigureBlock(uint8_t block_cat, const char *block_label, const char *k
 						block_ptr->settings.mon.input4 = GetBlockID(value_str);
 						break;
 					case MON_ACT_VAL:
-						sscanf(value_str, "%f", &(block_ptr->settings.mon.act_val));
+						if (strcmp(value_str, "HIGH") == 0) {
+							block_ptr->settings.mon.act_val = 1;
+						} else {
+							if (strcmp(value_str, "LOW") == 0) {
+								block_ptr->settings.mon.act_val = 1;
+							} else {
+								sscanf(value_str, "%f", &(block_ptr->settings.mon.act_val));
+							}
+						}
 						break;
 					case MON_DEACT_VAL:
-						sscanf(value_str, "%f", &(block_ptr->settings.mon.deact_val));
+						if (strcmp(value_str, "HIGH") == 0) {
+							block_ptr->settings.mon.deact_val = 1;
+						} else {
+							if (strcmp(value_str, "LOW") == 0) {
+								block_ptr->settings.mon.deact_val = 1;
+							} else {
+								sscanf(value_str, "%f", &(block_ptr->settings.mon.deact_val));
+							}
+						}
 						break;
 					default:
 						DebugLog("ERROR: In static block_cat_defs in FF_MONITOR setting data");

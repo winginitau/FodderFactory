@@ -85,15 +85,19 @@ FFDateTime FFDT(uint16_t year, uint8_t month, uint8_t day, uint8_t hour, uint8_t
 
 
 FFTime StringToFFTime(const char* time_str) {
-	uint8_t hh, mm, ss;
+	int hh, mm, ss;
 	FFTime fft;
 
 	if (sscanf(time_str, "%d:%d:%d", &hh, &mm, &ss) == 3) {
-		fft = {hh, mm, ss};
+		fft.hour = (uint8_t)hh;
+		fft.minute = (uint8_t)mm;
+		fft.second = (uint8_t)ss;
 		return fft;
 	} else {
 		DebugLog("ERROR: Malformed Time String");
-		fft = {255, 255, 255};
+		fft.hour = 255;
+		fft.minute = 255;
+		fft.second = 255;
 		return fft;
 	}
 }

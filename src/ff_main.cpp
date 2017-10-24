@@ -112,17 +112,22 @@ void ReadAndParseConfig(void) {
 				//////////////////// label registration only to allow block cross references when registering the settings later
 				if (ConfigureBlock(block_cat, key_value, NULL, NULL)) {	//register the block
 					block_count++;
-					sprintf(debug_msg, "Registered: block_cat=[%d] label=[%s]", block_cat, key_value);
-					DebugLog(debug_msg);
+//					sprintf(debug_msg, "Registered: block_cat=[%d] label=[%s]", block_cat, key_value);
+//					DebugLog(debug_msg);
 				} else {
 					sprintf(debug_msg, "REGISTRATION FAILED [%s][%s][%s]", list_section, list_section_key, key_value);
+					DebugLog(debug_msg);
 				}
 				////////////////////
 
 				bl++;
 
 			} else {
-				sprintf(debug_msg, "LAST [%s] REACHED - [%s]: %s ", block_cat_defs[block_cat].conf_section_label, list_section_key, GetINIError(cf.getError(), ini_error_string));
+				if( cf.getError() == errorKeyNotFound) {
+					sprintf(debug_msg, "REGISTERED %d [%s]", bl-1, block_cat_defs[block_cat].conf_section_label);
+				} else {
+					sprintf(debug_msg, "LAST [%s] REACHED - [%s]: %s ", block_cat_defs[block_cat].conf_section_label, list_section_key, GetINIError(cf.getError(), ini_error_string));
+				}
 				DebugLog(debug_msg);
 				last_found = 1;
 			}
@@ -145,11 +150,9 @@ void ReadAndParseConfig(void) {
 			sprintf(list_section_key, "%s%d", block_cat_defs[block_cat].conf_section_key_base, bl);	//list_section_key
 			key_value[0] = '\0';
 
-			if (cf.getValue(list_section, list_section_key, key_value,
-			INI_FILE_MAX_LINE_LENGTH)) {
+			if (cf.getValue(list_section, list_section_key, key_value, INI_FILE_MAX_LINE_LENGTH)) {
 
-//				sprintf(debug_msg, "[%s][%s] = %s", list_section,
-//						list_section_key, key_value);
+//				sprintf(debug_msg, "[%s][%s] = %s", list_section, list_section_key, key_value);
 //				DebugLog(debug_msg);
 
 				strcpy(block_section, key_value); //look for a block section with that label
@@ -185,23 +188,30 @@ void ReadAndParseConfig(void) {
 					INI_FILE_MAX_LINE_LENGTH)) {
 
 						if (ConfigureBlock(block_cat, block_section, block_section_key, key_value)) {
-							sprintf(debug_msg, "CONFIGURED [%s][%s][%s][%s] = %s", list_section, list_section_key, block_section, block_section_key, key_value);
-							DebugLog(debug_msg);
+//							sprintf(debug_msg, "CONFIGURED [%s][%s][%s][%s] = %s", list_section, list_section_key, block_section, block_section_key, key_value);
+//							DebugLog(debug_msg);
 						} else {
 							sprintf(debug_msg, "CONFIG FAILED [%s][%s][%s][%s]: %s ", list_section, list_section_key, block_section, block_section_key, key_value);
+							DebugLog(debug_msg);
 						}
 
 					} else {
-						sprintf(debug_msg, "WARNING [%s][%s][%s][%s]: %s ", list_section, list_section_key, block_section, block_section_key, GetINIError(cf.getError(), ini_error_string));
-						DebugLog(debug_msg);
-						//handle error - could be ok if key not required for that block sub type
+						if( cf.getError() != errorKeyNotFound) {
+							sprintf(debug_msg, "ERROR [%s][%s][%s][%s]: %s ", list_section, list_section_key, block_section, block_section_key, GetINIError(cf.getError(), ini_error_string));
+							DebugLog(debug_msg);
+							//handle error - could be ok if key not required for that block sub type
+						}
 					}
 				}
 
 				bl++;
 
 			} else {
-				sprintf(debug_msg, "LAST [%s] REACHED - [%s]: %s ", block_cat_defs[block_cat].conf_section_label, list_section_key, GetINIError(cf.getError(), ini_error_string));
+				if( cf.getError() == errorKeyNotFound) {
+					sprintf(debug_msg, "CONFIGURED %d [%s]", bl-1, block_cat_defs[block_cat].conf_section_label);
+				} else {
+					sprintf(debug_msg, "LAST [%s] REACHED - [%s]: %s ", block_cat_defs[block_cat].conf_section_label, list_section_key, GetINIError(cf.getError(), ini_error_string));
+				}
 				DebugLog(debug_msg);
 				last_found = 1;
 			}
@@ -209,68 +219,6 @@ void ReadAndParseConfig(void) {
 	}
 
 	cf.close();
-
-	/*
-	 const size_t bufferLen = 150;
-	 char buffer[bufferLen];
-
-	 // Check the file is valid. This can be used to warn if any lines
-	 // are longer than the buffer.
-	 if (!cf.validate(buffer, bufferLen)) {
-	 printf("ini file ");
-	 printf("%s", cf.getFilename());
-	 printf(" not valid.\n ");
-	 printErrorMessage(cf.getError());
-	 // Cannot do anything else
-	 while (1)
-	 ;
-	 }
-
-	 // Fetch a value from a key which is present
-	 if (cf.getValue("controllers", "controller2", buffer, bufferLen)) {
-	 printf("section and entry valid: ");
-	 printf("%s\n", buffer);
-	 } else {
-	 printf("Could not read section and key value, error was ");
-	 printf("d%\n", cf.getError());
-	 printErrorMessage(cf.getError());
-	 }
-
-	 // Try fetching a value from a missing key (but section is present)
-	 if (cf.getValue("controllers", "nosuchkey", buffer, bufferLen)) {
-	 printf("section 'controllers' has an entry 'nosuchkey' with value ");
-	 printf("%S\n", buffer);
-	 } else {
-	 printf(
-	 "Could not read 'nosuchkey' from section 'controllers', error was ");
-	 printErrorMessage(cf.getError());
-	 }
-
-	 // Try fetching a key from a section which is not present
-	 if (cf.getValue("nosuchsection", "controller2", buffer, bufferLen)) {
-	 printf(
-	 "section 'nosuchsection' has an entry 'controller2' with value ");
-	 printf("%S\n", buffer);
-	 } else {
-	 printf(
-	 "Could not read 'controller2' from section 'nosuchsection', error was ");
-	 printErrorMessage(cf.getError());
-	 }
-
-	 // Fetch a boolean value
-	 bool allowPut; // variable where result will be stored
-	 bool found = cf.getValue("/upload", "allow put", buffer, bufferLen,
-	 allowPut);
-	 if (found) {
-	 printf("The value of 'allow put' in section '/upload' is ");
-	 // Print value, converting boolean to a string
-	 printf(allowPut ? "TRUE" : "FALSE");
-	 } else {
-	 printf("Could not get the value of 'allow put' in section '/upload': ");
-	 printErrorMessage(cf.getError());
-	 }
-	 */
-
 }
 
 
@@ -305,17 +253,9 @@ void InitSystem(void) {
 	// check for a file system
 	InitFileSystem(); //placeholder - not needed
 
-	//TODO
+	//Read the config file, parse it and create a block list in memory
 	ReadAndParseConfig();
 
-
-	// check for config file
-
-	// parse config file
-	//		inputs
-	//		monitors (inc mins and maxes)
-	//		controllers
-	//		outputs
 
 }
 
