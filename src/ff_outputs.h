@@ -26,9 +26,7 @@
  Public and Forward Data Structure Declarations
 ************************************************/
 
-enum OUTPUT_COMMANDS {OUTPUT_OFF = 0, OUTPUT_ON =1};
 
-//typedef struct OUTPUT_BLOCK OutputBlock;
 
 /************************************************
  Function Prototypes

@@ -13,6 +13,7 @@
 ************************************************/
 #include "ff_debug.h"
 #include "ff_sys_config.h"
+#include "ff_string_consts.h"
 
 #ifdef FF_ARDUINO
 #include <Arduino.h> //TODO get rid of this
@@ -28,6 +29,7 @@
 #include "ff_utils.h"
 #include "ff_HAL.h"
 #include "ff_registry.h"
+
 
 /************************************************
  Data Structures

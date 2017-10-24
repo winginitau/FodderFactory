@@ -402,40 +402,7 @@ static const char* ini_error_strings[INI_ERROR_TYPES] = {
 
 
 /**************************************************************
- * Device Strings
- **************************************************************/
-/*
-typedef enum {
-	D_SYS = 0,
-	D1,
-	D2,
-	D3,
-	D4,
-	D_INSIDE_TEMP,
-	D_OUTSIDE_TEMP,
-	D_WATER_TEMP,
-	D_RESET_MIN_MAX,
-	D9,
-	LAST_DEVICE
-} DeviceEnum;
-
-static const StringArray device_strings[LAST_DEVICE] = {
-	22, { "D_SYS",			"" },
-	12, { "D1",				"D1" },
-	12, { "D2",				"D2" },
-	10, { "D3"				"D3" },
-	12, { "D4",				"D4" },
-	24, { "D_INSIDE_TEMP",				"D5" },
-	24,	{ "D_OUTSIDE_TEMP",				"D6" },
-	18, { "D_WATER_TEMP",				"D7" },
-	20, { "D_RESET_MIN_MAX",				"D8" },
-	14, { "D9",				"D9" }
-};
-
-*/
-
-/**************************************************************
- * Units and Scale Strings
+ * Units, Scales & Strings
  **************************************************************/
 
 typedef enum {
@@ -459,9 +426,47 @@ static const StringArray unit_strings[LAST_UNIT_SCALE] = {
 //	12, {"Parts per Million",	"Parts per Million"}
 };
 
+enum {
+	SUN = 0,
+	MON,
+	TUE,
+	WED,
+	THU,
+	FRI,
+	SAT,
+	LAST_DAY
+};
+
+static const char* DaysOfWeek[LAST_DAY] = {
+	"SUN",
+	"MON",
+	"TUE",
+	"WED",
+	"THU",
+	"FRI",
+	"SAT"
+};
+
+enum OUTPUT_COMMANDS {
+	OUTPUT_OFF = 0,
+	OUTPUT_ON = 1,
+	LAST_COMMAND
+};
+
+static const char* command_strings[LAST_COMMAND] = {
+	"OUTPUT_OFF",
+	"OUTPUT_ON",
+
+};
+
 /**************************************************************
  * String Functions Prototypes
  **************************************************************/
+char const* GetMessageTypeString(int message_type_enum);
+
+char const* GetMessageString(int message_enum);
+
+uint8_t GetLanguage(void);
 
 uint8_t SimpleStringArrayIndex(const char* array[], const char* key);
 //uint8_t SimpleStringArrayIndex(const SimpleStringArray array, const char* key);

@@ -37,11 +37,7 @@
 //cool macro for easier string handling
 //#define WriteMessageType(X) WriteMessageType(GetMessageTypeString((X)))
 
-char const* GetMessageTypeString(int message_type_enum);
-
-char const* GetMessageString(int message_enum);
-
-uint8_t GetLanguage(void);
+uint8_t DayStrToFlag(uint8_t day_flag[7], const char* day_str);
 
 char* FFFloatToCString(char* buf, float f);
 

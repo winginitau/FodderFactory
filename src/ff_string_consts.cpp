@@ -14,6 +14,18 @@
 #endif
 
 
+uint8_t GetLanguage(void) {
+	//TODO language switching functions
+	return ENGLISH;
+}
+
+char const* GetMessageTypeString(int message_type_enum) {
+	return message_type_strings[message_type_enum].text[GetLanguage()];
+}
+
+char const* GetMessageString(int message_enum) {
+	return message_strings[message_enum].text[GetLanguage()];
+}
 
 
 uint8_t SimpleStringArrayIndex(const char* array[], const char* key) {
