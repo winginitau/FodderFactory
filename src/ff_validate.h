@@ -26,7 +26,6 @@
  Function prototypes
  ************************************************/
 
-void DumpBlock(BlockNode* block);
 
 void Validate(BlockNode* b);
 

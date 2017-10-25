@@ -129,7 +129,8 @@ enum {
 	OUT_TYPE,			//common to all block categories in this order
 	OUT_DISPLAY_NAME,	//common to all block categories in this order
 	OUT_DESCRIPTION,	//common to all block categories in this order
-	OUT_DIGITAL_PIN,
+	OUT_INTERFACE,
+	OUT_IF_NUM,
 	LAST_OUT_KEY_TYPE
 };
 
@@ -195,7 +196,8 @@ static const BlockCatArray block_cat_defs[LAST_BLOCK_CAT] = {
 			"type",
 			"display_name",
 			"description",
-			"out_digital_pin",
+			"interface",
+			"if_num",
 	},
 };
 
@@ -206,7 +208,8 @@ static const BlockCatArray block_cat_defs[LAST_BLOCK_CAT] = {
  **************************************************************/
 
 enum {
-	IN_ONEWIRE = 0,
+	BT_ERROR = 0,
+	IN_ONEWIRE,
 	IN_DIGITAL,
 	MON_CONDITION_LOW,
 	MON_CONDITION_HIGH,
@@ -223,11 +226,13 @@ enum {
 	CON_ONOFF,
 	CON_SYSTEM,
 	OUT_DIGITAL,
+	OUT_SYSTEM_CALL,
 	LAST_BLOCK_TYPE
 }; // BlockTypes;
 
 
 static const char* block_type_strings[LAST_BLOCK_TYPE] {
+	"BT_ERROR",
 	"IN_ONEWIRE",
 	"IN_DIGITAL",
 	"MON_CONDITION_LOW",
@@ -244,7 +249,8 @@ static const char* block_type_strings[LAST_BLOCK_TYPE] {
 	"RL_LOGIC_SINGLENOT",
 	"CON_ONOFF",
 	"CON_SYSTEM",
-	"OUT_DIGITAL"
+	"OUT_DIGITAL",
+	"OUT_SYSTEM_CALL",
 };
 
 /**************************************************************
@@ -406,11 +412,12 @@ static const char* ini_error_strings[INI_ERROR_TYPES] = {
 
 
 /**************************************************************
- * Units, Scales & Strings
+ * Units, Scales & Interfaces
  **************************************************************/
 
 typedef enum {
-	DEG_C = 0,
+	UNIT_ERROR,
+	DEG_C,
 //	DEG_F,
 //	DEG_K,
 //	REL_HUM,
@@ -422,6 +429,7 @@ typedef enum {
 } UnitsEnum;
 
 static const StringArray unit_strings[LAST_UNIT_SCALE] = {
+	12, {"UnitTypeError", 		"UnitTypeError"},
 	12, {"Celsius", 			"Celsius"},
 //	12, {"Fahrenheit", 			"Fahrenheit"},
 //	12, {"Kelvin", 				"Kelvin"},
@@ -454,16 +462,45 @@ static const char* DaysOfWeek[LAST_DAY] = {
 };
 
 enum OUTPUT_COMMANDS {
-	OUTPUT_OFF = 0,
-	OUTPUT_ON = 1,
+	CMD_ERROR = 0,
+	CMD_OUTPUT_OFF,
+	CMD_OUTPUT_ON,
+	CMD_RESET_MIN_MAX,
 	LAST_COMMAND
 };
 
 static const char* command_strings[LAST_COMMAND] = {
-	"OUTPUT_OFF",
-	"OUTPUT_ON",
-
+	"CMD_ERROR",
+	"CMD_OUTPUT_OFF",
+	"CMD_OUTPUT_ON",
+	"CMD_RESET_MIN_MAX",
 };
+
+enum {
+	IF_ERROR = 0,
+	IF_PWM_IN,
+	IF_PWM_OUT,
+	IF_PPM_IN,
+	IF_PPM_OUT,
+	IF_ONEWIRE,
+	IF_DIG_PIN_IN,
+	IF_DIG_PIN_OUT,
+	IF_SYSTEM_FUNCTION,
+	LAST_INTERFACE
+};
+
+static const char* interface_strings[LAST_INTERFACE] = {
+	"IF_ERROR",
+	"PWM_IN",
+	"PWM_OUT",
+	"PPM_IN",
+	"PPM_OUT",
+	"ONEWIRE",
+	"DIG_PIN_IN",
+	"DIG_PIN_OUT",
+	"SYSTEM_FUNCTION",
+};
+
 
 /**************************************************************
  * String Functions Prototypes
@@ -473,6 +510,8 @@ char const* GetMessageTypeString(int message_type_enum);
 char const* GetMessageString(int message_enum);
 
 uint8_t GetLanguage(void);
+
+uint8_t InterfaceStringArrayIndex(const char* key);
 
 uint8_t BlockTypeStringArrayIndex(const char* key);
 //uint8_t SimpleStringArrayIndex(const SimpleStringArray array, const char* key);

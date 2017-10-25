@@ -39,7 +39,7 @@ input6 = HARVEST_DOOR_SWITCH
 type = IN_ONEWIRE
 display_name = Inside Top
 description = Dallas sensor inside the top of the fodder factory
-interface = OneWire
+interface = ONEWIRE
 if_num = 1
 log_rate = 00:01:00
 data_units = Celsius
@@ -49,7 +49,7 @@ data_type = float
 type = IN_ONEWIRE
 display_name = Outside
 description = Dallas sensor for outside air temprature
-interface = OneWire
+interface = ONEWIRE
 if_num = 0
 log_rate = 00:01:00
 data_units = Celsius
@@ -59,7 +59,7 @@ data_type = float
 type = IN_ONEWIRE
 display_name = Water
 description = Dallas sensor in the header tank
-interface = OneWire
+interface = ONEWIRE
 if_num = 2
 log_rate = 00:01:00
 data_units = Celsius
@@ -69,7 +69,7 @@ data_type = float
 type = IN_ONEWIRE
 display_name = Inside Bot
 description = Dallas sensor inside the bottom of the fodder factory
-interface = OneWire
+interface = ONEWIRE
 if_num = 3
 log_rate = 00:01:00
 data_units = Celsius
@@ -79,7 +79,7 @@ data_type = float
 type = IN_DIGITAL
 display_name = Loading Door
 description = Reed switch on loading end door
-interface = DIG_PIN
+interface = DIG_PIN_IN
 if_num =             ;TODO
 log_rate = 00:00:10
 data_units = ONOFF
@@ -89,7 +89,7 @@ data_type = int
 type = IN_DIGITAL
 display_name = Harvest Door
 description = Reed switch on harvest end door
-interface = DIG_PIN
+interface = DIG_PIN_IN
 if_num =             ;TODO
 log_rate = 00:00:10
 data_units = ONOFF
@@ -218,7 +218,7 @@ deact_val = LOW
 [schedules]
 schedule1 = EXCLUDE_WATER_HEAT_BY_DAY
 schedule2 = RUN_LIGHTS_AT_NIGHT
-schedule3 = RESET_MIN_MAX_COUNTERS
+schedule3 = SCH_RESET_MIN_MAX_COUNTERS
 schedule4 = WATERING_TOP_SCHEDULE
 schedule5 = WATERING_BOTTOM_SCHEDULE
 #schedule6 = 
@@ -242,7 +242,7 @@ days = ALL
 time_start = 22:00:00
 time_end = 09:00:00
 
-[RESET_MIN_MAX_COUNTERS]
+[SCH_RESET_MIN_MAX_COUNTERS]
 type = SCH_ONE_SHOT
 display_name = Reset Min and Max Daily Counters
 description = 
@@ -281,7 +281,7 @@ rule4 = CIRCULATE_IF_TOP_HOT_AND_BOTTOM_COLD
 rule5 = SUSPEND_WATERING_IF_BOTH_DOORS_OPEN
 rule6 = WATER_ON_SCHEDULE_TOP
 rule7 = WATER_ON_SCHEDULE_BOTTOM 
-#rule8 =  
+rule8 = RL_RESET_MIN_MAX_ON_SCHEDULE 
 #rule9 =  
 #rule10 =  
 #rule11 =
@@ -347,11 +347,11 @@ param1 = WATERING_BOTTOM_SCHEDULE
 param_not = SUSPEND_WATERING_IF_BOTH_DOORS_OPEN
 
 
-[RESET_MIN_MAX_ON_SCHEDULE]
+[RL_RESET_MIN_MAX_ON_SCHEDULE]
 type = RL_LOGIC_SINGLE
 display_name = Reset Min and Max Counters
 description =
-param1 = RESET_MIN_MAX_COUNTERS
+param1 = SCH_RESET_MIN_MAX_COUNTERS
 #param_not =
 
 
@@ -365,10 +365,10 @@ controller3 = FRESH_AIR_CONTROLLER
 controller4 = CIRCULATION_FAN_CONTROLLER
 controller5 = EXHAUST_FAN_CONTROLLER
 controller6 = WATERING_TOP_CONTROLLER
-controller8 = WATERING_BOTTOM_CONTROLLER
-controller9 = SYSTEM_MIN_MAX_RESET 
+controller7 = WATERING_BOTTOM_CONTROLLER
+controller8 = CON_SYSTEM_MIN_MAX_RESET 
+#controller9 = 
 #controller10 = 
-#controller11 = 
 
 [WATER_HEATER_CONTROLLER]
 type = CON_ONOFF
@@ -376,8 +376,8 @@ display_name = Water Heating Controller
 description = 
 rule = TURN_ON_WATER_HEAT_IF_INSIDE_COLD
 output = WATER_HEATER
-act_cmd = OUTPUT_ON
-deact_cmd = OUTPUT_OFF
+act_cmd = CMD_OUTPUT_ON
+deact_cmd = CMD_OUTPUT_OFF
 
 [END_LIGHTS_CONTROLLER]
 type = CON_ONOFF
@@ -385,8 +385,8 @@ display_name = End Lights Controller
 description = 
 rule = RUN_LIGHTS_ON_SCHEDULE
 output = END_LIGHTS
-act_cmd = OUTPUT_ON
-deact_cmd = OUTPUT_OFF
+act_cmd = CMD_OUTPUT_ON
+deact_cmd = CMD_OUTPUT_OFF
 
 [FRESH_AIR_CONTROLLER]
 type = CON_ONOFF
@@ -394,8 +394,8 @@ display_name = Fresh Air Controller
 description = 
 rule = FAN_IF_INSIDE_BOTTOM_HOT_OUTSIDE_COLD
 output = FRESH_AIR_FAN
-act_cmd = OUTPUT_ON
-deact_cmd = OUTPUT_OFF
+act_cmd = CMD_OUTPUT_ON
+deact_cmd = CMD_OUTPUT_OFF
 
 [CIRCULATION_FAN_CONTROLLER]
 type = CON_ONOFF
@@ -403,8 +403,8 @@ display_name = Circulation Fan Controller
 description = 
 rule = CIRCULATE_IF_TOP_HOT_AND_BOTTOM_COLD
 output = CIRCULATION_FAN
-act_cmd = OUTPUT_ON
-deact_cmd = OUTPUT_OFF
+act_cmd = CMD_OUTPUT_ON
+deact_cmd = CMD_OUTPUT_OFF
 
 [EXHAUST_FAN_CONTROLLER]
 type = CON_ONOFF
@@ -412,8 +412,8 @@ display_name = Exhaust Fan Controller
 description = 
 rule = FAN_IF_INSIDE_BOTTOM_HOT_OUTSIDE_COLD
 output = EXHAUST_FAN
-act_cmd = OUTPUT_ON
-deact_cmd = OUTPUT_OFF
+act_cmd = CMD_OUTPUT_ON
+deact_cmd = CMD_OUTPUT_OFF
 
 [WATERING_TOP_CONTROLLER]
 type = CON_ONOFF
@@ -421,8 +421,8 @@ display_name = Top Sprinklers Solenoid Controller
 description = 
 rule = WATER_ON_SCHEDULE_TOP
 output = WATERING_SOLENOID_TOP
-act_cmd = OUTPUT_ON
-deact_cmd = OUTPUT_OFF
+act_cmd = CMD_OUTPUT_ON
+deact_cmd = CMD_OUTPUT_OFF
 
 [WATERING_BOTTOM_CONTROLLER]
 type = CON_ONOFF
@@ -430,17 +430,17 @@ display_name = Bottom Sprinklers Solenoid Controller
 description = 
 rule = WATER_ON_SCHEDULE_BOTTOM
 output = WATERING_SOLENOID_BOTTOM
-act_cmd = OUTPUT_ON
-deact_cmd = OUTPUT_OFF
+act_cmd = CMD_OUTPUT_ON
+deact_cmd = CMD_OUTPUT_OFF
 
-[SYSTEM_MIN_MAX_RESET]
+[CON_SYSTEM_MIN_MAX_RESET]
 type = CON_SYSTEM
 display_name = System Min Mix Reset Controller
 description = 
-rule = RESET_MIN_MAX_ON_SCHEDULE
-output = INTERNAL
-act_cmd = RESET_MIN_MAX
-deact_cmd =
+rule = RL_RESET_MIN_MAX_ON_SCHEDULE
+output = SYSTEM_INTERNAL
+act_cmd = CMD_RESET_MIN_MAX
+#deact_cmd =
 
 #************************************************
 # Outputs
@@ -453,48 +453,63 @@ output4 = CIRCULATION_FAN
 output5 = EXHAUST_FAN
 output6 = WATERING_SOLENOID_TOP
 output7 = WATERING_SOLENOID_BOTTOM
-#output8 = 
+output8 = SYSTEM_INTERNAL 
+#output9 = 
+
+[SYSTEM_INTERNAL]
+type = OUT_SYSTEM_CALL
+display_name = Internal System Call
+description = Send ACT_CMD to SYSTEM
+interface = SYSTEM_FUNCTION
+#if_num = 
 
 [END_LIGHTS]
 type = OUT_DIGITAL
 display_name = Fluro Lights
 description = Relay to Control Fluro End Lights
-out_digital_pin = 30
+interface = DIG_PIN_OUT
+if_num = 30
 
 [WATER_HEATER]
 type = OUT_DIGITAL
 display_name = Header Tank Heater
 description = Relay to Control Header Tank Water Heater
-out_digital_pin = 32
+interface = DIG_PIN_OUT
+if_num = 32
 
 [FRESH_AIR_FAN]
 type = OUT_DIGITAL
 display_name = Fresh Air Fan
 description = Relay to Control Fresh Air Fan
-out_digital_pin = 
+interface = DIG_PIN_OUT
+if_num = 
 
 [CIRCULATION_FAN]
 type = OUT_DIGITAL
 display_name = Circulation Fan
 description = Relay to Control the Circulation Fan
-out_digital_pin = 
+interface = DIG_PIN_OUT
+if_num = 
 
 [EXHAUST_FAN]
 type = OUT_DIGITAL
 display_name = Exhaust Fan
 description = Relay to Control the Exhaust Fan
-out_digital_pin = 
+interface = DIG_PIN_OUT
+if_num = 
 
 [WATERING_SOLENOID_TOP]
 type = OUT_DIGITAL
 display_name = Water Value Top
 description = Relay to Control the Top Watering Solenoid
-out_digital_pin = 
+interface = DIG_PIN_OUT
+if_num = 
 
 [WATERING_SOLENOID_BOTTOM]
 type = OUT_DIGITAL
 display_name = Water Value Bottom
 description = Relay to Control the Bottom Watering Solenoid
-out_digital_pin = 
+interface = DIG_PIN_OUT
+if_num = 
 
 

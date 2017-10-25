@@ -37,9 +37,9 @@ using namespace std;
  ************************************************/
 
 void loop() {
-	PollInputs(); 			// based on their config they may need to take a measurement and write it to a log
-	RunControllers(); 		// does something need to happen? Store in control register, set a command register
-	PollOutputs();     		// check command registers and change outputs accordingly
+	//PollInputs(); 			// based on their config they may need to take a measurement and write it to a log
+	//RunControllers(); 		// does something need to happen? Store in control register, set a command register
+	//PollOutputs();     		// check command registers and change outputs accordingly
 	//UpdateUI();             // Check for User Input and update screens etc
 	//TODO					// update radio / feed
 	//SaveEventBuffer();		// write recent event to file - move to being a system scheduler and controller
@@ -61,12 +61,12 @@ int main(void) {
 	InitSystem();
 	//TODO 					// set up remote control / data feed / radio link
 
-	ProcessBlockList(DumpBlock);
-	ProcessBlockList(Validate);
+	ProcessDispatcher(Validate);
+	//ProcessBlockList(Setup);
 
-	SetupInputs();			// sensors, triggers, external data feeds (eg from battery mon)
-	SetupOutputs();			// relays and data connections to turn devices on/off and talk to external systems
-	SetupControllers();		// rules and logic - when and why
+	//SetupInputs();			// sensors, triggers, external data feeds (eg from battery mon)
+	//SetupOutputs();			// relays and data connections to turn devices on/off and talk to external systems
+	//SetupControllers();		// rules and logic - when and why
 
 	#ifdef FF_SIMULATOR
 	//for (int n = 0; n < 10000; n++) {

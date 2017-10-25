@@ -73,6 +73,11 @@
 
 #define EVENT_BUFFER_SIZE 8
 
+#define UINT8_INIT 0xFF
+#define UINT16_INIT 0xFFFF
+#define FLOAT_INIT 255.000000
+#define BLOCK_ID_BASE 1000
+
 // Maximum length for filename, excluding NULL char 26 chars allows an
 // 8.3 filename instead and 8.3 directory with a leading slash
 #define INI_FILE_MAX_FILENAME_LEN 26
@@ -173,8 +178,8 @@
 //#define C1_DESCR			"Turn on the water heater"
 #define C1_INPUT			""
 #define C1_OUTPUT			"WATER_HEATER"
-#define C1_ACT_COMMAND		OUTPUT_ON
-#define C1_DEACT_COMMAND	OUTPUT_OFF
+#define C1_ACT_COMMAND		CMD_OUTPUT_ON
+#define C1_DEACT_COMMAND	CMD_OUTPUT_OFF
 #define C1_LOW_VAL			0
 #define C1_HIGH_VAL			0
 #define C1_SCHED_DAY		0
@@ -188,8 +193,8 @@
 //#define C2_DESCR			"Turn on the grow lights"
 #define C2_INPUT			""
 #define C2_OUTPUT			"LIGHTS"
-#define C2_ACT_COMMAND		OUTPUT_ON
-#define C2_DEACT_COMMAND	OUTPUT_OFF
+#define C2_ACT_COMMAND		CMD_OUTPUT_ON
+#define C2_DEACT_COMMAND	CMD_OUTPUT_OFF
 #define C2_LOW_VAL			0
 #define C2_HIGH_VAL			0
 #define C2_SCHED_DAY		0
@@ -203,8 +208,8 @@
 //#define C3_DESCR			"Turn on the water heater"
 #define C3_INPUT			""
 #define C3_OUTPUT			"WATER_HEATER"
-#define C3_ACT_COMMAND		OUTPUT_ON
-#define C3_DEACT_COMMAND	OUTPUT_OFF
+#define C3_ACT_COMMAND		CMD_OUTPUT_ON
+#define C3_DEACT_COMMAND	CMD_OUTPUT_OFF
 #define C3_LOW_VAL			0
 #define C3_HIGH_VAL			0
 #define C3_SCHED_DAY		0
@@ -218,8 +223,8 @@
 //#define C4_DESCR			"Turn on the grow lights"
 #define C4_INPUT			""
 #define C4_OUTPUT			"LIGHTS"
-#define C4_ACT_COMMAND		OUTPUT_ON
-#define C4_DEACT_COMMAND	OUTPUT_OFF
+#define C4_ACT_COMMAND		CMD_OUTPUT_ON
+#define C4_DEACT_COMMAND	CMD_OUTPUT_OFF
 #define C4_LOW_VAL			0
 #define C4_HIGH_VAL			0
 #define C4_SCHED_DAY		0
@@ -233,8 +238,8 @@
 //#define C5_DESCR			"Turn off the water heater"
 #define C5_INPUT			""
 #define C5_OUTPUT			"WATER_HEATER"
-#define C5_ACT_COMMAND		OUTPUT_ON
-#define C5_DEACT_COMMAND	OUTPUT_OFF
+#define C5_ACT_COMMAND		CMD_OUTPUT_ON
+#define C5_DEACT_COMMAND	CMD_OUTPUT_OFF
 #define C5_LOW_VAL			0
 #define C5_HIGH_VAL			0
 #define C5_SCHED_DAY		0
@@ -248,8 +253,8 @@
 //#define C6_DESCR			"Turn off the grow lights"
 #define C6_INPUT			""
 #define C6_OUTPUT			"LIGHTS"
-#define C6_ACT_COMMAND		OUTPUT_ON
-#define C6_DEACT_COMMAND	OUTPUT_OFF
+#define C6_ACT_COMMAND		CMD_OUTPUT_ON
+#define C6_DEACT_COMMAND	CMD_OUTPUT_OFF
 #define C6_LOW_VAL			0
 #define C6_HIGH_VAL			0
 #define C6_SCHED_DAY		0

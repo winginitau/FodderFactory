@@ -70,7 +70,7 @@ void SetOutputCommand(char* label, uint8_t command) {
 
 void ProcessOutput(uint8_t i) {
 	if (outputs_command[i] != outputs[i].current_state) {
-		if (outputs_command[i] == OUTPUT_ON) {
+		if (outputs_command[i] == CMD_OUTPUT_ON) {
 			HALDigitalWrite (outputs[i].digital_pin, DIG_HIGH);
 			outputs[i].current_state = 1;
 			EventMsg(i + GetBlockTypeOffset(FF_OUTPUT), SET, M_ON, 0, 0);

@@ -91,7 +91,7 @@ static uint16_t block_count = 0;
  Functions
 ************************************************/
 
-void ProcessBlockList(void(*func)(BlockNode*)) {
+void ProcessDispatcher(void(*func)(BlockNode*)) {
 	BlockNode* temp;
 	//char debug_msg[MAX_DEBUG_LENGTH];
 
@@ -122,64 +122,72 @@ uint16_t GetBlockID(const char* label) {
 }
 
 
-BlockNode* AddBlock(BlockNode** head_ref, uint8_t block_cat,
-		const char *block_label) {
+BlockNode* AddBlock(BlockNode** head_ref, uint8_t block_cat, const char *block_label) {
 	BlockNode* new_block;
 
 	if (*head_ref == NULL) {   //empty list
 		new_block = (BlockNode *) malloc(sizeof(BlockNode));
-		new_block->block_cat = block_cat;
-		strcpy(new_block->block_label, block_label);
-		new_block->block_id = block_count;
-		block_count++;
-		new_block->active = 0;
-		new_block->block_type = 255;
 		new_block->next_block = NULL;
+
+		new_block->block_cat = block_cat;
+		new_block->block_type = UINT8_INIT;
+		new_block->block_id = BLOCK_ID_BASE + block_count;
+		block_count++;
+		strcpy(new_block->block_label, block_label);
+		new_block->display_name[0] = '\0';
+		new_block->description[0] = '\0';
+
+		new_block->active = 0;
+		new_block->bool_val = 0;
+		new_block->int_val = UINT8_INIT;
+		new_block->f_val = FLOAT_INIT;
+
 		switch (block_cat) {
-		case FF_SYSTEM:
+			case FF_SYSTEM:
 //			uint8_t temp_scale;
 //			uint8_t language;
 //			uint8_t week_start;
-			//TODO
-			break;
-		case FF_INPUT:
-			strcpy(new_block->settings.in.interface, "LAST_INTERFACE");
-			new_block->settings.in.if_num = 255;
-			new_block->settings.in.log_rate = {255,255,255};
-			new_block->settings.in.data_units = 255;
-			new_block->settings.in.data_type = 255;
-			break;
+				//TODO
+				break;
+			case FF_INPUT:
+				new_block->settings.in.interface = LAST_INTERFACE;
+				new_block->settings.in.if_num = UINT8_INIT;
+				new_block->settings.in.log_rate = {UINT8_INIT,UINT8_INIT,UINT8_INIT};
+				new_block->settings.in.data_units = UINT8_INIT;
+				new_block->settings.in.data_type = UINT8_INIT;
+				break;
 			case FF_MONITOR:
-			new_block->settings.mon.input1 = 0xFFFF;
-			new_block->settings.mon.input2 = 0xFFFF;
-			new_block->settings.mon.input3 = 0xFFFF;
-			new_block->settings.mon.input4 = 0xFFFF;
-			new_block->settings.mon.act_val = 1111.11;
-			new_block->settings.mon.deact_val = 1111.11;
-			break;
+				new_block->settings.mon.input1 = UINT16_INIT;
+				new_block->settings.mon.input2 = UINT16_INIT;
+				new_block->settings.mon.input3 = UINT16_INIT;
+				new_block->settings.mon.input4 = UINT16_INIT;
+				new_block->settings.mon.act_val = FLOAT_INIT;
+				new_block->settings.mon.deact_val = FLOAT_INIT;
+				break;
 			case FF_SCHEDULE:
-			for (int i = 0; i < LAST_DAY; i++ ) new_block->settings.sch.days[i] = 255;
-			new_block->settings.sch.time_start = {255,255,255};
-			new_block->settings.sch.time_end = {255,255,255};
-			new_block->settings.sch.time_duration = {255,255,255};
-			new_block->settings.sch.time_repeat = {255,255,255};
-			break;
+				for (int i = 0; i < LAST_DAY; i++ ) new_block->settings.sch.days[i] = UINT8_INIT;
+				new_block->settings.sch.time_start = {UINT8_INIT,UINT8_INIT,UINT8_INIT};
+				new_block->settings.sch.time_end = {UINT8_INIT,UINT8_INIT,UINT8_INIT};
+				new_block->settings.sch.time_duration = {UINT8_INIT,UINT8_INIT,UINT8_INIT};
+				new_block->settings.sch.time_repeat = {UINT8_INIT,UINT8_INIT,UINT8_INIT};
+				break;
 			case FF_RULE:
-			new_block->settings.rl.param1 = 0xFFFF;
-			new_block->settings.rl.param2 = 0xFFFF;
-			new_block->settings.rl.param3 = 0xFFFF;
-			new_block->settings.rl.param_not = 0xFFFF;
-			break;
+				new_block->settings.rl.param1 = UINT16_INIT;
+				new_block->settings.rl.param2 = UINT16_INIT;
+				new_block->settings.rl.param3 = UINT16_INIT;
+				new_block->settings.rl.param_not = UINT16_INIT;
+				break;
 			case FF_CONTROLLER:
-			new_block->settings.con.rule = 0xFFFF;
-			new_block->settings.con.output = 0xFFFF;
-			new_block->settings.con.act_cmd = 255;
-			new_block->settings.con.deact_cmd= 255;
-			break;
+				new_block->settings.con.rule = UINT16_INIT;
+				new_block->settings.con.output = UINT16_INIT;
+				new_block->settings.con.act_cmd = UINT8_INIT;
+				new_block->settings.con.deact_cmd= UINT8_INIT;
+				break;
 			case FF_OUTPUT:
-			new_block->settings.out.out_digital_pin = 255;
-			break;
-		}
+				new_block->settings.out.interface = LAST_INTERFACE;
+				new_block->settings.out.if_num = UINT8_INIT;
+				break;
+			}
 		*head_ref = new_block;
 		return new_block;
 	}
@@ -206,7 +214,7 @@ BlockNode* GetBlock (BlockNode *list_node, uint8_t block_cat, const char *block_
 uint8_t ConfigureBlock(uint8_t block_cat, const char *block_label, const char *key_str, const char *value_str) {
 	BlockNode *block_ptr;
 	uint8_t return_value = 1;  //error by exception
-	uint8_t last_key = 255;
+	uint8_t last_key = UINT8_INIT;
 	//uint16_t block_id = 0;
 
 	block_ptr = GetBlock(bll, block_cat, block_label);
@@ -303,7 +311,7 @@ uint8_t ConfigureBlock(uint8_t block_cat, const char *block_label, const char *k
 					switch (key_idx) {
 
 					case IN_INTERFACE:
-						strcpy(block_ptr->settings.in.interface, value_str);
+						block_ptr->settings.in.interface = InterfaceStringArrayIndex(value_str);
 						break;
 
 					case IN_IF_NUM:
@@ -450,7 +458,7 @@ uint8_t ConfigureBlock(uint8_t block_cat, const char *block_label, const char *k
 						if (c < LAST_COMMAND) {
 							block_ptr->settings.con.act_cmd = c;
 						} else {
-							block_ptr->settings.con.act_cmd = 255;
+							block_ptr->settings.con.act_cmd = UINT8_INIT;
 							DebugLog("ERROR: Valid controller ACT_CMD string not defined in config");
 							return_value = 0;
 						}
@@ -464,7 +472,7 @@ uint8_t ConfigureBlock(uint8_t block_cat, const char *block_label, const char *k
 						if (c < LAST_COMMAND) {
 							block_ptr->settings.con.deact_cmd = c;
 						} else {
-							block_ptr->settings.con.deact_cmd = 255;
+							block_ptr->settings.con.deact_cmd = UINT8_INIT;
 							DebugLog("ERROR: Valid controller DEACT_CMD string not defined in config");
 							return_value = 0;
 						}
@@ -481,14 +489,17 @@ uint8_t ConfigureBlock(uint8_t block_cat, const char *block_label, const char *k
 				case FF_OUTPUT:
 					switch (key_idx) {
 
-					case OUT_DIGITAL_PIN:
-						block_ptr->settings.out.out_digital_pin = atoi(value_str);
-						break;
+						case OUT_INTERFACE:
+							block_ptr->settings.out.interface = InterfaceStringArrayIndex(value_str);
+							break;
 
-					//uint8_t out_digital_pin;
-					default:
-						DebugLog("ERROR: In static block_cat_defs in FF_OUTPUT setting data");
-						return_value = 0;
+						case OUT_IF_NUM:
+							block_ptr->settings.out.if_num = atoi(value_str);
+							break;
+
+						default:
+							DebugLog("ERROR: In static block_cat_defs in FF_OUTPUT setting data");
+							return_value = 0;
 						break;
 
 					} // switch(key_idx)

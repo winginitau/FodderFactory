@@ -26,7 +26,7 @@ typedef struct FF_SYSTEM_SETTINGS {
 } SystemSettings;
 
 typedef struct FF_INPUT_SETTINGS {
-	char interface[MAX_LABEL_LENGTH];
+	uint8_t interface;
 	uint8_t if_num;
 	FFTime log_rate;
 	uint8_t data_units;
@@ -65,7 +65,8 @@ typedef struct FF_CONTROLLER_SETTINGS {
 } ControllerSettings;
 
 typedef struct FF_OUTPUT_SETTINGS {
-	uint8_t out_digital_pin;
+	uint8_t interface;
+	uint8_t if_num;
 } OutputSettings;
 
 
@@ -88,6 +89,9 @@ struct BLOCK_NODE {
 	char display_name[MAX_LABEL_LENGTH];
 	char description[MAX_DESCR_LENGTH];
 	uint8_t active;
+	uint8_t bool_val;
+	uint8_t int_val;
+	float f_val;
 	BlockSettings settings;
 };
 
@@ -123,7 +127,7 @@ typedef struct UI_DATA_SET {
  Function Prototypes
 ************************************************/
 
-void ProcessBlockList(void(*f)(BlockNode*));
+void ProcessDispatcher(void(*f)(BlockNode*));
 
 BlockNode* GetBlock (BlockNode *list_node, uint8_t block_cat, const char *block_label);
 

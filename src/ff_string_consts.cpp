@@ -27,6 +27,15 @@ char const* GetMessageString(int message_enum) {
 	return message_strings[message_enum].text[GetLanguage()];
 }
 
+uint8_t InterfaceStringArrayIndex(const char* key) {
+	//
+	for (int i = 0; i < LAST_INTERFACE; i++) {
+		if (strcmp(key, interface_strings[i]) == 0) {
+			return i;
+		}
+	}
+	return UINT8_INIT;
+}
 
 uint8_t BlockTypeStringArrayIndex(const char* key) {
 	//
@@ -35,7 +44,7 @@ uint8_t BlockTypeStringArrayIndex(const char* key) {
 			return i;
 		}
 	}
-	return 255;
+	return UINT8_INIT;
 }
 
 /*

@@ -83,7 +83,7 @@ void ProcessController(int i) {
 			sched.second = controls[i].sched_second;
 
 			if (FFDTGrEq(now, sched)) {
-				SetOutputCommand(controls[i].output, OUTPUT_ON);
+				SetOutputCommand(controls[i].output, CMD_OUTPUT_ON);
 				controls[i].sched_done_today = 1;
 				controls[i].last_action = now;
 				EventMsg(i + GetBlockTypeOffset(FF_CONTROLLER), SCHED_DAILY_ON, M_CONTROL_ACTIVATED, 0,
@@ -105,7 +105,7 @@ void ProcessController(int i) {
 			sched.second = controls[i].sched_second;
 
 			if (FFDTGrEq(now, sched)) {
-				SetOutputCommand(controls[i].output, OUTPUT_OFF);
+				SetOutputCommand(controls[i].output, CMD_OUTPUT_OFF);
 				controls[i].sched_done_today = 1;
 				controls[i].last_action = now;
 				EventMsg(i + GetBlockTypeOffset(FF_CONTROLLER), SCHED_DAILY_OFF, M_CONTROL_ACTIVATED,
