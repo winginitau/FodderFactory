@@ -75,8 +75,15 @@
 
 #define UINT8_INIT 0xFF
 #define UINT16_INIT 0xFFFF
+#define UINT32_INIT 0xFFFFFFFF
 #define FLOAT_INIT 255.000000
 #define BLOCK_ID_BASE 1000
+
+//Time Value type for rates and periods (in seconds)
+// uint8_t = 255 seconds = 4.25 minutes
+// unit16_t = 65535 seconds = 1092.25 minutes = 18.21 hours
+// uint32_t = About 137 years....
+#define TV_TYPE	uint32_t
 
 // Maximum length for filename, excluding NULL char 26 chars allows an
 // 8.3 filename instead and 8.3 directory with a leading slash

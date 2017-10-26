@@ -13,6 +13,7 @@
  Includes
 ************************************************/
 #include "ff_datetime.h"
+#include <time.h>
 
 /************************************************
  Public and Forward Data Structure Declarations
@@ -28,7 +29,7 @@ typedef struct FF_SYSTEM_SETTINGS {
 typedef struct FF_INPUT_SETTINGS {
 	uint8_t interface;
 	uint8_t if_num;
-	FFTime log_rate;
+	TV_TYPE log_rate;
 	uint8_t data_units;
 	uint8_t data_type;		// float, int
 } InputSettings;
@@ -44,10 +45,10 @@ typedef struct FF_MONITOR_SETTINGS {
 
 typedef struct FF_SCHED_SETTINGS {
 	uint8_t days[7];
-	FFTime time_start;
-	FFTime time_end;
-	FFTime time_duration;
-	FFTime time_repeat;
+	time_t time_start;
+	time_t time_end;
+	TV_TYPE time_duration;
+	TV_TYPE time_repeat;
 } ScheduleSettings;
 
 typedef struct FF_RULE_SETTINGS {
@@ -92,7 +93,7 @@ struct BLOCK_NODE {
 	uint8_t bool_val;
 	uint8_t int_val;
 	float f_val;
-	FFTime last_update;
+	time_t last_update;
 	BlockSettings settings;
 };
 
@@ -102,21 +103,21 @@ typedef struct BLOCK_NODE BlockNode;
 typedef struct UI_DATA_SET {
 	float inside_current;
 	float inside_min;
-	FFDateTime inside_min_dt;
+	time_t inside_min_dt;
 	float inside_max;
-	FFDateTime inside_max_dt;
+	time_t inside_max_dt;
 
 	float outside_current;
 	float outside_min;
-	FFDateTime outside_min_dt;
+	time_t outside_min_dt;
 	float outside_max;
-	FFDateTime outside_max_dt;
+	time_t outside_max_dt;
 
 	float water_current;
 	float water_min;
-	FFDateTime water_min_dt;
+	time_t water_min_dt;
 	float water_max;
-	FFDateTime water_max_dt;
+	time_t water_max_dt;
 
 	uint8_t light_flag;				//current state of lights
 	uint8_t water_heater_flag;		//current state of water heater

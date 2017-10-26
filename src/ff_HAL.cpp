@@ -157,9 +157,8 @@ uint8_t HALSaveEventBuffer(void) {
 				e = EventBufferPop();
 				char time_str[12];
 				char date_str[14];
-				FFDateCString(date_str, e->time_stamp);
-				FFTimeCString(time_str, e->time_stamp);
-
+				strftime(date_str, 14, "%Y-%m-%d", localtime(&(e->time_stamp)));
+				strftime(time_str, 12, "%H:%M:%S", localtime(&(e->time_stamp)));
 				fprintf(e_file, "%s,", date_str);
 				fprintf(e_file, "%s,", time_str);
 				fprintf(e_file, "%s,", GetBlockLabelString(e->source));
@@ -325,7 +324,7 @@ void HALInitUI(void) {
 }
 
 
-void HALDrawDataScreenCV(const UIDataSet* uids, FFDateTime dt) {
+void HALDrawDataScreenCV(const UIDataSet* uids, time_t dt) {
 #ifdef FF_ARDUINO
 	//U8G2_ST7920_128X64_F_SW_SPI lcd_128_64(U8G2_R0, /* clock=*/ 40 /* A4 */ , /* data=*/ 42 /* A2 */, /* CS=*/ 44 /* A3 */, /* reset=*/ U8X8_PIN_NONE); //LCD Device Object and Definition
 	//lcd_128_64.begin();
@@ -386,13 +385,13 @@ void HALDrawDataScreenCV(const UIDataSet* uids, FFDateTime dt) {
 	char time_out_max[10];
 	char time_wat_max[10];
 
-	FFShortTimeCString(time_now_str, dt);
-	FFShortTimeCString(time_in_min, uids->inside_min_dt);
-	FFShortTimeCString(time_out_min, uids->outside_min_dt);
-	FFShortTimeCString(time_wat_min, uids->water_min_dt);
-	FFShortTimeCString(time_in_max, uids->inside_max_dt);
-	FFShortTimeCString(time_out_max, uids->outside_max_dt);
-	FFShortTimeCString(time_wat_max, uids->water_max_dt);
+	strftime(time_now_str, 10, "%H:%M", localtime(&dt));
+	strftime(time_in_min, 10, "%H:%M", localtime(&(uids->inside_min_dt)));
+	strftime(time_out_min, 10, "%H:%M", localtime(&(uids->outside_min_dt)));
+	strftime(time_wat_min, 10, "%H:%M", localtime(&(uids->water_min_dt)));
+	strftime(time_in_max, 10, "%H:%M", localtime(&(uids->inside_max_dt)));
+	strftime(time_out_max, 10, "%H:%M", localtime(&(uids->outside_max_dt)));
+	strftime(time_wat_max, 10, "%H:%M", localtime(&(uids->water_max_dt)));
 
 
 	//printf("\e[1;1H\e[2J"); //clear screen

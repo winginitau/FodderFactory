@@ -90,14 +90,16 @@ float InputCurrentFVal(char* label) {
 }
 
 void ProcessInput(int i) {
+/*
 	TempSensorsTakeReading();
 	inputs[i].last_read = FFDTNow();
 	inputs[i].current_f_val = GetTemperature(inputs[i].device_num);
 	EventMsg(i + GetBlockTypeOffset(FF_INPUT), DATA, M_F_READ, 0, inputs[i].current_f_val);
+	*/
 }
 
 void PollInputs(void) {
-
+/*
 	FFDateTime now, last, next, rate;
 
 	for (int i= 0; i < INPUT_COUNT; i++) {
@@ -116,6 +118,7 @@ void PollInputs(void) {
 			ProcessInput(i);
 		}
 	}
+	*/
 }
 
 

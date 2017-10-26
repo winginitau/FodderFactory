@@ -51,21 +51,21 @@ FFDateTime DateTimeToFFDateTime(DateTime rtcDT);
 */
 //FFDateTime FFDT(uint16_t year, uint8_t month, uint8_t day, uint8_t hour, uint8_t min, uint8_t sec);
 
-FFTime StringToFFTime(const char* time_str);
+//FFTime StringToFFTime(const char* time_str);
 
-uint8_t FFDTGrEq(FFDateTime a, FFDateTime b);
+//uint8_t FFDTGrEq(FFDateTime a, FFDateTime b);
 
-FFDateTime FFDTAdd(FFDateTime a, FFDateTime b);
+//FFDateTime FFDTAdd(FFDateTime a, FFDateTime b);
 
-FFDateTime FFDTNow(void);
+//FFDateTime FFDTNow(void);
 
-char* FFShortTimeCString(char* hm_str, FFDateTime dt);
+//char* FFShortTimeCString(char* hm_str, FFDateTime dt);
 
-char* FFTimeCString(char* hms_str, FFDateTime dt);
+//char* FFTimeCString(char* hms_str, FFDateTime dt);
 
-char* FFDateCString(char* ymd_str, FFDateTime dt);
+//char* FFDateCString(char* ymd_str, FFDateTime dt);
 
-char* FFDateTimeCStringNow (char* dt_str);
+//char* FFDateTimeCStringNow (char* dt_str);
 
 #ifdef FF_ARDUINO
 //String FFDateTimeStringNow(void);

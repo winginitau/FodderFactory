@@ -18,6 +18,7 @@
 #include "ff_registry.h"
 #include "ff_utils.h"
 #include "ff_filesystem.h"
+#include <time.h>
 
 
 /************************************************
@@ -100,14 +101,14 @@ void EventBufferPush(EventNode event) {
 void EventMsg(uint8_t source, uint8_t msg_type, uint8_t msg_str, int i_val, float f_val) {
 
 	if(event_buffer.init != 0) {
-#ifdef FF_ARDUINO
+
 		DebugLog("STOP EventMsg before init");
-#endif
+
 		while (1);
 	}
 	EventNode event;
 
-	event.time_stamp = FFDTNow();
+	event.time_stamp = time(NULL);
 	event.source = source;
 	event.message_type = msg_type;
 	event.message = msg_str;
@@ -148,7 +149,7 @@ void EventBufferInit(void) {
 	event_buffer.tail = 0;
 	event_buffer.size = EVENT_BUFFER_SIZE;
 	for (int i = 0; i < event_buffer.size; i++) {
-		event_buffer.event_list[i].time_stamp = {0, 0, 0, 0, 0, 0};
+		event_buffer.event_list[i].time_stamp = 0;
 		event_buffer.event_list[i].source = 0;
 		event_buffer.event_list[i].message_type = 0;
 		event_buffer.event_list[i].message = 0;

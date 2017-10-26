@@ -83,7 +83,7 @@ FFDateTime FFDT(uint16_t year, uint8_t month, uint8_t day, uint8_t hour, uint8_t
 }
 */
 
-
+/*
 FFTime StringToFFTime(const char* time_str) {
 	int hh, mm, ss;
 	FFTime fft;
@@ -101,7 +101,9 @@ FFTime StringToFFTime(const char* time_str) {
 		return fft;
 	}
 }
+*/
 
+/*
 uint8_t FFDTGrEq(FFDateTime a, FFDateTime b) {
 	if (a.year > b.year) {
 		return 1;
@@ -153,7 +155,9 @@ uint8_t FFDTGrEq(FFDateTime a, FFDateTime b) {
 		}
 	}
 }
+*/
 
+/*
 FFDateTime FFDTAdd(FFDateTime a, FFDateTime b) {
 	//TODO Handle Leap years
 	FFDateTime dt;
@@ -366,9 +370,11 @@ String FFDateTimeStringNow(void) {
 	String time = FFShortTimeString(dt);
 	return date + " " + time;
 }
-*/
+
 
 #endif
+
+*/
 
 void InitRTC(void) {		//setup the Real Time Clock
 	HALInitRTC();

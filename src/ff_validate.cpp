@@ -102,9 +102,7 @@ void Validate(BlockNode* b) {
 	assert(b->f_val == FLOAT_INIT);
 
 	//FFTime last_update
-	assert(b->last_update.hour == UINT8_INIT);
-	assert(b->last_update.minute == UINT8_INIT);
-	assert(b->last_update.second == UINT8_INIT);
+	assert(b->last_update == UINT32_INIT);
 
 
 
@@ -114,9 +112,9 @@ void Validate(BlockNode* b) {
 	case IN_ONEWIRE:
 		assert(b->settings.in.interface == IF_ONEWIRE);
 		assert(b->settings.in.if_num < UINT8_INIT);
-		assert(b->settings.in.log_rate.hour < 24);
-		assert(b->settings.in.log_rate.minute < 60);
-		assert(b->settings.in.log_rate.second < 60);
+		//assert(b->settings.in.log_rate.hour < 24);
+		//assert(b->settings.in.log_rate.minute < 60);
+		//assert(b->settings.in.log_rate.second < 60);
 		assert(b->settings.in.data_units < LAST_UNIT_SCALE);
 		//uint8_t data_type;		// float, int
 		//Prob derived from block type - consider dropping
@@ -125,9 +123,9 @@ void Validate(BlockNode* b) {
 	case IN_DIGITAL:
 		assert(b->settings.in.interface == IF_DIG_PIN_IN);
 		assert(b->settings.in.if_num < UINT8_INIT);
-		assert(b->settings.in.log_rate.hour < 24);
-		assert(b->settings.in.log_rate.minute < 60);
-		assert(b->settings.in.log_rate.second < 60);
+		//assert(b->settings.in.log_rate.hour < 24);
+		//assert(b->settings.in.log_rate.minute < 60);
+		//assert(b->settings.in.log_rate.second < 60);
 		assert(b->settings.in.data_units == ONOFF);
 		//uint8_t data_type;		// float, int
 		//Prob derived from block type - consider dropping
@@ -215,6 +213,7 @@ void Validate(BlockNode* b) {
 		assert(b->settings.sch.days[5] != UINT8_INIT);
 		assert(b->settings.sch.days[6] != UINT8_INIT);
 
+		/*
 		assert(b->settings.sch.time_start.hour < 24);
 		assert(b->settings.sch.time_start.minute < 60);
 		assert(b->settings.sch.time_start.second < 60);
@@ -230,6 +229,7 @@ void Validate(BlockNode* b) {
 		assert(b->settings.sch.time_repeat.hour == UINT8_INIT);
 		assert(b->settings.sch.time_repeat.minute == UINT8_INIT);
 		assert(b->settings.sch.time_repeat.second == UINT8_INIT);
+		*/
 		break;
 
 	case SCH_ONE_SHOT:
@@ -240,7 +240,7 @@ void Validate(BlockNode* b) {
 		assert(b->settings.sch.days[4] != UINT8_INIT);
 		assert(b->settings.sch.days[5] != UINT8_INIT);
 		assert(b->settings.sch.days[6] != UINT8_INIT);
-
+/*
 		assert(b->settings.sch.time_start.hour < 24);
 		assert(b->settings.sch.time_start.minute < 60);
 		assert(b->settings.sch.time_start.second < 60);
@@ -256,6 +256,7 @@ void Validate(BlockNode* b) {
 		assert(b->settings.sch.time_repeat.hour == UINT8_INIT);
 		assert(b->settings.sch.time_repeat.minute == UINT8_INIT);
 		assert(b->settings.sch.time_repeat.second == UINT8_INIT);
+	*/
 		break;
 
 	case SCH_START_DURATION_REPEAT:
@@ -266,7 +267,7 @@ void Validate(BlockNode* b) {
 		assert(b->settings.sch.days[4] != UINT8_INIT);
 		assert(b->settings.sch.days[5] != UINT8_INIT);
 		assert(b->settings.sch.days[6] != UINT8_INIT);
-
+/*
 		assert(b->settings.sch.time_start.hour < 24);
 		assert(b->settings.sch.time_start.minute < 60);
 		assert(b->settings.sch.time_start.second < 60);
@@ -282,7 +283,7 @@ void Validate(BlockNode* b) {
 		assert(b->settings.sch.time_repeat.hour < 24);
 		assert(b->settings.sch.time_repeat.minute < 60);
 		assert(b->settings.sch.time_repeat.second < 60);
-
+*/
 		break;
 
 	case RL_LOGIC_ANDNOT:

@@ -69,6 +69,7 @@ void SetOutputCommand(char* label, uint8_t command) {
 }
 
 void ProcessOutput(uint8_t i) {
+/*
 	if (outputs_command[i] != outputs[i].current_state) {
 		if (outputs_command[i] == CMD_OUTPUT_ON) {
 			HALDigitalWrite (outputs[i].digital_pin, DIG_HIGH);
@@ -81,10 +82,12 @@ void ProcessOutput(uint8_t i) {
 		}
 		outputs[i].last_change = FFDTNow();
 	}
+	*/
 }
 
 void SetupOutputs(void) {
-	uint8_t i = 0;
+/*
+ 	uint8_t i = 0;
 	//TODO temp until reading loop done
 	//TODO - read a config file once we have SD memory
 
@@ -123,6 +126,7 @@ void SetupOutputs(void) {
 		ProcessOutput(i);
 	}
 	EventMsg(SSS, INFO, M_OUTPUTS_INIT, 0, 0);
+*/
 }
 
 void PollOutputs (void) {

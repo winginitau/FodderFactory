@@ -202,7 +202,7 @@ BlockNode* AddBlock(BlockNode** head_ref, uint8_t block_cat, const char *block_l
 		new_block->bool_val = 0;
 		new_block->int_val = UINT8_INIT;
 		new_block->f_val = FLOAT_INIT;
-		new_block->last_update = {UINT8_INIT, UINT8_INIT, UINT8_INIT};
+		new_block->last_update = UINT32_INIT;
 
 		switch (block_cat) {
 			case FF_SYSTEM:
@@ -214,7 +214,7 @@ BlockNode* AddBlock(BlockNode** head_ref, uint8_t block_cat, const char *block_l
 			case FF_INPUT:
 				new_block->settings.in.interface = LAST_INTERFACE;
 				new_block->settings.in.if_num = UINT8_INIT;
-				new_block->settings.in.log_rate = {UINT8_INIT,UINT8_INIT,UINT8_INIT};
+				new_block->settings.in.log_rate = 0;
 				new_block->settings.in.data_units = UINT8_INIT;
 				new_block->settings.in.data_type = UINT8_INIT;
 				break;
@@ -228,10 +228,10 @@ BlockNode* AddBlock(BlockNode** head_ref, uint8_t block_cat, const char *block_l
 				break;
 			case FF_SCHEDULE:
 				for (int i = 0; i < LAST_DAY; i++ ) new_block->settings.sch.days[i] = UINT8_INIT;
-				new_block->settings.sch.time_start = {UINT8_INIT,UINT8_INIT,UINT8_INIT};
-				new_block->settings.sch.time_end = {UINT8_INIT,UINT8_INIT,UINT8_INIT};
-				new_block->settings.sch.time_duration = {UINT8_INIT,UINT8_INIT,UINT8_INIT};
-				new_block->settings.sch.time_repeat = {UINT8_INIT,UINT8_INIT,UINT8_INIT};
+				new_block->settings.sch.time_start = UINT32_INIT;
+				new_block->settings.sch.time_end = UINT32_INIT;
+				new_block->settings.sch.time_duration = 0;
+				new_block->settings.sch.time_repeat = 0;
 				break;
 			case FF_RULE:
 				new_block->settings.rl.param1 = UINT16_INIT;
@@ -380,10 +380,12 @@ uint8_t ConfigureBlock(uint8_t block_cat, const char *block_label, const char *k
 						block_ptr->settings.in.if_num = atoi(value_str);
 						break;
 
-					case IN_LOG_RATE:
-						block_ptr->settings.in.log_rate = StringToFFTime(value_str);
+					case IN_LOG_RATE: {
+						tm *time_tm;
+						strptime(value_str, "%H:%M:%S", time_tm);
+						block_ptr->settings.in.log_rate = mktime(time_tm);
 						break;
-
+					}
 					case IN_DATA_UNITS: {
 						uint8_t u = 0;
 						while (u < LAST_UNIT_SCALE && strcmp(unit_strings[u].text[ENGLISH], value_str)) {
@@ -454,32 +456,47 @@ uint8_t ConfigureBlock(uint8_t block_cat, const char *block_label, const char *k
 					} // switch(key_idx)
 					break; //switch (block_cat);
 
-				case FF_SCHEDULE:
-					switch (key_idx) {
+					case FF_SCHEDULE:
+						switch (key_idx) {
 
-					case SCH_DAYS:
-						if (DayStrToFlag(block_ptr->settings.sch.days, value_str) != 1) {
-							DebugLog("WARNING: No Days Found Converting Day String to Flag");
-						}
-						break;
-					case SCH_TIME_START:
-						block_ptr->settings.sch.time_start = StringToFFTime(value_str);
-						break;
-					case SCH_TIME_END:
-						block_ptr->settings.sch.time_end = StringToFFTime(value_str);
-						break;
-					case SCH_TIME_DURATION:
-						block_ptr->settings.sch.time_duration = StringToFFTime(value_str);
-						break;
-					case SCH_TIME_REPEAT:
-						block_ptr->settings.sch.time_repeat = StringToFFTime(value_str);
-						break;
-					default:
-						DebugLog("ERROR: In static block_cat_defs in FF_SCHEDULE setting data");
-						return_value = 0;
-						break;
-					} // switch(key_idx)
-					break; //switch (block_cat);
+							case SCH_DAYS:
+								if (DayStrToFlag(block_ptr->settings.sch.days, value_str) != 1) {
+									DebugLog("WARNING: No Days Found Converting Day String to Flag");
+								}
+								break;
+							case SCH_TIME_START: {
+								tm *time_tm;
+								strptime(value_str, "%H:%M:%S", time_tm);
+
+								block_ptr->settings.sch.time_start = mktime(time_tm);
+								break;
+							}
+							case SCH_TIME_END: {
+								tm *time_tm;
+								strptime(value_str, "%H:%M:%S", time_tm);
+								block_ptr->settings.sch.time_end = mktime(time_tm);
+								break;
+							}
+							case SCH_TIME_DURATION: {
+								tm *time_tm;
+								strptime(value_str, "%H:%M:%S", time_tm);
+								block_ptr->settings.sch.time_duration = mktime(time_tm);
+								break;
+							}
+							case SCH_TIME_REPEAT: {
+
+								tm *time_tm;
+								strptime(value_str, "%H:%M:%S", time_tm);
+
+								block_ptr->settings.sch.time_repeat = mktime(time_tm);
+								break;
+							}
+							default:
+								DebugLog("ERROR: In static block_cat_defs in FF_SCHEDULE setting data");
+								return_value = 0;
+								break;
+						} // switch(key_idx)
+						break; //switch (block_cat);
 
 				case FF_RULE:
 					switch (key_idx) {
@@ -664,11 +681,11 @@ void UpdateStateRegister(uint8_t source, uint8_t msg_type, uint8_t msg_str, int 
 		sr.ui_data.inside_current = f_val;
 		if (f_val < sr.ui_data.inside_min) {
 			sr.ui_data.inside_min = f_val;
-			sr.ui_data.inside_min_dt = FFDTNow();
+			sr.ui_data.inside_min_dt = time(NULL);
 		}
 		if (f_val > sr.ui_data.inside_max) {
 			sr.ui_data.inside_max = f_val;
-			sr.ui_data.inside_max_dt = FFDTNow();
+			sr.ui_data.inside_max_dt = time(NULL);
 		}
 	}
 
@@ -676,11 +693,11 @@ void UpdateStateRegister(uint8_t source, uint8_t msg_type, uint8_t msg_str, int 
 		sr.ui_data.outside_current = f_val;
 		if (f_val < sr.ui_data.outside_min) {
 			sr.ui_data.outside_min = f_val;
-			sr.ui_data.outside_min_dt = FFDTNow();
+			sr.ui_data.outside_min_dt = time(NULL);
 		}
 		if (f_val > sr.ui_data.outside_max) {
 			sr.ui_data.outside_max = f_val;
-			sr.ui_data.outside_max_dt = FFDTNow();
+			sr.ui_data.outside_max_dt = time(NULL);
 		}
 	}
 
@@ -688,29 +705,29 @@ void UpdateStateRegister(uint8_t source, uint8_t msg_type, uint8_t msg_str, int 
 			sr.ui_data.water_current = f_val;
 			if (f_val < sr.ui_data.water_min) {
 				sr.ui_data.water_min = f_val;
-				sr.ui_data.water_min_dt = FFDTNow();
+				sr.ui_data.water_min_dt = time(NULL);
 			}
 			if (f_val > sr.ui_data.water_max) {
 				sr.ui_data.water_max = f_val;
-				sr.ui_data.water_max_dt = FFDTNow();
+				sr.ui_data.water_max_dt = time(NULL);
 			}
 	}
 
 	if (strcmp(sr.block_list[source].label, "RESET_MIN_MAX") == 0) {
 				sr.ui_data.inside_min = sr.ui_data.inside_current;
-				sr.ui_data.inside_min_dt = FFDTNow();
+				sr.ui_data.inside_min_dt = time(NULL);
 				sr.ui_data.inside_max = sr.ui_data.inside_current;
-				sr.ui_data.inside_max_dt = FFDTNow();
+				sr.ui_data.inside_max_dt = time(NULL);
 
 				sr.ui_data.outside_min = sr.ui_data.outside_current;
-				sr.ui_data.outside_min_dt = FFDTNow();
+				sr.ui_data.outside_min_dt = time(NULL);
 				sr.ui_data.outside_max = sr.ui_data.outside_current;
-				sr.ui_data.outside_max_dt = FFDTNow();
+				sr.ui_data.outside_max_dt = time(NULL);
 
 				sr.ui_data.water_min = sr.ui_data.water_current;
-				sr.ui_data.water_min_dt = FFDTNow();
+				sr.ui_data.water_min_dt = time(NULL);
 				sr.ui_data.water_max = sr.ui_data.water_current;
-				sr.ui_data.water_max_dt = FFDTNow();
+				sr.ui_data.water_max_dt = time(NULL);
 	}
 
 	sr.ui_data.light_flag = 0;
@@ -749,21 +766,21 @@ void InitStateRegister(void) {
 //initialise the min and max counters used for UI display
 	sr.ui_data.inside_current = 0;
 	sr.ui_data.inside_min = 100;
-	sr.ui_data.inside_min_dt = FFDTNow();
+	sr.ui_data.inside_min_dt = time(NULL);
 	sr.ui_data.inside_max = -50;
-	sr.ui_data.inside_max_dt = FFDTNow();
+	sr.ui_data.inside_max_dt = time(NULL);
 
 	sr.ui_data.outside_current = 0;
 	sr.ui_data.outside_min = 100;
-	sr.ui_data.outside_min_dt = FFDTNow();
+	sr.ui_data.outside_min_dt = time(NULL);
 	sr.ui_data.outside_max = -50;
-	sr.ui_data.outside_max_dt = FFDTNow();
+	sr.ui_data.outside_max_dt = time(NULL);
 
 	sr.ui_data.water_current = 0;
 	sr.ui_data.water_min = 100;
-	sr.ui_data.water_min_dt = FFDTNow();
+	sr.ui_data.water_min_dt = time(NULL);
 	sr.ui_data.water_max = -50;
-	sr.ui_data.water_max_dt = FFDTNow();
+	sr.ui_data.water_max_dt = time(NULL);
 
 	//TODO these will go
 	sr.ui_data.light_flag = 0;

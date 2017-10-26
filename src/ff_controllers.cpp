@@ -67,6 +67,7 @@ ControlBlock controls[CONTROL_COUNT];
 
 void ProcessController(int i) {
 
+	/*
 	switch (controls[i].type) {
 
 	case SCHED_DAILY_ON:
@@ -217,7 +218,10 @@ void ProcessController(int i) {
 		// default is optional
 		break;
 	}
+*/
 }
+
+
 
 void SetupControllers(void) {
 	int i = 0;

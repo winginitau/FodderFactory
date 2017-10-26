@@ -74,7 +74,9 @@ void DebugConsole (const char* str) {
 void DebugLog(const char* log_message) {
   char log_entry[MAX_DEBUG_LENGTH];
   char dt[24];
-  FFDateTimeCStringNow(dt);					//yyyy-mm-dd, 00:00:00
+  time_t now;
+  now = time(NULL);
+  strftime(dt, 24, "%Y-%m-%D, %H:%M:%S", localtime(&now));					//yyyy-mm-dd, 00:00:00
   sprintf(log_entry, "%s, %s", dt, log_message);  	//assemble log entry with time stamp
 
 #ifdef DEBUG_SERIAL

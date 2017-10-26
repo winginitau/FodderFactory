@@ -32,8 +32,8 @@ float GetTemperature(int if_num);
 void TempSensorsTakeReading(void);
 void InitTempSensors(void);
 void HALInitUI(void);
-void HALDrawDataScreenCV(const UIDataSet* uids, FFDateTime dt);
-void HALDrawDataScreen(const UIDataSet* uids, FFDateTime dt);
+void HALDrawDataScreenCV(const UIDataSet* uids, time_t dt);
+//void HALDrawDataScreen(const UIDataSet* uids, time_t dt);
 FFDateTime HALFFDTNow(void);
 void HALInitRTC(void);
 

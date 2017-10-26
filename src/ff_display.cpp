@@ -45,8 +45,7 @@ void UpdateUI(void) {
 
 	const UIDataSet* ui_data_ptr = GetUIDataSet();
 
-	FFDateTime dt_now = FFDTNow();
-
+	time_t dt_now = time(NULL);
 	//XXX put back in
 	HALDrawDataScreenCV(ui_data_ptr, dt_now);
 

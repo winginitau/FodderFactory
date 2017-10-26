@@ -14,12 +14,13 @@
 ************************************************/
 #include <stdint.h>
 #include "ff_datetime.h"
+#include <time.h>
 
 /************************************************
  Public and Forward Data Structure Declarations
 ************************************************/
 typedef struct EVENT_NODE {
-	FFDateTime time_stamp;
+	time_t time_stamp;
 	uint8_t source;
 	uint8_t message_type;
 	uint8_t message;
