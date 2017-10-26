@@ -29,6 +29,7 @@ using namespace std;
 #include <ff_display.h>
 #include <ff_main.h>
 #include <ff_validate.h>
+#include <ff_registry.h>
 #include <stdio.h>
 
 
@@ -62,7 +63,9 @@ int main(void) {
 	//TODO 					// set up remote control / data feed / radio link
 
 	ProcessDispatcher(Validate);
-	//ProcessBlockList(Setup);
+	ProcessDispatcher(Setup);
+	ProcessDispatcher(Validate);
+	ProcessDispatcher(Operate);
 
 	//SetupInputs();			// sensors, triggers, external data feeds (eg from battery mon)
 	//SetupOutputs();			// relays and data connections to turn devices on/off and talk to external systems

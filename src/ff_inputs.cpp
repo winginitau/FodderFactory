@@ -16,6 +16,7 @@
 #include "ff_HAL.h"
 #include "ff_string_consts.h"
 #include "ff_events.h"
+#include "ff_registry.h"
 
 //#include "ff_utils.h"
 //#include "RTClib.h"
@@ -50,6 +51,30 @@ InputBlock inputs[INPUT_COUNT];
 /************************************************
   Input Processing Functions
 ************************************************/
+
+void InputSetup(BlockNode *b) {
+	switch (b->block_type) {
+		case IN_ONEWIRE:
+			//TODO nothing to do??
+			break;
+		case IN_DIGITAL:
+			//TODO nothing to do??
+			break;
+	}
+
+}
+
+void InputOperate(BlockNode *b) {
+	switch (b->block_type) {
+		case IN_ONEWIRE:
+			//TODO nothing to do??
+			break;
+		case IN_DIGITAL:
+			//TODO nothing to do??
+			break;
+	}
+}
+
 
 float InputCurrentFVal(char* label) {
 	int i = 0;

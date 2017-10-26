@@ -15,6 +15,8 @@
 #include "ff_string_consts.h"
 #include "ff_debug.h"
 #include "ff_utils.h"
+#include "ff_inputs.h"
+
 
 #ifdef FF_SIMULATOR
 #include <string.h>
@@ -91,6 +93,65 @@ static uint16_t block_count = 0;
  Functions
 ************************************************/
 
+void Setup(BlockNode *b) {
+	switch (b->block_cat) {
+	case FF_SYSTEM:
+		//TODO
+		break;
+	case FF_INPUT:
+		InputSetup(b);
+		break;
+	case FF_MONITOR:
+//		MonitorSetup(b);
+		break;
+	case FF_SCHEDULE:
+//		SchedSetup(b);
+		break;
+	case FF_RULE:
+//		RuleSetup(b);
+		break;
+	case FF_CONTROLLER:
+//		ControllerSetup(b);
+		break;
+	case FF_OUTPUT:
+//		OutputSetup(b);
+		break;
+	default:
+		DebugLog("ERROR: Block Category Not Matched in Setup");
+		break;
+	}
+}
+
+void Operate(BlockNode *b) {
+	switch (b->block_cat) {
+	case FF_SYSTEM:
+		//TODO
+		break;
+	case FF_INPUT:
+		InputOperate(b);
+		break;
+	case FF_MONITOR:
+//		MonitorSetup(b);
+		break;
+	case FF_SCHEDULE:
+//		SchedSetup(b);
+		break;
+	case FF_RULE:
+//		RuleSetup(b);
+		break;
+	case FF_CONTROLLER:
+//		ControllerSetup(b);
+		break;
+	case FF_OUTPUT:
+//		OutputSetup(b);
+		break;
+	default:
+		DebugLog("ERROR: Block Category Not Macthed in Operate");
+		break;
+	}
+}
+
+
 void ProcessDispatcher(void(*func)(BlockNode*)) {
 	BlockNode* temp;
 	//char debug_msg[MAX_DEBUG_LENGTH];
@@ -141,6 +202,7 @@ BlockNode* AddBlock(BlockNode** head_ref, uint8_t block_cat, const char *block_l
 		new_block->bool_val = 0;
 		new_block->int_val = UINT8_INIT;
 		new_block->f_val = FLOAT_INIT;
+		new_block->last_update = {UINT8_INIT, UINT8_INIT, UINT8_INIT};
 
 		switch (block_cat) {
 			case FF_SYSTEM:

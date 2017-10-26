@@ -101,6 +101,12 @@ void Validate(BlockNode* b) {
 		//init state
 	assert(b->f_val == FLOAT_INIT);
 
+	//FFTime last_update
+	assert(b->last_update.hour == UINT8_INIT);
+	assert(b->last_update.minute == UINT8_INIT);
+	assert(b->last_update.second == UINT8_INIT);
+
+
 
 	//BlockSettings settings;
 

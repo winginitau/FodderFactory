@@ -92,6 +92,7 @@ struct BLOCK_NODE {
 	uint8_t bool_val;
 	uint8_t int_val;
 	float f_val;
+	FFTime last_update;
 	BlockSettings settings;
 };
 
@@ -126,6 +127,10 @@ typedef struct UI_DATA_SET {
 /************************************************
  Function Prototypes
 ************************************************/
+
+void Operate(BlockNode *b);
+
+void Setup(BlockNode *b);
 
 void ProcessDispatcher(void(*f)(BlockNode*));
 
