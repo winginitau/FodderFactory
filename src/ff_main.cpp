@@ -188,8 +188,8 @@ void ReadAndParseConfig(void) {
 					INI_FILE_MAX_LINE_LENGTH)) {
 
 						if (ConfigureBlock(block_cat, block_section, block_section_key, key_value)) {
-//							sprintf(debug_msg, "CONFIGURED [%s][%s][%s][%s] = %s", list_section, list_section_key, block_section, block_section_key, key_value);
-//							DebugLog(debug_msg);
+							sprintf(debug_msg, "CONFIGURED [%s][%s][%s][%s] = %s", list_section, list_section_key, block_section, block_section_key, key_value);
+							DebugLog(debug_msg);
 						} else {
 							sprintf(debug_msg, "CONFIG FAILED [%s][%s][%s][%s]: %s ", list_section, list_section_key, block_section, block_section_key, key_value);
 							DebugLog(debug_msg);

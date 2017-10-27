@@ -76,7 +76,7 @@ void DebugLog(const char* log_message) {
   char dt[24];
   time_t now;
   now = time(NULL);
-  strftime(dt, 24, "%Y-%m-%D, %H:%M:%S", localtime(&now));					//yyyy-mm-dd, 00:00:00
+  strftime(dt, 24, "%Y-%m-%d, %H:%M:%S", localtime(&now));					//yyyy-mm-dd, 00:00:00
   sprintf(log_entry, "%s, %s", dt, log_message);  	//assemble log entry with time stamp
 
 #ifdef DEBUG_SERIAL
