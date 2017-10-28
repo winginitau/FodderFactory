@@ -135,11 +135,15 @@ void Setup(BlockNode *b);
 
 void ProcessDispatcher(void(*f)(BlockNode*));
 
-BlockNode* GetBlock (BlockNode *list_node, uint8_t block_cat, const char *block_label);
+BlockNode* GetBlockByID(BlockNode *list_node, uint16_t block_id);
+
+float GetFVal(uint16_t block_id);
+
+BlockNode* GetBlockByLabel(BlockNode *list_node, const char *block_label);
 
 uint8_t ConfigureBlock(uint8_t block_cat, const char *block_label, const char *key_str, const char *value_str);
 
-char const* GetBlockLabelString(int idx);
+char const* GetBlockLabelString(uint16_t block_id);
 
 void SetBlockLabelString(uint8_t block_type, int idx, const char* label);
 
@@ -147,7 +151,7 @@ void SetBlockLabelString(uint8_t block_type, int idx, const char* label);
 
 //void SaveEventBuffer(void);
 
-void UpdateStateRegister(uint8_t source, uint8_t msg_type, uint8_t msg_str, int i_val, float f_val);
+void UpdateStateRegister(uint16_t source, uint8_t msg_type, uint8_t msg_str, int i_val, float f_val);
 
 uint8_t GetBlockTypeOffset (uint8_t block_type);
 

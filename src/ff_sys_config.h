@@ -1,14 +1,15 @@
 /************************************************
  ff_sys_config.h
- Fodder Factory Monitoring and Control
+ FF System Core (Stand-alone Embedded)
 
  (c) Brendan McLearie - bmclearie@mclearie.com
 
- System configuration settings:
- 	 DEBUG Directives
- 	 Input configs
- 	 Controller configs
- 	 Output configs
+ Preprocessor and compile time directives
+ that configure the core system.
+
+ See also: "ff_string_consts.h" for extended
+ configuration enums, labels, etc
+
  ************************************************/
 #ifndef FF_SYS_CONFIG_H_
 #define FF_SYS_CONFIG_H_
@@ -78,6 +79,7 @@
 #define UINT32_INIT 0xFFFFFFFF
 #define FLOAT_INIT 255.000000
 #define BLOCK_ID_BASE 1000
+#define SSS 500   //System Reserved Source Block ID for Messages
 
 //Time Value type for rates and periods (in seconds)
 // uint8_t = 255 seconds = 4.25 minutes
@@ -95,9 +97,9 @@
 #define INI_FILE_MAX_LINE_LENGTH 150
 #define INI_ERROR_TYPES 9
 
-#define BLOCK_COUNT 15 //(INPUT + CONTROLLERS + OUTPUTS + 1 for SYSTEM +1 for UNDEF)
+//#define BLOCK_COUNT 15 //(INPUT + CONTROLLERS + OUTPUTS + 1 for SYSTEM +1 for UNDEF)
 
-#define SSS 0   //System Source Block index in sr.block_list
+
 
 #define MAX_LABEL_LENGTH 40
 #define MAX_DESCR_LENGTH 80

@@ -161,7 +161,7 @@ bool IniFile::open(void)
 	  _file.close();
 #endif
 #ifdef FF_SIMULATOR
-  	  fclose(_file);  //XXX crashes?
+  	  fclose(_file);  //used to be a problem here - now seems fixed
 #endif
 #ifdef FF_ARDUINO
   _file = SD.open(_filename, _mode);

@@ -98,11 +98,11 @@ void DebugLog(const char* log_message) {
 }
 
 //overload function
-void DebugLog(uint8_t source, uint8_t msg_type, uint8_t msg_str, int i_val, float f_val) {
+void DebugLog(uint16_t source, uint8_t msg_type, uint8_t msg_str, int i_val, float f_val) {
 	char debug_log_message[MAX_DEBUG_LENGTH];
 	char f_str[8];
 	FFFloatToCString(f_str, f_val);
-	sprintf(debug_log_message, "%s, %s, %s, %d, %s", GetBlockLabelString(source), GetMessageTypeString(msg_type), GetMessageString(msg_str), i_val, f_str);
+	sprintf(debug_log_message, "[%s], %s, %s, %d, %s", GetBlockLabelString(source), GetMessageTypeString(msg_type), GetMessageString(msg_str), i_val, f_str);
 	DebugLog(debug_log_message);
 }
 

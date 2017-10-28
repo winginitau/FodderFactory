@@ -1,10 +1,28 @@
-/*
- * ff_strings.h
- *
- *  Created on: 4Oct.,2017
- *      Author: brendan
- */
+/************************************************
+ ff_string_consts.h
 
+ FF System Core (Stand-alone Embedded)
+
+ (c) Brendan McLearie - bmclearie@mclearie.com
+
+ Explanatory notes:
+ - General approach is to concentrate all strings
+   here as static consts so they will be loaded into
+   ROM on most embedded systems.
+ - Then refer to all strings and lists via associated
+   enums thereby leaving the run-time with memory and
+   CPU efficient types.
+ - enums are defined with:
+    - Zero (0) element being a reserved error to
+      catch via debug / error reporting any iterations
+      or evaluations that return 0 unintentionally.
+    - The last element is always defined as LAST_<type>
+      as a fall through catch in loops and iterations
+      and allowing nice informative loops eg:
+       while (iterator < LAST_TYPE) {iterator++;};
+
+
+ ************************************************/
 #ifndef SRC_FF_STRINGS_H_
 #define SRC_FF_STRINGS_H_
 
@@ -21,13 +39,15 @@
 //PROGMEM for arduino
 
 /**************************************************************
- * Languages
+ * Languages Enum - Must Precede typedefs that use it
  **************************************************************/
+// We don't have an "error language" to start the enum here
+// as it would bloat every multi language StringArrayType
+// with an extra useless dimension.
+
 typedef enum LANG_TYPE {
 	ENGLISH = 0, GERMAN, LAST_LANGUAGE
 } LanguageType;
-
-//TODO Language Strings
 
 /**************************************************************
  * String array typedefs
@@ -39,10 +59,11 @@ typedef struct STRING_ARRAY_TYPE {
 	const char* const text[LAST_LANGUAGE];
 } StringArray;
 
-//typedef struct SIMPLE_STRING_ARRAY_TYPE {
+typedef struct SIMPLE_STRING_ARRAY_TYPE {
 	// Array of strings (usually labels and messages) relating to enums
-//	const char* text;
-//} SimpleStringArray;
+	// Inside this struct, extended intitaliser lists are ok
+	const char* text;
+} SimpleStringArray;
 
 typedef struct BLOCK_CATS {
 	const uint8_t cat_id;
@@ -52,11 +73,20 @@ typedef struct BLOCK_CATS {
 } BlockCatArray;
 
 /**************************************************************
+ * Language Strings - Must Follow the typedef that defines it
+ **************************************************************/
+static const SimpleStringArray language_strings[LAST_LANGUAGE] = {
+	"English",
+	"Deutsch",
+};
+
+/**************************************************************
  * Block Category Definitions
  **************************************************************/
 //typedef
 enum {
-	FF_SYSTEM = 0,
+	FF_ERROR_CAT = 0,
+	FF_SYSTEM,
 	FF_INPUT,
 	FF_MONITOR,
 	FF_SCHEDULE,
@@ -67,7 +97,19 @@ enum {
 };//BlockCatEnum;
 
 enum {
-	IN_TYPE = 0,		//common to all block categories in this order
+	SYS_ERROR_KEY = 0,
+	SYS_TYPE,			//common to all block categories in this order
+	SYS_DISPLAY_NAME,	//common to all block categories in this order
+	SYS_DESCRIPTION,		//common to all block categories in this order
+	SYS_LANGUAGE,
+	SYS_TEMPERATURE,
+	SYS_WEEK_START,
+	LAST_SYS_KEY_TYPE,
+};
+
+enum {
+	IN_ERROR_KEY = 0,
+	IN_TYPE,			//common to all block categories in this order
 	IN_DISPLAY_NAME,	//common to all block categories in this order
 	IN_DESCRIPTION,		//common to all block categories in this order
 	IN_INTERFACE,
@@ -79,6 +121,7 @@ enum {
 };// InputConfKeyList;
 
 enum {
+	MON_ERROR_KEY = 0,
 	MON_TYPE,			//common to all block categories in this order
 	MON_DISPLAY_NAME,	//common to all block categories in this order
 	MON_DESCRIPTION,	//common to all block categories in this order
@@ -92,6 +135,7 @@ enum {
 };
 
 enum {
+	SCH_ERROR_KEY = 0,
 	SCH_TYPE,			//common to all block categories in this order
 	SCH_DISPLAY_NAME,	//common to all block categories in this order
 	SCH_DESCRIPTION,	//common to all block categories in this order
@@ -104,6 +148,7 @@ enum {
 };
 
 enum {
+	RL_ERROR_KEY = 0,
 	RL_TYPE,			//common to all block categories in this order
 	RL_DISPLAY_NAME,	//common to all block categories in this order
 	RL_DESCRIPTION,		//common to all block categories in this order
@@ -115,6 +160,7 @@ enum {
 };
 
 enum {
+	CON_ERROR_KEY = 0,
 	CON_TYPE,			//common to all block categories in this order
 	CON_DISPLAY_NAME,	//common to all block categories in this order
 	CON_DESCRIPTION,	//common to all block categories in this order
@@ -126,6 +172,7 @@ enum {
 };
 
 enum {
+	OUT_ERROR_TYPE = 0,
 	OUT_TYPE,			//common to all block categories in this order
 	OUT_DISPLAY_NAME,	//common to all block categories in this order
 	OUT_DESCRIPTION,	//common to all block categories in this order
@@ -136,71 +183,84 @@ enum {
 
 
 static const BlockCatArray block_cat_defs[LAST_BLOCK_CAT] = {
+	FF_ERROR_CAT, "\0", "\0", {
+		"\0",
+	},
+
 	FF_SYSTEM, "system", "", {
-			"temp_scale",
-			"language",
-			"week_start",
+		"",		//not used - dummy to skip error enum = 0
+		"type",
+		"display_name",
+		"description",
+		"language",
+		"temp_scale",
+		"week_start",
 	},
 	FF_INPUT, "inputs", "input", {
-			"type",
-			"display_name",
-			"description",
-			"interface",
-			"if_num",
-			"log_rate",
-			"data_units",
-			"data_type"
+		"",		//not used - dummy to skip error enum = 0
+		"type",
+		"display_name",
+		"description",
+		"interface",
+		"if_num",
+		"log_rate",
+		"data_units",
+		"data_type"
 	},
 	FF_MONITOR, "monitors", "monitor", {
-			"type",
-			"display_name",
-			"description",
-			"input1",
-			"input2",
-			"input3",
-			"input4",
-			"act_val",
-			"deact_val"
+		"",		//not used - dummy to skip error enum = 0
+		"type",
+		"display_name",
+		"description",
+		"input1",
+		"input2",
+		"input3",
+		"input4",
+		"act_val",
+		"deact_val"
 	},
 	FF_SCHEDULE, "schedules", "schedule", {
-			"type",
-			"display_name",
-			"description",
-			"days",
-			"time_start",
-			"time_end",
-			"time_duration",
-			"time_repeat",
+		"",		//not used - dummy to skip error enum = 0
+		"type",
+		"display_name",
+		"description",
+		"days",
+		"time_start",
+		"time_end",
+		"time_duration",
+		"time_repeat",
 	},
 	FF_RULE, "rules", "rule", {
-			"type",
-			"display_name",
-			"description",
-			"param1",
-			"param2",
-			"param3",
-			"param_not",
+		"",		//not used - dummy to skip error enum = 0
+		"type",
+		"display_name",
+		"description",
+		"param1",
+		"param2",
+		"param3",
+		"param_not",
 	},
 	FF_CONTROLLER, "controllers", "controller", {
-			"type",
-			"display_name",
-			"description",
-			"rule",
-			"output",
-			"act_cmd",
-			"deact_cmd",
+		"",		//not used - dummy to skip error enum = 0
+		"type",
+		"display_name",
+		"description",
+		"rule",
+		"output",
+		"act_cmd",
+		"deact_cmd",
 
 	},
 
 	FF_OUTPUT, "outputs", "output", {
-			"type",
-			"display_name",
-			"description",
-			"interface",
-			"if_num",
+		"",		//not used - dummy to skip error enum = 0
+		"type",
+		"display_name",
+		"description",
+		"interface",
+		"if_num",
 	},
 };
-
 
 
 /**************************************************************
@@ -209,6 +269,7 @@ static const BlockCatArray block_cat_defs[LAST_BLOCK_CAT] = {
 
 enum {
 	BT_ERROR = 0,
+	SYS_SYSTEM,
 	IN_ONEWIRE,
 	IN_DIGITAL,
 	MON_CONDITION_LOW,
@@ -231,8 +292,9 @@ enum {
 }; // BlockTypes;
 
 
-static const char* block_type_strings[LAST_BLOCK_TYPE] {
+static const SimpleStringArray block_type_strings[LAST_BLOCK_TYPE] = {
 	"BT_ERROR",
+	"SYS_SYSTEM",
 	"IN_ONEWIRE",
 	"IN_DIGITAL",
 	"MON_CONDITION_LOW",
@@ -254,14 +316,19 @@ static const char* block_type_strings[LAST_BLOCK_TYPE] {
 };
 
 /**************************************************************
- * MessageTypes
+ * EventTypes
  **************************************************************/
 typedef enum {
-	DEBUG_MSG = 0,
-	INFO,
-	DATA,
-	WARNING,
-	ERROR,
+	E_ZERO_ERROR = 0,
+	E_DEBUG_MSG,
+	E_INIT,
+	E_INFO,
+	E_DATA,
+	E_ACT,
+	E_DEACT,
+	E_COMMAND,
+	E_WARNING,
+	E_ERROR,
 	SCHED_DAILY_ON,
 	SCHED_DAILY_OFF,
 	CONDITION_HIGH,
@@ -276,9 +343,14 @@ typedef enum {
 } MessageTypeEnum;
 
 static const StringArray message_type_strings[LAST_MESSAGE_TYPE] = {
+	12, { "ZERO_ERROR",			"" },
 	12, { "DEBUG",				"DEBUGGEN" },
+	12, { "INITIALISED"			"" },
 	12, { "INFO",				"INFO" },
 	12, { "DATA",				"DATEN" },
+	12, { "ACTIVATED",			"" },
+	12, { "DEACTIVATED", 		"" },
+	12, { "COMMAND", 			"" },
 	10, { "WARNING",			"WARNUNG" },
 	12, { "ERROR",				"FEHLER" },
 	24, { "SCHED_DAILY_ON",		"ZEITPLAN_TÄGLICH_AUF" },
@@ -297,7 +369,8 @@ static const StringArray message_type_strings[LAST_MESSAGE_TYPE] = {
  * Message Strings
  **************************************************************/
 typedef enum {
-	M_FF_AWAKE = 0,
+	M_FF_ERROR = 0,
+	M_FF_AWAKE,
 	M_D_SERIAL,
 	M_RTC_DETECT,
 	M_RTC_REPORT_RUNNING,
@@ -333,57 +406,58 @@ typedef enum {
 	M_SD_NO_FILE_HANDLE,
 	M_ERROR_EVENTS_EMPTY,
 	M_SD_BEGIN_FAIL,
-	M36,
-	M37,
+	M_NULL,
 	M38,
 	M39,
+	M40,
 	LAST_MESSAGE
 } MessageEnum;
 
 static const StringArray message_strings[LAST_MESSAGE] = {
-	22, { "Fodder Factory Awake",				"" },
-	12, { "DEBUG_SERIAL Declared",				"M1" },
-	12, { "RTC Detected",						"M2" },
-	10, { "RTC Reports as Running",				"M3" },
-	12, { "SET_RTC DEFINED",					"M4" },
-	24, { "HARD CODED TIME SET",				"M5" },
-	24,	{ "RTC Not Running - Hard Coding",		"M6" },
-	18, { "RTC Not Found",						"M7" },
-	20, { "u8g2 LCD Module Initialised",		"M8" },
-	14, { "Attempting SD Card Init",			"M9" },
-	14, { "SD Card Failed or Not Present",		"M10" },
-	14, { "SD Card Initialised",				"M11" },
-	14, { "Temp Sensors Initialised",			"M12" },
-	14, { "F_READ",								"M13" },
-	14, { "Input Device Label Not Found",		"M14" },
-	14, { "Setting up Controllers",				"M15" },
-	14, { "Control Activated",					"M16" },
-	14, { "Control De-activated",				"M17" },
-	14, { "Min and Max Cleared",				"M18" },
-	14, { "Midnight Rollover",					"M19" },
-	14, { "Controllers Initialised",			"M20" },
-	14, { "ON",									"M21" },
-	14, { "OFF",								"M22" },
-	14, { "Setting up Outputs",					"M23" },
-	14, { "Outputs Initialised",				"M24" },
-	14, { "Error Opening Event Log File",		"M25" },
-	14, { "Output Device Label Not Found",		"M26" },
-	14, { "Buffer Flushed to File",				"M27" },
-	14, { "Running in Simulator Mode",			"M28" },
-	14, { "Simulator will Use System Time",		"M29" },
-	14, { "Simulator using console for UI",		"M30" },
-	14, { "Config not found. Can't continue",	"M31" },
-	14, { "Config file failed validation",		"M32" },
-	14, { "DEBUG ERROR SD File Handle NULL",	"M33" },
-	14, { "DEBUG ERROR Event Buffer Empty",		"M34" },
-	14, { "DEBUG ERROR SD.begin FAIL",			"M35" },
-	14, { "M36",								"M36" },
-	14, { "M37",								"M37" },
+	22, { "Error - Use of Zero Index"			"M0" },
+	22, { "Fodder Factory Awake",				"M1" },
+	12, { "DEBUG_SERIAL Declared",				"M2" },
+	12, { "RTC Detected",						"M3" },
+	10, { "RTC Reports as Running",				"M4" },
+	12, { "SET_RTC DEFINED",					"M5" },
+	24, { "HARD CODED TIME SET",				"M6" },
+	24,	{ "RTC Not Running - Hard Coding",		"M7" },
+	18, { "RTC Not Found",						"M8" },
+	20, { "u8g2 LCD Module Initialised",		"M9" },
+	14, { "Attempting SD Card Init",			"M10" },
+	14, { "SD Card Failed or Not Present",		"M11" },
+	14, { "SD Card Initialised",				"M12" },
+	14, { "Temp Sensors Initialised",			"M13" },
+	14, { "F_READ",								"M14" },
+	14, { "Input Device Label Not Found",		"M15" },
+	14, { "Setting up Controllers",				"M16" },
+	14, { "Control Activated",					"M17" },
+	14, { "Control De-activated",				"M18" },
+	14, { "Min and Max Cleared",				"M19" },
+	14, { "Midnight Rollover",					"M20" },
+	14, { "Controllers Initialised",			"M21" },
+	14, { "ON",									"M22" },
+	14, { "OFF",								"M23" },
+	14, { "Setting up Outputs",					"M24" },
+	14, { "Outputs Initialised",				"M25" },
+	14, { "Error Opening Event Log File",		"M26" },
+	14, { "Output Device Label Not Found",		"M27" },
+	14, { "Buffer Flushed to File",				"M28" },
+	14, { "Running in Simulator Mode",			"M29" },
+	14, { "Simulator will Use System Time",		"M30" },
+	14, { "Simulator using console for UI",		"M31" },
+	14, { "Config not found. Can't continue",	"M32" },
+	14, { "Config file failed validation",		"M33" },
+	14, { "DEBUG ERROR SD File Handle NULL",	"M34" },
+	14, { "DEBUG ERROR Event Buffer Empty",		"M35" },
+	14, { "DEBUG ERROR SD.begin FAIL",			"M36" },
+	14, { "",								"" },
 	14, { "M38",								"M38" },
 	14, { "M39",								"M39" },
+	14, { "M40",								"M40" },
 };
 
-// INI Error enum defined in IniFile Class
+// INI Error enum defined in IniFile Class per following
 
 enum {
 	errorNoError = 0,
@@ -397,8 +471,7 @@ enum {
 	errorUnknownError,
 };
 
-
-static const char* ini_error_strings[INI_ERROR_TYPES] = {
+static const SimpleStringArray ini_error_strings[INI_ERROR_TYPES] = {
 	"No Error",
 	"Config file not found",
 	"Config File Not Open",
@@ -417,21 +490,21 @@ static const char* ini_error_strings[INI_ERROR_TYPES] = {
 
 typedef enum {
 	UNIT_ERROR,
-	DEG_C,
-//	DEG_F,
-//	DEG_K,
+	CELSIUS,
+	FAHRENHEIT,
+//	KELVIN,
 //	REL_HUM,
 //	CUBIC_M,
 //	LITRES,
 //	PPM,
 	ONOFF,
-	LAST_UNIT_SCALE
+	LAST_UNIT
 } UnitsEnum;
 
-static const StringArray unit_strings[LAST_UNIT_SCALE] = {
+static const StringArray unit_strings[LAST_UNIT] = {
 	12, {"UnitTypeError", 		"UnitTypeError"},
 	12, {"Celsius", 			"Celsius"},
-//	12, {"Fahrenheit", 			"Fahrenheit"},
+	12, {"Fahrenheit", 			"Fahrenheit"},
 //	12, {"Kelvin", 				"Kelvin"},
 //	12, {"Rel Hum",				"Rel Hum"},
 //	12, {"Cubic Metres",		"m3"},
@@ -451,7 +524,7 @@ enum {
 	LAST_DAY
 };
 
-static const char* DaysOfWeek[LAST_DAY] = {
+static const SimpleStringArray day_strings[LAST_DAY] = {
 	"SUN",
 	"MON",
 	"TUE",
@@ -469,7 +542,7 @@ enum OUTPUT_COMMANDS {
 	LAST_COMMAND
 };
 
-static const char* command_strings[LAST_COMMAND] = {
+static const SimpleStringArray command_strings[LAST_COMMAND] = {
 	"CMD_ERROR",
 	"CMD_OUTPUT_OFF",
 	"CMD_OUTPUT_ON",
@@ -489,7 +562,7 @@ enum {
 	LAST_INTERFACE
 };
 
-static const char* interface_strings[LAST_INTERFACE] = {
+static const SimpleStringArray interface_strings[LAST_INTERFACE] = {
 	"IF_ERROR",
 	"PWM_IN",
 	"PWM_OUT",
@@ -511,9 +584,16 @@ char const* GetMessageString(int message_enum);
 
 uint8_t GetLanguage(void);
 
+uint8_t DayStringArrayIndex(const char* key);
+
+uint8_t UnitStringArrayIndex(const char* key);
+
+uint8_t LanguageStringArrayIndex(const char* key);
+
 uint8_t InterfaceStringArrayIndex(const char* key);
 
 uint8_t BlockTypeStringArrayIndex(const char* key);
+
 //uint8_t SimpleStringArrayIndex(const SimpleStringArray array, const char* key);
 
 

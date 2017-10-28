@@ -64,7 +64,7 @@ void SetOutputCommand(char* label, uint8_t command) {
 		//printf("i:%d  c:%d\n", i, command);
 		outputs_command[i] = command;
 	} else {
-		EventMsg(SSS, ERROR, M_OUTPUT_LABEL_NOT_FOUND, 0, 0);
+		EventMsg(SSS, E_ERROR, M_OUTPUT_LABEL_NOT_FOUND, 0, 0);
 	}
 }
 

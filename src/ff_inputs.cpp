@@ -21,12 +21,13 @@
 //#include "ff_utils.h"
 //#include "RTClib.h"
 #ifdef FF_SIMULATOR
-#include <string.h>
+//#include <string.h>
 #endif
 
 /************************************************
   Data Structures
 ************************************************/
+/*
 typedef struct INPUT_BLOCK {
 	uint8_t input_no;
 	char label[MAX_LABEL_LENGTH];
@@ -41,12 +42,12 @@ typedef struct INPUT_BLOCK {
 	float current_f_val;
 	FFDateTime last_read;
 } InputBlock;
-
+*/
 
 /************************************************
   Globals
 ************************************************/
-InputBlock inputs[INPUT_COUNT];
+//InputBlock inputs[INPUT_COUNT];
 
 /************************************************
   Input Processing Functions
@@ -55,28 +56,42 @@ InputBlock inputs[INPUT_COUNT];
 void InputSetup(BlockNode *b) {
 	switch (b->block_type) {
 		case IN_ONEWIRE:
-			//TODO nothing to do??
+			b->last_update = time(NULL);
 			break;
 		case IN_DIGITAL:
-			//TODO nothing to do??
+			//TODO
+			break;
+		default:
 			break;
 	}
 
 }
 
 void InputOperate(BlockNode *b) {
+	time_t now = time(NULL);
+	time_t next;
+
 	switch (b->block_type) {
 		case IN_ONEWIRE:
-			//TODO nothing to do??
+			next = b->last_update + b->settings.in.log_rate;
+			if (now >= next) {
+				b->last_update = now;
+				TempSensorsTakeReading();
+				b->f_val = GetTemperature(b->settings.in.if_num);
+				EventMsg(b->block_id, E_DATA, M_F_READ, 0, b->f_val);
+			}
 			break;
 		case IN_DIGITAL:
-			//TODO nothing to do??
+			//TODO
+			break;
+		default:
 			break;
 	}
 }
 
-
+/*
 float InputCurrentFVal(char* label) {
+
 	int i = 0;
 	while (!strcmp(inputs[i].label, label)) {
 		i++;
@@ -87,19 +102,22 @@ float InputCurrentFVal(char* label) {
 		EventMsg(SSS, ERROR, M_INPUT_LABEL_NOT_FOUND, 0, 0);
 		return -0.00;
 	}
-}
 
-void ProcessInput(int i) {
+}
+*/
+
 /*
+void ProcessInput(int i) {
+
 	TempSensorsTakeReading();
 	inputs[i].last_read = FFDTNow();
 	inputs[i].current_f_val = GetTemperature(inputs[i].device_num);
 	EventMsg(i + GetBlockTypeOffset(FF_INPUT), DATA, M_F_READ, 0, inputs[i].current_f_val);
-	*/
 }
+*/
 
-void PollInputs(void) {
 /*
+void PollInputs(void) {
 	FFDateTime now, last, next, rate;
 
 	for (int i= 0; i < INPUT_COUNT; i++) {
@@ -118,11 +136,13 @@ void PollInputs(void) {
 			ProcessInput(i);
 		}
 	}
-	*/
 }
+*/
 
-
+/*
 void SetupInputs(void) {
+
+
 	//String tmpstr;
 
 	InitTempSensors();
@@ -130,8 +150,6 @@ void SetupInputs(void) {
 	EventMsg(SSS, INFO, M_TEMPS_INIT, 0, 0);
 
 	int i = 0;
-	//TODO temp until reading loop done
-	//TODO - read a config file once we have SD memory
 	inputs[i].input_no = I1_INPUT_NO;
 	strcpy(inputs[i].label, I1_DEVICE_LABEL);
 	inputs[i].device_num = I1_DEVICE_NUM;
@@ -146,7 +164,7 @@ void SetupInputs(void) {
 
 	SetBlockLabelString(FF_INPUT, i, inputs[i].label);
 
-	i = 1; 	//TODO temp until reading loop done
+	i = 1; 	//DONE temp until reading loop done
 
 	inputs[i].input_no = I2_INPUT_NO;
 	strcpy(inputs[i].label, I2_DEVICE_LABEL);
@@ -162,7 +180,7 @@ void SetupInputs(void) {
 
 	SetBlockLabelString(FF_INPUT, i, inputs[i].label);
 
-	i = 2; 	//TODO temp until reading loop done
+	i = 2; 	//DONE temp until reading loop done
 
 	inputs[i].input_no = I3_INPUT_NO;
 	strcpy(inputs[i].label, I3_DEVICE_LABEL);
@@ -181,9 +199,8 @@ void SetupInputs(void) {
 	for (i = 0; i < INPUT_COUNT; i++) {
 		ProcessInput(i);
 	}
-
 }
-
+*/
 
 
 

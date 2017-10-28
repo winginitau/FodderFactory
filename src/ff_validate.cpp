@@ -45,8 +45,7 @@
 void Validate(BlockNode* b) {
 	char debug_msg[MAX_DEBUG_LENGTH];
 
-
-	sprintf(debug_msg, "VALIDATE: CAT:%d,%d[%s][%s], TYPE:%d[%s], ID:%d, LABEL:[%s]", b->block_cat, block_cat_defs[b->block_cat].cat_id, block_cat_defs[b->block_cat].conf_section_label, block_cat_defs[b->block_cat].conf_section_key_base, b->block_type, block_type_strings[b->block_type], b->block_id, b->block_label);
+	sprintf(debug_msg, "VALIDATE: CAT:%d,%d[%s][%s], TYPE:%d[%s], ID:%d, LABEL:[%s]", b->block_cat, block_cat_defs[b->block_cat].cat_id, block_cat_defs[b->block_cat].conf_section_label, block_cat_defs[b->block_cat].conf_section_key_base, b->block_type, block_type_strings[b->block_type].text, b->block_id, b->block_label);
 	DebugLog(debug_msg);
 
 	//common attributes
@@ -67,7 +66,7 @@ void Validate(BlockNode* b) {
 	//uint16_t block_id;
 		//not null
 	assert(b->block_id != UINT16_INIT);
-	assert(b->block_id >= BLOCK_ID_BASE);
+	assert(b->block_id >= SSS);
 		//is unique
 		//matches the block_label
 
@@ -105,8 +104,7 @@ void Validate(BlockNode* b) {
 	assert(b->last_update == UINT32_INIT);
 
 
-
-	//BlockSettings settings;
+	//Settings
 
 	switch(b->block_type) {
 	case IN_ONEWIRE:
@@ -115,7 +113,7 @@ void Validate(BlockNode* b) {
 		//assert(b->settings.in.log_rate.hour < 24);
 		//assert(b->settings.in.log_rate.minute < 60);
 		//assert(b->settings.in.log_rate.second < 60);
-		assert(b->settings.in.data_units < LAST_UNIT_SCALE);
+		assert(b->settings.in.data_units < LAST_UNIT);
 		//uint8_t data_type;		// float, int
 		//Prob derived from block type - consider dropping
 		break;

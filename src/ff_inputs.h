@@ -24,9 +24,9 @@
 ************************************************/
 void InputOperate(BlockNode *b);
 void InputSetup(BlockNode *b);
-float InputCurrentFVal(char* label);
-void SetupInputs(void);
-void PollInputs(void);
+//float InputCurrentFVal(char* label);
+//void SetupInputs(void);
+//void PollInputs(void);
 
 
 #endif /* FF_INPUTS_H_ */

@@ -83,6 +83,22 @@ FFDateTime FFDT(uint16_t year, uint8_t month, uint8_t day, uint8_t hour, uint8_t
 }
 */
 
+
+TV_TYPE StrToTV(const char* time_str) {
+	int hh, mm, ss;
+	TV_TYPE tv = 0;
+
+	if (sscanf(time_str, "%d:%d:%d", &hh, &mm, &ss) == 3) {
+		tv = ss + (mm * 60) + (hh * 60 * 60);
+		return tv;
+	} else {
+		DebugLog("ERROR: Malformed Time Interval String");
+		tv = UINT32_INIT;
+		return tv;
+	}
+}
+
+
 /*
 FFTime StringToFFTime(const char* time_str) {
 	int hh, mm, ss;
@@ -349,7 +365,7 @@ String FFDateString(FFDateTime dt) {
 	return sdate;
 }
 
-/*
+
 FFDateTime DateTimeToFFDateTime(DateTime rtcDT) {
 	FFDateTime dt;
 	dt.year = rtcDT.year();
@@ -360,9 +376,9 @@ FFDateTime DateTimeToFFDateTime(DateTime rtcDT) {
 	dt.second = rtcDT.second();
 	return dt;
 }
-*/
 
-/*
+
+
 String FFDateTimeStringNow(void) {
 	// Generate a date and time stamp as a string
 	FFDateTime dt = FFDTNow();

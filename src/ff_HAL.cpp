@@ -168,10 +168,10 @@ uint8_t HALSaveEventBuffer(void) {
 				fprintf(e_file, "%f\n", e->float_val);
 			}
 			fclose(e_file);
-			DebugLog(SSS, INFO, M_BUF_SAVED, 0, 0);
+			DebugLog(SSS, E_INFO, M_BUF_SAVED, 0, 0);
 			save_success = 1;
 		} else {
-			DebugLog(SSS, ERROR, M_ERR_EVENT_FILE, 0, 0);
+			DebugLog(SSS, E_ERROR, M_ERR_EVENT_FILE, 0, 0);
 		}
 
 	} else {
@@ -476,7 +476,7 @@ void HALInitRTC(void) {
 		EventMsg(SSS, ERROR, M_RTC_NOT_FOUND, 0, 0);
 	#endif
 #ifdef FF_SIMULATOR
-	EventMsg(SSS, INFO, M_SIM_SYS_TIME, 0, 0);
+	EventMsg(SSS, E_INFO, M_SIM_SYS_TIME, 0, 0);
 #endif
 }
 

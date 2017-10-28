@@ -46,6 +46,9 @@ typedef struct FF_TIME {
 /************************************************
  Function prototypes
  ************************************************/
+
+TV_TYPE StrToTV(const char* time_str);
+
 /*
 FFDateTime DateTimeToFFDateTime(DateTime rtcDT);
 */

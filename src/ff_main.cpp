@@ -10,10 +10,12 @@
 /************************************************
   Includes
 ************************************************/
+#include "ff_registry.h"  //first include for C global dec and init of main block list (bll) and dec of state register (sr)
+
 #include "ff_sys_config.h"
 #include "ff_events.h"
 #include "ff_string_consts.h"
-#include "ff_registry.h"
+
 #include "ff_debug.h"
 #include "ff_display.h"
 #include "ff_filesystem.h"
@@ -43,14 +45,14 @@
 
 char* GetINIError(uint8_t e, char* msg_buf) {
 
-	strcpy(msg_buf, ini_error_strings[e]);
+	strcpy(msg_buf, ini_error_strings[e].text);
 	return msg_buf;
 }
 
 void InitConfFile(IniFile* cf) {
 	char key_value[INI_FILE_MAX_LINE_LENGTH];
 	if (!cf->open()) {
-		DebugLog(SSS, ERROR, M_NO_CONFIG, 0, 0);
+		DebugLog(SSS, E_ERROR, M_NO_CONFIG, 0, 0);
 		// Cannot do anything else
 		while (1)
 			;
@@ -58,13 +60,12 @@ void InitConfFile(IniFile* cf) {
 	// Check the file is valid. This can be used to warn if any lines
 	// are longer than the buffer.
 	if (!cf->validate(key_value, INI_FILE_MAX_LINE_LENGTH)) {
-		DebugLog(SSS, ERROR, M_CONFIG_NOT_VALID, 0, 0);
+		DebugLog(SSS, E_ERROR, M_CONFIG_NOT_VALID, 0, 0);
 		// Cannot do anything else
 		while (1)
 			;
 	}
 }
-
 
 
 void ReadAndParseConfig(void) {
@@ -83,20 +84,55 @@ void ReadAndParseConfig(void) {
 	char block_section_key[MAX_LABEL_LENGTH];
 	char key_value[INI_FILE_MAX_LINE_LENGTH];	//to read value into
 	uint8_t bl;									//iterator - block list within block category
-	uint8_t block_count = 0;
+	uint8_t block_count = 0;					//used for information display only
 	uint8_t last_key = 0;
-	uint8_t block_cat = (FF_SYSTEM + 1);		//block_cat 0 will always be SYSTEM - start from 1
+	uint8_t block_cat = FF_SYSTEM;				//block_cat 0 will always be Error - start from system
 	char debug_msg[MAX_DEBUG_LENGTH];
 	char ini_error_string[MAX_LABEL_LENGTH];
 
 	InitConfFile(&cf);
 
-	//TODO read system block and set language and scale
+	//Read and process the system block for
+	//global settings - language and scale etc
+	block_cat = (FF_SYSTEM);
+	last_key = LAST_SYS_KEY_TYPE;
+
+	for (int key = 1; key < last_key; key++) {  //see string_consts.h - 0 reserved for error types.
+		strcpy(block_section_key, block_cat_defs[block_cat].conf_keys[key]);
+
+		if (cf.getValue("system", block_section_key, key_value, INI_FILE_MAX_LINE_LENGTH)) {
+			if (ConfigureBlock(FF_SYSTEM, "system", block_section_key, key_value)) {
+				sprintf(debug_msg, "CONFIGURED [SYSTEM][%s] = %s", block_section_key, key_value);
+				DebugLog(debug_msg);
+			} else {
+				sprintf(debug_msg, "CONFIG FAILED [SYSTEM][%s]: %s ", block_section_key, key_value);
+				DebugLog(debug_msg);
+			}
+		} else {
+			if( cf.getError() != errorKeyNotFound) {
+				sprintf(debug_msg, "ERROR [SYSTEM][%s]: %s ", block_section_key, GetINIError(cf.getError(), ini_error_string));
+				DebugLog(debug_msg);
+				//handle error - could be ok if key not required for that block sub type
+			}
+		}
+	}
+
+	// Read each of the block category list sections
+	// getting all the user defined labels and registering
+	// them in the registry vis the ConfigureBlock call.
+	// Note they can't be fully configured
+	// in this iteration because blocks refer to other blocks
+	// so we need the full list of block identifiers registered first
+	// Calls to ConfigureBlock with NULL for setting::value pair
+	// trigger registration only.
+
+	block_cat = (FF_SYSTEM + 1); 			//general block cat defs always follow the reserved system cat.
+	bl = 1; 								//block list start from "1" in config file "input1=" etc
+	uint8_t last_found = 0;					//set flag on first read error
+											//TODO this can fail if lists are not numbered correctly
 
 	for (; block_cat < LAST_BLOCK_CAT; block_cat++) { //iterate through each block category
-
-		bl = 1; 		//block list start from "1" in config file "input1=" etc
-		uint8_t last_found = 0;
+		last_found = 0;
 		while (bl < MAX_BLOCKS_PER_CATEGORY && !last_found) { 		// a b_cat<bl> = <Label> is still to process (potentially)
 
 			strcpy(list_section, block_cat_defs[block_cat].conf_section_label);	//list_section
@@ -123,27 +159,28 @@ void ReadAndParseConfig(void) {
 				bl++;
 
 			} else {
-				if( cf.getError() == errorKeyNotFound) {
+				if( cf.getError() == errorKeyNotFound) {  // this is expected once key list end is found
 					sprintf(debug_msg, "REGISTERED %d [%s]", bl-1, block_cat_defs[block_cat].conf_section_label);
 				} else {
 					sprintf(debug_msg, "LAST [%s] REACHED - [%s]: %s ", block_cat_defs[block_cat].conf_section_label, list_section_key, GetINIError(cf.getError(), ini_error_string));
 				}
 				DebugLog(debug_msg);
 				last_found = 1;
+				bl = 1;
 			}
 		}
 	}
 
 	// We now have a block list registered but no settings
-
-	// set up to go second pass
+	// set up to go second pass and get all the details
+	// updating the registry with ConfigureBlock calls.
 
 	block_cat = (FF_SYSTEM + 1);
+	bl = 1; 		//block list start from "1" in config file "input1=" etc
+
 
 	for (; block_cat < LAST_BLOCK_CAT; block_cat++) { //iterate through each block category
-
-		bl = 1; 		//block list start from "1" in config file "input1=" etc
-		uint8_t last_found = 0;
+		last_found = 0;
 		while (bl < MAX_BLOCKS_PER_CATEGORY && !last_found) { 		// a b_cat<bl> = <Label> is still to process (potentially)
 
 			strcpy(list_section, block_cat_defs[block_cat].conf_section_label);	//list_section
@@ -180,7 +217,7 @@ void ReadAndParseConfig(void) {
 				default:
 					;
 				}
-				for (int key = 0; key < last_key; key++) {
+				for (int key = 1; key < last_key; key++) {
 
 					strcpy(block_section_key, block_cat_defs[block_cat].conf_keys[key]);
 
@@ -188,8 +225,8 @@ void ReadAndParseConfig(void) {
 					INI_FILE_MAX_LINE_LENGTH)) {
 
 						if (ConfigureBlock(block_cat, block_section, block_section_key, key_value)) {
-							sprintf(debug_msg, "CONFIGURED [%s][%s][%s][%s] = %s", list_section, list_section_key, block_section, block_section_key, key_value);
-							DebugLog(debug_msg);
+//							sprintf(debug_msg, "CONFIGURED [%s][%s][%s][%s] = %s", list_section, list_section_key, block_section, block_section_key, key_value);
+//							DebugLog(debug_msg);
 						} else {
 							sprintf(debug_msg, "CONFIG FAILED [%s][%s][%s][%s]: %s ", list_section, list_section_key, block_section, block_section_key, key_value);
 							DebugLog(debug_msg);
@@ -214,6 +251,7 @@ void ReadAndParseConfig(void) {
 				}
 				DebugLog(debug_msg);
 				last_found = 1;
+				bl = 1;
 			}
 		}
 	}
@@ -223,18 +261,22 @@ void ReadAndParseConfig(void) {
 
 
 void InitSystem(void) {
-	// Got here - brain awake, need some memory
+	//Read the config file, parse it and create a block list in memory
+	//XXX consider if Block0(SYSTEM) can be the state register?
+	ReadAndParseConfig();
+
+	// Set up the global system state register
 	InitStateRegister();
 
 	// set up the event log ring buffer (and debug hooks) to talk to the outside (somehow)
 	EventBufferInit();
 
-	// log event - we're alive (minimally)
+	// log event - core internal system now functional
 #ifdef FF_ARDUINO
 	EventMsg(SSS, INFO, M_FF_AWAKE, 0, 0);
 #endif
 #ifdef FF_SIMULATOR
-	EventMsg(SSS, INFO, M_SIM, 0, 0);
+	EventMsg(SSS, E_INFO, M_SIM, 0, 0);
 #endif
 
 #ifdef DEBUG_SERIAL
@@ -253,8 +295,6 @@ void InitSystem(void) {
 	// check for a file system
 	InitFileSystem(); //placeholder - not needed
 
-	//Read the config file, parse it and create a block list in memory
-	ReadAndParseConfig();
 
 
 }

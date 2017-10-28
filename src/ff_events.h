@@ -21,7 +21,7 @@
 ************************************************/
 typedef struct EVENT_NODE {
 	time_t time_stamp;
-	uint8_t source;
+	uint16_t source;
 	uint8_t message_type;
 	uint8_t message;
 	int int_val;
@@ -38,7 +38,9 @@ uint8_t EventBufferEmpty (void);
 
 EventNode* EventBufferPop(void);
 
-void EventMsg(uint8_t source, uint8_t msg_type, uint8_t log_msg, int i_val, float f_val);
+void EventMsg(uint16_t source, uint8_t msg_type);
+void EventMsg(uint16_t source, uint8_t msg_type, float f_val);
+void EventMsg(uint16_t source, uint8_t msg_type, uint8_t log_msg, int i_val, float f_val);
 
 void EventBufferInit(void);
 

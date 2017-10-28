@@ -37,7 +37,7 @@ void InitUI(void) {
 	EventMsg(SSS, INFO, M_LCD_INIT, 0, 0);
 #endif
 #ifdef FF_SIMULATOR
-	EventMsg(SSS, INFO, M_SIM_CONSOLE, 0, 0);
+	EventMsg(SSS, E_INFO, M_SIM_CONSOLE, 0, 0);
 #endif
 }
 
@@ -46,7 +46,7 @@ void UpdateUI(void) {
 	const UIDataSet* ui_data_ptr = GetUIDataSet();
 
 	time_t dt_now = time(NULL);
-	//XXX put back in
+
 	HALDrawDataScreenCV(ui_data_ptr, dt_now);
 
 }

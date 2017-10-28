@@ -224,6 +224,8 @@ void ProcessController(int i) {
 
 
 void SetupControllers(void) {
+/*
+
 	int i = 0;
 	//TODO temp until reading loop done
 	//TODO - read a config file once we have SD memory
@@ -245,7 +247,7 @@ void SetupControllers(void) {
 	controls[i].sched_done_today = 0;
 	controls[i].currently_active = 0;
 
-	SetBlockLabelString(FF_CONTROLLER, i, controls[i].label);
+	//SetBlockLabelString(FF_CONTROLLER, i, controls[i].label);
 
 	i = 1; 	//TODO temp until reading loop done
 
@@ -266,7 +268,7 @@ void SetupControllers(void) {
 	controls[i].sched_done_today = 0;
 	controls[i].currently_active = 0;
 
-	SetBlockLabelString(FF_CONTROLLER, i, controls[i].label);
+	//SetBlockLabelString(FF_CONTROLLER, i, controls[i].label);
 
 	i = 2; 	//TODO temp until reading loop done
 
@@ -287,7 +289,7 @@ void SetupControllers(void) {
 	controls[i].sched_done_today = 0;
 	controls[i].currently_active = 0;
 
-	SetBlockLabelString(FF_CONTROLLER, i, controls[i].label);
+	//SetBlockLabelString(FF_CONTROLLER, i, controls[i].label);
 
 	i = 3; 	//TODO temp until reading loop done
 
@@ -308,7 +310,7 @@ void SetupControllers(void) {
 	controls[i].sched_done_today = 0;
 	controls[i].currently_active = 0;
 
-	SetBlockLabelString(FF_CONTROLLER, i, controls[i].label);
+	//SetBlockLabelString(FF_CONTROLLER, i, controls[i].label);
 
 	i = 4; 	//TODO temp until reading loop done
 
@@ -329,7 +331,7 @@ void SetupControllers(void) {
 	controls[i].sched_done_today = 0;
 	controls[i].currently_active = 0;
 
-	SetBlockLabelString(FF_CONTROLLER, i, controls[i].label);
+	//SetBlockLabelString(FF_CONTROLLER, i, controls[i].label);
 
 	i = 5; 	//TODO temp until reading loop done
 
@@ -350,7 +352,7 @@ void SetupControllers(void) {
 	controls[i].sched_done_today = 0;
 	controls[i].currently_active = 0;
 
-	SetBlockLabelString(FF_CONTROLLER, i, controls[i].label);
+	//SetBlockLabelString(FF_CONTROLLER, i, controls[i].label);
 
 	i = 6; 	//TODO temp until reading loop done
 
@@ -399,11 +401,14 @@ void SetupControllers(void) {
 		ProcessController(i);
 	}
 	EventMsg(SSS, INFO, M_CONTROLLERS_INIT, 0, 0);
+*/
 }
 
 void RunControllers(void) {
+/*
 	for (int i = 0; i < CONTROL_COUNT; i++) {
 		ProcessController(i);
 	}
+*/
 }
 

@@ -47,7 +47,7 @@ uint8_t DayStrToFlag(uint8_t day_flag[7], const char* day_str) {
 		found = 1;
 	} else {
 		for (int i = 0; i < LAST_DAY; i++ ) {
-			if (strcasestr(day_str, DaysOfWeek[i]) != NULL) {
+			if (strcasestr(day_str, day_strings[i].text) != NULL) {
 				day_flag[i] = 1;
 				found = 1;
 			} else {

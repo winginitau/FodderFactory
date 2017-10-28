@@ -18,6 +18,7 @@
 #include "ff_registry.h"
 #include "ff_utils.h"
 #include "ff_filesystem.h"
+#include "ff_string_consts.h"
 #include <time.h>
 
 
@@ -30,7 +31,7 @@ typedef struct EVENT_BUFFER {
 	int head;
 	int tail;
 	int size;
-	uint8_t init = 1; //for to check for initialisation TODO - is this a const be init here?
+	uint8_t init;
 	EventNode event_list[EVENT_BUFFER_SIZE];
 } EventBuffer;
 
@@ -98,12 +99,19 @@ void EventBufferPush(EventNode event) {
 	}
 }
 
-void EventMsg(uint8_t source, uint8_t msg_type, uint8_t msg_str, int i_val, float f_val) {
+
+void EventMsg(uint16_t source, uint8_t msg_type) {
+	EventMsg(source, msg_type, M_NULL, 0, 0);
+}
+
+void EventMsg(uint16_t source, uint8_t msg_type, float f_val) {
+	EventMsg(source, msg_type, M_NULL, 0, f_val);
+}
+
+void EventMsg(uint16_t source, uint8_t msg_type, uint8_t msg_str, int i_val, float f_val) {
 
 	if(event_buffer.init != 0) {
-
-		DebugLog("STOP EventMsg before init");
-
+		DebugLog("STOP EventMsg Before Init");
 		while (1);
 	}
 	EventNode event;

@@ -18,10 +18,13 @@
 # System
 #************************************************/
 [system]
-temp_scale = C
-#temp_scale = F
-language = english
-week_start = Monday
+type = SYS_SYSTEM
+display_name = System
+description = Reserved System Block
+language = English
+temp_scale = Celsius
+#temp_scale = Fahrenheit
+week_start = MON
 		
 #************************************************
 # Inputs

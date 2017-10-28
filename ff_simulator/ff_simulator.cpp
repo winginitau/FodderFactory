@@ -45,6 +45,7 @@ void loop() {
 	//TODO					// update radio / feed
 	//SaveEventBuffer();		// write recent event to file - move to being a system scheduler and controller
 	//delay(1000); //for dev and debug
+	ProcessDispatcher(Operate);
 }
 
 
@@ -64,7 +65,7 @@ int main(void) {
 
 	ProcessDispatcher(Validate);
 	ProcessDispatcher(Setup);
-	ProcessDispatcher(Validate);
+	//ProcessDispatcher(Validate);
 	ProcessDispatcher(Operate);
 
 	//SetupInputs();			// sensors, triggers, external data feeds (eg from battery mon)

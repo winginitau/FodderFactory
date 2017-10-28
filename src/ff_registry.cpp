@@ -16,6 +16,7 @@
 #include "ff_debug.h"
 #include "ff_utils.h"
 #include "ff_inputs.h"
+#include "ff_monitors.h"
 
 
 #ifdef FF_SIMULATOR
@@ -35,47 +36,46 @@ typedef struct BLOCK_TYPE {
 } Block;
 
 
-
 typedef struct FF_STATE_REGISTER {
 	//system config ad flags
 	uint8_t language;
 	uint8_t temperature_scale;
-	uint8_t time_real_status = 0;
-	uint8_t FS_present = 0;
+	uint8_t time_real_status;
+	uint8_t FS_present;
 	uint8_t config_valid;
-	uint8_t save_event_buffer = 0;
+	uint8_t save_event_buffer;
 
 	//blocks
 
-	uint8_t block_cat_offset[LAST_BLOCK_CAT];
+	//uint8_t block_cat_offset[LAST_BLOCK_CAT];
 
-	uint8_t block_list_size;
+	//uint8_t block_list_size;
 
 
-	uint8_t system_start;
-	uint8_t system_count;
+	//uint8_t system_start;
+	//uint8_t system_count;
 
-	uint8_t input_start;
-	uint8_t input_count;
+	//uint8_t input_start;
+	//uint8_t input_count;
 
-	uint8_t monitor_start;
-	uint8_t monitor_count;
+	//uint8_t monitor_start;
+	//uint8_t monitor_count;
 
-	uint8_t schedule_start;
-	uint8_t schedule_count;
+	//uint8_t schedule_start;
+	//uint8_t schedule_count;
 
-	uint8_t rule_start;
-	uint8_t rule_count;
+	//uint8_t rule_start;
+	//uint8_t rule_count;
 
-	uint8_t controller_start;
-	uint8_t controller_count;
+	//uint8_t controller_start;
+	//uint8_t controller_count;
 
-	uint8_t output_start;
-	uint8_t output_count;
+	//uint8_t output_start;
+	//uint8_t output_count;
 
 	UIDataSet ui_data;
 
-	Block block_list[BLOCK_COUNT];
+	//Block block_list[BLOCK_COUNT];
 	//Block* dev_block_list;
 
 } FFStateRegister;
@@ -86,8 +86,9 @@ typedef struct FF_STATE_REGISTER {
 ************************************************/
 
 static FFStateRegister sr;
-static BlockNode *bll;		//Block Linked List - variant record block list
 static uint16_t block_count = 0;
+static BlockNode *bll = NULL;		//Block Linked List - variant record block list
+
 
 /************************************************
  Functions
@@ -102,7 +103,7 @@ void Setup(BlockNode *b) {
 		InputSetup(b);
 		break;
 	case FF_MONITOR:
-//		MonitorSetup(b);
+		MonitorSetup(b);
 		break;
 	case FF_SCHEDULE:
 //		SchedSetup(b);
@@ -131,7 +132,7 @@ void Operate(BlockNode *b) {
 		InputOperate(b);
 		break;
 	case FF_MONITOR:
-//		MonitorSetup(b);
+		MonitorOperate(b);
 		break;
 	case FF_SCHEDULE:
 //		SchedSetup(b);
@@ -146,22 +147,43 @@ void Operate(BlockNode *b) {
 //		OutputSetup(b);
 		break;
 	default:
-		DebugLog("ERROR: Block Category Not Macthed in Operate");
+		DebugLog("ERROR: Block Category Not Matched in Operate");
 		break;
 	}
 }
 
 
 void ProcessDispatcher(void(*func)(BlockNode*)) {
-	BlockNode* temp;
+	BlockNode* block_ptr;
 	//char debug_msg[MAX_DEBUG_LENGTH];
 
-	temp = bll;
+	block_ptr = bll;
 
-	while (temp != NULL) {
-		func(temp);
-		temp = temp->next_block;
+	while (block_ptr != NULL) {
+		func(block_ptr);
+		block_ptr = block_ptr->next_block;
 	}
+}
+
+BlockNode* GetBlockByID(BlockNode *list_node, uint16_t block_id) {
+	//BlockNode *block;
+
+	if(list_node == NULL) {   //empty list
+		return NULL;
+	} else {
+		if (list_node->block_id == block_id) {
+			return list_node;
+		} else {
+			list_node = GetBlockByID(list_node->next_block, block_id);
+		}
+	}
+	return list_node;
+}
+
+float GetFVal(uint16_t block_id) {
+	BlockNode *b;
+	b = GetBlockByID(bll, block_id);
+	return b->f_val;
 }
 
 uint16_t GetBlockID(const char* label) {
@@ -179,9 +201,26 @@ uint16_t GetBlockID(const char* label) {
 	}
 	sprintf(debug_msg, "ERROR: Block Label Not Found: [%s]", label);
 	DebugLog(debug_msg);
-	return 65535;
+	return UINT16_INIT;
 }
 
+char const* GetBlockLabelString(uint16_t block_id) {
+	BlockNode* temp;
+	char debug_msg[MAX_DEBUG_LENGTH];
+
+	temp = bll;
+
+	while (temp != NULL) {
+		if (temp->block_id == block_id) {
+				return temp->block_label;
+			} else {
+				temp = temp->next_block;
+			}
+		}
+		sprintf(debug_msg, "ERROR: Block ID Not Found: [%d]", block_id);
+		DebugLog(debug_msg);
+		return NULL;
+}
 
 BlockNode* AddBlock(BlockNode** head_ref, uint8_t block_cat, const char *block_label) {
 	BlockNode* new_block;
@@ -192,8 +231,12 @@ BlockNode* AddBlock(BlockNode** head_ref, uint8_t block_cat, const char *block_l
 
 		new_block->block_cat = block_cat;
 		new_block->block_type = UINT8_INIT;
-		new_block->block_id = BLOCK_ID_BASE + block_count;
-		block_count++;
+		if (block_cat == FF_SYSTEM) {
+			new_block->block_id = SSS;
+		} else {
+			new_block->block_id = BLOCK_ID_BASE + block_count;
+			block_count++;
+		}
 		strcpy(new_block->block_label, block_label);
 		new_block->display_name[0] = '\0';
 		new_block->description[0] = '\0';
@@ -206,10 +249,10 @@ BlockNode* AddBlock(BlockNode** head_ref, uint8_t block_cat, const char *block_l
 
 		switch (block_cat) {
 			case FF_SYSTEM:
-//			uint8_t temp_scale;
-//			uint8_t language;
-//			uint8_t week_start;
-				//TODO
+
+				new_block->settings.sys.language = UINT8_INIT;
+				new_block->settings.sys.temp_scale = UINT8_INIT;
+				new_block->settings.sys.week_start = UINT8_INIT;
 				break;
 			case FF_INPUT:
 				new_block->settings.in.interface = LAST_INTERFACE;
@@ -258,7 +301,7 @@ BlockNode* AddBlock(BlockNode** head_ref, uint8_t block_cat, const char *block_l
 }
 
 
-BlockNode* GetBlock (BlockNode *list_node, uint8_t block_cat, const char *block_label) {
+BlockNode* GetBlockByLabel(BlockNode *list_node, const char *block_label) {
 	//BlockNode *block;
 
 	if(list_node == NULL) {   //empty list
@@ -267,33 +310,27 @@ BlockNode* GetBlock (BlockNode *list_node, uint8_t block_cat, const char *block_
 		if (strcmp(list_node->block_label, block_label) == 0) {
 			return list_node;
 		} else {
-			list_node = GetBlock(list_node->next_block, block_cat, block_label);
+			list_node = GetBlockByLabel(list_node->next_block, block_label);
 		}
 	}
 	return list_node;
 }
 
-uint8_t ConfigureBlock(uint8_t block_cat, const char *block_label, const char *key_str, const char *value_str) {
-	BlockNode *block_ptr;
-	uint8_t return_value = 1;  //error by exception
+uint8_t GetConfKeyIndex(uint8_t block_cat, const char* key_str) {
+
 	uint8_t last_key = UINT8_INIT;
-	//uint16_t block_id = 0;
+	uint8_t key_idx = 0; //see "string_consts.h" Zero is error.
 
-	block_ptr = GetBlock(bll, block_cat, block_label);
+	//lock the last key index to the appropriate block category
 
-	if (block_ptr == NULL) {
-		block_ptr = AddBlock(&bll, block_cat, block_label); //add a new one
-	}
-	if (block_ptr != NULL) {
-
-		//assume we now have a valid block_ptr pointing to a categorised and labelled block
-
-		if(key_str == NULL) {	//registration only nothing more to do.
-			return return_value;
-		}
-
-		//lock the last key index to the appropriate block category
-		switch (block_cat) {
+	switch (block_cat) {
+		case FF_ERROR_CAT:
+			DebugLog("STOP (GetConfKeyIndex) block_cat = FF_ERROR_CAT");
+			while(1);
+			break;
+		case FF_SYSTEM:
+			last_key = LAST_SYS_KEY_TYPE;
+			break;
 		case FF_INPUT:
 			last_key = LAST_IN_KEY_TYPE;
 			break;
@@ -312,285 +349,338 @@ uint8_t ConfigureBlock(uint8_t block_cat, const char *block_label, const char *k
 		case FF_OUTPUT:
 			last_key = LAST_OUT_KEY_TYPE;
 			break;
-
 		default:
-			;
+			DebugLog("STOP (GetConfKeyIndex) block_cat >= LAST_BLOCK_CAT");
+			while(1);
+	}
+
+	//check that we have a key that matches one of the keys strings of the block category
+	while ((strcmp(key_str, block_cat_defs[block_cat].conf_keys[key_idx]) != 0) && key_idx < last_key) {
+		key_idx++;
+	}
+
+	if (key_idx == last_key) {
+		DebugLog("STOP (GetConfKeyIndex) Key String Not Found in Block Category Definitions");
+		while(1);
+	} else {
+		return key_idx;
+	}
+}
+
+uint8_t ConfigureCommonSetting(BlockNode* block_ptr, uint8_t key_idx, const char* value_str){
+	switch (key_idx) {
+		case SYS_ERROR_KEY:
+			// or any other (0) block cat error key
+			DebugLog("STOP (ConfigureCommonSetting) key_idx = 0 error key type");
+			while(1);
+			break;
+		case SYS_TYPE:
+			// or case IN_TYPE
+			// or case MON_TYPE:
+			// or case SCH_TYPE:
+			// or case RL_TYPE:
+			// or case CON_TYPE:
+			// or case OUT_TYPE:
+			block_ptr->block_type = BlockTypeStringArrayIndex(value_str);
+			break;
+		case SYS_DISPLAY_NAME:
+			// or case IN_DISPLAY_NAME
+			// or case MON_DISPLAY_NAME:
+			// or case SCH_DISPLAY_NAME:
+			// or case RL_DISPLAY_NAME:
+			// or case CON_DISPLAY_NAME:
+			// or case OUT_DISPLAY_NAME:
+			strcpy(block_ptr->display_name, value_str);
+			break;
+		case SYS_DESCRIPTION:
+			// or case IN_DESCRIPTION
+			// or case MON_DESCRIPTION:
+			// or case SCH_DESCRIPTION:
+			// or case RL_DESCRIPTION:
+			// or case CON_DESCRIPTION:
+			// or case OUT_DESCRIPTION:
+			strcpy(block_ptr->description, value_str);
+			break;
+		default:
+			return 0; //error
+			break;
+	}
+	return 1;
+}
+
+uint8_t ConfigureSYSSetting(BlockNode* block_ptr, uint8_t key_idx, const char* value_str) {
+	switch (key_idx) {
+		case SYS_LANGUAGE:
+			block_ptr->settings.sys.language = LanguageStringArrayIndex(value_str);
+			break;
+		case SYS_TEMPERATURE:
+			block_ptr->settings.sys.temp_scale = UnitStringArrayIndex(value_str);
+			break;
+		case SYS_WEEK_START:
+			block_ptr->settings.sys.week_start = DayStringArrayIndex(value_str);
+			break;
+		default:
+			DebugLog("ERROR: In static block_cat_defs in FF_SYSTEM setting data");
+			return 0;
+			break;
+	} // switch(key_idx)
+	return 1;
+}
+
+uint8_t ConfigureINSetting(BlockNode* block_ptr, uint8_t key_idx, const char* value_str) {
+	switch (key_idx) {
+		case IN_INTERFACE:
+			block_ptr->settings.in.interface = InterfaceStringArrayIndex(value_str);
+			break;
+		case IN_IF_NUM:
+			block_ptr->settings.in.if_num = atoi(value_str);
+			break;
+		case IN_LOG_RATE: {
+			//tm time_tm;
+			//strptime(value_str, "%H:%M:%S", &time_tm);
+			block_ptr->settings.in.log_rate = StrToTV(value_str);
+			break;
+		}
+		case IN_DATA_UNITS: {
+			uint8_t u = 0;
+			while (u < LAST_UNIT && strcmp(unit_strings[u].text[ENGLISH], value_str)) {
+				u++;
+			}
+			if (u < LAST_UNIT) {
+				block_ptr->settings.in.data_units = u;
+			} else {
+				block_ptr->settings.in.data_units = 255;
+				DebugLog("ERROR: Missing or malformed input data_units in config file");
+				return 0;
+			}
+			break;
+		}
+		case IN_DATA_TYPE:
+			//so what - either float or int presently - inferred from block type, conider dropping
+			break;
+		default:
+			DebugLog("ERROR: In static block_cat_defs in FF_INPUT setting data");
+			return 0;
+			break;
+	} // switch(key_idx)
+	return 1;
+}
+
+uint8_t ConfigureMONSetting(BlockNode* block_ptr, uint8_t key_idx, const char* value_str) {
+	switch (key_idx) {
+		case MON_INPUT1:
+			block_ptr->settings.mon.input1 = GetBlockID(value_str);
+			break;
+		case MON_INPUT2:
+			block_ptr->settings.mon.input2 = GetBlockID(value_str);
+			break;
+		case MON_INPUT3:
+			block_ptr->settings.mon.input3 = GetBlockID(value_str);
+			break;
+		case MON_INPUT4:
+			block_ptr->settings.mon.input4 = GetBlockID(value_str);
+			break;
+		case MON_ACT_VAL:
+			if (strcmp(value_str, "HIGH") == 0) {
+				block_ptr->settings.mon.act_val = 1;
+			} else {
+				if (strcmp(value_str, "LOW") == 0) {
+					block_ptr->settings.mon.act_val = 1;
+				} else {
+					sscanf(value_str, "%f", &(block_ptr->settings.mon.act_val));
+				}
+			}
+			break;
+		case MON_DEACT_VAL:
+			if (strcmp(value_str, "HIGH") == 0) {
+				block_ptr->settings.mon.deact_val = 1;
+			} else {
+				if (strcmp(value_str, "LOW") == 0) {
+					block_ptr->settings.mon.deact_val = 1;
+				} else {
+					sscanf(value_str, "%f", &(block_ptr->settings.mon.deact_val));
+				}
+			}
+			break;
+		default:
+			DebugLog("ERROR: In static block_cat_defs in FF_MONITOR setting data");
+			return 0;
+			break;
+	} // switch(key_idx)
+	return 1;
+}
+
+uint8_t ConfigureSCHSetting(BlockNode* block_ptr, uint8_t key_idx, const char* value_str) {
+	switch (key_idx) {
+		case SCH_DAYS:
+			if (DayStrToFlag(block_ptr->settings.sch.days, value_str) != 1) {
+				DebugLog("WARNING: No Days Found Converting Day String to Flag");
+			}
+			break;
+		case SCH_TIME_START: {
+			block_ptr->settings.sch.time_start = StrToTV(value_str);
+			break;
+		}
+		case SCH_TIME_END: {
+			block_ptr->settings.sch.time_end = StrToTV(value_str);
+			break;
+		}
+		case SCH_TIME_DURATION: {
+			block_ptr->settings.sch.time_duration = StrToTV(value_str);
+			break;
+		}
+		case SCH_TIME_REPEAT: {
+			block_ptr->settings.sch.time_repeat = StrToTV(value_str);
+			break;
+		}
+		default:
+			DebugLog("ERROR: In static block_cat_defs in FF_SCHEDULE setting data");
+			return 0;
+			break;
+	} // switch(key_idx)
+
+	return 1;
+}
+
+uint8_t ConfigureRLSetting(BlockNode* block_ptr, uint8_t key_idx, const char* value_str) {
+	switch (key_idx) {
+		case RL_PARAM_1:
+			block_ptr->settings.rl.param1 = GetBlockID(value_str);
+			break;
+		case RL_PARAM_2:
+			block_ptr->settings.rl.param2 = GetBlockID(value_str);
+			break;
+		case RL_PARAM_3:
+			block_ptr->settings.rl.param3 = GetBlockID(value_str);
+			break;
+		case RL_PARAM_NOT:
+			block_ptr->settings.rl.param_not = GetBlockID(value_str);
+			break;
+		default:
+			DebugLog("ERROR: In static block_cat_defs in FF_RULE setting data");
+			return 0;
+			break;
+	} // switch(key_idx)
+
+	return 1;
+}
+
+uint8_t ConfigureCONSetting(BlockNode* block_ptr, uint8_t key_idx, const char* value_str) {
+	switch (key_idx) {
+		case CON_RULE:
+			block_ptr->settings.con.rule = GetBlockID(value_str);
+			break;
+		case CON_OUTPUT:
+			block_ptr->settings.con.output = GetBlockID(value_str);
+			break;
+		case CON_ACT_CMD: {
+			uint8_t c = 0;
+			while (c < LAST_COMMAND && strcmp(command_strings[c].text, value_str)) {
+				c++;
+			}
+			if (c < LAST_COMMAND) {
+				block_ptr->settings.con.act_cmd = c;
+			} else {
+				block_ptr->settings.con.act_cmd = UINT8_INIT;
+				DebugLog("ERROR: Valid controller ACT_CMD string not defined in config");
+				return 0;
+			}
+			break;
+		}
+		case CON_DEACT_CMD: {
+			uint8_t c = 0;
+			while (c < LAST_COMMAND && strcmp(command_strings[c].text, value_str)) {
+				c++;
+			}
+			if (c < LAST_COMMAND) {
+				block_ptr->settings.con.deact_cmd = c;
+			} else {
+				block_ptr->settings.con.deact_cmd = UINT8_INIT;
+				DebugLog("ERROR: Valid controller DEACT_CMD string not defined in config");
+				return 0;
+			}
+			break;
+		}
+		default:
+			DebugLog("ERROR: In static block_cat_defs in FF_CONTROLLER setting data");
+			return 0;
+			break;
+	} // switch(key_idx)
+	return 1;
+}
+
+uint8_t ConfigureOUTSetting(BlockNode* block_ptr, uint8_t key_idx, const char* value_str) {
+	switch (key_idx) {
+		case OUT_INTERFACE:
+			block_ptr->settings.out.interface = InterfaceStringArrayIndex(value_str);
+			break;
+		case OUT_IF_NUM:
+			block_ptr->settings.out.if_num = atoi(value_str);
+			break;
+		default:
+			DebugLog("ERROR: In static block_cat_defs in FF_OUTPUT setting data");
+			return 0;
+			break;
+	} // switch(key_idx)
+	return 1;
+}
+
+uint8_t ConfigureBlock(uint8_t block_cat, const char *block_label, const char *key_str, const char *value_str) {
+	BlockNode *block_ptr;
+	uint8_t return_value = 1;  //error by exception
+	uint8_t key_idx = 0; //see "string_consts.h" Zero is error.
+
+	// First search for an existing block with that label
+	block_ptr = GetBlockByLabel(bll, block_label);
+
+	//not found - add a new block
+	if (block_ptr == NULL) {
+		block_ptr = AddBlock(&bll, block_cat, block_label); //add a new one
+	}
+	if (block_ptr != NULL) {
+		//we now have a valid block_ptr pointing to a categorised and labelled block
+
+		//are we just registering or updating details?
+		if (key_str == NULL) {		//registration only nothing more to do.
+			return return_value;
 		}
 
-		//check that we have a key that matches one of the keys of the block category
-		uint8_t key_idx = 0;
+		key_idx = GetConfKeyIndex(block_cat, key_str);
 
-		while ((strcmp(key_str, block_cat_defs[block_cat].conf_keys[key_idx]) != 0) && key_idx < last_key) {
-			key_idx++;
+		if (key_idx <= SYS_DESCRIPTION) {
+			return (ConfigureCommonSetting(block_ptr, key_idx, value_str));
 		}
-		if (key_idx == last_key) {
-			DebugLog("ERROR (ConFigureBlock) Key String Not Found in Block Category Definitions");
-			return_value = 0;
-		} else {
-			//we have a match to a valid key
 
-			//check for keys that are common to all block categories
-			if (key_idx <= IN_DESCRIPTION) {
-				switch (key_idx) {
-				case IN_TYPE:
-					// or case MON_TYPE:
-					// or case SCH_TYPE:
-					// or case RL_TYPE:
-					// or case CON_TYPE:
-					// or case OUT_TYPE:
-					block_ptr->block_type = BlockTypeStringArrayIndex(value_str);
-					break;
-				case IN_DISPLAY_NAME:
-					// or case MON_DISPLAY_NAME:
-					// or case SCH_DISPLAY_NAME:
-					// or case RL_DISPLAY_NAME:
-					// or case CON_DISPLAY_NAME:
-					// or case OUT_DISPLAY_NAME:
-					strcpy(block_ptr->display_name, value_str);
-					break;
-				case IN_DESCRIPTION:
-					// or case MON_DESCRIPTION:
-					// or case SCH_DESCRIPTION:
-					// or case RL_DESCRIPTION:
-					// or case CON_DESCRIPTION:
-					// or case OUT_DESCRIPTION:
-					strcpy(block_ptr->description, value_str);
-					break;
-				default:
-					break;
-				} //switch key_idx
+		//key idx must be in range of defined keys
+		//but they are different for each category
+		switch (block_cat) {
+			case FF_SYSTEM:
+				return ConfigureSYSSetting(block_ptr, key_idx, value_str);
+				break; //switch (block_cat);
+			case FF_INPUT:
+				return ConfigureINSetting(block_ptr, key_idx, value_str);
+				break; //switch (block_cat);
+			case FF_MONITOR:
+				return ConfigureMONSetting(block_ptr, key_idx, value_str);
+				break; //switch (block_cat);
+			case FF_SCHEDULE:
+				return ConfigureSCHSetting(block_ptr, key_idx, value_str);
+				break; //switch (block_cat);
+			case FF_RULE:
+				return ConfigureRLSetting(block_ptr, key_idx, value_str);
+				break; //switch (block_cat);
+			case FF_CONTROLLER:
+				return ConfigureCONSetting(block_ptr, key_idx, value_str);
+				break; //switch (block_cat);
+			case FF_OUTPUT:
+				return ConfigureOUTSetting(block_ptr, key_idx, value_str);
+				break; //switch (block_cat);
+			default:
+				DebugLog("ERROR: (ConfigureBlock) Invalid Block Category");
+				return_value = 0;
+				break;
+		} //switch(block_cat)
 
-			} else { //key_idx specific to category ie. > IN_DESCRIPTION
-
-				switch (block_cat) {
-				case FF_SYSTEM:
-					//uint8_t temp_scale;
-					//uint8_t language;
-					//uint8_t week_start;
-					break;
-
-				case FF_INPUT:
-					switch (key_idx) {
-
-					case IN_INTERFACE:
-						block_ptr->settings.in.interface = InterfaceStringArrayIndex(value_str);
-						break;
-
-					case IN_IF_NUM:
-						block_ptr->settings.in.if_num = atoi(value_str);
-						break;
-
-					case IN_LOG_RATE: {
-						tm *time_tm;
-						strptime(value_str, "%H:%M:%S", time_tm);
-						block_ptr->settings.in.log_rate = mktime(time_tm);
-						break;
-					}
-					case IN_DATA_UNITS: {
-						uint8_t u = 0;
-						while (u < LAST_UNIT_SCALE && strcmp(unit_strings[u].text[ENGLISH], value_str)) {
-							u++;
-						}
-						if (u < LAST_UNIT_SCALE) {
-							block_ptr->settings.in.data_units = u;
-						} else {
-							block_ptr->settings.in.data_units = 255;
-							DebugLog("ERROR: Missing or malformed input data_units in config file");
-							return_value = 0;
-						}
-						break;
-					}
-
-					case IN_DATA_TYPE:
-						//so what - either float or int presently - inferred from block type, conider dropping
-						break;
-					default:
-						DebugLog("ERROR: In static block_cat_defs in FF_INPUT setting data");
-						return_value = 0;
-						break;
-					} // switch(key_idx)
-					break; //switch (block_cat);
-
-
-				case FF_MONITOR:
-					switch (key_idx) {
-
-					case MON_INPUT1:
-						block_ptr->settings.mon.input1 = GetBlockID(value_str);
-						break;
-					case MON_INPUT2:
-						block_ptr->settings.mon.input2 = GetBlockID(value_str);
-						break;
-					case MON_INPUT3:
-						block_ptr->settings.mon.input3 = GetBlockID(value_str);
-						break;
-					case MON_INPUT4:
-						block_ptr->settings.mon.input4 = GetBlockID(value_str);
-						break;
-					case MON_ACT_VAL:
-						if (strcmp(value_str, "HIGH") == 0) {
-							block_ptr->settings.mon.act_val = 1;
-						} else {
-							if (strcmp(value_str, "LOW") == 0) {
-								block_ptr->settings.mon.act_val = 1;
-							} else {
-								sscanf(value_str, "%f", &(block_ptr->settings.mon.act_val));
-							}
-						}
-						break;
-					case MON_DEACT_VAL:
-						if (strcmp(value_str, "HIGH") == 0) {
-							block_ptr->settings.mon.deact_val = 1;
-						} else {
-							if (strcmp(value_str, "LOW") == 0) {
-								block_ptr->settings.mon.deact_val = 1;
-							} else {
-								sscanf(value_str, "%f", &(block_ptr->settings.mon.deact_val));
-							}
-						}
-						break;
-					default:
-						DebugLog("ERROR: In static block_cat_defs in FF_MONITOR setting data");
-						return_value = 0;
-						break;
-					} // switch(key_idx)
-					break; //switch (block_cat);
-
-					case FF_SCHEDULE:
-						switch (key_idx) {
-
-							case SCH_DAYS:
-								if (DayStrToFlag(block_ptr->settings.sch.days, value_str) != 1) {
-									DebugLog("WARNING: No Days Found Converting Day String to Flag");
-								}
-								break;
-							case SCH_TIME_START: {
-								tm *time_tm;
-								strptime(value_str, "%H:%M:%S", time_tm);
-
-								block_ptr->settings.sch.time_start = mktime(time_tm);
-								break;
-							}
-							case SCH_TIME_END: {
-								tm *time_tm;
-								strptime(value_str, "%H:%M:%S", time_tm);
-								block_ptr->settings.sch.time_end = mktime(time_tm);
-								break;
-							}
-							case SCH_TIME_DURATION: {
-								tm *time_tm;
-								strptime(value_str, "%H:%M:%S", time_tm);
-								block_ptr->settings.sch.time_duration = mktime(time_tm);
-								break;
-							}
-							case SCH_TIME_REPEAT: {
-
-								tm *time_tm;
-								strptime(value_str, "%H:%M:%S", time_tm);
-
-								block_ptr->settings.sch.time_repeat = mktime(time_tm);
-								break;
-							}
-							default:
-								DebugLog("ERROR: In static block_cat_defs in FF_SCHEDULE setting data");
-								return_value = 0;
-								break;
-						} // switch(key_idx)
-						break; //switch (block_cat);
-
-				case FF_RULE:
-					switch (key_idx) {
-
-					case RL_PARAM_1:
-						block_ptr->settings.rl.param1 = GetBlockID(value_str);
-						break;
-					case RL_PARAM_2:
-						block_ptr->settings.rl.param2 = GetBlockID(value_str);
-						break;
-					case RL_PARAM_3:
-						block_ptr->settings.rl.param3 = GetBlockID(value_str);
-						break;
-					case RL_PARAM_NOT:
-						block_ptr->settings.rl.param_not = GetBlockID(value_str);
-						break;
-					default:
-						DebugLog("ERROR: In static block_cat_defs in FF_RULE setting data");
-						return_value = 0;
-						break;
-					} // switch(key_idx)
-					break; //switch (block_cat);
-
-				case FF_CONTROLLER:
-					switch (key_idx) {
-
-					case CON_RULE:
-						block_ptr->settings.con.rule = GetBlockID(value_str);
-						break;
-					case CON_OUTPUT:
-						block_ptr->settings.con.output = GetBlockID(value_str);
-						break;
-					case CON_ACT_CMD: {
-						uint8_t c = 0;
-						while (c < LAST_COMMAND && strcmp(command_strings[c], value_str)) {
-							c++;
-						}
-						if (c < LAST_COMMAND) {
-							block_ptr->settings.con.act_cmd = c;
-						} else {
-							block_ptr->settings.con.act_cmd = UINT8_INIT;
-							DebugLog("ERROR: Valid controller ACT_CMD string not defined in config");
-							return_value = 0;
-						}
-						break;
-					}
-					case CON_DEACT_CMD: {
-						uint8_t c = 0;
-						while (c < LAST_COMMAND && strcmp(command_strings[c], value_str)) {
-							c++;
-						}
-						if (c < LAST_COMMAND) {
-							block_ptr->settings.con.deact_cmd = c;
-						} else {
-							block_ptr->settings.con.deact_cmd = UINT8_INIT;
-							DebugLog("ERROR: Valid controller DEACT_CMD string not defined in config");
-							return_value = 0;
-						}
-						break;
-					}
-					default:
-						DebugLog("ERROR: In static block_cat_defs in FF_CONTROLLER setting data");
-						return_value = 0;
-						break;
-
-					} // switch(key_idx)
-					break; //switch (block_cat);
-
-				case FF_OUTPUT:
-					switch (key_idx) {
-
-						case OUT_INTERFACE:
-							block_ptr->settings.out.interface = InterfaceStringArrayIndex(value_str);
-							break;
-
-						case OUT_IF_NUM:
-							block_ptr->settings.out.if_num = atoi(value_str);
-							break;
-
-						default:
-							DebugLog("ERROR: In static block_cat_defs in FF_OUTPUT setting data");
-							return_value = 0;
-						break;
-
-					} // switch(key_idx)
-					break; //switch (block_cat);
-
-				default:
-					DebugLog("ERROR: (ConfigureBlock) Invalid Block Category");
-					return_value = 0;
-					break;
-				} //switch(block_cat)
-			}; //else : key_idx spec to cat
-		} //else - key was found in cat idx
 	} else {
 		DebugLog("ERROR: (ConfigureBlock) Finding or Adding Block ");
 		return_value = 0;
@@ -600,10 +690,8 @@ uint8_t ConfigureBlock(uint8_t block_cat, const char *block_label, const char *k
 
 
 
-char const* GetBlockLabelString(int idx) {
-	return sr.block_list[idx].label;
-}
 
+/*
 void SetBlockLabelString(uint8_t block_cat, int idx, const char* label) {
 	switch (block_cat) {
 	case FF_SYSTEM:
@@ -631,7 +719,10 @@ void SetBlockLabelString(uint8_t block_cat, int idx, const char* label) {
 	strcpy(sr.block_list[idx].label, label);
 	sr.block_list[idx].active = 0;
 }
+*/
 
+
+/*
 uint8_t GetBlockIndexByLabel (const char * label) {
 	int i = 0;
 	while (i < sr.block_list_size && !strcmp(sr.block_list[i].label, label)) {
@@ -639,7 +730,9 @@ uint8_t GetBlockIndexByLabel (const char * label) {
 	}
 	return i;
 }
+*/
 
+/*
 uint8_t GetBlockTypeOffset (uint8_t block_type) {
 	uint8_t offset;
 	switch (block_type) {
@@ -667,41 +760,47 @@ uint8_t GetBlockTypeOffset (uint8_t block_type) {
 	}
 	return offset;
 }
+*/
+
 
 UIDataSet* GetUIDataSet(void) {
 	return &sr.ui_data;
 }
 
-void UpdateStateRegister(uint8_t source, uint8_t msg_type, uint8_t msg_str, int i_val, float f_val) {
+void UpdateStateRegister(uint16_t source, uint8_t msg_type, uint8_t msg_str, int i_val, float f_val) {
 
 	//TODO include further registry block logic update here
 
-	//TODO optimise
-	if (strcmp(sr.block_list[source].label, "INSIDE_TOP_TEMP") == 0) {
-		sr.ui_data.inside_current = f_val;
-		if (f_val < sr.ui_data.inside_min) {
-			sr.ui_data.inside_min = f_val;
-			sr.ui_data.inside_min_dt = time(NULL);
-		}
-		if (f_val > sr.ui_data.inside_max) {
-			sr.ui_data.inside_max = f_val;
-			sr.ui_data.inside_max_dt = time(NULL);
-		}
-	}
+	//TODO redo - remove hard coding perhaps
+	const char* src_label;
+	src_label = GetBlockLabelString(source);
 
-	if (strcmp(sr.block_list[source].label, "OUTSIDE_TEMP") == 0) {
-		sr.ui_data.outside_current = f_val;
-		if (f_val < sr.ui_data.outside_min) {
-			sr.ui_data.outside_min = f_val;
-			sr.ui_data.outside_min_dt = time(NULL);
+	if (src_label) {
+		if (strcmp(src_label, "INSIDE_TOP_TEMP") == 0) {
+			sr.ui_data.inside_current = f_val;
+			if (f_val < sr.ui_data.inside_min) {
+				sr.ui_data.inside_min = f_val;
+				sr.ui_data.inside_min_dt = time(NULL);
+			}
+			if (f_val > sr.ui_data.inside_max) {
+				sr.ui_data.inside_max = f_val;
+				sr.ui_data.inside_max_dt = time(NULL);
+			}
 		}
-		if (f_val > sr.ui_data.outside_max) {
-			sr.ui_data.outside_max = f_val;
-			sr.ui_data.outside_max_dt = time(NULL);
-		}
-	}
 
-	if (strcmp(sr.block_list[source].label, "WATER_TEMP") == 0) {
+		if (strcmp(src_label, "OUTSIDE_TEMP") == 0) {
+			sr.ui_data.outside_current = f_val;
+			if (f_val < sr.ui_data.outside_min) {
+				sr.ui_data.outside_min = f_val;
+				sr.ui_data.outside_min_dt = time(NULL);
+			}
+			if (f_val > sr.ui_data.outside_max) {
+				sr.ui_data.outside_max = f_val;
+				sr.ui_data.outside_max_dt = time(NULL);
+			}
+		}
+
+		if (strcmp(src_label, "WATER_TEMP") == 0) {
 			sr.ui_data.water_current = f_val;
 			if (f_val < sr.ui_data.water_min) {
 				sr.ui_data.water_min = f_val;
@@ -711,38 +810,44 @@ void UpdateStateRegister(uint8_t source, uint8_t msg_type, uint8_t msg_str, int 
 				sr.ui_data.water_max = f_val;
 				sr.ui_data.water_max_dt = time(NULL);
 			}
-	}
+		}
 
-	if (strcmp(sr.block_list[source].label, "RESET_MIN_MAX") == 0) {
-				sr.ui_data.inside_min = sr.ui_data.inside_current;
-				sr.ui_data.inside_min_dt = time(NULL);
-				sr.ui_data.inside_max = sr.ui_data.inside_current;
-				sr.ui_data.inside_max_dt = time(NULL);
+		if (strcmp(src_label, "RESET_MIN_MAX") == 0) {
+			sr.ui_data.inside_min = sr.ui_data.inside_current;
+			sr.ui_data.inside_min_dt = time(NULL);
+			sr.ui_data.inside_max = sr.ui_data.inside_current;
+			sr.ui_data.inside_max_dt = time(NULL);
 
-				sr.ui_data.outside_min = sr.ui_data.outside_current;
-				sr.ui_data.outside_min_dt = time(NULL);
-				sr.ui_data.outside_max = sr.ui_data.outside_current;
-				sr.ui_data.outside_max_dt = time(NULL);
+			sr.ui_data.outside_min = sr.ui_data.outside_current;
+			sr.ui_data.outside_min_dt = time(NULL);
+			sr.ui_data.outside_max = sr.ui_data.outside_current;
+			sr.ui_data.outside_max_dt = time(NULL);
 
-				sr.ui_data.water_min = sr.ui_data.water_current;
-				sr.ui_data.water_min_dt = time(NULL);
-				sr.ui_data.water_max = sr.ui_data.water_current;
-				sr.ui_data.water_max_dt = time(NULL);
+			sr.ui_data.water_min = sr.ui_data.water_current;
+			sr.ui_data.water_min_dt = time(NULL);
+			sr.ui_data.water_max = sr.ui_data.water_current;
+			sr.ui_data.water_max_dt = time(NULL);
+		}
+	} else { //src_label Null
+		DebugLog("ERROR Updating State Register - Source ID does not match a valid Label");
 	}
 
 	sr.ui_data.light_flag = 0;
 	sr.ui_data.water_heater_flag = 0;
 }
 
+//TODO - should be moved after config parsing
 void InitStateRegister(void) {
 	sr.language = ENGLISH;
-	sr.temperature_scale = DEG_C;
+	sr.temperature_scale = CELSIUS;
 	sr.time_real_status = 0; 	//false at this stage
 	sr.FS_present = 0; 			//false at this stage
 	sr.config_valid = 0;		//false at this stage
 	sr.save_event_buffer = 0;
 
+
 //TODO mod code due to config parsing
+/*
 	sr.block_list_size = BLOCK_COUNT;
 	sr.system_start = 0;
 	sr.system_count = 1; 		//manual for now - ref sys_config define
@@ -762,6 +867,8 @@ void InitStateRegister(void) {
 	sr.controller_count = CONTROL_COUNT;
 	sr.output_start = sr.controller_start + sr.controller_count;
 	sr.output_count = OUTPUT_COUNT;
+*/
+
 
 //initialise the min and max counters used for UI display
 	sr.ui_data.inside_current = 0;
@@ -786,7 +893,7 @@ void InitStateRegister(void) {
 	sr.ui_data.light_flag = 0;
 	sr.ui_data.water_heater_flag = 0;
 
-	bll = NULL;
+
 }
 
 
