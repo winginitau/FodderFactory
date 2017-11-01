@@ -17,6 +17,7 @@
 #include "ff_utils.h"
 #include "ff_inputs.h"
 #include "ff_monitors.h"
+#include "ff_schedules.h"
 
 
 #ifdef FF_SIMULATOR
@@ -106,7 +107,7 @@ void Setup(BlockNode *b) {
 		MonitorSetup(b);
 		break;
 	case FF_SCHEDULE:
-//		SchedSetup(b);
+		ScheduleSetup(b);
 		break;
 	case FF_RULE:
 //		RuleSetup(b);
@@ -135,7 +136,7 @@ void Operate(BlockNode *b) {
 		MonitorOperate(b);
 		break;
 	case FF_SCHEDULE:
-//		SchedSetup(b);
+		ScheduleOperate(b);
 		break;
 	case FF_RULE:
 //		RuleSetup(b);
@@ -186,6 +187,13 @@ float GetFVal(uint16_t block_id) {
 	return b->f_val;
 }
 
+uint8_t GetBVal(uint16_t block_id) {
+	BlockNode *b;
+	b = GetBlockByID(bll, block_id);
+	return b->bool_val;
+}
+
+
 uint16_t GetBlockID(const char* label) {
 	BlockNode* temp;
 	char debug_msg[MAX_DEBUG_LENGTH];
@@ -226,6 +234,7 @@ BlockNode* AddBlock(BlockNode** head_ref, uint8_t block_cat, const char *block_l
 	BlockNode* new_block;
 
 	if (*head_ref == NULL) {   //empty list
+		// common settings and setting holders for al blocks
 		new_block = (BlockNode *) malloc(sizeof(BlockNode));
 		new_block->next_block = NULL;
 
@@ -241,11 +250,13 @@ BlockNode* AddBlock(BlockNode** head_ref, uint8_t block_cat, const char *block_l
 		new_block->display_name[0] = '\0';
 		new_block->description[0] = '\0';
 
+		// operational, run-time block data
 		new_block->active = 0;
 		new_block->bool_val = 0;
 		new_block->int_val = UINT8_INIT;
 		new_block->f_val = FLOAT_INIT;
 		new_block->last_update = UINT32_INIT;
+		new_block->status = STATUS_INIT;
 
 		switch (block_cat) {
 			case FF_SYSTEM:
@@ -481,23 +492,27 @@ uint8_t ConfigureMONSetting(BlockNode* block_ptr, uint8_t key_idx, const char* v
 			block_ptr->settings.mon.input4 = GetBlockID(value_str);
 			break;
 		case MON_ACT_VAL:
+			// check first for IN_DIGITAL boolean values
 			if (strcmp(value_str, "HIGH") == 0) {
 				block_ptr->settings.mon.act_val = 1;
 			} else {
 				if (strcmp(value_str, "LOW") == 0) {
-					block_ptr->settings.mon.act_val = 1;
+					block_ptr->settings.mon.act_val = 0;
 				} else {
+					// must be a numeric float value
 					sscanf(value_str, "%f", &(block_ptr->settings.mon.act_val));
 				}
 			}
 			break;
 		case MON_DEACT_VAL:
+			// check first for IN_DIGITAL boolean values
 			if (strcmp(value_str, "HIGH") == 0) {
 				block_ptr->settings.mon.deact_val = 1;
 			} else {
 				if (strcmp(value_str, "LOW") == 0) {
-					block_ptr->settings.mon.deact_val = 1;
+					block_ptr->settings.mon.deact_val = 0;
 				} else {
+					// must be a numeric float value
 					sscanf(value_str, "%f", &(block_ptr->settings.mon.deact_val));
 				}
 			}
@@ -838,6 +853,9 @@ void UpdateStateRegister(uint16_t source, uint8_t msg_type, uint8_t msg_str, int
 
 //TODO - should be moved after config parsing
 void InitStateRegister(void) {
+
+	DebugLog("[INIT] Initialising Persistence Store - State Register");
+
 	sr.language = ENGLISH;
 	sr.temperature_scale = CELSIUS;
 	sr.time_real_status = 0; 	//false at this stage

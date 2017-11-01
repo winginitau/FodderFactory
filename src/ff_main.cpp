@@ -97,20 +97,24 @@ void ReadAndParseConfig(void) {
 	block_cat = (FF_SYSTEM);
 	last_key = LAST_SYS_KEY_TYPE;
 
+	DebugLog("[CONFIG] Reading and Processing Configuration File");
+	DebugLog("[CONFIG] Processing [system] Block");
+
+
 	for (int key = 1; key < last_key; key++) {  //see string_consts.h - 0 reserved for error types.
 		strcpy(block_section_key, block_cat_defs[block_cat].conf_keys[key]);
 
 		if (cf.getValue("system", block_section_key, key_value, INI_FILE_MAX_LINE_LENGTH)) {
 			if (ConfigureBlock(FF_SYSTEM, "system", block_section_key, key_value)) {
-				sprintf(debug_msg, "CONFIGURED [SYSTEM][%s] = %s", block_section_key, key_value);
+				sprintf(debug_msg, "[CONFIG][SYSTEM][%s] = %s", block_section_key, key_value);
 				DebugLog(debug_msg);
 			} else {
-				sprintf(debug_msg, "CONFIG FAILED [SYSTEM][%s]: %s ", block_section_key, key_value);
+				sprintf(debug_msg, "[CONFIG] FAILED [SYSTEM][%s]: %s ", block_section_key, key_value);
 				DebugLog(debug_msg);
 			}
 		} else {
 			if( cf.getError() != errorKeyNotFound) {
-				sprintf(debug_msg, "ERROR [SYSTEM][%s]: %s ", block_section_key, GetINIError(cf.getError(), ini_error_string));
+				sprintf(debug_msg, "ERROR [CONFIG][SYSTEM][%s]: %s ", block_section_key, GetINIError(cf.getError(), ini_error_string));
 				DebugLog(debug_msg);
 				//handle error - could be ok if key not required for that block sub type
 			}
@@ -130,6 +134,8 @@ void ReadAndParseConfig(void) {
 	bl = 1; 								//block list start from "1" in config file "input1=" etc
 	uint8_t last_found = 0;					//set flag on first read error
 											//TODO this can fail if lists are not numbered correctly
+	DebugLog("[CONFIG] Registering Config Blocks and Labels");
+
 
 	for (; block_cat < LAST_BLOCK_CAT; block_cat++) { //iterate through each block category
 		last_found = 0;
@@ -151,7 +157,7 @@ void ReadAndParseConfig(void) {
 //					sprintf(debug_msg, "Registered: block_cat=[%d] label=[%s]", block_cat, key_value);
 //					DebugLog(debug_msg);
 				} else {
-					sprintf(debug_msg, "REGISTRATION FAILED [%s][%s][%s]", list_section, list_section_key, key_value);
+					sprintf(debug_msg, "[CONFIG] REGISTRATION FAILED [%s][%s][%s]", list_section, list_section_key, key_value);
 					DebugLog(debug_msg);
 				}
 				////////////////////
@@ -160,9 +166,9 @@ void ReadAndParseConfig(void) {
 
 			} else {
 				if( cf.getError() == errorKeyNotFound) {  // this is expected once key list end is found
-					sprintf(debug_msg, "REGISTERED %d [%s]", bl-1, block_cat_defs[block_cat].conf_section_label);
+					sprintf(debug_msg, "[CONFIG] Registered %d [%s]", bl-1, block_cat_defs[block_cat].conf_section_label);
 				} else {
-					sprintf(debug_msg, "LAST [%s] REACHED - [%s]: %s ", block_cat_defs[block_cat].conf_section_label, list_section_key, GetINIError(cf.getError(), ini_error_string));
+					sprintf(debug_msg, "[CONFIG] LAST [%s] REACHED - [%s]: %s ", block_cat_defs[block_cat].conf_section_label, list_section_key, GetINIError(cf.getError(), ini_error_string));
 				}
 				DebugLog(debug_msg);
 				last_found = 1;
@@ -178,6 +184,7 @@ void ReadAndParseConfig(void) {
 	block_cat = (FF_SYSTEM + 1);
 	bl = 1; 		//block list start from "1" in config file "input1=" etc
 
+	DebugLog("[CONFIG] Processing Each Block Configuration");
 
 	for (; block_cat < LAST_BLOCK_CAT; block_cat++) { //iterate through each block category
 		last_found = 0;
@@ -228,13 +235,13 @@ void ReadAndParseConfig(void) {
 //							sprintf(debug_msg, "CONFIGURED [%s][%s][%s][%s] = %s", list_section, list_section_key, block_section, block_section_key, key_value);
 //							DebugLog(debug_msg);
 						} else {
-							sprintf(debug_msg, "CONFIG FAILED [%s][%s][%s][%s]: %s ", list_section, list_section_key, block_section, block_section_key, key_value);
+							sprintf(debug_msg, "[CONFIG] CONFIG FAILED [%s][%s][%s][%s]: %s ", list_section, list_section_key, block_section, block_section_key, key_value);
 							DebugLog(debug_msg);
 						}
 
 					} else {
 						if( cf.getError() != errorKeyNotFound) {
-							sprintf(debug_msg, "ERROR [%s][%s][%s][%s]: %s ", list_section, list_section_key, block_section, block_section_key, GetINIError(cf.getError(), ini_error_string));
+							sprintf(debug_msg, "[CONFIG] ERROR [%s][%s][%s][%s]: %s ", list_section, list_section_key, block_section, block_section_key, GetINIError(cf.getError(), ini_error_string));
 							DebugLog(debug_msg);
 							//handle error - could be ok if key not required for that block sub type
 						}
@@ -245,9 +252,9 @@ void ReadAndParseConfig(void) {
 
 			} else {
 				if( cf.getError() == errorKeyNotFound) {
-					sprintf(debug_msg, "CONFIGURED %d [%s]", bl-1, block_cat_defs[block_cat].conf_section_label);
+					sprintf(debug_msg, "[CONFIG] Processed %d [%s]", bl-1, block_cat_defs[block_cat].conf_section_label);
 				} else {
-					sprintf(debug_msg, "LAST [%s] REACHED - [%s]: %s ", block_cat_defs[block_cat].conf_section_label, list_section_key, GetINIError(cf.getError(), ini_error_string));
+					sprintf(debug_msg, "[CONFIG] LAST [%s] REACHED - [%s]: %s ", block_cat_defs[block_cat].conf_section_label, list_section_key, GetINIError(cf.getError(), ini_error_string));
 				}
 				DebugLog(debug_msg);
 				last_found = 1;
@@ -268,7 +275,7 @@ void InitSystem(void) {
 	// Set up the global system state register
 	InitStateRegister();
 
-	// set up the event log ring buffer (and debug hooks) to talk to the outside (somehow)
+	// set up the event log ring buffer for IPC (and debug hooks to talk to the outside world)
 	EventBufferInit();
 
 	// log event - core internal system now functional
@@ -276,7 +283,7 @@ void InitSystem(void) {
 	EventMsg(SSS, INFO, M_FF_AWAKE, 0, 0);
 #endif
 #ifdef FF_SIMULATOR
-	EventMsg(SSS, E_INFO, M_SIM, 0, 0);
+	EventMsg(SSS, E_INFO, M_SIM);
 #endif
 
 #ifdef DEBUG_SERIAL
@@ -288,15 +295,24 @@ void InitSystem(void) {
 	// log it
 	InitRTC();				// set up the Real Time Clock
 
-	// milestone - we can now run (though without config)
-	// safe now to talk to the UI - set it up
+	// debug / console / serial / LCD UI set via ff_sys_config.h
+	// at compile time.
+
+	// setup real UI (LCD, TFT, QT, None)
+	//TODO - extend beyond LCD
 	InitUI(); 				// set up UI arrangements
+
 	// TODO display some timed status pages
+
 	// check for a file system
-	InitFileSystem(); //placeholder - not needed
+	InitFileSystem(); // DEPR placeholder - no longer needed
 
+	// Any other global setup routines that are handled at
+	// compile time, above, or or during system block configuration
 
-
+	#ifdef FF_SIMULATOR
+		srand(time(NULL)); //random seed for simulator
+	#endif
 }
 
 

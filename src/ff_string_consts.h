@@ -318,6 +318,8 @@ static const SimpleStringArray block_type_strings[LAST_BLOCK_TYPE] = {
 /**************************************************************
  * EventTypes
  **************************************************************/
+
+//TODO move these fully to events prune old strings
 typedef enum {
 	E_ZERO_ERROR = 0,
 	E_DEBUG_MSG,
@@ -407,7 +409,7 @@ typedef enum {
 	M_ERROR_EVENTS_EMPTY,
 	M_SD_BEGIN_FAIL,
 	M_NULL,
-	M38,
+	M_FLIPFLOP,
 	M39,
 	M40,
 	LAST_MESSAGE
@@ -451,8 +453,8 @@ static const StringArray message_strings[LAST_MESSAGE] = {
 	14, { "DEBUG ERROR SD File Handle NULL",	"M34" },
 	14, { "DEBUG ERROR Event Buffer Empty",		"M35" },
 	14, { "DEBUG ERROR SD.begin FAIL",			"M36" },
-	14, { "",								"" },
-	14, { "M38",								"M38" },
+	14, { "",									""},
+	14, { "Flip or Flop",						"M38" },
 	14, { "M39",								"M39" },
 	14, { "M40",								"M40" },
 };
@@ -574,6 +576,27 @@ static const SimpleStringArray interface_strings[LAST_INTERFACE] = {
 	"SYSTEM_FUNCTION",
 };
 
+enum {
+	STATUS_ERROR = 0,
+	STATUS_INIT,
+	STATUS_VALID_DATA,
+	STATUS_INVALID_DATA,
+	LAST_STATUS,
+};
+
+static const SimpleStringArray status_strings[LAST_STATUS] = {
+	"STATUS_ERROR",
+	"STATUS_INIT",
+	"STATUS_VALID_DATA",
+	"STATUS_INVALID_DATA",
+};
+
+#ifndef FF_ARDUINO
+enum {
+	LOW = 0,
+	HIGH = 1,
+};
+#endif
 
 /**************************************************************
  * String Functions Prototypes

@@ -93,19 +93,22 @@ void EventBufferPush(EventNode event) {
 		}
 	} else {
 #ifdef FF_ARDUINO
-		DebugLog("STOP EventBufferPush before init");
+		DebugLog("STOP EventBufferPush before INIT");
 #endif
 		while (1);
 	}
 }
 
 
+
 void EventMsg(uint16_t source, uint8_t msg_type) {
-	EventMsg(source, msg_type, M_NULL, 0, 0);
+	//source and type only
+	EventMsg(source, msg_type, M_NULL, UINT16_INIT, 0);
 }
 
-void EventMsg(uint16_t source, uint8_t msg_type, float f_val) {
-	EventMsg(source, msg_type, M_NULL, 0, f_val);
+void EventMsg(uint16_t source, uint8_t msg_type, uint8_t msg_str) {
+	//source, type, message string
+	EventMsg(source, msg_type, msg_str, UINT16_INIT, 0);
 }
 
 void EventMsg(uint16_t source, uint8_t msg_type, uint8_t msg_str, int i_val, float f_val) {
@@ -127,7 +130,7 @@ void EventMsg(uint16_t source, uint8_t msg_type, uint8_t msg_str, int i_val, flo
 
 	if(EventBufferFull()) {
 		if (SaveEventBuffer()) {     			//write to file
-			DebugLog("Events Saved to File");
+			//DebugLog("Events Saved to File");
 			if (!EventBufferEmpty()) {
 				DebugLog("ERROR Save did not fully flush Event Buffer");
 			}
@@ -153,6 +156,7 @@ void EventMsg(uint16_t source, uint8_t msg_type, uint8_t msg_str, int i_val, flo
 
 void EventBufferInit(void) {
 	// Initalise the event buffer
+	DebugLog("[INIT] Setting up Message Queue (AKA Event Ring Buffer)");
 	event_buffer.head = 0;
 	event_buffer.tail = 0;
 	event_buffer.size = EVENT_BUFFER_SIZE;

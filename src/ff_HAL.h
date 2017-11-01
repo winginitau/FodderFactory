@@ -26,6 +26,8 @@
  Function Prototypes
 ************************************************/
 uint8_t HALSaveEventBuffer(void);
+uint8_t HALDigitalRead(uint8_t if_num);
+void HALInitDigitalInput(uint8_t if_num);
 void HALDigitalWrite (uint8_t if_num, uint8_t digital_val);
 void HALInitDigitalOutput (uint8_t if_num);
 float GetTemperature(int if_num);

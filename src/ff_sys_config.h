@@ -22,15 +22,22 @@
 
 
 //#define FF_ARDUINO
-//#define FF_TEMP_SIM  //optionally
+//#define FF_TEMPERATURE_SIM  //optionally
 //OR
 #define FF_SIMULATOR
 
 #ifdef FF_SIMULATOR
-#define FF_TEMP_SIM
+#define FF_TEMPERATURE_SIM
 #endif
 
-#ifdef FF_TEMP_SIM
+#ifdef FF_TEMPERATURE_SIM
+#define FF_DEFINED_TEMP_SIM
+// OR
+//#define FF_RANDOM_TEMP_SIM
+#endif
+
+
+#ifdef FF_DEFINED_TEMP_SIM
 #define SIM_TEMP_0 18
 #define SIM_TEMP_1 21
 #define SIM_TEMP_2 26
@@ -72,7 +79,7 @@
 
 #define ONE_WIRE_BUS 6                	//for Dallas temp signals
 
-#define EVENT_BUFFER_SIZE 8
+#define EVENT_BUFFER_SIZE 50
 
 #define UINT8_INIT 0xFF
 #define UINT16_INIT 0xFFFF
@@ -99,9 +106,7 @@
 
 //#define BLOCK_COUNT 15 //(INPUT + CONTROLLERS + OUTPUTS + 1 for SYSTEM +1 for UNDEF)
 
-
-
-#define MAX_LABEL_LENGTH 40
+#define MAX_LABEL_LENGTH 48
 #define MAX_DESCR_LENGTH 80
 #define MAX_BLOCKS 255
 #define MAX_BLOCKS_PER_CATEGORY 255

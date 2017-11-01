@@ -39,7 +39,8 @@ uint8_t EventBufferEmpty (void);
 EventNode* EventBufferPop(void);
 
 void EventMsg(uint16_t source, uint8_t msg_type);
-void EventMsg(uint16_t source, uint8_t msg_type, float f_val);
+void EventMsg(uint16_t source, uint8_t msg_type, uint8_t msg_str);
+//void EventMsg(uint16_t source, uint8_t msg_type, float f_val);
 void EventMsg(uint16_t source, uint8_t msg_type, uint8_t log_msg, int i_val, float f_val);
 
 void EventBufferInit(void);

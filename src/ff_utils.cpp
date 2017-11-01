@@ -38,7 +38,12 @@
 ************************************************/
 
 
+
 uint8_t DayStrToFlag(uint8_t day_flag[7], const char* day_str) {
+	// convert any combination of ALL, MON, TUE, WED, THU, FRI, SAT, SUN
+	// into an array[7] of booleans
+	// with reference to ff system day 0 = enum value (default SUN)
+
 	uint8_t found = 0;
 	if (strcasecmp(day_str, "ALL") == 0) {
 		for (int i=0; i<7; i++) {

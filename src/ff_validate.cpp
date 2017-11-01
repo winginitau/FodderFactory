@@ -43,10 +43,10 @@
 
 
 void Validate(BlockNode* b) {
-	char debug_msg[MAX_DEBUG_LENGTH];
+	//char debug_msg[MAX_DEBUG_LENGTH];
 
-	sprintf(debug_msg, "VALIDATE: CAT:%d,%d[%s][%s], TYPE:%d[%s], ID:%d, LABEL:[%s]", b->block_cat, block_cat_defs[b->block_cat].cat_id, block_cat_defs[b->block_cat].conf_section_label, block_cat_defs[b->block_cat].conf_section_key_base, b->block_type, block_type_strings[b->block_type].text, b->block_id, b->block_label);
-	DebugLog(debug_msg);
+	//sprintf(debug_msg, "VALIDATE: CAT:%d,%d[%s][%s], TYPE:%d[%s], ID:%d, LABEL:[%s]", b->block_cat, block_cat_defs[b->block_cat].cat_id, block_cat_defs[b->block_cat].conf_section_label, block_cat_defs[b->block_cat].conf_section_key_base, b->block_type, block_type_strings[b->block_type].text, b->block_id, b->block_label);
+	//DebugLog(debug_msg);
 
 	//common attributes
 		//struct BLOCK_NODE *next_block - assume ok

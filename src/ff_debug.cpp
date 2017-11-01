@@ -101,8 +101,16 @@ void DebugLog(const char* log_message) {
 void DebugLog(uint16_t source, uint8_t msg_type, uint8_t msg_str, int i_val, float f_val) {
 	char debug_log_message[MAX_DEBUG_LENGTH];
 	char f_str[8];
-	FFFloatToCString(f_str, f_val);
-	sprintf(debug_log_message, "[%s], %s, %s, %d, %s", GetBlockLabelString(source), GetMessageTypeString(msg_type), GetMessageString(msg_str), i_val, f_str);
+	if (msg_str == M_NULL) {
+			sprintf(debug_log_message, "[%s] %s", GetBlockLabelString(source), GetMessageTypeString(msg_type));
+	} else {
+		if (i_val == UINT16_INIT) {
+			sprintf(debug_log_message, "[%s], %s, %s", GetBlockLabelString(source), GetMessageTypeString(msg_type), GetMessageString(msg_str));
+		} else {
+			FFFloatToCString(f_str, f_val);
+			sprintf(debug_log_message, "[%s], %s, %s, %d, %s", GetBlockLabelString(source), GetMessageTypeString(msg_type), GetMessageString(msg_str), i_val, f_str);
+		}
+	}
 	DebugLog(debug_log_message);
 }
 

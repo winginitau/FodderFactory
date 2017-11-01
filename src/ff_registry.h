@@ -82,6 +82,9 @@ typedef union BLOCK_SETTINGS {
 } BlockSettings;
 
 struct BLOCK_NODE {
+	// common configuration data
+	// note: these types are locked to config file keys strings
+	// see ff_string_consts.h
 	struct BLOCK_NODE *next_block;
 	uint8_t block_cat;
 	uint16_t block_type;
@@ -89,11 +92,18 @@ struct BLOCK_NODE {
 	char block_label[MAX_LABEL_LENGTH];
 	char display_name[MAX_LABEL_LENGTH];
 	char description[MAX_DESCR_LENGTH];
-	uint8_t active;
-	uint8_t bool_val;
-	uint8_t int_val;
-	float f_val;
-	time_t last_update;
+
+	// common operational, run-time data
+	// not tied to config, though must be initialised in AddNewBlock()
+	uint8_t active;		// boolean flag - is the block activated or deactivated TODO consider renaming
+	uint8_t bool_val;	// generic holder for a boolean value (representing some real world status)
+	uint8_t int_val;	// generic holder of an int value (representing some real world status)
+	float f_val;		// generic holder of a float value (representing some real world status)
+	time_t last_update;	// the time the block was last updated / operated / etc
+	uint8_t status;		// generic status flag (eg for MON cat to indicate of the last input read was valid)
+
+	// union of block_type specific settings
+	// also tied to config file key strings
 	BlockSettings settings;
 };
 
@@ -137,6 +147,7 @@ void ProcessDispatcher(void(*f)(BlockNode*));
 
 BlockNode* GetBlockByID(BlockNode *list_node, uint16_t block_id);
 
+uint8_t GetBVal(uint16_t block_id);
 float GetFVal(uint16_t block_id);
 
 BlockNode* GetBlockByLabel(BlockNode *list_node, const char *block_label);

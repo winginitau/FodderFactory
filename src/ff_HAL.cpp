@@ -151,7 +151,7 @@ uint8_t HALSaveEventBuffer(void) {
 	if (!EventBufferEmpty()) {
 		e_file = fopen(EVENT_FILENAME, "w");
 		if (e_file) {
-			DebugLog("File open GOOD, have file handle");
+			//DebugLog("File open GOOD, have file handle");
 			while (!EventBufferEmpty()) {
 
 				e = EventBufferPop();
@@ -168,14 +168,14 @@ uint8_t HALSaveEventBuffer(void) {
 				fprintf(e_file, "%f\n", e->float_val);
 			}
 			fclose(e_file);
-			DebugLog(SSS, E_INFO, M_BUF_SAVED, 0, 0);
+			DebugLog(SSS, E_INFO, M_BUF_SAVED, UINT16_INIT, 0);
 			save_success = 1;
 		} else {
 			DebugLog(SSS, E_ERROR, M_ERR_EVENT_FILE, 0, 0);
 		}
 
 	} else {
-		DebugLog("ERROR Buffer empty");
+		DebugLog("ERROR: Event Buffer Save Called with Empty Buffer");
 	}
 #endif
 
@@ -240,6 +240,7 @@ void HALDebugLCD(String log_entry) {
 float GetTemperature(int if_num) {
 	float temp_c;
 #ifdef FF_ARDUINO
+#ifndef FF_TEMPERATURE_SIM
 	//try this as a local each time called to save global memory
 	OneWire one_wire(ONE_WIRE_BUS);            		// oneWire instance to communicate with any OneWire devices
 	DallasTemperature temp_sensors(&one_wire);     // Pass our one_wire reference to Dallas Temperature
@@ -249,41 +250,79 @@ float GetTemperature(int if_num) {
 	//original code
 	temp_c = temp_sensors.getTempCByIndex(if_num);
 #endif
-#ifdef FF_TEMP_SIM
+#endif
 
+#ifdef FF_TEMPERATURE_SIM
+#ifdef FF_RANDOM_TEMP_SIM
+#ifdef FF_SIMULATOR
+	switch (if_num) {
+	case 0:
+		temp_c = (float)-5 + ((float)((rand() % 4000)) / 100);
+		break;
+	case 1:
+		temp_c = (float)-5 + ((float)((rand() % 4000)) / 100);
+		break;
+	case 2:
+		temp_c = (float)-5 + ((float)((rand() % 4000)) / 100);
+		break;
+	case 3:
+		temp_c = (float)-5 + ((float)((rand() % 4000)) / 100);
+		break;
+	default:
+		temp_c = FLOAT_INIT;
+	}
+#endif
+#endif
+#endif
+
+#ifdef FF_TEMPERATURE_SIM
+#ifdef FF_DEFINED_TEMP_SIM
 	switch (if_num) {
 	case 0:
 		temp_c = SIM_TEMP_0;
-#ifdef FF_ARDUINO
-		temp_c = random(5.01, 39.99);
-#endif
 		break;
 	case 1:
 		temp_c = SIM_TEMP_1;
-#ifdef FF_ARDUINO
-		temp_c = random(5.01, 39.99);
-#endif
 		break;
 	case 2:
 		temp_c = SIM_TEMP_2;
-#ifdef FF_ARDUINO
-		temp_c = random(5.01, 39.99);
-#endif
 		break;
 	case 3:
-		temp_c = SIM_TEMP_2;
-#ifdef FF_ARDUINO
-		temp_c = random(5.01, 39.99);
-#endif
+		temp_c = SIM_TEMP_3;
 		break;
 	default:
-		temp_c = -50;
+		temp_c = FLOAT_INIT;
 	}
 #endif
+#endif
+
+#ifdef FF_TEMPERATURE_SIM
+#ifdef FF_RANDOM_TEMP_SIM
+#ifdef FF_ARDUINO
+	switch (if_num) {
+	case 0:
+		temp_c = random(5.01, 39.99);
+		break;
+	case 1:
+		temp_c = random(5.01, 39.99);
+		break;
+	case 2:
+		temp_c = random(5.01, 39.99);
+		break;
+	case 3:
+		temp_c = random(5.01, 39.99);
+		break;
+	default:
+		temp_c = FLOAT_INIT;
+	}
+#endif
+#endif
+#endif
+
 	return temp_c;
 }
 
-void HALDigitalWrite (uint8_t if_num, uint8_t digital_val) {
+void HALDigitalWrite(uint8_t if_num, uint8_t digital_val) {
 #ifdef FF_ARDUINO
 	digitalWrite(if_num, digital_val);
 #endif
@@ -291,8 +330,7 @@ void HALDigitalWrite (uint8_t if_num, uint8_t digital_val) {
 #endif
 }
 
-
-void HALInitDigitalOutput (uint8_t if_num) {
+void HALInitDigitalOutput(uint8_t if_num) {
 #ifdef FF_ARDUINO
 	pinMode(if_num, OUTPUT);
 #endif
@@ -302,17 +340,36 @@ void HALInitDigitalOutput (uint8_t if_num) {
 
 }
 
+uint8_t HALDigitalRead(uint8_t if_num) {
+#ifdef FF_ARDUINO
+	return digitalRead(if_num);
+#endif
+
+#ifdef FF_SIMULATOR
+	return rand() % 2;
+#endif
+}
+
+void HALInitDigitalInput(uint8_t if_num) {
+#ifdef FF_ARDUINO
+	pinMode(if_num, INPUT);
+#endif
+#ifdef FF_SIMULATOR
+	// nothing to do
+#endif
+}
+
 void TempSensorsTakeReading(void) {
-	#ifdef FF_ARDUINO
+#ifdef FF_ARDUINO
 	//temp_sensors.requestTemperatures();  //tell them to take a reading (stored on device)
-	#endif
+#endif
 }
 
 void InitTempSensors(void) {
-	#ifdef FF_ARDUINO
+#ifdef FF_ARDUINO
 	//Dalas temp sensor
 	//temp_sensors.begin();
-	#endif
+#endif
 }
 
 void HALInitUI(void) {
@@ -476,7 +533,7 @@ void HALInitRTC(void) {
 		EventMsg(SSS, ERROR, M_RTC_NOT_FOUND, 0, 0);
 	#endif
 #ifdef FF_SIMULATOR
-	EventMsg(SSS, E_INFO, M_SIM_SYS_TIME, 0, 0);
+	EventMsg(SSS, E_INFO, M_SIM_SYS_TIME);
 #endif
 }
 
