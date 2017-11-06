@@ -1,5 +1,5 @@
 # FodderFactory
-Arduino MCU system to operate an off-grid cattle fodder (barley sprouts) growing room.
+Cross platform IoT MCU system to operate an off-grid cattle fodder (barley sprouts) growing room.
 
 The overall system is evolving along with the control components.
 
@@ -12,24 +12,23 @@ Project intent: Develop an integrated control system (MCU based - currenlty prot
  - Provide a basic UI via an LCD screen for viewing key data and making manual overrides and setting changes
  - Provide a command and reporting interface via digital radio (900Mhz) to a base station for data upload and remote configuration and control
 
-# Update 2017-10-13:
+# Update 2017-10-29:
 
- - Earlier version running on the factory.
- - This version after some further development - will go into production.
+ - Branch v0.2dev running well on the factory.
+ - Branch v0.3dev (and downstream) is the current dev focus.
+ - Interest has been expressed in a generic model for an IoT fully connected deploayment. 
+ - Project will remain focssed on Fodder for now though with the architecture taking on more generic structure. 
  - Thanks heaps to:
  	- the arduino community
 	- jantje for sloeber arduino eclipse plugin. Use it - https://github.com/Sloeber/arduino-eclipse-plugin
 	- Steve Marple for IniFile  (which I'm still working on) - https://github.com/stevemarple/IniFile
 	
 # Disclaimers 
- - Please excuse the kindergarten code - still revisiting C and C++ fundamentals after 25 years absence (I hate C strings! - and arduino String library is too easy, though bad for portability - removed mostly.)
-- First time using eclipse in anger.
-- First time laying out a multi file project with my own includes (currently nicely mixed up spagetti).
-- I'm still ANSI C. C++ is arriving slowing and painfully. 
-- First time github user - no idea yet how to integrate it properly, so just uploading here for a snapshop.
-- This mess is what you get when you let an architect get into the detail.
+- Please excuse the kindergarten code - still revisiting C and C++ fundamentals after 25 years absence.
+- Project still mostly in ANSI C. C++ is arriving slowing and painfully. 
+- We shouldn't let architects get into the detail!
 
-# Operational System Components
+# Factory Operational System Components
 
 As at Sepatember 2017:
 
