@@ -231,7 +231,7 @@ schedule7 = SCH_TEST2
 schedule8 = SCH_TEST3
 schedule9 = SCH_TEST4
 schedule10 = SCH_TEST5
-#schedule11 = SCH_TEST6
+schedule11 = SCH_TEST6
 
 [SCH_TEST1]
 type = SCH_START_STOP
@@ -324,6 +324,17 @@ days = ALL
 time_start = 00:01:00
 time_duration = 00:00:26
 time_repeat = 00:45:00
+
+[SCH_TEST6]
+type = SCH_START_DURATION_REPEAT
+display_name = Test 6
+description = 
+# ALL, MON, TUE, WED, THU, FRI, SAT, SUN
+days = ALL
+time_start = 01:00:00
+time_duration = 00:00:10
+time_repeat = 00:02:00
+
 
 #************************************************
 # Rules

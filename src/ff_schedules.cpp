@@ -77,7 +77,7 @@ void ScheduleSetup(BlockNode *b) {
 void ScheduleOperate(BlockNode *b) {
 	tm* now_tm;
 	tm* temp_tm;
-	TV_TYPE tv;
+
 	time_t start;
 	time_t end;
 	time_t zero_today;
@@ -101,6 +101,7 @@ void ScheduleOperate(BlockNode *b) {
 	uint8_t today_num = now_tm->tm_wday;
 	uint8_t yesterday_num = ((today_num - 1) + 7) % 7;
 
+
 	switch (b->block_type) {
 		case SCH_START_STOP: {
 
@@ -116,12 +117,12 @@ void ScheduleOperate(BlockNode *b) {
 				//XXX align day num conversion
 				if (b->settings.sch.days[today_num] == 1) {
 					// Could be in 1 of 3 periods
-					//	1 - before start time (start >= now && end >= now)
+					//	1 - before start time (start > now && end >= now)
 					//	2 - during the active period (start < now && end >= now)
 					//	3 - after the active period (start < now && end < now)
-					if (start >= now && end >= now) target_state = 0;
-					if (start < now && end >= now) target_state = 1;
-					if (start < now && end < now) target_state = 0;
+					if (start > now && end >= now) target_state = 0;
+					if (start <= now && end > now) target_state = 1;
+					if (start <= now && end < now) target_state = 0;
 				}
 			} else {
 				if (end < start) {
@@ -134,13 +135,13 @@ void ScheduleOperate(BlockNode *b) {
 					// was yesterday an active day? (ie. active period started yesterday)
 					if (b->settings.sch.days[yesterday_num] == 1) {
 						// start an active period from yesterday that should be still running
-						if (start >= now && end >= now) target_state = 1;
+						if (start >= now && end > now) target_state = 1;
 						// time to turn it off?
 						if (start >= now && end < now) target_state = 0;
 					}
 					// is today active?
 					if (b->settings.sch.days[today_num]) {
-						if (start < now && end < now) target_state = 1;
+						if (start <= now && end < now) target_state = 1;
 					}
 				}
 			}
@@ -163,11 +164,44 @@ void ScheduleOperate(BlockNode *b) {
 			b->last_update = time(NULL);
 			break;
 
-		case SCH_START_DURATION_REPEAT:
-			b->active = 0;
-			b->last_update = time(NULL);
-			break;
+		case SCH_START_DURATION_REPEAT: {
 
+			TV_TYPE last_start_time;
+			TV_TYPE sched_start;
+			TV_TYPE repeat;
+			TV_TYPE time_now;
+			TV_TYPE last_start_num;
+
+			time_now = (now_tm->tm_sec) + (now_tm->tm_min * 60) + (now_tm->tm_hour * 60 * 60);
+
+			sched_start = b->settings.sch.time_start;
+			repeat = b->settings.sch.time_repeat;
+
+
+			last_start_num = (time_now - sched_start) / repeat;
+			last_start_time = sched_start + (last_start_num * repeat);
+
+			start = last_start_time + zero_today;
+			end = start + b->settings.sch.time_duration;
+
+			if (b->settings.sch.days[today_num] == 1) {
+				if (start <= now && end > now) {
+					target_state = 1;
+				} else target_state = 0;
+			} else target_state = 0;
+
+			if (target_state == 1 && b->active == 0) {				//all conditions met, go active
+				b->active = 1;
+				b->last_update = now;
+				EventMsg(b->block_id, E_ACT);
+			}
+			if (target_state == 0 && b->active == 1) { //deact
+				b->active = 0;
+				b->last_update = now;
+				EventMsg(b->block_id, E_DEACT);
+			}
+			break;
+		}
 		default:
 			break;
 	}
