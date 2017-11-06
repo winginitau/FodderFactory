@@ -533,7 +533,7 @@ static const SimpleStringArray day_strings[LAST_DAY] = {
 	"WED",
 	"THU",
 	"FRI",
-	"SAT"
+	"SAT",
 };
 
 enum OUTPUT_COMMANDS {

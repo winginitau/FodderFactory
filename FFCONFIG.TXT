@@ -226,8 +226,58 @@ schedule2 = SCH_RUN_LIGHTS_AT_NIGHT
 schedule3 = SCH_RESET_MIN_MAX_COUNTERS
 schedule4 = SCH_WATERING_TOP_SCHEDULE
 schedule5 = SCH_WATERING_BOTTOM_SCHEDULE
-#schedule6 = 
-#schedule7 = 
+schedule6 = SCH_TEST1
+schedule7 = SCH_TEST2
+schedule8 = SCH_TEST3
+schedule9 = SCH_TEST4
+schedule10 = SCH_TEST5
+#schedule11 = SCH_TEST6
+
+[SCH_TEST1]
+type = SCH_START_STOP
+display_name = Test 1
+description = 
+# ALL, MON, TUE, WED, THU, FRI, SAT, SUN
+days = ALL
+time_start = 19:30:00
+time_end = 19:45:00
+
+[SCH_TEST2]
+type = SCH_START_STOP
+display_name = Test 2
+description = 
+# ALL, MON, TUE, WED, THU, FRI, SAT, SUN
+days = SUN
+time_start = 19:31:00
+time_end = 9:30:00
+
+[SCH_TEST3]
+type = SCH_START_STOP
+display_name = Test 3
+description = 
+# ALL, MON, TUE, WED, THU, FRI, SAT, SUN
+days = SAT
+time_start = 23:00:00
+time_end = 19:43:00
+
+[SCH_TEST4]
+type = SCH_START_STOP
+display_name = Test 4
+description = 
+# ALL, MON, TUE, WED, THU, FRI, SAT, SUN
+days = SAT
+time_start = 10:30:00
+time_end = 19:34:00
+
+[SCH_TEST5]
+type = SCH_START_STOP
+display_name = Test 5
+description = 
+# ALL, MON, TUE, WED, THU, FRI, SAT, SUN
+days = MON
+time_start = 10:30:00
+time_end = 19:33:00
+
 
 [SCH_EXCLUDE_WATER_HEAT_BY_DAY]
 type = SCH_START_STOP

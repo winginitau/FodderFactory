@@ -19,10 +19,12 @@
 #include "ff_events.h"
 #include "ff_registry.h"
 #include "ff_datetime.h"
+#include "ff_debug.h"
 
 #include <time.h>
 
 #ifdef FF_SIMULATOR
+#include <stdio.h>
 #endif
 
 /************************************************
@@ -48,6 +50,10 @@ void ScheduleSetup(BlockNode *b) {
 			break;
 
 		case SCH_ONE_SHOT:
+			// XXX set up Evnt Message Bus subscriber, publisher model
+			// XXX one-shot cludgy to implement using activation logic as the activation is instantaneous
+			// it may not been seen by recipients unless it is held activated for a period
+			// in which case debounce logic would then need to be implemented.
 			b->active = 0;
 			b->last_update = time(NULL);
 			break;
@@ -55,6 +61,11 @@ void ScheduleSetup(BlockNode *b) {
 		case SCH_START_DURATION_REPEAT:
 			b->active = 0;
 			b->last_update = time(NULL);
+			if (b->settings.sch.time_duration >= b->settings.sch.time_repeat) {
+				char log_message[MAX_DEBUG_LENGTH];
+				sprintf(log_message, "[%s] WARNING Duration >= Repeat", b->block_label);
+				DebugLog(log_message);
+			}
 			break;
 
 		default:
@@ -64,60 +75,90 @@ void ScheduleSetup(BlockNode *b) {
 }
 
 void ScheduleOperate(BlockNode *b) {
+	tm* now_tm;
+	tm* temp_tm;
+	TV_TYPE tv;
+	time_t start;
+	time_t end;
+	time_t zero_today;
 
-	tm* time_tm_now;
-	tm* time_tm_temp;
-	//TV_TYPE tv;
-	time_t start_time, end_time;
-	time_t time_at_zero_today;
-	time_t now = time(NULL);
+	time_t now;
+	time_t temp;
 
-	time_tm_temp = localtime(&now);
-	time_tm_now = localtime(&now); 		// 2x calls to localtime needed so that temp can change
+	temp = time(NULL);
+	temp_tm = localtime(&temp);
 
-	time_tm_temp->tm_hour = 0;
-	time_tm_temp->tm_min = 0;
-	time_tm_temp->tm_sec = 0;
-	time_at_zero_today = mktime(time_tm_temp);
+	temp_tm->tm_hour = 0;
+	temp_tm->tm_min = 0;
+	temp_tm->tm_sec = 0;
+	zero_today = mktime(temp_tm);
+
+	now = time(NULL);
+	now_tm = localtime(&now);
+
+
+	uint8_t target_state = UINT8_INIT;
+	uint8_t today_num = now_tm->tm_wday;
+	uint8_t yesterday_num = ((today_num - 1) + 7) % 7;
 
 	switch (b->block_type) {
 		case SCH_START_STOP: {
-			//if we are not already active, we need to test for start time
-			if (b->active == 0) {
-				// does the schedule start apply to today (or yesterday)?
-				//XXX
-				if (b->settings.sch.days[time_tm_now->tm_wday+1]) {
-					// yes it does, what time does it start?
-					start_time = time_at_zero_today + b->settings.sch.time_start;
-					// what time does it end?
-					end_time = time_at_zero_today + b->settings.sch.time_end;
-					// is the end time actually tomorrow? Adjust forward by 24 if so
-					if (end_time < start_time) {
-						end_time = end_time + (60 * 60 * 24);
+
+			// convert start and end times to time_t values
+			start = zero_today + b->settings.sch.time_start;
+			end = zero_today + b->settings.sch.time_end;
+
+			// Determine the pattern - a schedule contained within today (end >= start) or one that
+			//	crosses midnight (end < start).
+
+			if (end >= start) { //schedule contained within this 24hr period
+				// is today an active day?
+				//XXX align day num conversion
+				if (b->settings.sch.days[today_num] == 1) {
+					// Could be in 1 of 3 periods
+					//	1 - before start time (start >= now && end >= now)
+					//	2 - during the active period (start < now && end >= now)
+					//	3 - after the active period (start < now && end < now)
+					if (start >= now && end >= now) target_state = 0;
+					if (start < now && end >= now) target_state = 1;
+					if (start < now && end < now) target_state = 0;
+				}
+			} else {
+				if (end < start) {
+					//schedule must cross midnight
+					// Could be in 1 of 3 periods
+					//	1 - yesterday was active and it started yesterday and is still running
+					//	2 - if it was active yesterday it is now finished, and not yet time to start again
+					//	3 - in the next active period that will continue past the next midnight
+
+					// was yesterday an active day? (ie. active period started yesterday)
+					if (b->settings.sch.days[yesterday_num] == 1) {
+						// start an active period from yesterday that should be still running
+						if (start >= now && end >= now) target_state = 1;
+						// time to turn it off?
+						if (start >= now && end < now) target_state = 0;
 					}
-					// is it time to start or are we late to start?
-					// but not past end time - no point in starting
-					if (now >= start_time && now < end_time) {
-						//all conditions met, go active
-						b->active = 1;
-						b->last_update = now;
-						EventMsg(b->block_id, E_ACT);
+					// is today active?
+					if (b->settings.sch.days[today_num]) {
+						if (start < now && end < now) target_state = 1;
 					}
-				} //not today nothing to do
-			} else { //active == 1
-				// if we are active then start was today or yesterday - end applies to today
-				// test for end time - is it time yet to end?
-				end_time = time_at_zero_today + b->settings.sch.time_end;
-				if (now >= end_time) {
-					// end time reached - deactivate
+				}
+			}
+				if (target_state == 1 && b->active == 0) {				//all conditions met, go active
+					b->active = 1;
+					b->last_update = now;
+					EventMsg(b->block_id, E_ACT);
+				}
+				if (target_state == 0 && b->active == 1) { //deact
 					b->active = 0;
 					b->last_update = now;
 					EventMsg(b->block_id, E_DEACT);
 				}
-			} // weird for a boolean state - we're not act or deact TODO exception catch
+
 			break;
 		}
 		case SCH_ONE_SHOT:
+			//XXX to do - see comments in setup
 			b->active = 0;
 			b->last_update = time(NULL);
 			break;

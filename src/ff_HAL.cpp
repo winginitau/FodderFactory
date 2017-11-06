@@ -149,7 +149,7 @@ uint8_t HALSaveEventBuffer(void) {
 	FILE *e_file;
 	EventNode* e;
 	if (!EventBufferEmpty()) {
-		e_file = fopen(EVENT_FILENAME, "w");
+		e_file = fopen(EVENT_FILENAME, "a");
 		if (e_file) {
 			//DebugLog("File open GOOD, have file handle");
 			while (!EventBufferEmpty()) {
