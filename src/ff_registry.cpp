@@ -15,9 +15,13 @@
 #include "ff_string_consts.h"
 #include "ff_debug.h"
 #include "ff_utils.h"
+
 #include "ff_inputs.h"
 #include "ff_monitors.h"
 #include "ff_schedules.h"
+#include "ff_rules.h"
+#include "ff_controllers.h"
+#include "ff_outputs.h"
 
 
 #ifdef FF_SIMULATOR
@@ -110,13 +114,13 @@ void Setup(BlockNode *b) {
 		ScheduleSetup(b);
 		break;
 	case FF_RULE:
-//		RuleSetup(b);
+		RuleSetup(b);
 		break;
 	case FF_CONTROLLER:
-//		ControllerSetup(b);
+		ControllerSetup(b);
 		break;
 	case FF_OUTPUT:
-//		OutputSetup(b);
+		OutputSetup(b);
 		break;
 	default:
 		DebugLog("ERROR: Block Category Not Matched in Setup");
@@ -139,13 +143,13 @@ void Operate(BlockNode *b) {
 		ScheduleOperate(b);
 		break;
 	case FF_RULE:
-//		RuleSetup(b);
+		RuleSetup(b);
 		break;
 	case FF_CONTROLLER:
-//		ControllerSetup(b);
+		ControllerSetup(b);
 		break;
 	case FF_OUTPUT:
-//		OutputSetup(b);
+		OutputSetup(b);
 		break;
 	default:
 		DebugLog("ERROR: Block Category Not Matched in Operate");

@@ -47,6 +47,42 @@ static int outputs_command[OUTPUT_COUNT];
   Functions
 ************************************************/
 
+
+void OutputSetup(BlockNode *b) {
+
+	switch (b->block_type) {
+
+		case OUT_DIGITAL: {
+			break;
+		}
+		case OUT_SYSTEM_CALL: {
+			break;
+		}
+		default:
+			;
+	}
+
+
+}
+
+void OutputOperate(BlockNode *b) {
+
+	switch (b->block_type) {
+
+		case OUT_DIGITAL: {
+
+			break;
+		}
+		case OUT_SYSTEM_CALL: {
+			break;
+		}
+		default:
+			break;
+	}
+
+}
+
+
 void SetOutputCommand(char* label, uint8_t command) {
 	uint8_t i = 0;
 	//printf("%s\n", label);

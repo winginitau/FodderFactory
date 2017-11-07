@@ -29,12 +29,13 @@
 #endif
 
 #ifdef FF_SIMULATOR
-#include <string.h>
+//#include <string.h>
 #endif
 
 /************************************************
  Data Structures
- ************************************************/
+************************************************/
+/*
 typedef struct CONTROL_BLOCK {
 	uint8_t control_no;
 	char label[MAX_LABEL_LENGTH];
@@ -55,15 +56,53 @@ typedef struct CONTROL_BLOCK {
 	FFDateTime last_action;
 } ControlBlock;
 
+*/
+
 /************************************************
  Globals
- ************************************************/
+************************************************/
 
-ControlBlock controls[CONTROL_COUNT];
+//ControlBlock controls[CONTROL_COUNT];
 
 /************************************************
- Input Processing Functions
- ************************************************/
+ Functions
+************************************************/
+
+void ControllerSetup(BlockNode *b) {
+
+	switch (b->block_type) {
+		case CON_ONOFF: {
+			break;
+		}
+
+		case CON_SYSTEM: {
+			break;
+		}
+		default:
+			break;
+	}
+
+
+}
+
+
+void ControllerOperate(BlockNode *b) {
+
+	switch (b->block_type) {
+
+		case CON_ONOFF: {
+			break;
+		}
+
+		case CON_SYSTEM: {
+			break;
+		}
+		default:
+			break;
+	}
+
+}
+
 
 void ProcessController(int i) {
 

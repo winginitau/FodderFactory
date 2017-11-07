@@ -21,7 +21,7 @@
 #include "ff_datetime.h"
 #include "ff_debug.h"
 
-//#include <time.h>
+#include <time.h>
 
 #ifdef FF_SIMULATOR
 //#include <stdio.h>
@@ -41,13 +41,74 @@
   Schedule Processing Functions
 ************************************************/
 
-void RuleOperate(BlockNode *b) {
-
-}
-
 void RuleSetup(BlockNode *b) {
 
+	switch (b->block_type) {
+
+		case RL_LOGIC_ANDNOT: {
+			b->active = 0;
+			b->last_update = time(NULL);
+			break;
+		}
+
+		case RL_LOGIC_SINGLE: {
+			b->active = 0;
+			b->last_update = time(NULL);
+			break;
+		}
+
+		case RL_LOGIC_AND: {
+			b->active = 0;
+			b->last_update = time(NULL);
+			break;
+		}
+
+		case RL_LOGIC_SINGLENOT: {
+			b->active = 0;
+			b->last_update = time(NULL);
+			break;
+		}
+		default:
+			break;
+
+	}
+
 }
+
+
+void RuleOperate(BlockNode *b) {
+	switch (b->block_type) {
+
+		case RL_LOGIC_ANDNOT: {
+			b->active = 0;
+			b->last_update = time(NULL);
+			break;
+		}
+
+		case RL_LOGIC_SINGLE: {
+			b->active = 0;
+			b->last_update = time(NULL);
+			break;
+		}
+
+		case RL_LOGIC_AND: {
+			b->active = 0;
+			b->last_update = time(NULL);
+			break;
+		}
+
+		case RL_LOGIC_SINGLENOT: {
+			b->active = 0;
+			b->last_update = time(NULL);
+			break;
+		}
+		default:
+			break;
+
+	}
+
+}
+
 
 
 
