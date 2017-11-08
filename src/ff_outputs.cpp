@@ -25,23 +25,11 @@
   Data Structures
 ************************************************/
 
-typedef struct OUTPUT_BLOCK {
-	uint8_t output_no;
-	char label[MAX_LABEL_LENGTH];
-	uint8_t device_num;
-	//char descr[MAX_DESCR_LENGTH];
-	uint8_t digital_pin;
-	uint8_t current_state;
-	FFDateTime last_change;
-} OutputBlock;
 
 /************************************************
   Globals
 ************************************************/
 
-static OutputBlock outputs[OUTPUT_COUNT];
-
-static int outputs_command[OUTPUT_COUNT];
 
 /************************************************
   Functions
@@ -53,6 +41,10 @@ void OutputSetup(BlockNode *b) {
 	switch (b->block_type) {
 
 		case OUT_DIGITAL: {
+			b->active = 0;
+			b->last_update = time(NULL);
+			b->settings.out.command = UINT8_INIT;
+			HALInitDigitalOutput(b->settings.out.if_num);
 			break;
 		}
 		case OUT_SYSTEM_CALL: {
@@ -70,6 +62,21 @@ void OutputOperate(BlockNode *b) {
 	switch (b->block_type) {
 
 		case OUT_DIGITAL: {
+			if (b->settings.out.command == CMD_OUTPUT_ON) {
+				if (b->active == 0) {
+					b->active = 1;
+					b->last_update = time(NULL);
+					EventMsg(b->block_id, E_ACT);
+					HALDigitalWrite (b->settings.out.if_num, DIG_HIGH);
+				}
+			} else {
+				if (b->active == 1) {
+					b->active = 0;
+					b->last_update = time(NULL);
+					EventMsg(b->block_id, E_DEACT);
+					HALDigitalWrite (b->settings.out.if_num, DIG_LOW);
+				}
+			}
 
 			break;
 		}
@@ -82,91 +89,3 @@ void OutputOperate(BlockNode *b) {
 
 }
 
-
-void SetOutputCommand(char* label, uint8_t command) {
-	uint8_t i = 0;
-	//printf("%s\n", label);
-	//printf("%s\n", outputs[i].label);
-	//printf("%d\n", strcmp(outputs[i].label, label));
-	while (strcmp(outputs[i].label, label)) {
-		i++;
-		if (i >= OUTPUT_COUNT) {
-			break;
-		}
-	}
-	if (i < OUTPUT_COUNT) {
-		//printf("%s\n", label);
-		//printf("%s\n", outputs[i].label);
-		//printf("i:%d  c:%d\n", i, command);
-		outputs_command[i] = command;
-	} else {
-		EventMsg(SSS, E_ERROR, M_OUTPUT_LABEL_NOT_FOUND, 0, 0);
-	}
-}
-
-void ProcessOutput(uint8_t i) {
-/*
-	if (outputs_command[i] != outputs[i].current_state) {
-		if (outputs_command[i] == CMD_OUTPUT_ON) {
-			HALDigitalWrite (outputs[i].digital_pin, DIG_HIGH);
-			outputs[i].current_state = 1;
-			EventMsg(i + GetBlockTypeOffset(FF_OUTPUT), SET, M_ON, 0, 0);
-		} else {
-			HALDigitalWrite (outputs[i].digital_pin, DIG_LOW);
-			EventMsg(i + GetBlockTypeOffset(FF_OUTPUT), SET, M_OFF, 0, 0);
-			outputs[i].current_state = 0;
-		}
-		outputs[i].last_change = FFDTNow();
-	}
-	*/
-}
-
-void SetupOutputs(void) {
-/*
- 	uint8_t i = 0;
-	//TODO temp until reading loop done
-	//TODO - read a config file once we have SD memory
-
-	outputs[i].output_no = OUT1_OUTPUT_NO;
-	strcpy(outputs[i].label, OUT1_DEVICE_LABEL);
-	outputs[i].device_num = OUT1_DEVICE_NUM;
-	//strcpy(outputs[i].descr, OUT1_DESCR);
-	outputs[i].digital_pin = OUT1_DIGITAL_PIN;
-
-	outputs[i].current_state = 1; //set on to trigger to off as a detected change via command TODO Revisit //Move to BLOCK
-	outputs[i].last_change = FFDTNow();
-
-	HALInitDigitalOutput(outputs[i].digital_pin);
-	outputs_command[i] = 0; //TODO move to BLOCK
-
-	SetBlockLabelString(FF_OUTPUT, i, outputs[i].label);
-
-	i = 1; 	//TODO temp until reading loop done
-
-	outputs[i].output_no = OUT2_OUTPUT_NO;
-	strcpy(outputs[i].label, OUT2_DEVICE_LABEL);
-	outputs[i].device_num = OUT2_DEVICE_NUM;
-	//strcpy(outputs[i].descr, OUT2_DESCR);
-	outputs[i].digital_pin = OUT2_DIGITAL_PIN;
-
-	outputs[i].current_state = 1; //set on to trigger to off as a detected change via command
-	outputs[i].last_change = FFDTNow();
-
-	HALInitDigitalOutput(outputs[i].digital_pin);
-	outputs_command[i] = 0;
-
-	SetBlockLabelString(FF_OUTPUT, i, outputs[i].label);
-
-	EventMsg(SSS, INFO, M_SETTING_OUTPUTS, 0, 0);
-	for (i = 0; i < OUTPUT_COUNT; i++) {
-		ProcessOutput(i);
-	}
-	EventMsg(SSS, INFO, M_OUTPUTS_INIT, 0, 0);
-*/
-}
-
-void PollOutputs (void) {
-	for (uint8_t i = 0; i < OUTPUT_COUNT; i++) {
-		ProcessOutput(i);
-	}
-}

@@ -154,8 +154,8 @@ void ReadAndParseConfig(void) {
 				//////////////////// label registration only to allow block cross references when registering the settings later
 				if (ConfigureBlock(block_cat, key_value, NULL, NULL)) {	//register the block
 					block_count++;
-					sprintf(debug_msg, "Registered: block_cat=[%d] label=[%s]", block_cat, key_value);
-					DebugLog(debug_msg);
+//					sprintf(debug_msg, "Registered: block_cat=[%d] label=[%s]", block_cat, key_value);
+//					DebugLog(debug_msg);
 				} else {
 					sprintf(debug_msg, "[CONFIG] REGISTRATION FAILED [%s][%s][%s]", list_section, list_section_key, key_value);
 					DebugLog(debug_msg);
@@ -196,8 +196,8 @@ void ReadAndParseConfig(void) {
 
 			if (cf.getValue(list_section, list_section_key, key_value, INI_FILE_MAX_LINE_LENGTH)) {
 
-				sprintf(debug_msg, "[%s][%s] = %s", list_section, list_section_key, key_value);
-				DebugLog(debug_msg);
+//				sprintf(debug_msg, "[%s][%s] = %s", list_section, list_section_key, key_value);
+//				DebugLog(debug_msg);
 
 				strcpy(block_section, key_value); //look for a block section with that label
 
@@ -232,8 +232,8 @@ void ReadAndParseConfig(void) {
 					INI_FILE_MAX_LINE_LENGTH)) {
 
 						if (ConfigureBlock(block_cat, block_section, block_section_key, key_value)) {
-							sprintf(debug_msg, "CONFIGURED [%s][%s][%s][%s] = %s", list_section, list_section_key, block_section, block_section_key, key_value);
-							DebugLog(debug_msg);
+//							sprintf(debug_msg, "CONFIGURED [%s][%s][%s][%s] = %s", list_section, list_section_key, block_section, block_section_key, key_value);
+//							DebugLog(debug_msg);
 						} else {
 							sprintf(debug_msg, "[CONFIG] CONFIG FAILED [%s][%s][%s][%s]: %s ", list_section, list_section_key, block_section, block_section_key, key_value);
 							DebugLog(debug_msg);

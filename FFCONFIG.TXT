@@ -24,7 +24,7 @@ description = Reserved System Block
 language = English
 temp_scale = Celsius
 #temp_scale = Fahrenheit
-week_start = MON
+week_start = SUN
 		
 #************************************************
 # Inputs
@@ -312,8 +312,8 @@ description =
 # ALL, MON, TUE, WED, THU, FRI, SAT, SUN
 days = ALL
 time_start = 00:00:00
-time_duration = 00:00:26
-time_repeat = 00:45:00
+time_duration = 00:00:45
+time_repeat = 00:1:20
 
 [SCH_WATERING_BOTTOM_SCHEDULE]
 type = SCH_START_DURATION_REPEAT
@@ -322,8 +322,8 @@ description =
 # ALL, MON, TUE, WED, THU, FRI, SAT, SUN
 days = ALL
 time_start = 00:01:00
-time_duration = 00:00:26
-time_repeat = 00:45:00
+time_duration = 00:00:30
+time_repeat = 00:01:10
 
 [SCH_TEST6]
 type = SCH_START_DURATION_REPEAT
@@ -353,11 +353,11 @@ rule8 = RL_RESET_MIN_MAX_ON_SCHEDULE
 #rule11 =
 
 [RL_TURN_ON_WATER_HEAT_IF_INSIDE_COLD]
-type = RL_LOGIC_ANDNOT
+type = RL_LOGIC_SINGLENOT
 display_name = Water Heat Warming Inside
 description =
 param1 = MON_INSIDE_AVERAGE_TOO_COLD
-param2 = MON_INSIDE_AVERAGE_TOO_HOT
+#param2 =
 param_not = SCH_EXCLUDE_WATER_HEAT_BY_DAY
 
 

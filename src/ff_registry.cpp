@@ -49,40 +49,7 @@ typedef struct FF_STATE_REGISTER {
 	uint8_t FS_present;
 	uint8_t config_valid;
 	uint8_t save_event_buffer;
-
-	//blocks
-
-	//uint8_t block_cat_offset[LAST_BLOCK_CAT];
-
-	//uint8_t block_list_size;
-
-
-	//uint8_t system_start;
-	//uint8_t system_count;
-
-	//uint8_t input_start;
-	//uint8_t input_count;
-
-	//uint8_t monitor_start;
-	//uint8_t monitor_count;
-
-	//uint8_t schedule_start;
-	//uint8_t schedule_count;
-
-	//uint8_t rule_start;
-	//uint8_t rule_count;
-
-	//uint8_t controller_start;
-	//uint8_t controller_count;
-
-	//uint8_t output_start;
-	//uint8_t output_count;
-
 	UIDataSet ui_data;
-
-	//Block block_list[BLOCK_COUNT];
-	//Block* dev_block_list;
-
 } FFStateRegister;
 
 
@@ -143,13 +110,13 @@ void Operate(BlockNode *b) {
 		ScheduleOperate(b);
 		break;
 	case FF_RULE:
-		RuleSetup(b);
+		RuleOperate(b);
 		break;
 	case FF_CONTROLLER:
-		ControllerSetup(b);
+		ControllerOperate(b);
 		break;
 	case FF_OUTPUT:
-		OutputSetup(b);
+		OutputOperate(b);
 		break;
 	default:
 		DebugLog("ERROR: Block Category Not Matched in Operate");
@@ -160,7 +127,6 @@ void Operate(BlockNode *b) {
 
 void ProcessDispatcher(void(*func)(BlockNode*)) {
 	BlockNode* block_ptr;
-	//char debug_msg[MAX_DEBUG_LENGTH];
 
 	block_ptr = bll;
 
@@ -171,7 +137,6 @@ void ProcessDispatcher(void(*func)(BlockNode*)) {
 }
 
 BlockNode* GetBlockByID(BlockNode *list_node, uint16_t block_id) {
-	//BlockNode *block;
 
 	if(list_node == NULL) {   //empty list
 		return NULL;
@@ -185,16 +150,54 @@ BlockNode* GetBlockByID(BlockNode *list_node, uint16_t block_id) {
 	return list_node;
 }
 
+uint8_t SetCommand(uint16_t block_id, uint8_t cmd_msg) {
+	BlockNode *b;
+	b = GetBlockByID(bll, block_id);
+	if (b) {
+		if (b->block_cat == FF_OUTPUT) {
+			b->settings.out.command = cmd_msg;
+			return cmd_msg;
+		} else {
+			DebugLog("ERROR: (SetCommand) message sent to block that is not category FF_OUTPUT");
+			return M_FF_ERROR;
+		}
+	} else {
+		DebugLog("ERROR: (SetCommand) call to GetBlockByID returned a NULL pointer");
+		return M_FF_ERROR;
+	}
+}
+
+uint8_t IsActive(uint16_t block_id) {
+	BlockNode *b;
+	b = GetBlockByID(bll, block_id);
+	if (b) {
+		return b->active;
+	} else {
+		DebugLog("ERROR: (IsActive) call to GetBlockByID returned a NULL pointer");
+		return M_FF_ERROR;
+	}
+}
+
 float GetFVal(uint16_t block_id) {
 	BlockNode *b;
 	b = GetBlockByID(bll, block_id);
-	return b->f_val;
+	if (b) {
+		return b->f_val;
+	} else {
+		DebugLog("ERROR: (GetFVal) call to GetBlockByID returned a NULL pointer");
+		return M_FF_ERROR;
+	}
 }
 
 uint8_t GetBVal(uint16_t block_id) {
 	BlockNode *b;
 	b = GetBlockByID(bll, block_id);
-	return b->bool_val;
+	if (b) {
+		return b->bool_val;
+	} else {
+		DebugLog("ERROR: (GetBVal) call to GetBlockByID returned a NULL pointer");
+		return M_FF_ERROR;
+	}
 }
 
 
@@ -213,7 +216,7 @@ uint16_t GetBlockID(const char* label) {
 	}
 	sprintf(debug_msg, "ERROR: Block Label Not Found: [%s]", label);
 	DebugLog(debug_msg);
-	return UINT16_INIT;
+	return M_FF_ERROR;
 }
 
 char const* GetBlockLabelString(uint16_t block_id) {
@@ -710,76 +713,6 @@ uint8_t ConfigureBlock(uint8_t block_cat, const char *block_label, const char *k
 
 
 
-/*
-void SetBlockLabelString(uint8_t block_cat, int idx, const char* label) {
-	switch (block_cat) {
-	case FF_SYSTEM:
-		idx = idx + sr.system_start;
-		break;
-	case FF_INPUT:
-		idx = idx + sr.input_start;
-		break;
-	case FF_MONITOR:
-		idx = idx + sr.monitor_start;
-		break;
-	case FF_SCHEDULE:
-		idx = idx + sr.schedule_start;
-		break;
-	case FF_RULE:
-		idx = idx + sr.rule_start;
-		break;
-	case FF_CONTROLLER:
-		idx = idx + sr.controller_start;
-		break;
-	case FF_OUTPUT:
-		idx = idx + sr.output_start;
-		break;
-	}
-	strcpy(sr.block_list[idx].label, label);
-	sr.block_list[idx].active = 0;
-}
-*/
-
-
-/*
-uint8_t GetBlockIndexByLabel (const char * label) {
-	int i = 0;
-	while (i < sr.block_list_size && !strcmp(sr.block_list[i].label, label)) {
-		i++;
-	}
-	return i;
-}
-*/
-
-/*
-uint8_t GetBlockTypeOffset (uint8_t block_type) {
-	uint8_t offset;
-	switch (block_type) {
-	case FF_SYSTEM:
-		offset=sr.system_start;
-		break;
-	case FF_INPUT:
-		offset=sr.input_start;
-		break;
-	case FF_MONITOR:
-		offset=sr.monitor_start;
-		break;
-	case FF_SCHEDULE:
-		offset=sr.schedule_start;
-		break;
-	case FF_RULE:
-		offset=sr.rule_start;
-		break;
-	case FF_CONTROLLER:
-		offset=sr.controller_start;
-		break;
-	case FF_OUTPUT:
-		offset=sr.output_start;
-		break;
-	}
-	return offset;
-}
-*/
 
 
 UIDataSet* GetUIDataSet(void) {

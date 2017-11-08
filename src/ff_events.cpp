@@ -11,14 +11,16 @@
 /************************************************
  Includes
 ************************************************/
-#include "ff_sys_config.h"
 #include "ff_events.h"
-#include "ff_datetime.h"
+#include "ff_sys_config.h"
+#include "ff_string_consts.h"
+
+//#include "ff_datetime.h"
 #include "ff_debug.h"
 #include "ff_registry.h"
-#include "ff_utils.h"
+//#include "ff_utils.h"
 #include "ff_filesystem.h"
-#include "ff_string_consts.h"
+
 #include <time.h>
 
 
@@ -99,7 +101,9 @@ void EventBufferPush(EventNode event) {
 	}
 }
 
+void EventMsg(uint16_t source, uint16_t destination, uint8_t msg_type, uint8_t msg_str) {
 
+}
 
 void EventMsg(uint16_t source, uint8_t msg_type) {
 	//source and type only

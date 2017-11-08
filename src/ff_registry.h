@@ -68,6 +68,7 @@ typedef struct FF_CONTROLLER_SETTINGS {
 typedef struct FF_OUTPUT_SETTINGS {
 	uint8_t interface;
 	uint8_t if_num;
+	uint8_t command;
 } OutputSettings;
 
 
@@ -146,16 +147,14 @@ void Setup(BlockNode *b);
 void ProcessDispatcher(void(*f)(BlockNode*));
 
 BlockNode* GetBlockByID(BlockNode *list_node, uint16_t block_id);
-
+uint8_t SetCommand(uint16_t block_id, uint8_t cmd_msg);
+uint8_t IsActive(uint16_t block_id);
 uint8_t GetBVal(uint16_t block_id);
 float GetFVal(uint16_t block_id);
-
 BlockNode* GetBlockByLabel(BlockNode *list_node, const char *block_label);
 
 uint8_t ConfigureBlock(uint8_t block_cat, const char *block_label, const char *key_str, const char *value_str);
-
 char const* GetBlockLabelString(uint16_t block_id);
-
 void SetBlockLabelString(uint8_t block_type, int idx, const char* label);
 
 //uint8_t GetBlockIndexByLabel (const char * label);

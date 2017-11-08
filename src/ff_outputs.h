@@ -13,14 +13,6 @@
 /************************************************
  Includes
 ************************************************/
-//#include "ff_sys_config.h"
-
-#ifdef FF_ARDUINO
-//#include "Arduino.h"
-#endif
-#ifdef FF_SIMULATOR
-//#include <stdint.h>
-#endif
 
 #include "ff_registry.h"
 
@@ -29,21 +21,12 @@
 ************************************************/
 
 
-
 /************************************************
  Function Prototypes
 ************************************************/
 
 void OutputSetup(BlockNode *b);
 void OutputOperate(BlockNode *b);
-
-void SetOutputCommand(char* label, uint8_t command);
-
-void SetupOutputs(void);
-
-void PollOutputs(void);
-
-
 
 
 #endif /* SRC_FF_OUTPUTS_H_ */
