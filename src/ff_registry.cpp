@@ -203,7 +203,7 @@ uint8_t GetBVal(uint16_t block_id) {
 
 uint16_t GetBlockID(const char* label) {
 	BlockNode* temp;
-	char debug_msg[MAX_DEBUG_LENGTH];
+	char debug_msg[MAX_LOG_LINE_LENGTH];
 
 	temp = bll;
 
@@ -221,7 +221,7 @@ uint16_t GetBlockID(const char* label) {
 
 char const* GetBlockLabelString(uint16_t block_id) {
 	BlockNode* temp;
-	char debug_msg[MAX_DEBUG_LENGTH];
+	char debug_msg[MAX_LOG_LINE_LENGTH];
 
 	temp = bll;
 

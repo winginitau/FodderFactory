@@ -33,13 +33,10 @@
  Function Prototypes
 ************************************************/
 
-#ifdef DEBUG
+
 
 void DebugLog(const char* log_message);
 void DebugLog(uint16_t source, uint8_t msg_type, uint8_t msg_str, int i_val, float f_val);
-
-#endif //DEBUG
-
 
 
 #endif /* FF_DEBUG_H_ */

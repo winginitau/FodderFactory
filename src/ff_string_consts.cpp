@@ -8,11 +8,8 @@
 #include "ff_sys_config.h"
 #include "ff_string_consts.h"
 
-#ifdef FF_SIMULATOR
 #include <string.h>
 #include <stdint.h>
-#endif
-
 
 uint8_t GetLanguage(void) {
 	//TODO language switching functions

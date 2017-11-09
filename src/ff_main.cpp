@@ -87,7 +87,7 @@ void ReadAndParseConfig(void) {
 	uint8_t block_count = 0;					//used for information display only
 	uint8_t last_key = 0;
 	uint8_t block_cat = FF_SYSTEM;				//block_cat 0 will always be Error - start from system
-	char debug_msg[MAX_DEBUG_LENGTH];
+	char debug_msg[MAX_LOG_LINE_LENGTH];
 	char ini_error_string[MAX_LABEL_LENGTH];
 
 	InitConfFile(&cf);
@@ -280,14 +280,14 @@ void InitSystem(void) {
 
 	// log event - core internal system now functional
 #ifdef FF_ARDUINO
-	EventMsg(SSS, INFO, M_FF_AWAKE, 0, 0);
+	EventMsg(SSS, E_INFO, M_FF_AWAKE, 0, 0);
 #endif
 #ifdef FF_SIMULATOR
 	EventMsg(SSS, E_INFO, M_SIM);
 #endif
 
 #ifdef DEBUG_SERIAL
-	EventMsg(SSS, DEBUG_MSG, M_D_SERIAL, 0, 0);
+	EventMsg(SSS, E_DEBUG_MSG, M_D_SERIAL, 0, 0);
 #endif
 
 	// get some real time

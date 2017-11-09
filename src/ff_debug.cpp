@@ -116,3 +116,13 @@ void DebugLog(uint16_t source, uint8_t msg_type, uint8_t msg_str, int i_val, flo
 
 #endif //DEBUG
 
+#ifndef DEBUG
+// XXX Debug Stubs for when DEBUG is not declared
+
+void DebugLog(const char* log_message) {
+}
+
+void DebugLog(uint16_t source, uint8_t msg_type, uint8_t msg_str, int i_val, float f_val) {
+}
+
+#endif

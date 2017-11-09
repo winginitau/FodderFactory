@@ -99,8 +99,8 @@ uint8_t HALSaveEventBuffer(void) {
 		//DebugLog("DEBUG INFO sd.begin"); //cant use EventMsg
 
 		EventNode* e;
-		char e_str[MAX_DEBUG_LENGTH];
-		char ymd_str[12];
+		char e_str[MAX_LOG_LINE_LENGTH];
+		char ymd_str[14];
 		char hms_str[12];
 		const char* source_str;
 		const char* msg_type_str;
@@ -115,8 +115,8 @@ uint8_t HALSaveEventBuffer(void) {
 
 					e = EventBufferPop();
 
-					FFDateCString((char *)ymd_str, e->time_stamp);
-					FFTimeCString((char *)hms_str, e->time_stamp);
+					strftime(ymd_str, 14, "%Y-%m-%d", localtime(&(e->time_stamp)));
+					strftime(hms_str, 12, "%H:%M:%S", localtime(&(e->time_stamp)));
 					source_str = GetBlockLabelString(e->source);
 					msg_type_str = GetMessageTypeString(e->message_type);
 					msg_str = GetMessageString(e->message);
@@ -133,6 +133,7 @@ uint8_t HALSaveEventBuffer(void) {
 				save_success = 1;
 			} else {
 				DebugLog(GetMessageString(M_SD_NO_FILE_HANDLE));
+				//DebugLog("ERROR: (HALSaveEventBuffer) No SD File Handle");
 			}
 
 		} else {
@@ -382,6 +383,23 @@ void HALInitUI(void) {
 
 
 void HALDrawDataScreenCV(const UIDataSet* uids, time_t dt) {
+
+	char time_now_str[10];
+	char time_in_min[10];
+	char time_out_min[10];
+	char time_wat_min[10];
+	char time_in_max[10];
+	char time_out_max[10];
+	char time_wat_max[10];
+
+	strftime(time_now_str, 10, "%H:%M", localtime(&dt));
+	strftime(time_in_min, 10, "%H:%M", localtime(&(uids->inside_min_dt)));
+	strftime(time_out_min, 10, "%H:%M", localtime(&(uids->outside_min_dt)));
+	strftime(time_wat_min, 10, "%H:%M", localtime(&(uids->water_min_dt)));
+	strftime(time_in_max, 10, "%H:%M", localtime(&(uids->inside_max_dt)));
+	strftime(time_out_max, 10, "%H:%M", localtime(&(uids->outside_max_dt)));
+	strftime(time_wat_max, 10, "%H:%M", localtime(&(uids->water_max_dt)));
+
 #ifdef FF_ARDUINO
 	//U8G2_ST7920_128X64_F_SW_SPI lcd_128_64(U8G2_R0, /* clock=*/ 40 /* A4 */ , /* data=*/ 42 /* A2 */, /* CS=*/ 44 /* A3 */, /* reset=*/ U8X8_PIN_NONE); //LCD Device Object and Definition
 	//lcd_128_64.begin();
@@ -402,7 +420,7 @@ void HALDrawDataScreenCV(const UIDataSet* uids, time_t dt) {
 
 	lcd_128_64.firstPage();
 	do {
-	lcd_128_64.drawStr(0, 7, FFShortTimeCString(str_buf, dt));
+	lcd_128_64.drawStr(0, 7, time_now_str);
 	lcd_128_64.drawStr(0, 18, "");
 	lcd_128_64.drawStr(0, 31, "Min");
 	lcd_128_64.drawStr(0, 41, "  @");
@@ -412,45 +430,28 @@ void HALDrawDataScreenCV(const UIDataSet* uids, time_t dt) {
 	lcd_128_64.drawStr(43, 7, "IN");
 	lcd_128_64.drawStr(25, 18, FFFloatToCString(str_buf, uids->inside_current));
 	lcd_128_64.drawStr(25, 31, FFFloatToCString(str_buf, uids->inside_min));
-	lcd_128_64.drawStr(25, 41, FFShortTimeCString(str_buf, uids->inside_min_dt));
+	lcd_128_64.drawStr(25, 41, time_in_min);
 	lcd_128_64.drawStr(25, 54, FFFloatToCString(str_buf, uids->inside_max));
-	lcd_128_64.drawStr(25, 64, FFShortTimeCString(str_buf, uids->inside_max_dt));
+	lcd_128_64.drawStr(25, 64, time_in_max);
 
 	lcd_128_64.drawStr(72, 7, "OUT");
 	lcd_128_64.drawStr(60, 18, FFFloatToCString(str_buf, uids->outside_current));
 	lcd_128_64.drawStr(60, 31, FFFloatToCString(str_buf, uids->outside_min));
-	lcd_128_64.drawStr(60, 41, FFShortTimeCString(str_buf, uids->outside_min_dt));
+	lcd_128_64.drawStr(60, 41, time_out_min);
 	lcd_128_64.drawStr(60, 54, FFFloatToCString(str_buf, uids->outside_max));
-	lcd_128_64.drawStr(60, 64, FFShortTimeCString(str_buf, uids->outside_max_dt));
+	lcd_128_64.drawStr(60, 64, time_out_max);
 
 	lcd_128_64.drawStr(110, 7, "WAT");
 	lcd_128_64.drawStr(95, 18, FFFloatToCString(str_buf, uids->water_current));
 	lcd_128_64.drawStr(95, 31, FFFloatToCString(str_buf, uids->water_min));
-	lcd_128_64.drawStr(95, 41, FFShortTimeCString(str_buf, uids->water_min_dt));
+	lcd_128_64.drawStr(95, 41, time_wat_min);
 	lcd_128_64.drawStr(95, 54, FFFloatToCString(str_buf, uids->water_max));
-	lcd_128_64.drawStr(95, 64, FFShortTimeCString(str_buf, uids->water_max_dt));
+	lcd_128_64.drawStr(95, 64, time_wat_max);
 	} while (lcd_128_64.nextPage());
 
 	//lcd_128_64.sendBuffer();                      // transfer internal memory to the display
 #endif
 #ifdef FF_SIMULATOR
-	char time_now_str[10];
-	char time_in_min[10];
-	char time_out_min[10];
-	char time_wat_min[10];
-	char time_in_max[10];
-	char time_out_max[10];
-	char time_wat_max[10];
-
-	strftime(time_now_str, 10, "%H:%M", localtime(&dt));
-	strftime(time_in_min, 10, "%H:%M", localtime(&(uids->inside_min_dt)));
-	strftime(time_out_min, 10, "%H:%M", localtime(&(uids->outside_min_dt)));
-	strftime(time_wat_min, 10, "%H:%M", localtime(&(uids->water_min_dt)));
-	strftime(time_in_max, 10, "%H:%M", localtime(&(uids->inside_max_dt)));
-	strftime(time_out_max, 10, "%H:%M", localtime(&(uids->outside_max_dt)));
-	strftime(time_wat_max, 10, "%H:%M", localtime(&(uids->water_max_dt)));
-
-
 	//printf("\e[1;1H\e[2J"); //clear screen
 	for (int n = 0; n<20; n++) {
 		printf("\n");
@@ -513,24 +514,24 @@ void HALInitRTC(void) {
 	// and sync system time to RTC periodically - that way time still progresses even if RTC broken
 	Wire.begin();
 	if (rtc.begin()) {
-		EventMsg(SSS, DEBUG_MSG, M_RTC_DETECT, 0, 0);
+		EventMsg(SSS, E_DEBUG_MSG, M_RTC_DETECT, 0, 0);
 		if (rtc.isrunning()) {
-			EventMsg(SSS, DEBUG_MSG, M_RTC_REPORT_RUNNING, 0, 0);
+			EventMsg(SSS, E_DEBUG_MSG, M_RTC_REPORT_RUNNING, 0, 0);
 #ifdef SET_RTC
-			EventMsg(SSS, WARNING, M_WARN_SET_RTC, 0, 0);
+			EventMsg(SSS, E_WARNING, M_WARN_SET_RTC, 0, 0);
 			// following line sets the RTC to the date & time this sketch was compiled
 			rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
-			EventMsg(SSS, WARNING, M_WARN_RTC_HARD_CODED, 0, 0);
+			EventMsg(SSS, E_WARNING, M_WARN_RTC_HARD_CODED, 0, 0);
 #endif
 		} else {
-			EventMsg(SSS, WARNING, M_RTC_NOT_RUNNING, 0, 0);
+			EventMsg(SSS, E_WARNING, M_RTC_NOT_RUNNING, 0, 0);
 			// following line sets the RTC to the date & time this sketch was compiled
 			rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
-			EventMsg(SSS, WARNING, M_WARN_RTC_HARD_CODED, 0, 0);
+			EventMsg(SSS, E_WARNING, M_WARN_RTC_HARD_CODED, 0, 0);
 		};
 		rtc_status = 1;
 	} else
-		EventMsg(SSS, ERROR, M_RTC_NOT_FOUND, 0, 0);
+		EventMsg(SSS, E_ERROR, M_RTC_NOT_FOUND, 0, 0);
 	#endif
 #ifdef FF_SIMULATOR
 	EventMsg(SSS, E_INFO, M_SIM_SYS_TIME);

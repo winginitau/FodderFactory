@@ -22,10 +22,11 @@
 //#include <string.h>
 
 #ifdef FF_SIMULATOR
-#include <assert.h>
 //#include <stdint.h>
 #include <stdio.h>
 #endif
+
+#include <assert.h>
 
 /************************************************
  Data Structures

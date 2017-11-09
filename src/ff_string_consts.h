@@ -29,9 +29,9 @@
 
 //#include "ff_sys_config.h"
 //#include "ff_utils.h"
-#ifdef FF_SIMULATOR
+
 #include <stdint.h>
-#endif
+
 
 /**************************************************************
  * Platform Directives
@@ -331,16 +331,6 @@ typedef enum {
 	E_COMMAND,
 	E_WARNING,
 	E_ERROR,
-	SCHED_DAILY_ON,
-	SCHED_DAILY_OFF,
-	CONDITION_HIGH,
-	CONDITION_LOW,
-	TRIGGER_ON,
-	TRIGGER_OFF,
-	SYSTEM_MSG,
-	CLEAR_DONE,
-	RESET_MIN_MAX,
-	SET,
 	LAST_MESSAGE_TYPE
 } MessageTypeEnum;
 
@@ -355,16 +345,6 @@ static const StringArray message_type_strings[LAST_MESSAGE_TYPE] = {
 	12, { "COMMAND", 			"" },
 	10, { "WARNING",			"WARNUNG" },
 	12, { "ERROR",				"FEHLER" },
-	24, { "SCHED_DAILY_ON",		"ZEITPLAN_TÄGLICH_AUF" },
-	24,	{ "SCHED_DAILY_OFF",	"ZEITPLAN_TÄGLICH_AUS" },
-	18, { "CONDITION_HIGH",		"BEDINGUNG_HOCH" },
-	20, { "CONDITION_LOW",		"BEDINGUNG_NIEDRIG" },
-	14, { "TRIGGER_ON",			"AUSLÖSER_AUF" },
-	14,	{ "TRIGGER_OFF",		"AUSLÖSER_AUS" },
-	12, { "SYSTEM",				"SYSTEM" },
-	14,	{ "CLEAR_DONE",			"KLAR_ERLEDIGT" },
-	16, { "RESET_MIN_MAX", 		"RESET_MIN_MAX" },
-	6,	{ "SET", 				"SET" }
 };
 
 /**************************************************************
@@ -418,7 +398,7 @@ typedef enum {
 static const StringArray message_strings[LAST_MESSAGE] = {
 	22, { "Error - Use of Zero Index"			"M0" },
 	22, { "Fodder Factory Awake",				"M1" },
-	12, { "DEBUG_SERIAL Declared",				"M2" },
+	12, { "Debug Serial Declared",				"M2" },
 	12, { "RTC Detected",						"M3" },
 	10, { "RTC Reports as Running",				"M4" },
 	12, { "SET_RTC DEFINED",					"M5" },

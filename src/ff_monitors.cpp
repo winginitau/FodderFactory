@@ -213,7 +213,7 @@ void MonitorOperate(BlockNode *b) {
 			break;
 	}
 	if(b->status != start_status) {
-		char debug_msg[MAX_DEBUG_LENGTH];
+		char debug_msg[MAX_LOG_LINE_LENGTH];
 		sprintf(debug_msg, "[%s]Changed Status to: %s", b->block_label, status_strings[b->status].text);
 		DebugLog(debug_msg);
 	}
