@@ -62,6 +62,20 @@ uint8_t InterfaceStringArrayIndex(const char* key) {
 	return UINT8_INIT;
 }
 
+#ifdef USE_PROGMEM
+uint8_t BlockTypeStringArrayIndex(const char* key) {
+	SimpleStringArray temp;
+
+	for (int i = 0; i < LAST_BLOCK_TYPE; i++) {
+		memcpy_P (&temp, &block_type_strings[i], sizeof temp);
+		if (strcmp(key, temp.text) == 0) {
+			return i;
+		}
+	}
+	return UINT8_INIT;
+}
+
+#else
 uint8_t BlockTypeStringArrayIndex(const char* key) {
 	//
 	for (int i = 0; i < LAST_BLOCK_TYPE; i++) {
@@ -71,6 +85,7 @@ uint8_t BlockTypeStringArrayIndex(const char* key) {
 	}
 	return UINT8_INIT;
 }
+#endif
 
 /*
 uint8_t SimpleStringArrayIndex(const SimpleStringArray array[], const char* key) {

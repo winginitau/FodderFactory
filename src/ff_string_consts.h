@@ -36,7 +36,9 @@
 /**************************************************************
  * Platform Directives
  **************************************************************/
-//PROGMEM for arduino
+#ifdef USE_PROGMEM
+#include <Arduino.h>
+#endif
 
 /**************************************************************
  * Languages Enum - Must Precede typedefs that use it
@@ -62,7 +64,7 @@ typedef struct STRING_ARRAY_TYPE {
 typedef struct SIMPLE_STRING_ARRAY_TYPE {
 	// Array of strings (usually labels and messages) relating to enums
 	// Inside this struct, extended intitaliser lists are ok
-	const char* text;
+	const char text[MAX_LABEL_LENGTH];
 } SimpleStringArray;
 
 typedef struct BLOCK_CATS {
@@ -292,7 +294,15 @@ enum {
 }; // BlockTypes;
 
 
+#ifdef USE_PROGMEM
+
+static const SimpleStringArray block_type_strings[LAST_BLOCK_TYPE] PROGMEM = {
+
+#else
+
 static const SimpleStringArray block_type_strings[LAST_BLOCK_TYPE] = {
+
+#endif
 	"BT_ERROR",
 	"SYS_SYSTEM",
 	"IN_ONEWIRE",
@@ -314,6 +324,7 @@ static const SimpleStringArray block_type_strings[LAST_BLOCK_TYPE] = {
 	"OUT_DIGITAL",
 	"OUT_SYSTEM_CALL",
 };
+
 
 /**************************************************************
  * EventTypes
@@ -418,8 +429,8 @@ static const StringArray message_strings[LAST_MESSAGE] = {
 	14, { "Min and Max Cleared",				"M19" },
 	14, { "Midnight Rollover",					"M20" },
 	14, { "Controllers Initialised",			"M21" },
-	14, { "Command Activate",									"M22" },
-	14, { "Command Deactivate",								"M23" },
+	14, { "Command Activate",					"M22" },
+	14, { "Command Deactivate",					"M23" },
 	14, { "Setting up Outputs",					"M24" },
 	14, { "Outputs Initialised",				"M25" },
 	14, { "Error Opening Event Log File",		"M26" },

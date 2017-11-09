@@ -44,6 +44,10 @@
 #define SIM_TEMP_3 29
 #endif
 
+#ifdef FF_ARDUINO
+#define USE_PROGMEM
+#endif
+
 /************************************************
  DEBUG Directives
  ************************************************/
