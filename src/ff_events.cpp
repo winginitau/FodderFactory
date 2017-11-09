@@ -102,7 +102,7 @@ void EventBufferPush(EventNode event) {
 }
 
 void EventMsg(uint16_t source, uint16_t destination, uint8_t msg_type, uint8_t msg_str) {
-
+//XXX
 }
 
 void EventMsg(uint16_t source, uint8_t msg_type) {

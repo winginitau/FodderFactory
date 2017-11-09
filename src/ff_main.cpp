@@ -42,12 +42,20 @@
   Functions
 ************************************************/
 
-
+#ifdef USE_PROGMEM
+char* GetINIError(uint8_t e, char* msg_buf) {
+	SimpleStringArray temp;
+	memcpy_P (&temp, &ini_error_strings[e], sizeof temp);
+	strcpy(msg_buf, temp.text);
+	return msg_buf;
+}
+#else
 char* GetINIError(uint8_t e, char* msg_buf) {
 
 	strcpy(msg_buf, ini_error_strings[e].text);
 	return msg_buf;
 }
+#endif
 
 void InitConfFile(IniFile* cf) {
 	char key_value[INI_FILE_MAX_LINE_LENGTH];

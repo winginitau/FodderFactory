@@ -461,9 +461,15 @@ uint8_t ConfigureINSetting(BlockNode* block_ptr, uint8_t key_idx, const char* va
 		}
 		case IN_DATA_UNITS: {
 			uint8_t u = 0;
-			while (u < LAST_UNIT && strcmp(unit_strings[u].text[ENGLISH], value_str)) {
+#ifdef USE_PROGMEM
+			while (u < LAST_UNIT && strcmp_P(unit_strings[u].text, value_str)) {
 				u++;
 			}
+#else
+			while (u < LAST_UNIT && strcmp(unit_strings[u].text, value_str)) {
+				u++;
+			}
+#endif
 			if (u < LAST_UNIT) {
 				block_ptr->settings.in.data_units = u;
 			} else {
@@ -474,7 +480,7 @@ uint8_t ConfigureINSetting(BlockNode* block_ptr, uint8_t key_idx, const char* va
 			break;
 		}
 		case IN_DATA_TYPE:
-			//so what - either float or int presently - inferred from block type, conider dropping
+			//XXX so what - either float or int presently - inferred from block type, conider dropping
 			break;
 		default:
 			DebugLog("ERROR: In static block_cat_defs in FF_INPUT setting data");
@@ -597,9 +603,16 @@ uint8_t ConfigureCONSetting(BlockNode* block_ptr, uint8_t key_idx, const char* v
 			break;
 		case CON_ACT_CMD: {
 			uint8_t c = 0;
+#ifdef USE_PROGMEM
+			while (c < LAST_COMMAND && strcmp_P(command_strings[c].text, value_str)) {
+				c++;
+			}
+
+#else
 			while (c < LAST_COMMAND && strcmp(command_strings[c].text, value_str)) {
 				c++;
 			}
+#endif
 			if (c < LAST_COMMAND) {
 				block_ptr->settings.con.act_cmd = c;
 			} else {

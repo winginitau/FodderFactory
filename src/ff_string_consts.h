@@ -54,18 +54,36 @@ typedef enum LANG_TYPE {
 /**************************************************************
  * String array typedefs
  **************************************************************/
+#ifdef USE_PROGMEM
+typedef struct STRING_ARRAY_TYPE {
+	// Longest length of this string in all languages
+	int max_len;
+	// Array of pointers to each language-specific string of type
+	char text[LAST_LANGUAGE][MAX_MESSAGE_STRING_LENGTH];
+} StringArray;
+
+#else
 typedef struct STRING_ARRAY_TYPE {
 	// Longest length of this string in all languages
 	const int max_len;
 	// Array of pointers to each language-specific string of type
 	const char* const text[LAST_LANGUAGE];
 } StringArray;
+#endif
 
+#ifdef USE_PROGMEM
 typedef struct SIMPLE_STRING_ARRAY_TYPE {
 	// Array of strings (usually labels and messages) relating to enums
 	// Inside this struct, extended intitaliser lists are ok
-	const char text[MAX_LABEL_LENGTH];
+	char text[MAX_MESSAGE_STRING_LENGTH];
 } SimpleStringArray;
+#else
+typedef struct SIMPLE_STRING_ARRAY_TYPE {
+	// Array of strings (usually labels and messages) relating to enums
+	// Inside this struct, extended intitaliser lists are ok
+	const char* text;
+} SimpleStringArray;
+#endif
 
 typedef struct BLOCK_CATS {
 	const uint8_t cat_id;
@@ -77,7 +95,11 @@ typedef struct BLOCK_CATS {
 /**************************************************************
  * Language Strings - Must Follow the typedef that defines it
  **************************************************************/
+#ifdef USE_PROGMEM
+static const SimpleStringArray language_strings[LAST_LANGUAGE] PROGMEM = {
+#else
 static const SimpleStringArray language_strings[LAST_LANGUAGE] = {
+#endif
 	"English",
 	"Deutsch",
 };
@@ -295,13 +317,9 @@ enum {
 
 
 #ifdef USE_PROGMEM
-
 static const SimpleStringArray block_type_strings[LAST_BLOCK_TYPE] PROGMEM = {
-
 #else
-
 static const SimpleStringArray block_type_strings[LAST_BLOCK_TYPE] = {
-
 #endif
 	"BT_ERROR",
 	"SYS_SYSTEM",
@@ -330,32 +348,38 @@ static const SimpleStringArray block_type_strings[LAST_BLOCK_TYPE] = {
  * EventTypes
  **************************************************************/
 
-//TODO move these fully to events prune old strings
 typedef enum {
 	E_ZERO_ERROR = 0,
 	E_DEBUG_MSG,
-	E_INIT,
-	E_INFO,
+	E_VERBOSE,
 	E_DATA,
 	E_ACT,
 	E_DEACT,
 	E_COMMAND,
+	E_INFO,
 	E_WARNING,
 	E_ERROR,
+	E_STOP,
 	LAST_MESSAGE_TYPE
 } MessageTypeEnum;
 
+#ifdef USE_PROGMEM
+static const StringArray message_type_strings[LAST_MESSAGE_TYPE] PROGMEM = {
+#else
 static const StringArray message_type_strings[LAST_MESSAGE_TYPE] = {
+#endif
+
 	12, { "ZERO_ERROR",			"" },
 	12, { "DEBUG",				"DEBUGGEN" },
-	12, { "INITIALISED"			"" },
-	12, { "INFO",				"INFO" },
+	12, { "VERBOSE"				"" },
 	12, { "DATA",				"DATEN" },
 	12, { "ACTIVATED",			"" },
 	12, { "DEACTIVATED", 		"" },
 	12, { "COMMAND", 			"" },
+	12, { "INFO",				"INFO" },
 	10, { "WARNING",			"WARNUNG" },
 	12, { "ERROR",				"FEHLER" },
+	12, { "STOP"				"HALT" },
 };
 
 /**************************************************************
@@ -406,7 +430,11 @@ typedef enum {
 	LAST_MESSAGE
 } MessageEnum;
 
+#ifdef USE_PROGMEM
+static const StringArray message_strings[LAST_MESSAGE] PROGMEM = {
+#else
 static const StringArray message_strings[LAST_MESSAGE] = {
+#endif
 	22, { "Error - Use of Zero Index"			"M0" },
 	22, { "Fodder Factory Awake",				"M1" },
 	12, { "Debug Serial Declared",				"M2" },
@@ -464,7 +492,11 @@ enum {
 	errorUnknownError,
 };
 
+#ifdef USE_PROGMEM
+static const SimpleStringArray ini_error_strings[INI_ERROR_TYPES] PROGMEM = {
+#else
 static const SimpleStringArray ini_error_strings[INI_ERROR_TYPES] = {
+#endif
 	"No Error",
 	"Config file not found",
 	"Config File Not Open",
@@ -494,16 +526,20 @@ typedef enum {
 	LAST_UNIT
 } UnitsEnum;
 
-static const StringArray unit_strings[LAST_UNIT] = {
-	12, {"UnitTypeError", 		"UnitTypeError"},
-	12, {"Celsius", 			"Celsius"},
-	12, {"Fahrenheit", 			"Fahrenheit"},
-//	12, {"Kelvin", 				"Kelvin"},
-//	12, {"Rel Hum",				"Rel Hum"},
-//	12, {"Cubic Metres",		"m3"},
-//	12, {"litres", 				"litres"},
-//	12, {"Parts per Million",	"Parts per Million"},
-	12, {"ONOFF",				"ONOFF"},
+#ifdef USE_PROGMEM
+static const SimpleStringArray unit_strings[LAST_UNIT] PROGMEM = {
+#else
+static const SimpleStringArray unit_strings[LAST_UNIT] = {
+#endif
+	"UnitTypeError",
+	"Celsius",
+	"Fahrenheit",
+//	"Kelvin",
+//	"Rel Hum",
+//	"Cubic Metres",
+//	"litres",
+//	"Parts per Milli
+	"ONOFF",
 };
 
 enum {
@@ -517,7 +553,11 @@ enum {
 	LAST_DAY
 };
 
+#ifdef USE_PROGMEM
+static const SimpleStringArray day_strings[LAST_DAY] PROGMEM = {
+#else
 static const SimpleStringArray day_strings[LAST_DAY] = {
+#endif
 	"SUN",
 	"MON",
 	"TUE",
@@ -527,6 +567,7 @@ static const SimpleStringArray day_strings[LAST_DAY] = {
 	"SAT",
 };
 
+
 enum OUTPUT_COMMANDS {
 	CMD_ERROR = 0,
 	CMD_OUTPUT_OFF,
@@ -535,7 +576,11 @@ enum OUTPUT_COMMANDS {
 	LAST_COMMAND
 };
 
+#ifdef USE_PROGMEM
+static const SimpleStringArray command_strings[LAST_COMMAND] PROGMEM = {
+#else
 static const SimpleStringArray command_strings[LAST_COMMAND] = {
+#endif
 	"CMD_ERROR",
 	"CMD_OUTPUT_OFF",
 	"CMD_OUTPUT_ON",
@@ -555,7 +600,11 @@ enum {
 	LAST_INTERFACE
 };
 
+#ifdef USE_PROGMEM
+static const SimpleStringArray interface_strings[LAST_INTERFACE] PROGMEM = {
+#else
 static const SimpleStringArray interface_strings[LAST_INTERFACE] = {
+#endif
 	"IF_ERROR",
 	"PWM_IN",
 	"PWM_OUT",
@@ -575,7 +624,11 @@ enum {
 	LAST_STATUS,
 };
 
+#ifdef USE_PROGMEM
+static const SimpleStringArray status_strings[LAST_STATUS] PROGMEM = {
+#else
 static const SimpleStringArray status_strings[LAST_STATUS] = {
+#endif
 	"STATUS_ERROR",
 	"STATUS_INIT",
 	"STATUS_VALID_DATA",

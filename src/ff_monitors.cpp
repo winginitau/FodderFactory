@@ -214,7 +214,13 @@ void MonitorOperate(BlockNode *b) {
 	}
 	if(b->status != start_status) {
 		char debug_msg[MAX_LOG_LINE_LENGTH];
+#ifdef USE_PROGMEM
+		SimpleStringArray s_str;
+		memcpy_P (&s_str, &status_strings[b->status], sizeof(s_str));
+		sprintf(debug_msg, "[%s]Changed Status to: %s", b->block_label, s_str.text);
+#else
 		sprintf(debug_msg, "[%s]Changed Status to: %s", b->block_label, status_strings[b->status].text);
+#endif
 		DebugLog(debug_msg);
 	}
 

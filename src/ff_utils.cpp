@@ -51,6 +51,18 @@ uint8_t DayStrToFlag(uint8_t day_flag[7], const char* day_str) {
 		}
 		found = 1;
 	} else {
+#ifdef USE_PROGMEM
+		SimpleStringArray temp;
+		for (int i = 0; i < LAST_DAY; i++ ) {
+			memcpy_P(&temp, &day_strings[i], sizeof(temp));
+			if (strcasestr(day_str, temp.text) != NULL) {
+				day_flag[i] = 1;
+				found = 1;
+			} else {
+				day_flag[i] = 0;
+			}
+		}
+#else
 		for (int i = 0; i < LAST_DAY; i++ ) {
 			if (strcasestr(day_str, day_strings[i].text) != NULL) {
 				day_flag[i] = 1;
@@ -59,6 +71,7 @@ uint8_t DayStrToFlag(uint8_t day_flag[7], const char* day_str) {
 				day_flag[i] = 0;
 			}
 		}
+#endif
 
 	}
 	return found;
