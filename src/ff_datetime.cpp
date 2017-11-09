@@ -92,7 +92,7 @@ TV_TYPE StrToTV(const char* time_str) {
 		tv = ss + (mm * 60) + (hh * 60 * 60);
 		return tv;
 	} else {
-		DebugLog("ERROR: Malformed Time Interval String");
+		DebugLog(SSS, E_WARNING, M_BAD_TIME_STR);
 		tv = UINT32_INIT;
 		return tv;
 	}

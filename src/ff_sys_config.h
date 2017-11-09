@@ -21,10 +21,10 @@
  ************************************************/
 
 
-#define FF_ARDUINO
-#define FF_TEMPERATURE_SIM  //optionally
+//#define FF_ARDUINO
+//#define FF_TEMPERATURE_SIM  //optionally
 //OR
-//#define FF_SIMULATOR
+#define FF_SIMULATOR
 
 #ifdef FF_SIMULATOR
 #define FF_TEMPERATURE_SIM

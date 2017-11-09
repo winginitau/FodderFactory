@@ -17,6 +17,7 @@ using namespace std;
 
 
 #include <ff_sys_config.h>
+#include <ff_string_consts.h>
 
 #ifdef FF_ARDUINO
 //#include <Arduino.h>
@@ -91,13 +92,13 @@ int main(void) {
 	ProcessDispatcher(Validate);
 
 	// while using assert, its safe to declare success (if not correctness) if we get this far
-	DebugLog("[DISPATCHER] Called (Validate) for each block");
+	DebugLog(SSS, E_INFO, M_DISP_VALIDATE);
 
 	// 1. make sure each block is in an appropriate state to start execution
 	//		(if not already set during block registration and configuration
 	// 2. trigger callbacks to any hardware that requires an initialisation process
 	// 		particularly ins and outs. Eg a ONEWIRE bus
-	DebugLog("[DISPATCHER] Calling (Setup) for each block");
+	DebugLog(SSS, E_INFO, M_DISP_SETUP);
 	ProcessDispatcher(Setup);
 
 	// TODO would be nice to re-run validate with a post setup modality
@@ -108,9 +109,9 @@ int main(void) {
 	// handler. Provides opportunity for further validation during
 	// development and (at scale) a de-activation filtering of blocks
 	// that may cause problems in continuous run.
-	DebugLog("[DISPATCHER] First Call to (Operate) for each block");
+	DebugLog(SSS, E_INFO, M_DISP_OPER_1ST);
 	ProcessDispatcher(Operate);
-	DebugLog("[DISPATCHER] Moving to (Operate) loop");
+	DebugLog(SSS, E_INFO, M_DISP_OPER_LOOP);
 
 	//DEPR SetupInputs();			// sensors, triggers, external data feeds (eg from battery mon)
 	//DEPR SetupOutputs();			// relays and data connections to turn devices on/off and talk to external systems

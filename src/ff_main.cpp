@@ -60,7 +60,7 @@ char* GetINIError(uint8_t e, char* msg_buf) {
 void InitConfFile(IniFile* cf) {
 	char key_value[INI_FILE_MAX_LINE_LENGTH];
 	if (!cf->open()) {
-		DebugLog(SSS, E_ERROR, M_NO_CONFIG, 0, 0);
+		DebugLog(SSS, E_STOP, M_NO_CONFIG);
 		// Cannot do anything else
 		while (1)
 			;
@@ -68,7 +68,7 @@ void InitConfFile(IniFile* cf) {
 	// Check the file is valid. This can be used to warn if any lines
 	// are longer than the buffer.
 	if (!cf->validate(key_value, INI_FILE_MAX_LINE_LENGTH)) {
-		DebugLog(SSS, E_ERROR, M_CONFIG_NOT_VALID, 0, 0);
+		DebugLog(SSS, E_STOP, M_CONFIG_NOT_VALID);
 		// Cannot do anything else
 		while (1)
 			;
@@ -105,8 +105,8 @@ void ReadAndParseConfig(void) {
 	block_cat = (FF_SYSTEM);
 	last_key = LAST_SYS_KEY_TYPE;
 
-	DebugLog("[CONFIG] Reading and Processing Configuration File");
-	DebugLog("[CONFIG] Processing [system] Block");
+	DebugLog(SSS, E_INFO, M_RP_CONFIG);
+	DebugLog(SSS, E_VERBOSE, M_PROC_SYS_BLK);
 
 
 	for (int key = 1; key < last_key; key++) {  //see string_consts.h - 0 reserved for error types.
@@ -142,7 +142,7 @@ void ReadAndParseConfig(void) {
 	bl = 1; 								//block list start from "1" in config file "input1=" etc
 	uint8_t last_found = 0;					//set flag on first read error
 											//TODO this can fail if lists are not numbered correctly
-	DebugLog("[CONFIG] Registering Config Blocks and Labels");
+	DebugLog(SSS, E_VERBOSE, M_CONF_REG_BLKS);
 
 
 	for (; block_cat < LAST_BLOCK_CAT; block_cat++) { //iterate through each block category
@@ -192,7 +192,7 @@ void ReadAndParseConfig(void) {
 	block_cat = (FF_SYSTEM + 1);
 	bl = 1; 		//block list start from "1" in config file "input1=" etc
 
-	DebugLog("[CONFIG] Processing Each Block Configuration");
+	DebugLog(SSS, E_VERBOSE, M_CONF_BLKS);
 
 	for (; block_cat < LAST_BLOCK_CAT; block_cat++) { //iterate through each block category
 		last_found = 0;
@@ -295,7 +295,7 @@ void InitSystem(void) {
 #endif
 
 #ifdef DEBUG_SERIAL
-	EventMsg(SSS, E_DEBUG_MSG, M_D_SERIAL, 0, 0);
+	EventMsg(SSS, E_VERBOSE, M_D_SERIAL, 0, 0);
 #endif
 
 	// get some real time

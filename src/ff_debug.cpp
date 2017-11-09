@@ -76,8 +76,8 @@ void DebugLog(const char* log_message) {
   char dt[24];
   time_t now;
   now = time(NULL);
-  strftime(dt, 24, "%Y-%m-%d, %H:%M:%S", localtime(&now));					//yyyy-mm-dd, 00:00:00
-  sprintf(log_entry, "%s, %s", dt, log_message);  	//assemble log entry with time stamp
+  strftime(dt, 24, "%Y-%m-%d, %H:%M:%S", localtime(&now));		//yyyy-mm-dd, 00:00:00
+  sprintf(log_entry, "%s, %s", dt, log_message);  				//assemble log entry with time stamp
 
 #ifdef DEBUG_SERIAL
   DebugSerial(log_entry);
@@ -97,6 +97,11 @@ void DebugLog(const char* log_message) {
 #endif
 }
 
+void DebugLog(uint16_t source, uint8_t msg_type, uint8_t msg_str) {
+	char debug_log_message[MAX_DEBUG_LENGTH];
+	sprintf(debug_log_message, "[%s], %s, %s", GetBlockLabelString(source), GetMessageTypeString(msg_type), GetMessageString(msg_str));
+	DebugLog(debug_log_message);
+}
 //overload function
 void DebugLog(uint16_t source, uint8_t msg_type, uint8_t msg_str, int i_val, float f_val) {
 	char debug_log_message[MAX_DEBUG_LENGTH];

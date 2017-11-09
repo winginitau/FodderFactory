@@ -90,7 +90,7 @@ void Setup(BlockNode *b) {
 		OutputSetup(b);
 		break;
 	default:
-		DebugLog("ERROR: Block Category Not Matched in Setup");
+		DebugLog(SSS, E_ERROR, M_SET_BCAT_NOT_MATCHED);
 		break;
 	}
 }
@@ -119,7 +119,7 @@ void Operate(BlockNode *b) {
 		OutputOperate(b);
 		break;
 	default:
-		DebugLog("ERROR: Block Category Not Matched in Operate");
+		DebugLog(SSS, E_ERROR, M_OPR_BCAT_NOT_MATCHED);
 		break;
 	}
 }
@@ -158,11 +158,11 @@ uint8_t SetCommand(uint16_t block_id, uint8_t cmd_msg) {
 			b->settings.out.command = cmd_msg;
 			return cmd_msg;
 		} else {
-			DebugLog("ERROR: (SetCommand) message sent to block that is not category FF_OUTPUT");
+			DebugLog(b->block_id, E_ERROR, M_CMD_TO_BLOCK_NOT_OUTPUT);
 			return M_FF_ERROR;
 		}
 	} else {
-		DebugLog("ERROR: (SetCommand) call to GetBlockByID returned a NULL pointer");
+		DebugLog(SSS, E_ERROR, M_CMD_BID_NULL);
 		return M_FF_ERROR;
 	}
 }
@@ -173,7 +173,7 @@ uint8_t IsActive(uint16_t block_id) {
 	if (b) {
 		return b->active;
 	} else {
-		DebugLog("ERROR: (IsActive) call to GetBlockByID returned a NULL pointer");
+		DebugLog(SSS, E_ERROR, M_IA_NULL);
 		return M_FF_ERROR;
 	}
 }
@@ -184,7 +184,7 @@ float GetFVal(uint16_t block_id) {
 	if (b) {
 		return b->f_val;
 	} else {
-		DebugLog("ERROR: (GetFVal) call to GetBlockByID returned a NULL pointer");
+		DebugLog(SSS, E_ERROR, M_GFV_NULL);
 		return M_FF_ERROR;
 	}
 }
@@ -195,7 +195,7 @@ uint8_t GetBVal(uint16_t block_id) {
 	if (b) {
 		return b->bool_val;
 	} else {
-		DebugLog("ERROR: (GetBVal) call to GetBlockByID returned a NULL pointer");
+		DebugLog(SSS, E_ERROR, M_GBV_NULL);
 		return M_FF_ERROR;
 	}
 }
@@ -214,7 +214,7 @@ uint16_t GetBlockID(const char* label) {
 			temp = temp->next_block;
 		}
 	}
-	sprintf(debug_msg, "ERROR: Block Label Not Found: [%s]", label);
+	sprintf(debug_msg, "ERROR: B-Label Not Found: [%s]", label);
 	DebugLog(debug_msg);
 	return M_FF_ERROR;
 }
@@ -232,7 +232,7 @@ char const* GetBlockLabelString(uint16_t block_id) {
 				temp = temp->next_block;
 			}
 		}
-		sprintf(debug_msg, "ERROR: Block ID Not Found: [%d]", block_id);
+		sprintf(debug_msg, "ERROR: B-ID Not Found: [%d]", block_id);
 		DebugLog(debug_msg);
 		return NULL;
 }
@@ -343,7 +343,7 @@ uint8_t GetConfKeyIndex(uint8_t block_cat, const char* key_str) {
 
 	switch (block_cat) {
 		case FF_ERROR_CAT:
-			DebugLog("STOP (GetConfKeyIndex) block_cat = FF_ERROR_CAT");
+			DebugLog(SSS, E_STOP, M_CONFKEY_ERROR_CAT);
 			while(1);
 			break;
 		case FF_SYSTEM:
@@ -368,7 +368,7 @@ uint8_t GetConfKeyIndex(uint8_t block_cat, const char* key_str) {
 			last_key = LAST_OUT_KEY_TYPE;
 			break;
 		default:
-			DebugLog("STOP (GetConfKeyIndex) block_cat >= LAST_BLOCK_CAT");
+			DebugLog(SSS, E_STOP, M_CONFKEY_LAST_BCAT);
 			while(1);
 	}
 
@@ -378,7 +378,7 @@ uint8_t GetConfKeyIndex(uint8_t block_cat, const char* key_str) {
 	}
 
 	if (key_idx == last_key) {
-		DebugLog("STOP (GetConfKeyIndex) Key String Not Found in Block Category Definitions");
+		DebugLog(SSS, E_STOP, M_CONFKEY_NOTIN_DEFS);
 		while(1);
 	} else {
 		return key_idx;
@@ -389,7 +389,7 @@ uint8_t ConfigureCommonSetting(BlockNode* block_ptr, uint8_t key_idx, const char
 	switch (key_idx) {
 		case SYS_ERROR_KEY:
 			// or any other (0) block cat error key
-			DebugLog("STOP (ConfigureCommonSetting) key_idx = 0 error key type");
+			DebugLog(SSS, E_STOP, M_KEY_IDX_ZERO);
 			while(1);
 			break;
 		case SYS_TYPE:
@@ -438,7 +438,7 @@ uint8_t ConfigureSYSSetting(BlockNode* block_ptr, uint8_t key_idx, const char* v
 			block_ptr->settings.sys.week_start = DayStringArrayIndex(value_str);
 			break;
 		default:
-			DebugLog("ERROR: In static block_cat_defs in FF_SYSTEM setting data");
+			DebugLog(SSS, E_ERROR, M_SYS_BAD_DEF);
 			return 0;
 			break;
 	} // switch(key_idx)
@@ -474,7 +474,7 @@ uint8_t ConfigureINSetting(BlockNode* block_ptr, uint8_t key_idx, const char* va
 				block_ptr->settings.in.data_units = u;
 			} else {
 				block_ptr->settings.in.data_units = 255;
-				DebugLog("ERROR: Missing or malformed input data_units in config file");
+				DebugLog(SSS, E_ERROR, M_BAD_DATA_UNITS);
 				return 0;
 			}
 			break;
@@ -483,7 +483,7 @@ uint8_t ConfigureINSetting(BlockNode* block_ptr, uint8_t key_idx, const char* va
 			//XXX so what - either float or int presently - inferred from block type, conider dropping
 			break;
 		default:
-			DebugLog("ERROR: In static block_cat_defs in FF_INPUT setting data");
+			DebugLog(SSS, E_ERROR, M_IN_BAD_DEF);
 			return 0;
 			break;
 	} // switch(key_idx)
@@ -531,7 +531,7 @@ uint8_t ConfigureMONSetting(BlockNode* block_ptr, uint8_t key_idx, const char* v
 			}
 			break;
 		default:
-			DebugLog("ERROR: In static block_cat_defs in FF_MONITOR setting data");
+			DebugLog(SSS, E_ERROR, M_MON_BAD_DEF);
 			return 0;
 			break;
 	} // switch(key_idx)
@@ -542,7 +542,7 @@ uint8_t ConfigureSCHSetting(BlockNode* block_ptr, uint8_t key_idx, const char* v
 	switch (key_idx) {
 		case SCH_DAYS:
 			if (DayStrToFlag(block_ptr->settings.sch.days, value_str) != 1) {
-				DebugLog("WARNING: No Days Found Converting Day String to Flag");
+				DebugLog(SSS, E_WARNING, M_DAY_FLAG_EMPTY);
 			}
 			break;
 		case SCH_TIME_START: {
@@ -562,7 +562,7 @@ uint8_t ConfigureSCHSetting(BlockNode* block_ptr, uint8_t key_idx, const char* v
 			break;
 		}
 		default:
-			DebugLog("ERROR: In static block_cat_defs in FF_SCHEDULE setting data");
+			DebugLog(SSS, E_ERROR, M_SCH_BAD_DEF);
 			return 0;
 			break;
 	} // switch(key_idx)
@@ -585,7 +585,7 @@ uint8_t ConfigureRLSetting(BlockNode* block_ptr, uint8_t key_idx, const char* va
 			block_ptr->settings.rl.param_not = GetBlockID(value_str);
 			break;
 		default:
-			DebugLog("ERROR: In static block_cat_defs in FF_RULE setting data");
+			DebugLog(SSS, E_ERROR, M_RL_BAD_DEF);
 			return 0;
 			break;
 	} // switch(key_idx)
@@ -617,7 +617,7 @@ uint8_t ConfigureCONSetting(BlockNode* block_ptr, uint8_t key_idx, const char* v
 				block_ptr->settings.con.act_cmd = c;
 			} else {
 				block_ptr->settings.con.act_cmd = UINT8_INIT;
-				DebugLog("ERROR: Valid controller ACT_CMD string not defined in config");
+				DebugLog(SSS, E_ERROR, M_ACT_CMD_UNKNOWN);
 				return 0;
 			}
 			break;
@@ -631,13 +631,13 @@ uint8_t ConfigureCONSetting(BlockNode* block_ptr, uint8_t key_idx, const char* v
 				block_ptr->settings.con.deact_cmd = c;
 			} else {
 				block_ptr->settings.con.deact_cmd = UINT8_INIT;
-				DebugLog("ERROR: Valid controller DEACT_CMD string not defined in config");
+				DebugLog(SSS, E_ERROR, M_DEACT_CMD_UNKNOWN);
 				return 0;
 			}
 			break;
 		}
 		default:
-			DebugLog("ERROR: In static block_cat_defs in FF_CONTROLLER setting data");
+			DebugLog(SSS, E_ERROR, M_CON_BAD_DEF);
 			return 0;
 			break;
 	} // switch(key_idx)
@@ -653,7 +653,7 @@ uint8_t ConfigureOUTSetting(BlockNode* block_ptr, uint8_t key_idx, const char* v
 			block_ptr->settings.out.if_num = atoi(value_str);
 			break;
 		default:
-			DebugLog("ERROR: In static block_cat_defs in FF_OUTPUT setting data");
+			DebugLog(SSS, E_ERROR, M_OUT_BAD_DEF);
 			return 0;
 			break;
 	} // switch(key_idx)
@@ -711,21 +711,17 @@ uint8_t ConfigureBlock(uint8_t block_cat, const char *block_label, const char *k
 				return ConfigureOUTSetting(block_ptr, key_idx, value_str);
 				break; //switch (block_cat);
 			default:
-				DebugLog("ERROR: (ConfigureBlock) Invalid Block Category");
+				DebugLog(SSS, E_ERROR, M_BAD_BLOCK_CAT);
 				return_value = 0;
 				break;
 		} //switch(block_cat)
 
 	} else {
-		DebugLog("ERROR: (ConfigureBlock) Finding or Adding Block ");
+		DebugLog(SSS, E_ERROR, M_ADDING_BLOCK);
 		return_value = 0;
 	}
 	return return_value;
 }
-
-
-
-
 
 
 UIDataSet* GetUIDataSet(void) {
@@ -794,7 +790,7 @@ void UpdateStateRegister(uint16_t source, uint8_t msg_type, uint8_t msg_str, int
 			sr.ui_data.water_max_dt = time(NULL);
 		}
 	} else { //src_label Null
-		DebugLog("ERROR Updating State Register - Source ID does not match a valid Label");
+		DebugLog(SSS, E_ERROR, M_SR_BAD_ID);
 	}
 
 	sr.ui_data.light_flag = 0;
@@ -804,7 +800,7 @@ void UpdateStateRegister(uint16_t source, uint8_t msg_type, uint8_t msg_str, int
 //TODO - should be moved after config parsing
 void InitStateRegister(void) {
 
-	DebugLog("[INIT] Initialising Persistence Store - State Register");
+	DebugLog(SSS, E_INFO, M_INI_SR);
 
 	sr.language = ENGLISH;
 	sr.temperature_scale = CELSIUS;

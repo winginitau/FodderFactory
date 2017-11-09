@@ -132,18 +132,18 @@ uint8_t HALSaveEventBuffer(void) {
 				//DebugLog("DEBUG INFO Event Buffer Saved");
 				save_success = 1;
 			} else {
-				DebugLog(GetMessageString(M_SD_NO_FILE_HANDLE));
+				DebugLog(SSS, E_ERROR, M_SD_NO_FILE_HANDLE);
 				//DebugLog("ERROR: (HALSaveEventBuffer) No SD File Handle");
 			}
 
 		} else {
-			DebugLog(GetMessageString(M_ERROR_EVENTS_EMPTY));
+			DebugLog(SSS, E_ERROR, M_ERROR_EVENTS_EMPTY);
 		}
 
 		SD.end();
 		//DebugLog("DEBUG INFO SD.end");
 	} else {
-		DebugLog(GetMessageString(M_SD_BEGIN_FAIL));
+		DebugLog(SSS, E_ERROR, M_SD_BEGIN_FAIL);
 	}
 #endif
 #ifdef FF_SIMULATOR
@@ -169,14 +169,14 @@ uint8_t HALSaveEventBuffer(void) {
 				fprintf(e_file, "%f\n", e->float_val);
 			}
 			fclose(e_file);
-			DebugLog(SSS, E_INFO, M_BUF_SAVED, UINT16_INIT, 0);
+			DebugLog(SSS, E_VERBOSE, M_BUF_SAVED, UINT16_INIT, 0);
 			save_success = 1;
 		} else {
 			DebugLog(SSS, E_ERROR, M_ERR_EVENT_FILE, 0, 0);
 		}
 
 	} else {
-		DebugLog("ERROR: Event Buffer Save Called with Empty Buffer");
+		DebugLog(SSS, E_ERROR, M_SAVE_EMPTY_BUF);
 	}
 #endif
 
@@ -514,9 +514,9 @@ void HALInitRTC(void) {
 	// and sync system time to RTC periodically - that way time still progresses even if RTC broken
 	Wire.begin();
 	if (rtc.begin()) {
-		EventMsg(SSS, E_DEBUG_MSG, M_RTC_DETECT, 0, 0);
+		EventMsg(SSS, E_VERBOSE, M_RTC_DETECT, 0, 0);
 		if (rtc.isrunning()) {
-			EventMsg(SSS, E_DEBUG_MSG, M_RTC_REPORT_RUNNING, 0, 0);
+			EventMsg(SSS, E_VERBOSE, M_RTC_REPORT_RUNNING, 0, 0);
 #ifdef SET_RTC
 			EventMsg(SSS, E_WARNING, M_WARN_SET_RTC, 0, 0);
 			// following line sets the RTC to the date & time this sketch was compiled

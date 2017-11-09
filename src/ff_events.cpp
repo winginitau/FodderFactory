@@ -107,18 +107,18 @@ void EventMsg(uint16_t source, uint16_t destination, uint8_t msg_type, uint8_t m
 
 void EventMsg(uint16_t source, uint8_t msg_type) {
 	//source and type only
-	EventMsg(source, msg_type, M_NULL, UINT16_INIT, 0);
+	EventMsg(source, msg_type, M_NULL, UINT16_INIT, FLOAT_INIT);
 }
 
 void EventMsg(uint16_t source, uint8_t msg_type, uint8_t msg_str) {
 	//source, type, message string
-	EventMsg(source, msg_type, msg_str, UINT16_INIT, 0);
+	EventMsg(source, msg_type, msg_str, UINT16_INIT, FLOAT_INIT);
 }
 
 void EventMsg(uint16_t source, uint8_t msg_type, uint8_t msg_str, int i_val, float f_val) {
 
 	if(event_buffer.init != 0) {
-		DebugLog("STOP EventMsg Before Init");
+		DebugLog(SSS, E_STOP, M_EVENTMSG_BEFORE_INIT);
 		while (1);
 	}
 	EventNode event;
@@ -136,7 +136,7 @@ void EventMsg(uint16_t source, uint8_t msg_type, uint8_t msg_str, int i_val, flo
 		if (SaveEventBuffer()) {     			//write to file
 			//DebugLog("Events Saved to File");
 			if (!EventBufferEmpty()) {
-				DebugLog("ERROR Save did not fully flush Event Buffer");
+				DebugLog(SSS, E_ERROR, M_BUF_NOT_EMPTY);
 			}
 		}
 	}
@@ -160,7 +160,7 @@ void EventMsg(uint16_t source, uint8_t msg_type, uint8_t msg_str, int i_val, flo
 
 void EventBufferInit(void) {
 	// Initalise the event buffer
-	DebugLog("[INIT] Setting up Message Queue (AKA Event Ring Buffer)");
+	DebugLog(SSS, E_VERBOSE, M_INIT_EVENT_BUF);
 	event_buffer.head = 0;
 	event_buffer.tail = 0;
 	event_buffer.size = EVENT_BUFFER_SIZE;
