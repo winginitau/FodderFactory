@@ -124,6 +124,239 @@ void Operate(BlockNode *b) {
 	}
 }
 
+int uint8_tWrite(uint8_t data, FILE *f) {
+	//return fwrite(&data, sizeof(data), 1, f);
+	printf("%d ", data);
+	return fprintf(f, "%d ", data);
+}
+
+int uint16_tWrite(uint16_t data, FILE *f) {
+//	return fwrite(&data, sizeof(data), 1, f);
+	printf("%d ", data);
+	return fprintf(f, "%d ", data);
+}
+
+int uint32_tWrite(uint32_t data, FILE *f) {
+//	return fwrite(&data, sizeof(data), 1, f);
+	printf("%d ", data);
+	return fprintf(f, "%d ", data);
+}
+
+int LabelWrite(char* data, size_t s,  FILE *f) {
+//	return fwrite(data, s, 1, f);
+	printf("%s\n", data);
+	return fprintf(f, "%s\n", data);
+}
+
+int uint8_tArrayWrite(uint8_t* data, size_t s,  FILE *f) {
+//	return fwrite(data, s, 1, f);
+	for (uint i=0; i<s; i++) {
+		printf("%d ", *(data+i));
+		fprintf(f, "%d ", *(data+i));
+	}
+	return 1;
+}
+
+int floatWrite(float data, FILE *f) {
+//	return fwrite(&data, sizeof(data) , 1, f);
+	printf("%.2f ", data);
+	return fprintf(f, "%.2f ", data);
+}
+
+void WriteBlock(BlockNode *b, FILE *f) {
+
+	uint8_tWrite(b->block_cat, f);
+	uint16_tWrite(b->block_type, f);
+	uint16_tWrite(b->block_id, f);
+	LabelWrite(b->block_label, MAX_LABEL_LENGTH, f);
+	LabelWrite(b->display_name, MAX_LABEL_LENGTH, f);
+	LabelWrite(b->description, MAX_DESCR_LENGTH, f);
+
+
+	switch (b->block_cat) {
+	case FF_SYSTEM:
+		uint8_tWrite(b->settings.sys.temp_scale, f);
+		uint8_tWrite(b->settings.sys.language, f);
+		uint8_tWrite(b->settings.sys.week_start, f);
+		break;
+	case FF_INPUT:
+		uint8_tWrite(b->settings.in.interface, f);
+		uint8_tWrite(b->settings.in.if_num, f);
+		uint32_tWrite(b->settings.in.log_rate, f);
+		uint8_tWrite(b->settings.in.data_units, f);
+		uint8_tWrite(b->settings.in.data_type, f);
+		break;
+	case FF_MONITOR:
+		uint16_tWrite(b->settings.mon.input1, f);
+		uint16_tWrite(b->settings.mon.input2, f);
+		uint16_tWrite(b->settings.mon.input3, f);
+		uint16_tWrite(b->settings.mon.input4, f);
+		floatWrite(b->settings.mon.act_val, f);
+		floatWrite(b->settings.mon.deact_val, f);
+		break;
+	case FF_SCHEDULE:
+		uint8_tArrayWrite(b->settings.sch.days, 7, f);
+		uint32_tWrite(b->settings.sch.time_start, f);
+		uint32_tWrite(b->settings.sch.time_end, f);
+		uint32_tWrite(b->settings.sch.time_duration, f);
+		uint32_tWrite(b->settings.sch.time_repeat, f);
+		break;
+	case FF_RULE:
+		uint16_tWrite(b->settings.rl.param1, f);
+		uint16_tWrite(b->settings.rl.param2, f);
+		uint16_tWrite(b->settings.rl.param3, f);
+		uint16_tWrite(b->settings.rl.param_not, f);
+		break;
+	case FF_CONTROLLER:
+		uint16_tWrite(b->settings.con.rule, f);
+		uint16_tWrite(b->settings.con.output, f);
+		uint8_tWrite(b->settings.con.act_cmd, f);
+		uint8_tWrite(b->settings.con.deact_cmd, f);
+		break;
+	case FF_OUTPUT:
+		uint8_tWrite(b->settings.out.interface, f);
+		uint8_tWrite(b->settings.out.if_num, f);
+		uint8_tWrite(b->settings.out.command, f);
+		break;
+	default:
+
+		break;
+	}
+
+}
+
+
+void FileIODispatcher(void(*func)(BlockNode*, FILE*), FILE* file) {
+	BlockNode* block_ptr;
+
+	block_ptr = bll;
+
+	while (block_ptr != NULL) {
+		func(block_ptr, file);
+		block_ptr = block_ptr->next_block;
+	}
+}
+
+void WriteRunningConfig(void) {
+	FILE *outfile;
+	outfile = fopen(BIN_CONFIG_FILENAME, "w");
+	FileIODispatcher(WriteBlock, outfile);
+	fclose(outfile);
+}
+
+
+uint8_t uint8_tRead(FILE *f) {
+	uint8_t data;
+	fscanf(f, "%hhu", &data);
+	printf("%d ", data);
+	return data;
+}
+
+uint16_t uint16_tRead(FILE *f) {
+	uint16_t data;
+	fscanf(f, "%hu", &data);
+	printf("%d ", data);
+	return data;
+}
+
+uint32_t uint32_tRead(FILE *f) {
+	uint32_t data;
+	fscanf(f, "%u", &data);
+	printf("%d ", data);
+	return data;
+}
+
+char* LabelRead(char* data, size_t s,  FILE *f) {
+	fscanf(f, "%s", data);
+	printf("%s\n", data);
+	return data;
+}
+
+uint8_t* uint8_tArrayRead(uint8_t* data, size_t s,  FILE *f) {
+	for (uint8_t i=0; i<s; i++) {
+		fscanf(f, "%hhu", &data[i]);
+		printf("%d ", data[i]);
+	}
+	return data;
+}
+
+float floatRead(FILE *f) {
+	float data;
+	fscanf(f, "%f", &data);
+	printf("%.2f ", data);
+	return data;
+}
+
+void ReadProcessedConfig(void) {
+	BlockNode* b;
+	FILE *f;
+	f = fopen(BIN_CONFIG_FILENAME, "r");
+	while (!feof(f)) {
+
+		b->block_cat = uint8_tRead(f);
+		uint16_tWrite(b->block_type, f);
+		uint16_tWrite(b->block_id, f);
+		LabelWrite(b->block_label, MAX_LABEL_LENGTH, f);
+		LabelWrite(b->display_name, MAX_LABEL_LENGTH, f);
+		LabelWrite(b->description, MAX_DESCR_LENGTH, f);
+
+		switch (b->block_cat) {
+		case FF_SYSTEM:
+			uint8_tWrite(b->settings.sys.temp_scale, f);
+			uint8_tWrite(b->settings.sys.language, f);
+			uint8_tWrite(b->settings.sys.week_start, f);
+			break;
+		case FF_INPUT:
+			uint8_tWrite(b->settings.in.interface, f);
+			uint8_tWrite(b->settings.in.if_num, f);
+			uint32_tWrite(b->settings.in.log_rate, f);
+			uint8_tWrite(b->settings.in.data_units, f);
+			uint8_tWrite(b->settings.in.data_type, f);
+			break;
+		case FF_MONITOR:
+			uint16_tWrite(b->settings.mon.input1, f);
+			uint16_tWrite(b->settings.mon.input2, f);
+			uint16_tWrite(b->settings.mon.input3, f);
+			uint16_tWrite(b->settings.mon.input4, f);
+			floatWrite(b->settings.mon.act_val, f);
+			floatWrite(b->settings.mon.deact_val, f);
+			break;
+		case FF_SCHEDULE:
+			uint8_tArrayWrite(b->settings.sch.days, 7, f);
+			uint32_tWrite(b->settings.sch.time_start, f);
+			uint32_tWrite(b->settings.sch.time_end, f);
+			uint32_tWrite(b->settings.sch.time_duration, f);
+			uint32_tWrite(b->settings.sch.time_repeat, f);
+			break;
+		case FF_RULE:
+			uint16_tWrite(b->settings.rl.param1, f);
+			uint16_tWrite(b->settings.rl.param2, f);
+			uint16_tWrite(b->settings.rl.param3, f);
+			uint16_tWrite(b->settings.rl.param_not, f);
+			break;
+		case FF_CONTROLLER:
+			uint16_tWrite(b->settings.con.rule, f);
+			uint16_tWrite(b->settings.con.output, f);
+			uint8_tWrite(b->settings.con.act_cmd, f);
+			uint8_tWrite(b->settings.con.deact_cmd, f);
+			break;
+		case FF_OUTPUT:
+			uint8_tWrite(b->settings.out.interface, f);
+			uint8_tWrite(b->settings.out.if_num, f);
+			uint8_tWrite(b->settings.out.command, f);
+			break;
+		default:
+
+			break;
+		}
+
+
+	} ;
+
+
+
+	fclose(f);
+}
 
 void ProcessDispatcher(void(*func)(BlockNode*)) {
 	BlockNode* block_ptr;

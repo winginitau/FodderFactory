@@ -21,10 +21,18 @@
  ************************************************/
 
 
-#define FF_ARDUINO
+//#define FF_ARDUINO
 //#define FF_TEMPERATURE_SIM  //optionally
 //OR
 //#define FF_SIMULATOR
+//OR
+#define FF_CONFIG
+
+#ifdef FF_CONFIG
+#define FF_SIMULATOR
+#undef FF_ARDUINO
+#endif
+
 
 #ifdef FF_SIMULATOR
 #define FF_TEMPERATURE_SIM
@@ -104,6 +112,7 @@
 
 #define EVENT_FILENAME "FFEVENTS.TXT"
 #define CONFIG_FILENAME "FFCONFIG.TXT"
+#define BIN_CONFIG_FILENAME "FFCONFIG.BIN"
 
 #define INI_FILE_MAX_LINE_LENGTH 150
 #define INI_ERROR_TYPES 9

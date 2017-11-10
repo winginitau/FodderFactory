@@ -146,6 +146,8 @@ void Setup(BlockNode *b);
 
 void ProcessDispatcher(void(*f)(BlockNode*));
 
+void WriteRunningConfig(void);
+
 BlockNode* GetBlockByID(BlockNode *list_node, uint16_t block_id);
 uint8_t SetCommand(uint16_t block_id, uint8_t cmd_msg);
 uint8_t IsActive(uint16_t block_id);
