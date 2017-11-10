@@ -23,7 +23,8 @@
 
 #ifdef USE_PROGMEM
 // holder for strings copied from PROGMEM
-static char temp_pgm_string[MAX_MESSAGE_STRING_LENGTH];
+static char temp_pgm_string_msg_type[MAX_MESSAGE_STRING_LENGTH];
+static char temp_pgm_string_msg[MAX_MESSAGE_STRING_LENGTH];
 #endif
 
 /************************************************
@@ -39,15 +40,15 @@ uint8_t GetLanguage(void) {
 char const* GetMessageTypeString(int message_type_enum) {
 	StringArray temp;
 	memcpy_P(&temp, &message_type_strings[message_type_enum], sizeof(temp));
-	strcpy(temp_pgm_string, temp.text[GetLanguage()]);
-	return temp_pgm_string;
+	strcpy(temp_pgm_string_msg_type, temp.text[GetLanguage()]);
+	return temp_pgm_string_msg_type;
 }
 
 char const* GetMessageString(int message_enum) {
 	StringArray temp;
 	memcpy_P(&temp, &message_strings[message_enum], sizeof(temp));
-	strcpy(temp_pgm_string, temp.text[GetLanguage()]);
-	return temp_pgm_string;
+	strcpy(temp_pgm_string_msg, temp.text[GetLanguage()]);
+	return temp_pgm_string_msg;
 }
 #else
 char const* GetMessageTypeString(int message_type_enum) {

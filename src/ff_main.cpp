@@ -105,8 +105,8 @@ void ReadAndParseConfig(void) {
 	block_cat = (FF_SYSTEM);
 	last_key = LAST_SYS_KEY_TYPE;
 
-	DebugLog(SSS, E_INFO, M_RP_CONFIG);
-	DebugLog(SSS, E_VERBOSE, M_PROC_SYS_BLK);
+	//DebugLog(SSS, E_INFO, M_RP_CONFIG);
+	//DebugLog(SSS, E_VERBOSE, M_PROC_SYS_BLK);
 
 
 	for (int key = 1; key < last_key; key++) {  //see string_consts.h - 0 reserved for error types.

@@ -722,10 +722,12 @@ static const SimpleStringArray status_strings[LAST_STATUS] = {
 };
 
 #ifndef FF_ARDUINO
+
 enum {
-	LOW = 0,
-	HIGH = 1,
+//	LOW = 0,
+//	HIGH
 };
+
 #endif
 
 /**************************************************************

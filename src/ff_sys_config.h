@@ -21,10 +21,10 @@
  ************************************************/
 
 
-//#define FF_ARDUINO
+#define FF_ARDUINO
 //#define FF_TEMPERATURE_SIM  //optionally
 //OR
-#define FF_SIMULATOR
+//#define FF_SIMULATOR
 
 #ifdef FF_SIMULATOR
 #define FF_TEMPERATURE_SIM
@@ -58,18 +58,18 @@
 #ifdef FF_ARDUINO
 #define DEBUG_SERIAL                  	// For use when USB connected
 #define DEBUG_SERIAL_BAUDRATE 9600
-#define DEBUG_LCD                     	// Debug to a connected LCD screen
+//#define DEBUG_LCD                     	// Debug to a connected LCD screen
 #define DEBUG_LCD_DELAY 3000
 #endif
 
-#define DEBUG_FILE						//write a debug file on SD or locally
+//#define DEBUG_FILE						//write a debug file on SD or locally
 #define DEBUG_FILENAME "FFDEBUG.TXT"
 
 #ifdef FF_SIMULATOR
 #define DEBUG_CONSOLE					//write to stdout
 #endif
 
-#define MAX_DEBUG_LENGTH 255			//line buffer length for debug messages "stack smashing if too short"
+#define MAX_DEBUG_LENGTH 100			//line buffer length for debug messages "stack smashing if too short"
 
 #endif //DEBUG
 
@@ -108,12 +108,12 @@
 #define INI_FILE_MAX_LINE_LENGTH 150
 #define INI_ERROR_TYPES 9
 
-#define MAX_MESSAGE_STRING_LENGTH 48
-#define MAX_LOG_LINE_LENGTH 255
+#define MAX_MESSAGE_STRING_LENGTH 50
+#define MAX_LOG_LINE_LENGTH 100
 #define MAX_LABEL_LENGTH 64
 #define MAX_DESCR_LENGTH 80
 #define MAX_BLOCKS 255
-#define MAX_BLOCKS_PER_CATEGORY 255
+#define MAX_BLOCKS_PER_CATEGORY 32
 #define MAX_CONF_KEYS_PER_BLOCK 12
 /************************************************
  Inputs Definitions

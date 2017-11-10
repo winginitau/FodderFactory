@@ -243,6 +243,10 @@ BlockNode* AddBlock(BlockNode** head_ref, uint8_t block_cat, const char *block_l
 	if (*head_ref == NULL) {   //empty list
 		// common settings and setting holders for al blocks
 		new_block = (BlockNode *) malloc(sizeof(BlockNode));
+		if (new_block == NULL) {
+			DebugLog("STOP: (AddBlock) malloc returned NULL");
+			while (1);
+		} else DebugLog("(AddBlock) malloc OK");
 		new_block->next_block = NULL;
 
 		new_block->block_cat = block_cat;
