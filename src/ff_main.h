@@ -25,7 +25,7 @@
 ************************************************/
 
 
-
+void ReadProcessedConfig(void);
 void InitSystem(void);
 
 

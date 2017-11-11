@@ -14,19 +14,17 @@
 #ifndef FF_SYS_CONFIG_H_
 #define FF_SYS_CONFIG_H_
 
-#define VERSION v0.3dev
+#define VERSION v0.31dev
 
 /************************************************
  PLATFORM Directives
  ************************************************/
-
-
-//#define FF_ARDUINO
-//#define FF_TEMPERATURE_SIM  //optionally
+#define FF_ARDUINO
+#define FF_TEMPERATURE_SIM  //optionally
 //OR
 //#define FF_SIMULATOR
 //OR
-#define FF_CONFIG
+//#define FF_CONFIG
 
 #ifdef FF_CONFIG
 #define FF_SIMULATOR
@@ -56,6 +54,8 @@
 #define USE_PROGMEM
 #endif
 
+#define EXCLUDE_DESCRIPTION			// to save .data segment and heap space on arduino
+#define EXCLUDE_DISPLAYNAME			// to save .data segment and heap space on arduino
 /************************************************
  DEBUG Directives
  ************************************************/
@@ -81,11 +81,12 @@
 
 #endif //DEBUG
 
+#define SET_RTC YES						//WARNING - This hard codes the time on restart to the compile time
+										//as the set time on device restart - use once to set then exclude
+
 /************************************************
  System, Hardware, PINS and Initialisation
  ************************************************/
-#define SET_RTC YES						//WARNING - This hard codes the time on restart to the compile time
-										//as the set time on device restart - use once to set then exclude
 #define DIG_HIGH 0x1
 #define DIG_LOW 0x0
 

@@ -10,20 +10,25 @@
 /************************************************
   Includes
 ************************************************/
+#include "ff_main.h"
 #include "ff_registry.h"  //first include for C global dec and init of main block list (bll) and dec of state register (sr)
-
 #include "ff_sys_config.h"
-#include "ff_events.h"
 #include "ff_string_consts.h"
+#include <stdio.h>
+#include <stdlib.h>
 
+#include "ff_events.h"
 #include "ff_debug.h"
 #include "ff_display.h"
 #include "ff_filesystem.h"
 
+#ifdef FF_ARDUINO
+#include "SD.h"
+#endif
 
-#include "ff_IniFile.h"
+//#include "ff_IniFile.h"
 
-#include <string.h>
+//#include <string.h>
 
 
 /************************************************
@@ -42,243 +47,213 @@
   Functions
 ************************************************/
 
-#ifdef USE_PROGMEM
-char* GetINIError(uint8_t e, char* msg_buf) {
-	SimpleStringArray temp;
-	memcpy_P (&temp, &ini_error_strings[e], sizeof temp);
-	strcpy(msg_buf, temp.text);
-	return msg_buf;
-}
-#else
-char* GetINIError(uint8_t e, char* msg_buf) {
-
-	strcpy(msg_buf, ini_error_strings[e].text);
-	return msg_buf;
-}
-#endif
-
-void InitConfFile(IniFile* cf) {
-	char key_value[INI_FILE_MAX_LINE_LENGTH];
-	if (!cf->open()) {
-		DebugLog(SSS, E_STOP, M_NO_CONFIG);
-		// Cannot do anything else
-		while (1)
-			;
-	}
-	// Check the file is valid. This can be used to warn if any lines
-	// are longer than the buffer.
-	if (!cf->validate(key_value, INI_FILE_MAX_LINE_LENGTH)) {
-		DebugLog(SSS, E_STOP, M_CONFIG_NOT_VALID);
-		// Cannot do anything else
-		while (1)
-			;
-	}
-}
-
-
-void ReadAndParseConfig(void) {
-	const char f_name[] = CONFIG_FILENAME;
-#ifdef FF_ARDUINO
-	IniFile cf(f_name);
-#endif
 #ifdef FF_SIMULATOR
-	char f_mode[] = "r\0";
-	IniFile cf(f_name, f_mode);
+uint8_t uint8_tRead(FILE *f) {
+	uint8_t data;
+	//fscanf(f, "%hhu", &data);
+	fread(&data, sizeof(data), 1, f);
+	printf("%u\n", data);
+	return data;
+}
+
+uint16_t uint16_tRead(FILE *f) {
+	uint16_t data;
+//	fscanf(f, "%hu", &data);
+	fread(&data, sizeof(data), 1, f);
+	printf("%u\n", data);
+	return data;
+}
+
+uint32_t uint32_tRead(FILE *f) {
+	uint32_t data;
+//	fscanf(f, "%u", &data);
+	fread(&data, sizeof(data), 1, f);
+	printf("%u\n", data);
+	return data;
+}
+
+char* LabelRead(char* data, size_t s,  FILE *f) {
+	//fgets(data, s, f);
+	fread(data, s, 1, f);
+	printf("%s\n", data);
+	return data;
+}
+
+uint8_t* uint8_tArrayRead(uint8_t* data, size_t s,  FILE *f) {
+	fread(data, s, 1, f);
+	for (uint8_t i=0; i<s; i++) {
+//		fscanf(f, "%hhu", &data[i]);
+		printf("%u\n", data[i]);
+	}
+	return data;
+}
+
+float floatRead(FILE *f) {
+	float data;
+	fread(&data, sizeof(data), 1, f);
+//	fscanf(f, "%f", &data);
+	printf("%.2f\n ", data);
+	return data;
+}
 #endif
 
-	char list_section[MAX_LABEL_LENGTH];		// [inputs] [controllers] etc
-	char list_section_key[MAX_LABEL_LENGTH];	// input7=    controller3=
-	char block_section[MAX_LABEL_LENGTH];
-	char block_section_key[MAX_LABEL_LENGTH];
-	char key_value[INI_FILE_MAX_LINE_LENGTH];	//to read value into
-	uint8_t bl;									//iterator - block list within block category
-	uint8_t block_count = 0;					//used for information display only
-	uint8_t last_key = 0;
-	uint8_t block_cat = FF_SYSTEM;				//block_cat 0 will always be Error - start from system
-	char debug_msg[MAX_LOG_LINE_LENGTH];
-	char ini_error_string[MAX_LABEL_LENGTH];
+#ifdef FF_ARDUINO
+uint8_t uint8_tRead(File *f) {
+	uint8_t data;
+	//fscanf(f, "%hhu", &data);
+	f->read(&data, sizeof(data));
+//	printf("%u\n", data);
+	return data;
+}
 
-	InitConfFile(&cf);
+uint16_t uint16_tRead(File *f) {
+	uint16_t data;
+//	fscanf(f, "%hu", &data);
+	f->read(&data, sizeof(data));
+//	printf("%u\n", data);
+	return data;
+}
 
-	//Read and process the system block for
-	//global settings - language and scale etc
-	block_cat = (FF_SYSTEM);
-	last_key = LAST_SYS_KEY_TYPE;
+uint32_t uint32_tRead(File *f) {
+	uint32_t data;
+//	fscanf(f, "%u", &data);
+	f->read(&data, sizeof(data));
+//	printf("%u\n", data);
+	return data;
+}
 
-	//DebugLog(SSS, E_INFO, M_RP_CONFIG);
-	//DebugLog(SSS, E_VERBOSE, M_PROC_SYS_BLK);
+char* LabelRead(char* data, size_t s,  File *f) {
+	//fgets(data, s, f);
+	f->read(data, s);
+//	printf("%s\n", data);
+	return data;
+}
+
+uint8_t* uint8_tArrayRead(uint8_t* data, size_t s,  File *f) {
+	f->read(data, s);
+//	for (uint8_t i=0; i<s; i++) {
+//		fscanf(f, "%hhu", &data[i]);
+//		printf("%u\n", data[i]);
+//	}
+	return data;
+}
+
+float floatRead(File *f) {
+	float data;
+	f->read(&data, sizeof(data));
+//	fscanf(f, "%f", &data);
+//	printf("%.2f\n ", data);
+	return data;
+}
+#endif
 
 
-	for (int key = 1; key < last_key; key++) {  //see string_consts.h - 0 reserved for error types.
-		strcpy(block_section_key, block_cat_defs[block_cat].conf_keys[key]);
+void ReadProcessedConfig(void) {
+	BlockNode* b;
+	uint8_t b_cat; 	//used as read-ahead to test for eof before creating a new block
 
-		if (cf.getValue("system", block_section_key, key_value, INI_FILE_MAX_LINE_LENGTH)) {
-			if (ConfigureBlock(FF_SYSTEM, "system", block_section_key, key_value)) {
-				sprintf(debug_msg, "[CONFIG][SYSTEM][%s] = %s", block_section_key, key_value);
-				DebugLog(debug_msg);
-			} else {
-				sprintf(debug_msg, "[CONFIG] FAILED [SYSTEM][%s]: %s ", block_section_key, key_value);
-				DebugLog(debug_msg);
-			}
-		} else {
-			if( cf.getError() != errorKeyNotFound) {
-				sprintf(debug_msg, "ERROR [CONFIG][SYSTEM][%s]: %s ", block_section_key, GetINIError(cf.getError(), ini_error_string));
-				DebugLog(debug_msg);
-				//handle error - could be ok if key not required for that block sub type
-			}
-		}
+#ifdef FF_SIMULATOR
+	FILE *f;
+	f = fopen(BIN_CONFIG_FILENAME, "r");
+#endif
+#ifdef FF_ARDUINO
+	File f;
+	pinMode(SS, OUTPUT);
+	pinMode(10, OUTPUT);
+	pinMode(53, OUTPUT);
+	// see if the card is present and can be initialized:
+	if (SD.begin(10, 11, 12, 13)) {
+		//DebugLog("DEBUG INFO sd.begin"); //cant use EventMsg
+		f = SD.open(BIN_CONFIG_FILENAME, FILE_READ);
 	}
+#endif
 
-	// Read each of the block category list sections
-	// getting all the user defined labels and registering
-	// them in the registry vis the ConfigureBlock call.
-	// Note they can't be fully configured
-	// in this iteration because blocks refer to other blocks
-	// so we need the full list of block identifiers registered first
-	// Calls to ConfigureBlock with NULL for setting::value pair
-	// trigger registration only.
-
-	block_cat = (FF_SYSTEM + 1); 			//general block cat defs always follow the reserved system cat.
-	bl = 1; 								//block list start from "1" in config file "input1=" etc
-	uint8_t last_found = 0;					//set flag on first read error
-											//TODO this can fail if lists are not numbered correctly
-	DebugLog(SSS, E_VERBOSE, M_CONF_REG_BLKS);
-
-
-	for (; block_cat < LAST_BLOCK_CAT; block_cat++) { //iterate through each block category
-		last_found = 0;
-		while (bl < MAX_BLOCKS_PER_CATEGORY && !last_found) { 		// a b_cat<bl> = <Label> is still to process (potentially)
-
-			strcpy(list_section, block_cat_defs[block_cat].conf_section_label);	//list_section
-			sprintf(list_section_key, "%s%d", block_cat_defs[block_cat].conf_section_key_base, bl);	//list_section_key
-			key_value[0] = '\0';
-
-			if (cf.getValue(list_section, list_section_key, key_value,
-			INI_FILE_MAX_LINE_LENGTH)) {
-
-				sprintf(debug_msg, "[%s][%s] = %s", list_section, list_section_key, key_value);
-				DebugLog(debug_msg);
-
-				//////////////////// label registration only to allow block cross references when registering the settings later
-				if (ConfigureBlock(block_cat, key_value, NULL, NULL)) {	//register the block
-					block_count++;
-//					sprintf(debug_msg, "Registered: block_cat=[%d] label=[%s]", block_cat, key_value);
-//					DebugLog(debug_msg);
-				} else {
-					sprintf(debug_msg, "[CONFIG] REGISTRATION FAILED [%s][%s][%s]", list_section, list_section_key, key_value);
-					DebugLog(debug_msg);
-				}
-				////////////////////
-
-				bl++;
-
-			} else {
-				if( cf.getError() == errorKeyNotFound) {  // this is expected once key list end is found
-					sprintf(debug_msg, "[CONFIG] Registered %d [%s]", bl-1, block_cat_defs[block_cat].conf_section_label);
-				} else {
-					sprintf(debug_msg, "[CONFIG] LAST [%s] REACHED - [%s]: %s ", block_cat_defs[block_cat].conf_section_label, list_section_key, GetINIError(cf.getError(), ini_error_string));
-				}
-				DebugLog(debug_msg);
-				last_found = 1;
-				bl = 1;
-			}
+	while (1) {
+		b_cat = uint8_tRead(&f); //all blocks start with block category
+DebugLog("Read b_cat");
+		if (!f.available()) {
+DebugLog("Not available - break");
+			break;
 		}
-	}
-
-	// We now have a block list registered but no settings
-	// set up to go second pass and get all the details
-	// updating the registry with ConfigureBlock calls.
-
-	block_cat = (FF_SYSTEM + 1);
-	bl = 1; 		//block list start from "1" in config file "input1=" etc
-
-	DebugLog(SSS, E_VERBOSE, M_CONF_BLKS);
-
-	for (; block_cat < LAST_BLOCK_CAT; block_cat++) { //iterate through each block category
-		last_found = 0;
-		while (bl < MAX_BLOCKS_PER_CATEGORY && !last_found) { 		// a b_cat<bl> = <Label> is still to process (potentially)
-
-			strcpy(list_section, block_cat_defs[block_cat].conf_section_label);	//list_section
-			sprintf(list_section_key, "%s%d", block_cat_defs[block_cat].conf_section_key_base, bl);	//list_section_key
-			key_value[0] = '\0';
-
-			if (cf.getValue(list_section, list_section_key, key_value, INI_FILE_MAX_LINE_LENGTH)) {
-
-//				sprintf(debug_msg, "[%s][%s] = %s", list_section, list_section_key, key_value);
-//				DebugLog(debug_msg);
-
-				strcpy(block_section, key_value); //look for a block section with that label
-
-				switch (block_cat) {
+		b = AddBlock(FF_GENERIC_BLOCK, "NEW_BLANK_BLOCK"); //add a new one
+DebugLog("Add block passed");
+		if (b != NULL) {
+			//we now have a valid block ptr pointing to a new block in the list
+DebugLog("AddBlock not NULL");
+			b->block_cat = b_cat;
+			b->block_type = uint16_tRead(&f);
+			b->block_id = uint16_tRead(&f);
+			LabelRead(b->block_label, MAX_LABEL_LENGTH, &f);
+#ifndef	EXCLUDE_DISPLAYNAME
+			LabelRead(b->display_name, MAX_LABEL_LENGTH, f);
+#endif
+#ifndef EXCLUDE_DESCRIPTION
+			LabelRead(b->description, MAX_DESCR_LENGTH, f);
+#endif
+			switch (b->block_cat) {
+				case FF_SYSTEM:
+					b->settings.sys.temp_scale = uint8_tRead(&f);
+					b->settings.sys.language = uint8_tRead(&f);
+					b->settings.sys.week_start = uint8_tRead(&f);
+					break;
 				case FF_INPUT:
-					last_key = LAST_IN_KEY_TYPE;
+					b->settings.in.interface = uint8_tRead(&f);
+					b->settings.in.if_num = uint8_tRead(&f);
+					b->settings.in.log_rate = uint32_tRead(&f);
+					b->settings.in.data_units = uint8_tRead(&f);
+					b->settings.in.data_type = uint8_tRead(&f);
 					break;
 				case FF_MONITOR:
-					last_key = LAST_MON_KEY_TYPE;
+					b->settings.mon.input1 = uint16_tRead(&f);
+					b->settings.mon.input2 = uint16_tRead(&f);
+					b->settings.mon.input3 = uint16_tRead(&f);
+					b->settings.mon.input4 = uint16_tRead(&f);
+					b->settings.mon.act_val = floatRead(&f);
+					b->settings.mon.deact_val = floatRead(&f);
 					break;
 				case FF_SCHEDULE:
-					last_key = LAST_SCH_KEY_TYPE;
+					uint8_tArrayRead(b->settings.sch.days, 7, &f);
+					b->settings.sch.time_start = uint32_tRead(&f);
+					b->settings.sch.time_end = uint32_tRead(&f);
+					b->settings.sch.time_duration = uint32_tRead(&f);
+					b->settings.sch.time_repeat = uint32_tRead(&f);
 					break;
 				case FF_RULE:
-					last_key = LAST_RL_KEY_TYPE;
+					b->settings.rl.param1 = uint16_tRead(&f);
+					b->settings.rl.param2 = uint16_tRead(&f);
+					b->settings.rl.param3 = uint16_tRead(&f);
+					b->settings.rl.param_not = uint16_tRead(&f);
 					break;
 				case FF_CONTROLLER:
-					last_key = LAST_CON_KEY_TYPE;
+					b->settings.con.rule = uint16_tRead(&f);
+					b->settings.con.output = uint16_tRead(&f);
+					b->settings.con.act_cmd = uint8_tRead(&f);
+					b->settings.con.deact_cmd = uint8_tRead(&f);
 					break;
 				case FF_OUTPUT:
-					last_key = LAST_OUT_KEY_TYPE;
+					b->settings.out.interface = uint8_tRead(&f);
+					b->settings.out.if_num = uint8_tRead(&f);
+					b->settings.out.command = uint8_tRead(&f);
 					break;
-
 				default:
-					;
-				}
-				for (int key = 1; key < last_key; key++) {
 
-					strcpy(block_section_key, block_cat_defs[block_cat].conf_keys[key]);
+					break;
+			} //switch
+		} // if b != NULL
+		DebugLog(b->block_id, E_VERBOSE, M_BLOCK_READ_BINARY);
+	};
 
-					if (cf.getValue(block_section, block_section_key, key_value,
-					INI_FILE_MAX_LINE_LENGTH)) {
-
-						if (ConfigureBlock(block_cat, block_section, block_section_key, key_value)) {
-//							sprintf(debug_msg, "CONFIGURED [%s][%s][%s][%s] = %s", list_section, list_section_key, block_section, block_section_key, key_value);
-//							DebugLog(debug_msg);
-						} else {
-							sprintf(debug_msg, "[CONFIG] CONFIG FAILED [%s][%s][%s][%s]: %s ", list_section, list_section_key, block_section, block_section_key, key_value);
-							DebugLog(debug_msg);
-						}
-
-					} else {
-						if( cf.getError() != errorKeyNotFound) {
-							sprintf(debug_msg, "[CONFIG] ERROR [%s][%s][%s][%s]: %s ", list_section, list_section_key, block_section, block_section_key, GetINIError(cf.getError(), ini_error_string));
-							DebugLog(debug_msg);
-							//handle error - could be ok if key not required for that block sub type
-						}
-					}
-				}
-
-				bl++;
-
-			} else {
-				if( cf.getError() == errorKeyNotFound) {
-					sprintf(debug_msg, "[CONFIG] Processed %d [%s]", bl-1, block_cat_defs[block_cat].conf_section_label);
-				} else {
-					sprintf(debug_msg, "[CONFIG] LAST [%s] REACHED - [%s]: %s ", block_cat_defs[block_cat].conf_section_label, list_section_key, GetINIError(cf.getError(), ini_error_string));
-				}
-				DebugLog(debug_msg);
-				last_found = 1;
-				bl = 1;
-			}
-		}
-	}
-
-	cf.close();
+#ifdef FF_SIMULATOR
+	fclose(f);
+#endif
+#ifdef FF_ARDUINO
+	f.close();
+	SD.end();
+#endif
 }
 
 
 void InitSystem(void) {
-	//Read the config file, parse it and create a block list in memory
-	//XXX consider if Block0(SYSTEM) can be the state register?
-	ReadAndParseConfig();
 
 	// Set up the global system state register
 	InitStateRegister();

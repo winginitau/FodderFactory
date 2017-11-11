@@ -12,8 +12,10 @@
 /************************************************
  Includes
 ************************************************/
-#include "ff_datetime.h"
+#include "ff_sys_config.h"
+//#include "ff_datetime.h"
 #include <time.h>
+#include <stdint.h>
 
 /************************************************
  Public and Forward Data Structure Declarations
@@ -91,8 +93,12 @@ struct BLOCK_NODE {
 	uint16_t block_type;
 	uint16_t block_id;
 	char block_label[MAX_LABEL_LENGTH];
+#ifndef EXCLUDE_DISPLAYNAME
 	char display_name[MAX_LABEL_LENGTH];
+#endif
+#ifndef EXCLUDE_DESCRIPTION
 	char description[MAX_DESCR_LENGTH];
+#endif
 
 	// common operational, run-time data
 	// not tied to config, though must be initialised in AddNewBlock()
@@ -141,31 +147,23 @@ typedef struct UI_DATA_SET {
 ************************************************/
 
 void Operate(BlockNode *b);
-
 void Setup(BlockNode *b);
 
 void ProcessDispatcher(void(*f)(BlockNode*));
 
-void WriteRunningConfig(void);
-
-BlockNode* GetBlockByID(BlockNode *list_node, uint16_t block_id);
 uint8_t SetCommand(uint16_t block_id, uint8_t cmd_msg);
 uint8_t IsActive(uint16_t block_id);
 uint8_t GetBVal(uint16_t block_id);
 float GetFVal(uint16_t block_id);
-BlockNode* GetBlockByLabel(BlockNode *list_node, const char *block_label);
-
-uint8_t ConfigureBlock(uint8_t block_cat, const char *block_label, const char *key_str, const char *value_str);
+uint16_t GetBlockID(const char* label);
 char const* GetBlockLabelString(uint16_t block_id);
 void SetBlockLabelString(uint8_t block_type, int idx, const char* label);
-
-//uint8_t GetBlockIndexByLabel (const char * label);
-
-//void SaveEventBuffer(void);
-
+BlockNode* GetBlockListHead(void);
+BlockNode* GetBlockByID(BlockNode *list_node, uint16_t block_id);
+BlockNode* GetBlockByLabel(const char *block_label);
+BlockNode* AddBlock(uint8_t block_cat, const char *block_label);
+//BlockNode* AddBlockNode(BlockNode** head_ref, uint8_t block_cat, const char *block_label);
 void UpdateStateRegister(uint16_t source, uint8_t msg_type, uint8_t msg_str, int i_val, float f_val);
-
-uint8_t GetBlockTypeOffset (uint8_t block_type);
 
 UIDataSet* GetUIDataSet(void);
 

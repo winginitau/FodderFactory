@@ -33,6 +33,7 @@ using namespace std;
 #include <ff_registry.h>
 #include <ff_debug.h>
 #include <stdio.h>
+#include <ff_ini_config.h>
 
 
 /************************************************
@@ -40,11 +41,10 @@ using namespace std;
  ************************************************/
 
 void loop() {
-		// Operate each block forever
+	// Operate each block forever
 	ProcessDispatcher(Operate);
 
 }
-
 
 
 #ifdef FF_ARDUINO
@@ -57,26 +57,30 @@ int main(void) {
 #endif
 
 
+	// Read the config file, parse it and create a block list in memory
+	//XXX consider if Block0(SYSTEM) can be the state register?
+	ReadAndParseConfig();	//from INI config file
+	//ReadProcessedConfig();
 
+	// set up the runtime environment
 	InitSystem();
+	// run validate over eaach block
 	ProcessDispatcher(Validate);
-	WriteRunningConfig();
-
-	//XXX THIS BUILD - Write Config Call
-	//XXX move most of "main" to new config library
-
-	// while using assert, its safe to declare success (if not correctness) if we get this far
 	DebugLog(SSS, E_INFO, M_DISP_VALIDATE);
+	// write a binary config file (for consumption by ReadProcessedConfig() in embedded builds
+	WriteRunningConfig();
+	DebugLog("Created Binary Configuration File. Done.");
 
-//	DebugLog(SSS, E_INFO, M_DISP_SETUP);
-//	ProcessDispatcher(Setup);
+	if(0) { //0 or 1 to include for testing
+		DebugLog(SSS, E_INFO, M_DISP_SETUP);
+		ProcessDispatcher(Setup);
 
-//	DebugLog(SSS, E_INFO, M_DISP_OPER_1ST);
-//	ProcessDispatcher(Operate);
-//	DebugLog(SSS, E_INFO, M_DISP_OPER_LOOP);
+		DebugLog(SSS, E_INFO, M_DISP_OPER_1ST);
+		ProcessDispatcher(Operate);
+		DebugLog(SSS, E_INFO, M_DISP_OPER_LOOP);
 
-
-
+		while (1) loop();
+	}
 	return 0;
 
 }

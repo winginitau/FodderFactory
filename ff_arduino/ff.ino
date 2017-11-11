@@ -1,34 +1,25 @@
 //============================================================================
-// Name        : ff_simulator.cpp
+// Name        : ff_arduino.cpp
 // Author      : Brendan McLearie
 // Version     :
-// Copyright   : Your copyright notice
-// Description : Hello World in C++, Ansi-style
+// Copyright   : Copyright Brendan McLearie
+// Description :
 //============================================================================
 
-//#include <iostream>
-
-//using namespace std;
 
 /************************************************
  Includes
  ************************************************/
-
-
-
 #include <ff_sys_config.h>
 #include <ff_string_consts.h>
-
-#ifdef FF_ARDUINO
-//#include <Arduino.h>
-#endif
+#include <ff_main.h>
 
 //#include "src/ff_utils.h"
-#include <ff_inputs.h>
-#include <ff_outputs.h>
-#include <ff_controllers.h>
-#include <ff_display.h>
-#include <ff_main.h>
+//#include <ff_inputs.h>
+//#include <ff_outputs.h>
+//#include <ff_controllers.h>
+//#include <ff_display.h>
+
 #include <ff_validate.h>
 #include <ff_registry.h>
 #include <ff_debug.h>
@@ -40,20 +31,6 @@
  ************************************************/
 
 void loop() {
-	//DEPR PollInputs(); 			// based on their config they may need to take a measurement and write it to a log
-	//DEPR RunControllers(); 		// does something need to happen? Store in control register, set a command register
-	//DEPR PollOutputs();     		// check command registers and change outputs accordingly
-
-	//UpdateUI(); 		            // Check for User Input and update screens etc
-
-	//TODO
-	// update radio / feed
-
-	//TODO - trigger this on an iteration count or software interupt
-	// SaveEventBuffer();			// write recent event to file - move to being a system scheduler and controller
-
-	//delay(1000); //for dev and debug
-
 	// Operate each block forever
 	ProcessDispatcher(Operate);
 	//TODO - remove dead and/or requested blocks from the run-time in
@@ -83,13 +60,19 @@ int main(void) {
 	// though startup / init still neeeds to be handled for any blocks coming
 	// online during run-time.
 
+	// Read the binary configuration file previously created with
+	// ff_config. Note, this build and the ff_config build must use exactly
+	// the same pre-processor and compiler directives to ensure binary portability
+	ReadProcessedConfig();
+
+	// Set up the run-time environment
 	InitSystem();
 	//TODO set up remote control / data feed / radio link
 
 	// run the Validate function on each block
-	// currently (during sim dev) uses assert() - which will bomb the run if failed
-	// TODO implement assert()-like exception handling for embedded
+	// currently uses assert() - which will bomb the run if failed on embedded
 	ProcessDispatcher(Validate);
+	// TODO implement assert()-like exception handling for embedded
 
 	// while using assert, its safe to declare success (if not correctness) if we get this far
 	DebugLog(SSS, E_INFO, M_DISP_VALIDATE);
@@ -112,10 +95,6 @@ int main(void) {
 	DebugLog(SSS, E_INFO, M_DISP_OPER_1ST);
 	ProcessDispatcher(Operate);
 	DebugLog(SSS, E_INFO, M_DISP_OPER_LOOP);
-
-	//DEPR SetupInputs();			// sensors, triggers, external data feeds (eg from battery mon)
-	//DEPR SetupOutputs();			// relays and data connections to turn devices on/off and talk to external systems
-	//DEPR SetupControllers();		// rules and logic - when and why
 
 	#ifdef FF_SIMULATOR
 	//for (int n = 0; n < 10000; n++) {

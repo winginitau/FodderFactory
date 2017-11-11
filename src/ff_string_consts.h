@@ -114,6 +114,7 @@ static const SimpleStringArray language_strings[LAST_LANGUAGE] = {
 //typedef
 enum {
 	FF_ERROR_CAT = 0,
+	FF_GENERIC_BLOCK,
 	FF_SYSTEM,
 	FF_INPUT,
 	FF_MONITOR,
@@ -213,6 +214,13 @@ enum {
 static const BlockCatArray block_cat_defs[LAST_BLOCK_CAT] = {
 	FF_ERROR_CAT, "\0", "\0", {
 		"\0",
+	},
+
+	FF_GENERIC_BLOCK, "\0", "\0", {
+			"",		//not used - dummy to skip error enum = 0
+			"type",
+			"display_name",
+			"description",
 	},
 
 	FF_SYSTEM, "system", "", {
@@ -454,7 +462,7 @@ typedef enum {
 	M_KEY_IDX_ZERO,
 	M_BAD_BLOCK_CAT,
 	M_ADDING_BLOCK,
-	M64,
+	M_BLOCK_READ_BINARY,
 	M65,
 	M66,
 	M67,
@@ -544,7 +552,7 @@ static const StringArray message_strings[LAST_MESSAGE] = {
 	14, { "(ConfigureCommonSetting) key_idx = zero error",	"M61" },
 	14, { "(ConfigureBlock) Invalid Block Category",		"M62" },
 	14, { "(ConfigureBlock) Finding or Adding Block",		"M63" },
-	14, { "M64",								"M64" },
+	14, { "Block Configuraton Read from Binary File",		"M64" },
 	14, { "M65",								"M65" },
 	14, { "M66",								"M66" },
 	14, { "M67",								"M67" },

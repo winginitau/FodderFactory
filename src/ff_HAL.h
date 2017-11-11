@@ -17,6 +17,7 @@
 #endif
 
 #include "ff_registry.h"
+#include "ff_datetime.h"
 /************************************************
  Public and Forward Data Structure Declarations
 ************************************************/

@@ -124,239 +124,6 @@ void Operate(BlockNode *b) {
 	}
 }
 
-int uint8_tWrite(uint8_t data, FILE *f) {
-	//return fwrite(&data, sizeof(data), 1, f);
-	printf("%d ", data);
-	return fprintf(f, "%d ", data);
-}
-
-int uint16_tWrite(uint16_t data, FILE *f) {
-//	return fwrite(&data, sizeof(data), 1, f);
-	printf("%d ", data);
-	return fprintf(f, "%d ", data);
-}
-
-int uint32_tWrite(uint32_t data, FILE *f) {
-//	return fwrite(&data, sizeof(data), 1, f);
-	printf("%d ", data);
-	return fprintf(f, "%d ", data);
-}
-
-int LabelWrite(char* data, size_t s,  FILE *f) {
-//	return fwrite(data, s, 1, f);
-	printf("%s\n", data);
-	return fprintf(f, "%s\n", data);
-}
-
-int uint8_tArrayWrite(uint8_t* data, size_t s,  FILE *f) {
-//	return fwrite(data, s, 1, f);
-	for (uint i=0; i<s; i++) {
-		printf("%d ", *(data+i));
-		fprintf(f, "%d ", *(data+i));
-	}
-	return 1;
-}
-
-int floatWrite(float data, FILE *f) {
-//	return fwrite(&data, sizeof(data) , 1, f);
-	printf("%.2f ", data);
-	return fprintf(f, "%.2f ", data);
-}
-
-void WriteBlock(BlockNode *b, FILE *f) {
-
-	uint8_tWrite(b->block_cat, f);
-	uint16_tWrite(b->block_type, f);
-	uint16_tWrite(b->block_id, f);
-	LabelWrite(b->block_label, MAX_LABEL_LENGTH, f);
-	LabelWrite(b->display_name, MAX_LABEL_LENGTH, f);
-	LabelWrite(b->description, MAX_DESCR_LENGTH, f);
-
-
-	switch (b->block_cat) {
-	case FF_SYSTEM:
-		uint8_tWrite(b->settings.sys.temp_scale, f);
-		uint8_tWrite(b->settings.sys.language, f);
-		uint8_tWrite(b->settings.sys.week_start, f);
-		break;
-	case FF_INPUT:
-		uint8_tWrite(b->settings.in.interface, f);
-		uint8_tWrite(b->settings.in.if_num, f);
-		uint32_tWrite(b->settings.in.log_rate, f);
-		uint8_tWrite(b->settings.in.data_units, f);
-		uint8_tWrite(b->settings.in.data_type, f);
-		break;
-	case FF_MONITOR:
-		uint16_tWrite(b->settings.mon.input1, f);
-		uint16_tWrite(b->settings.mon.input2, f);
-		uint16_tWrite(b->settings.mon.input3, f);
-		uint16_tWrite(b->settings.mon.input4, f);
-		floatWrite(b->settings.mon.act_val, f);
-		floatWrite(b->settings.mon.deact_val, f);
-		break;
-	case FF_SCHEDULE:
-		uint8_tArrayWrite(b->settings.sch.days, 7, f);
-		uint32_tWrite(b->settings.sch.time_start, f);
-		uint32_tWrite(b->settings.sch.time_end, f);
-		uint32_tWrite(b->settings.sch.time_duration, f);
-		uint32_tWrite(b->settings.sch.time_repeat, f);
-		break;
-	case FF_RULE:
-		uint16_tWrite(b->settings.rl.param1, f);
-		uint16_tWrite(b->settings.rl.param2, f);
-		uint16_tWrite(b->settings.rl.param3, f);
-		uint16_tWrite(b->settings.rl.param_not, f);
-		break;
-	case FF_CONTROLLER:
-		uint16_tWrite(b->settings.con.rule, f);
-		uint16_tWrite(b->settings.con.output, f);
-		uint8_tWrite(b->settings.con.act_cmd, f);
-		uint8_tWrite(b->settings.con.deact_cmd, f);
-		break;
-	case FF_OUTPUT:
-		uint8_tWrite(b->settings.out.interface, f);
-		uint8_tWrite(b->settings.out.if_num, f);
-		uint8_tWrite(b->settings.out.command, f);
-		break;
-	default:
-
-		break;
-	}
-
-}
-
-
-void FileIODispatcher(void(*func)(BlockNode*, FILE*), FILE* file) {
-	BlockNode* block_ptr;
-
-	block_ptr = bll;
-
-	while (block_ptr != NULL) {
-		func(block_ptr, file);
-		block_ptr = block_ptr->next_block;
-	}
-}
-
-void WriteRunningConfig(void) {
-	FILE *outfile;
-	outfile = fopen(BIN_CONFIG_FILENAME, "w");
-	FileIODispatcher(WriteBlock, outfile);
-	fclose(outfile);
-}
-
-
-uint8_t uint8_tRead(FILE *f) {
-	uint8_t data;
-	fscanf(f, "%hhu", &data);
-	printf("%d ", data);
-	return data;
-}
-
-uint16_t uint16_tRead(FILE *f) {
-	uint16_t data;
-	fscanf(f, "%hu", &data);
-	printf("%d ", data);
-	return data;
-}
-
-uint32_t uint32_tRead(FILE *f) {
-	uint32_t data;
-	fscanf(f, "%u", &data);
-	printf("%d ", data);
-	return data;
-}
-
-char* LabelRead(char* data, size_t s,  FILE *f) {
-	fscanf(f, "%s", data);
-	printf("%s\n", data);
-	return data;
-}
-
-uint8_t* uint8_tArrayRead(uint8_t* data, size_t s,  FILE *f) {
-	for (uint8_t i=0; i<s; i++) {
-		fscanf(f, "%hhu", &data[i]);
-		printf("%d ", data[i]);
-	}
-	return data;
-}
-
-float floatRead(FILE *f) {
-	float data;
-	fscanf(f, "%f", &data);
-	printf("%.2f ", data);
-	return data;
-}
-
-void ReadProcessedConfig(void) {
-	BlockNode* b;
-	FILE *f;
-	f = fopen(BIN_CONFIG_FILENAME, "r");
-	while (!feof(f)) {
-
-		b->block_cat = uint8_tRead(f);
-		uint16_tWrite(b->block_type, f);
-		uint16_tWrite(b->block_id, f);
-		LabelWrite(b->block_label, MAX_LABEL_LENGTH, f);
-		LabelWrite(b->display_name, MAX_LABEL_LENGTH, f);
-		LabelWrite(b->description, MAX_DESCR_LENGTH, f);
-
-		switch (b->block_cat) {
-		case FF_SYSTEM:
-			uint8_tWrite(b->settings.sys.temp_scale, f);
-			uint8_tWrite(b->settings.sys.language, f);
-			uint8_tWrite(b->settings.sys.week_start, f);
-			break;
-		case FF_INPUT:
-			uint8_tWrite(b->settings.in.interface, f);
-			uint8_tWrite(b->settings.in.if_num, f);
-			uint32_tWrite(b->settings.in.log_rate, f);
-			uint8_tWrite(b->settings.in.data_units, f);
-			uint8_tWrite(b->settings.in.data_type, f);
-			break;
-		case FF_MONITOR:
-			uint16_tWrite(b->settings.mon.input1, f);
-			uint16_tWrite(b->settings.mon.input2, f);
-			uint16_tWrite(b->settings.mon.input3, f);
-			uint16_tWrite(b->settings.mon.input4, f);
-			floatWrite(b->settings.mon.act_val, f);
-			floatWrite(b->settings.mon.deact_val, f);
-			break;
-		case FF_SCHEDULE:
-			uint8_tArrayWrite(b->settings.sch.days, 7, f);
-			uint32_tWrite(b->settings.sch.time_start, f);
-			uint32_tWrite(b->settings.sch.time_end, f);
-			uint32_tWrite(b->settings.sch.time_duration, f);
-			uint32_tWrite(b->settings.sch.time_repeat, f);
-			break;
-		case FF_RULE:
-			uint16_tWrite(b->settings.rl.param1, f);
-			uint16_tWrite(b->settings.rl.param2, f);
-			uint16_tWrite(b->settings.rl.param3, f);
-			uint16_tWrite(b->settings.rl.param_not, f);
-			break;
-		case FF_CONTROLLER:
-			uint16_tWrite(b->settings.con.rule, f);
-			uint16_tWrite(b->settings.con.output, f);
-			uint8_tWrite(b->settings.con.act_cmd, f);
-			uint8_tWrite(b->settings.con.deact_cmd, f);
-			break;
-		case FF_OUTPUT:
-			uint8_tWrite(b->settings.out.interface, f);
-			uint8_tWrite(b->settings.out.if_num, f);
-			uint8_tWrite(b->settings.out.command, f);
-			break;
-		default:
-
-			break;
-		}
-
-
-	} ;
-
-
-
-	fclose(f);
-}
 
 void ProcessDispatcher(void(*func)(BlockNode*)) {
 	BlockNode* block_ptr;
@@ -470,7 +237,12 @@ char const* GetBlockLabelString(uint16_t block_id) {
 		return NULL;
 }
 
-BlockNode* AddBlock(BlockNode** head_ref, uint8_t block_cat, const char *block_label) {
+
+BlockNode* GetBlockListHead(void) {
+	return bll;
+}
+
+BlockNode* AddBlockNode(BlockNode** head_ref, uint8_t block_cat, const char *block_label) {
 	BlockNode* new_block;
 
 	if (*head_ref == NULL) {   //empty list
@@ -478,23 +250,16 @@ BlockNode* AddBlock(BlockNode** head_ref, uint8_t block_cat, const char *block_l
 		new_block = (BlockNode *) malloc(sizeof(BlockNode));
 		if (new_block == NULL) {
 			DebugLog("STOP: (AddBlock) malloc returned NULL");
-			while (1);
-		} else DebugLog("(AddBlock) malloc OK");
+			while (1)
+				;
+		} else
+			DebugLog("(AddBlock) malloc OK");
 		new_block->next_block = NULL;
 
 		new_block->block_cat = block_cat;
 		new_block->block_type = UINT8_INIT;
-		if (block_cat == FF_SYSTEM) {
-			new_block->block_id = SSS;
-		} else {
-			new_block->block_id = BLOCK_ID_BASE + block_count;
-			block_count++;
-		}
-		strcpy(new_block->block_label, block_label);
-		new_block->display_name[0] = '\0';
-		new_block->description[0] = '\0';
 
-		// operational, run-time block data
+		// initialise operational, run-time block data
 		new_block->active = 0;
 		new_block->bool_val = 0;
 		new_block->int_val = UINT8_INIT;
@@ -502,61 +267,81 @@ BlockNode* AddBlock(BlockNode** head_ref, uint8_t block_cat, const char *block_l
 		new_block->last_update = UINT32_INIT;
 		new_block->status = STATUS_INIT;
 
-		switch (block_cat) {
-			case FF_SYSTEM:
+		if (block_cat != FF_GENERIC_BLOCK) {
 
-				new_block->settings.sys.language = UINT8_INIT;
-				new_block->settings.sys.temp_scale = UINT8_INIT;
-				new_block->settings.sys.week_start = UINT8_INIT;
-				break;
-			case FF_INPUT:
-				new_block->settings.in.interface = LAST_INTERFACE;
-				new_block->settings.in.if_num = UINT8_INIT;
-				new_block->settings.in.log_rate = 0;
-				new_block->settings.in.data_units = UINT8_INIT;
-				new_block->settings.in.data_type = UINT8_INIT;
-				break;
-			case FF_MONITOR:
-				new_block->settings.mon.input1 = UINT16_INIT;
-				new_block->settings.mon.input2 = UINT16_INIT;
-				new_block->settings.mon.input3 = UINT16_INIT;
-				new_block->settings.mon.input4 = UINT16_INIT;
-				new_block->settings.mon.act_val = FLOAT_INIT;
-				new_block->settings.mon.deact_val = FLOAT_INIT;
-				break;
-			case FF_SCHEDULE:
-				for (int i = 0; i < LAST_DAY; i++ ) new_block->settings.sch.days[i] = UINT8_INIT;
-				new_block->settings.sch.time_start = UINT32_INIT;
-				new_block->settings.sch.time_end = UINT32_INIT;
-				new_block->settings.sch.time_duration = 0;
-				new_block->settings.sch.time_repeat = 0;
-				break;
-			case FF_RULE:
-				new_block->settings.rl.param1 = UINT16_INIT;
-				new_block->settings.rl.param2 = UINT16_INIT;
-				new_block->settings.rl.param3 = UINT16_INIT;
-				new_block->settings.rl.param_not = UINT16_INIT;
-				break;
-			case FF_CONTROLLER:
-				new_block->settings.con.rule = UINT16_INIT;
-				new_block->settings.con.output = UINT16_INIT;
-				new_block->settings.con.act_cmd = UINT8_INIT;
-				new_block->settings.con.deact_cmd= UINT8_INIT;
-				break;
-			case FF_OUTPUT:
-				new_block->settings.out.interface = LAST_INTERFACE;
-				new_block->settings.out.if_num = UINT8_INIT;
-				break;
+			if (block_cat == FF_SYSTEM) {
+				new_block->block_id = SSS;
+			} else {
+				new_block->block_id = BLOCK_ID_BASE + block_count;
+				block_count++;
 			}
+			strcpy(new_block->block_label, block_label);
+#ifndef	EXCLUDE_DISPLAYNAME
+			new_block->display_name[0] = '\0';
+#endif
+#ifndef EXCLUDE_DESCRIPTION
+			new_block->description[0] = '\0';
+#endif
+
+			switch (block_cat) {
+				case FF_SYSTEM:
+					new_block->settings.sys.language = UINT8_INIT;
+					new_block->settings.sys.temp_scale = UINT8_INIT;
+					new_block->settings.sys.week_start = UINT8_INIT;
+					break;
+				case FF_INPUT:
+					new_block->settings.in.interface = LAST_INTERFACE;
+					new_block->settings.in.if_num = UINT8_INIT;
+					new_block->settings.in.log_rate = 0;
+					new_block->settings.in.data_units = UINT8_INIT;
+					new_block->settings.in.data_type = UINT8_INIT;
+					break;
+				case FF_MONITOR:
+					new_block->settings.mon.input1 = UINT16_INIT;
+					new_block->settings.mon.input2 = UINT16_INIT;
+					new_block->settings.mon.input3 = UINT16_INIT;
+					new_block->settings.mon.input4 = UINT16_INIT;
+					new_block->settings.mon.act_val = FLOAT_INIT;
+					new_block->settings.mon.deact_val = FLOAT_INIT;
+					break;
+				case FF_SCHEDULE:
+					for (int i = 0; i < LAST_DAY; i++)
+						new_block->settings.sch.days[i] = UINT8_INIT;
+					new_block->settings.sch.time_start = UINT32_INIT;
+					new_block->settings.sch.time_end = UINT32_INIT;
+					new_block->settings.sch.time_duration = 0;
+					new_block->settings.sch.time_repeat = 0;
+					break;
+				case FF_RULE:
+					new_block->settings.rl.param1 = UINT16_INIT;
+					new_block->settings.rl.param2 = UINT16_INIT;
+					new_block->settings.rl.param3 = UINT16_INIT;
+					new_block->settings.rl.param_not = UINT16_INIT;
+					break;
+				case FF_CONTROLLER:
+					new_block->settings.con.rule = UINT16_INIT;
+					new_block->settings.con.output = UINT16_INIT;
+					new_block->settings.con.act_cmd = UINT8_INIT;
+					new_block->settings.con.deact_cmd = UINT8_INIT;
+					break;
+				case FF_OUTPUT:
+					new_block->settings.out.interface = LAST_INTERFACE;
+					new_block->settings.out.if_num = UINT8_INIT;
+					break;
+			} //switch
+		} // != FF_GENERIC_BLOCK
 		*head_ref = new_block;
 		return new_block;
 	}
-	return AddBlock(&((*head_ref)->next_block), block_cat, block_label);
+	return AddBlockNode(&((*head_ref)->next_block), block_cat, block_label);
 
 }
 
+BlockNode* AddBlock(uint8_t block_cat, const char *block_label) {
+	return AddBlockNode(&bll, block_cat, block_label);
+}
 
-BlockNode* GetBlockByLabel(BlockNode *list_node, const char *block_label) {
+BlockNode* GetBlockNodeByLabel(BlockNode *list_node, const char *block_label) {
 	//BlockNode *block;
 
 	if(list_node == NULL) {   //empty list
@@ -565,399 +350,14 @@ BlockNode* GetBlockByLabel(BlockNode *list_node, const char *block_label) {
 		if (strcmp(list_node->block_label, block_label) == 0) {
 			return list_node;
 		} else {
-			list_node = GetBlockByLabel(list_node->next_block, block_label);
+			list_node = GetBlockNodeByLabel(list_node->next_block, block_label);
 		}
 	}
 	return list_node;
 }
 
-uint8_t GetConfKeyIndex(uint8_t block_cat, const char* key_str) {
-
-	uint8_t last_key = UINT8_INIT;
-	uint8_t key_idx = 0; //see "string_consts.h" Zero is error.
-
-	//lock the last key index to the appropriate block category
-
-	switch (block_cat) {
-		case FF_ERROR_CAT:
-			DebugLog(SSS, E_STOP, M_CONFKEY_ERROR_CAT);
-			while(1);
-			break;
-		case FF_SYSTEM:
-			last_key = LAST_SYS_KEY_TYPE;
-			break;
-		case FF_INPUT:
-			last_key = LAST_IN_KEY_TYPE;
-			break;
-		case FF_MONITOR:
-			last_key = LAST_MON_KEY_TYPE;
-			break;
-		case FF_SCHEDULE:
-			last_key = LAST_SCH_KEY_TYPE;
-			break;
-		case FF_RULE:
-			last_key = LAST_RL_KEY_TYPE;
-			break;
-		case FF_CONTROLLER:
-			last_key = LAST_CON_KEY_TYPE;
-			break;
-		case FF_OUTPUT:
-			last_key = LAST_OUT_KEY_TYPE;
-			break;
-		default:
-			DebugLog(SSS, E_STOP, M_CONFKEY_LAST_BCAT);
-			while(1);
-	}
-
-	//check that we have a key that matches one of the keys strings of the block category
-	while ((strcmp(key_str, block_cat_defs[block_cat].conf_keys[key_idx]) != 0) && key_idx < last_key) {
-		key_idx++;
-	}
-
-	if (key_idx == last_key) {
-		DebugLog(SSS, E_STOP, M_CONFKEY_NOTIN_DEFS);
-		while(1);
-	} else {
-		return key_idx;
-	}
-}
-
-uint8_t ConfigureCommonSetting(BlockNode* block_ptr, uint8_t key_idx, const char* value_str){
-	switch (key_idx) {
-		case SYS_ERROR_KEY:
-			// or any other (0) block cat error key
-			DebugLog(SSS, E_STOP, M_KEY_IDX_ZERO);
-			while(1);
-			break;
-		case SYS_TYPE:
-			// or case IN_TYPE
-			// or case MON_TYPE:
-			// or case SCH_TYPE:
-			// or case RL_TYPE:
-			// or case CON_TYPE:
-			// or case OUT_TYPE:
-			block_ptr->block_type = BlockTypeStringArrayIndex(value_str);
-			break;
-		case SYS_DISPLAY_NAME:
-			// or case IN_DISPLAY_NAME
-			// or case MON_DISPLAY_NAME:
-			// or case SCH_DISPLAY_NAME:
-			// or case RL_DISPLAY_NAME:
-			// or case CON_DISPLAY_NAME:
-			// or case OUT_DISPLAY_NAME:
-			strcpy(block_ptr->display_name, value_str);
-			break;
-		case SYS_DESCRIPTION:
-			// or case IN_DESCRIPTION
-			// or case MON_DESCRIPTION:
-			// or case SCH_DESCRIPTION:
-			// or case RL_DESCRIPTION:
-			// or case CON_DESCRIPTION:
-			// or case OUT_DESCRIPTION:
-			strcpy(block_ptr->description, value_str);
-			break;
-		default:
-			return 0; //error
-			break;
-	}
-	return 1;
-}
-
-uint8_t ConfigureSYSSetting(BlockNode* block_ptr, uint8_t key_idx, const char* value_str) {
-	switch (key_idx) {
-		case SYS_LANGUAGE:
-			block_ptr->settings.sys.language = LanguageStringArrayIndex(value_str);
-			break;
-		case SYS_TEMPERATURE:
-			block_ptr->settings.sys.temp_scale = UnitStringArrayIndex(value_str);
-			break;
-		case SYS_WEEK_START:
-			block_ptr->settings.sys.week_start = DayStringArrayIndex(value_str);
-			break;
-		default:
-			DebugLog(SSS, E_ERROR, M_SYS_BAD_DEF);
-			return 0;
-			break;
-	} // switch(key_idx)
-	return 1;
-}
-
-uint8_t ConfigureINSetting(BlockNode* block_ptr, uint8_t key_idx, const char* value_str) {
-	switch (key_idx) {
-		case IN_INTERFACE:
-			block_ptr->settings.in.interface = InterfaceStringArrayIndex(value_str);
-			break;
-		case IN_IF_NUM:
-			block_ptr->settings.in.if_num = atoi(value_str);
-			break;
-		case IN_LOG_RATE: {
-			//tm time_tm;
-			//strptime(value_str, "%H:%M:%S", &time_tm);
-			block_ptr->settings.in.log_rate = StrToTV(value_str);
-			break;
-		}
-		case IN_DATA_UNITS: {
-			uint8_t u = 0;
-#ifdef USE_PROGMEM
-			while (u < LAST_UNIT && strcmp_P(unit_strings[u].text, value_str)) {
-				u++;
-			}
-#else
-			while (u < LAST_UNIT && strcmp(unit_strings[u].text, value_str)) {
-				u++;
-			}
-#endif
-			if (u < LAST_UNIT) {
-				block_ptr->settings.in.data_units = u;
-			} else {
-				block_ptr->settings.in.data_units = 255;
-				DebugLog(SSS, E_ERROR, M_BAD_DATA_UNITS);
-				return 0;
-			}
-			break;
-		}
-		case IN_DATA_TYPE:
-			//XXX so what - either float or int presently - inferred from block type, conider dropping
-			break;
-		default:
-			DebugLog(SSS, E_ERROR, M_IN_BAD_DEF);
-			return 0;
-			break;
-	} // switch(key_idx)
-	return 1;
-}
-
-uint8_t ConfigureMONSetting(BlockNode* block_ptr, uint8_t key_idx, const char* value_str) {
-	switch (key_idx) {
-		case MON_INPUT1:
-			block_ptr->settings.mon.input1 = GetBlockID(value_str);
-			break;
-		case MON_INPUT2:
-			block_ptr->settings.mon.input2 = GetBlockID(value_str);
-			break;
-		case MON_INPUT3:
-			block_ptr->settings.mon.input3 = GetBlockID(value_str);
-			break;
-		case MON_INPUT4:
-			block_ptr->settings.mon.input4 = GetBlockID(value_str);
-			break;
-		case MON_ACT_VAL:
-			// check first for IN_DIGITAL boolean values
-			if (strcmp(value_str, "HIGH") == 0) {
-				block_ptr->settings.mon.act_val = 1;
-			} else {
-				if (strcmp(value_str, "LOW") == 0) {
-					block_ptr->settings.mon.act_val = 0;
-				} else {
-					// must be a numeric float value
-					sscanf(value_str, "%f", &(block_ptr->settings.mon.act_val));
-				}
-			}
-			break;
-		case MON_DEACT_VAL:
-			// check first for IN_DIGITAL boolean values
-			if (strcmp(value_str, "HIGH") == 0) {
-				block_ptr->settings.mon.deact_val = 1;
-			} else {
-				if (strcmp(value_str, "LOW") == 0) {
-					block_ptr->settings.mon.deact_val = 0;
-				} else {
-					// must be a numeric float value
-					sscanf(value_str, "%f", &(block_ptr->settings.mon.deact_val));
-				}
-			}
-			break;
-		default:
-			DebugLog(SSS, E_ERROR, M_MON_BAD_DEF);
-			return 0;
-			break;
-	} // switch(key_idx)
-	return 1;
-}
-
-uint8_t ConfigureSCHSetting(BlockNode* block_ptr, uint8_t key_idx, const char* value_str) {
-	switch (key_idx) {
-		case SCH_DAYS:
-			if (DayStrToFlag(block_ptr->settings.sch.days, value_str) != 1) {
-				DebugLog(SSS, E_WARNING, M_DAY_FLAG_EMPTY);
-			}
-			break;
-		case SCH_TIME_START: {
-			block_ptr->settings.sch.time_start = StrToTV(value_str);
-			break;
-		}
-		case SCH_TIME_END: {
-			block_ptr->settings.sch.time_end = StrToTV(value_str);
-			break;
-		}
-		case SCH_TIME_DURATION: {
-			block_ptr->settings.sch.time_duration = StrToTV(value_str);
-			break;
-		}
-		case SCH_TIME_REPEAT: {
-			block_ptr->settings.sch.time_repeat = StrToTV(value_str);
-			break;
-		}
-		default:
-			DebugLog(SSS, E_ERROR, M_SCH_BAD_DEF);
-			return 0;
-			break;
-	} // switch(key_idx)
-
-	return 1;
-}
-
-uint8_t ConfigureRLSetting(BlockNode* block_ptr, uint8_t key_idx, const char* value_str) {
-	switch (key_idx) {
-		case RL_PARAM_1:
-			block_ptr->settings.rl.param1 = GetBlockID(value_str);
-			break;
-		case RL_PARAM_2:
-			block_ptr->settings.rl.param2 = GetBlockID(value_str);
-			break;
-		case RL_PARAM_3:
-			block_ptr->settings.rl.param3 = GetBlockID(value_str);
-			break;
-		case RL_PARAM_NOT:
-			block_ptr->settings.rl.param_not = GetBlockID(value_str);
-			break;
-		default:
-			DebugLog(SSS, E_ERROR, M_RL_BAD_DEF);
-			return 0;
-			break;
-	} // switch(key_idx)
-
-	return 1;
-}
-
-uint8_t ConfigureCONSetting(BlockNode* block_ptr, uint8_t key_idx, const char* value_str) {
-	switch (key_idx) {
-		case CON_RULE:
-			block_ptr->settings.con.rule = GetBlockID(value_str);
-			break;
-		case CON_OUTPUT:
-			block_ptr->settings.con.output = GetBlockID(value_str);
-			break;
-		case CON_ACT_CMD: {
-			uint8_t c = 0;
-#ifdef USE_PROGMEM
-			while (c < LAST_COMMAND && strcmp_P(command_strings[c].text, value_str)) {
-				c++;
-			}
-
-#else
-			while (c < LAST_COMMAND && strcmp(command_strings[c].text, value_str)) {
-				c++;
-			}
-#endif
-			if (c < LAST_COMMAND) {
-				block_ptr->settings.con.act_cmd = c;
-			} else {
-				block_ptr->settings.con.act_cmd = UINT8_INIT;
-				DebugLog(SSS, E_ERROR, M_ACT_CMD_UNKNOWN);
-				return 0;
-			}
-			break;
-		}
-		case CON_DEACT_CMD: {
-			uint8_t c = 0;
-			while (c < LAST_COMMAND && strcmp(command_strings[c].text, value_str)) {
-				c++;
-			}
-			if (c < LAST_COMMAND) {
-				block_ptr->settings.con.deact_cmd = c;
-			} else {
-				block_ptr->settings.con.deact_cmd = UINT8_INIT;
-				DebugLog(SSS, E_ERROR, M_DEACT_CMD_UNKNOWN);
-				return 0;
-			}
-			break;
-		}
-		default:
-			DebugLog(SSS, E_ERROR, M_CON_BAD_DEF);
-			return 0;
-			break;
-	} // switch(key_idx)
-	return 1;
-}
-
-uint8_t ConfigureOUTSetting(BlockNode* block_ptr, uint8_t key_idx, const char* value_str) {
-	switch (key_idx) {
-		case OUT_INTERFACE:
-			block_ptr->settings.out.interface = InterfaceStringArrayIndex(value_str);
-			break;
-		case OUT_IF_NUM:
-			block_ptr->settings.out.if_num = atoi(value_str);
-			break;
-		default:
-			DebugLog(SSS, E_ERROR, M_OUT_BAD_DEF);
-			return 0;
-			break;
-	} // switch(key_idx)
-	return 1;
-}
-
-uint8_t ConfigureBlock(uint8_t block_cat, const char *block_label, const char *key_str, const char *value_str) {
-	BlockNode *block_ptr;
-	uint8_t return_value = 1;  //error by exception
-	uint8_t key_idx = 0; //see "string_consts.h" Zero is error.
-
-	// First search for an existing block with that label
-	block_ptr = GetBlockByLabel(bll, block_label);
-
-	//not found - add a new block
-	if (block_ptr == NULL) {
-		block_ptr = AddBlock(&bll, block_cat, block_label); //add a new one
-	}
-	if (block_ptr != NULL) {
-		//we now have a valid block_ptr pointing to a categorised and labelled block
-
-		//are we just registering or updating details?
-		if (key_str == NULL) {		//registration only nothing more to do.
-			return return_value;
-		}
-
-		key_idx = GetConfKeyIndex(block_cat, key_str);
-
-		if (key_idx <= SYS_DESCRIPTION) {
-			return (ConfigureCommonSetting(block_ptr, key_idx, value_str));
-		}
-
-		//key idx must be in range of defined keys
-		//but they are different for each category
-		switch (block_cat) {
-			case FF_SYSTEM:
-				return ConfigureSYSSetting(block_ptr, key_idx, value_str);
-				break; //switch (block_cat);
-			case FF_INPUT:
-				return ConfigureINSetting(block_ptr, key_idx, value_str);
-				break; //switch (block_cat);
-			case FF_MONITOR:
-				return ConfigureMONSetting(block_ptr, key_idx, value_str);
-				break; //switch (block_cat);
-			case FF_SCHEDULE:
-				return ConfigureSCHSetting(block_ptr, key_idx, value_str);
-				break; //switch (block_cat);
-			case FF_RULE:
-				return ConfigureRLSetting(block_ptr, key_idx, value_str);
-				break; //switch (block_cat);
-			case FF_CONTROLLER:
-				return ConfigureCONSetting(block_ptr, key_idx, value_str);
-				break; //switch (block_cat);
-			case FF_OUTPUT:
-				return ConfigureOUTSetting(block_ptr, key_idx, value_str);
-				break; //switch (block_cat);
-			default:
-				DebugLog(SSS, E_ERROR, M_BAD_BLOCK_CAT);
-				return_value = 0;
-				break;
-		} //switch(block_cat)
-
-	} else {
-		DebugLog(SSS, E_ERROR, M_ADDING_BLOCK);
-		return_value = 0;
-	}
-	return return_value;
+BlockNode* GetBlockByLabel(const char *block_label) {
+	return GetBlockNodeByLabel(bll, block_label);
 }
 
 
@@ -1034,7 +434,7 @@ void UpdateStateRegister(uint16_t source, uint8_t msg_type, uint8_t msg_str, int
 	sr.ui_data.water_heater_flag = 0;
 }
 
-//TODO - should be moved after config parsing
+
 void InitStateRegister(void) {
 
 	DebugLog(SSS, E_INFO, M_INI_SR);
@@ -1046,29 +446,6 @@ void InitStateRegister(void) {
 	sr.config_valid = 0;		//false at this stage
 	sr.save_event_buffer = 0;
 
-
-//TODO mod code due to config parsing
-/*
-	sr.block_list_size = BLOCK_COUNT;
-	sr.system_start = 0;
-	sr.system_count = 1; 		//manual for now - ref sys_config define
-
-	strcpy(sr.block_list[sr.system_start].label, "SYSTEM");
-	strcpy(sr.block_list[sr.block_list_size-1].label, "LAST_BLOCK"); //size declared +1
-
-	sr.input_start = sr.system_start + sr.system_count;
-	sr.input_count = INPUT_COUNT;
-	sr.monitor_start = sr.input_start + sr.input_count;
-	sr.monitor_count = 0; ///for now
-	sr.schedule_start = sr.monitor_start + sr.monitor_count;
-	sr.schedule_count = 0; //for now
-	sr.rule_start = sr.schedule_start + sr.schedule_count;
-	sr.rule_count = 0; //for now
-	sr.controller_start = sr.rule_start + sr.rule_count;
-	sr.controller_count = CONTROL_COUNT;
-	sr.output_start = sr.controller_start + sr.controller_count;
-	sr.output_count = OUTPUT_COUNT;
-*/
 
 
 //initialise the min and max counters used for UI display

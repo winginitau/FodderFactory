@@ -79,8 +79,10 @@ void Validate(BlockNode* b) {
 
 	//char display_name[MAX_LABEL_LENGTH];
 		//is not null
+#ifndef	EXCLUDE_DISPLAYNAME
 	assert(b->display_name[0] != '\0');
-		//is short
+#endif
+	//is short
 
 	//char description[MAX_DESCR_LENGTH];
 		//optional
