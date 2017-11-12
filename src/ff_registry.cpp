@@ -252,8 +252,9 @@ BlockNode* AddBlockNode(BlockNode** head_ref, uint8_t block_cat, const char *blo
 			DebugLog("STOP: (AddBlock) malloc returned NULL");
 			while (1)
 				;
-		} else
-			DebugLog("(AddBlock) malloc OK");
+		} else {
+//			DebugLog("(AddBlock) malloc OK");
+		}
 		new_block->next_block = NULL;
 
 		new_block->block_cat = block_cat;

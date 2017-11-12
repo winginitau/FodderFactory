@@ -34,8 +34,8 @@ input1 = IN_INSIDE_TOP_TEMP
 input2 = IN_OUTSIDE_TEMP
 input3 = IN_WATER_TEMP
 input4 = IN_INSIDE_BOTTOM_TEMP
-#input5 = IN_LOADING_DOOR_SWITCH
-#input6 = IN_HARVEST_DOOR_SWITCH 
+input5 = IN_LOADING_DOOR_SWITCH
+input6 = IN_HARVEST_DOOR_SWITCH 
 #input7 =  
 
 [IN_INSIDE_TOP_TEMP]
@@ -114,8 +114,8 @@ monitor7 = MON_OUTSIDE_HOT
 monitor8 = MON_OUTSIDE_COLD
 monitor9 = MON_INSIDE_AVERAGE_TOO_COLD
 monitor10 = MON_INSIDE_AVERAGE_TOO_HOT
-#monitor11 = MON_LOAD_DOOR_OPEN 
-#monitor12 = MON_HARVEST_DOOR_OPEN
+monitor11 = MON_LOAD_DOOR_OPEN 
+monitor12 = MON_HARVEST_DOOR_OPEN
 #monitor13 = 
 
 
@@ -224,14 +224,59 @@ deact_val = LOW
 schedule1 = SCH_EXCLUDE_WATER_HEAT_BY_DAY
 schedule2 = SCH_RUN_LIGHTS_AT_NIGHT
 schedule3 = SCH_RESET_MIN_MAX_COUNTERS
-#schedule4 = SCH_WATERING_TOP_SCHEDULE
-#schedule5 = SCH_WATERING_BOTTOM_SCHEDULE
-#schedule6 = SCH_TEST1
-#schedule7 = SCH_TEST2
-#schedule8 = SCH_TEST3
-#schedule9 = SCH_TEST4
-#schedule10 = SCH_TEST5
-#schedule11 = SCH_TEST6
+schedule4 = SCH_WATERING_TOP_SCHEDULE
+schedule5 = SCH_WATERING_BOTTOM_SCHEDULE
+schedule6 = SCH_TEST1
+schedule7 = SCH_TEST2
+schedule8 = SCH_TEST3
+schedule9 = SCH_TEST4
+schedule10 = SCH_TEST5
+schedule11 = SCH_TEST6
+
+[SCH_TEST1]
+type = SCH_START_STOP
+display_name = Test 1
+description = 
+# ALL, MON, TUE, WED, THU, FRI, SAT, SUN
+days = ALL
+time_start = 19:30:00
+time_end = 19:45:00
+
+[SCH_TEST2]
+type = SCH_START_STOP
+display_name = Test 2
+description = 
+# ALL, MON, TUE, WED, THU, FRI, SAT, SUN
+days = SUN
+time_start = 19:31:00
+time_end = 9:30:00
+
+[SCH_TEST3]
+type = SCH_START_STOP
+display_name = Test 3
+description = 
+# ALL, MON, TUE, WED, THU, FRI, SAT, SUN
+days = SAT
+time_start = 23:00:00
+time_end = 19:43:00
+
+[SCH_TEST4]
+type = SCH_START_STOP
+display_name = Test 4
+description = 
+# ALL, MON, TUE, WED, THU, FRI, SAT, SUN
+days = SAT
+time_start = 10:30:00
+time_end = 19:34:00
+
+[SCH_TEST5]
+type = SCH_START_STOP
+display_name = Test 5
+description = 
+# ALL, MON, TUE, WED, THU, FRI, SAT, SUN
+days = MON
+time_start = 10:30:00
+time_end = 19:33:00
 
 
 [SCH_EXCLUDE_WATER_HEAT_BY_DAY]
@@ -267,8 +312,8 @@ description =
 # ALL, MON, TUE, WED, THU, FRI, SAT, SUN
 days = ALL
 time_start = 00:00:00
-time_duration = 00:00:26
-time_repeat = 00:2:00
+time_duration = 00:00:45
+time_repeat = 00:1:20
 
 [SCH_WATERING_BOTTOM_SCHEDULE]
 type = SCH_START_DURATION_REPEAT
@@ -276,8 +321,18 @@ display_name = Watering Schedule Bottom Sprinklers
 description = 
 # ALL, MON, TUE, WED, THU, FRI, SAT, SUN
 days = ALL
-time_start = 00:00:30
-time_duration = 00:00:26
+time_start = 00:01:00
+time_duration = 00:00:30
+time_repeat = 00:01:10
+
+[SCH_TEST6]
+type = SCH_START_DURATION_REPEAT
+display_name = Test 6
+description = 
+# ALL, MON, TUE, WED, THU, FRI, SAT, SUN
+days = ALL
+time_start = 01:00:00
+time_duration = 00:00:10
 time_repeat = 00:02:00
 
 
@@ -289,10 +344,10 @@ rule1 = RL_TURN_ON_WATER_HEAT_IF_INSIDE_COLD
 rule2 = RL_RUN_LIGHTS_ON_SCHEDULE
 rule3 = RL_FAN_IF_INSIDE_BOTTOM_HOT_OUTSIDE_COLD
 rule4 = RL_CIRCULATE_IF_TOP_HOT_AND_BOTTOM_COLD
-rule5 = RL_RESET_MIN_MAX_ON_SCHEDULE 
-#rule6 = RL_WATER_ON_SCHEDULE_TOP
-#rule7 = RL_WATER_ON_SCHEDULE_BOTTOM 
-#rule8 = RL_SUSPEND_WATERING_IF_BOTH_DOORS_OPEN
+rule5 = RL_SUSPEND_WATERING_IF_BOTH_DOORS_OPEN
+rule6 = RL_WATER_ON_SCHEDULE_TOP
+rule7 = RL_WATER_ON_SCHEDULE_BOTTOM 
+rule8 = RL_RESET_MIN_MAX_ON_SCHEDULE 
 #rule9 =  
 #rule10 =  
 #rule11 =
@@ -343,19 +398,19 @@ param2 = MON_HARVEST_DOOR_OPEN
 
 
 [RL_WATER_ON_SCHEDULE_TOP]
-type = RL_LOGIC_SINGLE
+type = RL_LOGIC_SINGLENOT
 display_name = Water Cycle Top
 description =
 param1 = SCH_WATERING_TOP_SCHEDULE
-#param_not = RL_SUSPEND_WATERING_IF_BOTH_DOORS_OPEN
+param_not = RL_SUSPEND_WATERING_IF_BOTH_DOORS_OPEN
 
 
 [RL_WATER_ON_SCHEDULE_BOTTOM]
-type = RL_LOGIC_SINGLE
+type = RL_LOGIC_SINGLENOT
 display_name = Water Cycle Bottom
 description =
 param1 = SCH_WATERING_BOTTOM_SCHEDULE
-#param_not = RL_SUSPEND_WATERING_IF_BOTH_DOORS_OPEN
+param_not = RL_SUSPEND_WATERING_IF_BOTH_DOORS_OPEN
 
 
 [RL_RESET_MIN_MAX_ON_SCHEDULE]
@@ -375,9 +430,9 @@ controller2 = CON_END_LIGHTS_CONTROLLER
 controller3 = CON_FRESH_AIR_CONTROLLER
 controller4 = CON_CIRCULATION_FAN_CONTROLLER
 controller5 = CON_EXHAUST_FAN_CONTROLLER
-controller6 = CON_SYSTEM_MIN_MAX_RESET 
-#controller7 = CON_WATERING_TOP_CONTROLLER
-#controller8 = CON_WATERING_BOTTOM_CONTROLLER
+controller6 = CON_WATERING_TOP_CONTROLLER
+controller7 = CON_WATERING_BOTTOM_CONTROLLER
+controller8 = CON_SYSTEM_MIN_MAX_RESET 
 #controller9 = 
 #controller10 = 
 
@@ -462,9 +517,9 @@ output2 = OUT_WATER_HEATER
 output3 = OUT_FRESH_AIR_FAN
 output4 = OUT_CIRCULATION_FAN
 output5 = OUT_EXHAUST_FAN
-output6 = OUT_SYSTEM_INTERNAL 
-#output7 = OUT_WATERING_SOLENOID_TOP
-#output8 = OUT_WATERING_SOLENOID_BOTTOM
+output6 = OUT_WATERING_SOLENOID_TOP
+output7 = OUT_WATERING_SOLENOID_BOTTOM
+output8 = OUT_SYSTEM_INTERNAL 
 #output9 = 
 
 [OUT_SYSTEM_INTERNAL]

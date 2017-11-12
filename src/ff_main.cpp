@@ -153,11 +153,12 @@ void ReadProcessedConfig(void) {
 	uint8_t b_cat; 	//used as read-ahead to test for eof before creating a new block
 
 #ifdef FF_SIMULATOR
-	FILE *f;
-	f = fopen(BIN_CONFIG_FILENAME, "r");
+	FILE *fp;
+	fp = fopen(BIN_CONFIG_FILENAME, "r");
 #endif
 #ifdef FF_ARDUINO
 	File f;
+	File *fp;
 	pinMode(SS, OUTPUT);
 	pinMode(10, OUTPUT);
 	pinMode(53, OUTPUT);
@@ -166,74 +167,83 @@ void ReadProcessedConfig(void) {
 		//DebugLog("DEBUG INFO sd.begin"); //cant use EventMsg
 		f = SD.open(BIN_CONFIG_FILENAME, FILE_READ);
 	}
+	fp = &f;
 #endif
 
 	while (1) {
-		b_cat = uint8_tRead(&f); //all blocks start with block category
-DebugLog("Read b_cat");
+		b_cat = uint8_tRead(fp); //all blocks start with block category
+//		DebugLog("Read b_cat");
+#ifdef FF_ARDUINO
 		if (!f.available()) {
-DebugLog("Not available - break");
+//			DebugLog("Not available - break");
 			break;
 		}
+#endif
+#ifdef FF_SIMULATOR
+		if(feof(fp)) {
+			DebugLog("EOF");
+			break;
+		}
+#endif
 		b = AddBlock(FF_GENERIC_BLOCK, "NEW_BLANK_BLOCK"); //add a new one
-DebugLog("Add block passed");
+//		DebugLog("Add block passed");
 		if (b != NULL) {
 			//we now have a valid block ptr pointing to a new block in the list
-DebugLog("AddBlock not NULL");
+//			DebugLog("AddBlock not NULL");
 			b->block_cat = b_cat;
-			b->block_type = uint16_tRead(&f);
-			b->block_id = uint16_tRead(&f);
-			LabelRead(b->block_label, MAX_LABEL_LENGTH, &f);
+			b->block_type = uint16_tRead(fp);
+			b->block_id = uint16_tRead(fp);
+			LabelRead(b->block_label, MAX_LABEL_LENGTH, fp);
 #ifndef	EXCLUDE_DISPLAYNAME
-			LabelRead(b->display_name, MAX_LABEL_LENGTH, f);
+			LabelRead(b->display_name, MAX_LABEL_LENGTH, fp);
 #endif
 #ifndef EXCLUDE_DESCRIPTION
-			LabelRead(b->description, MAX_DESCR_LENGTH, f);
+			LabelRead(b->description, MAX_DESCR_LENGTH, fp);
 #endif
 			switch (b->block_cat) {
 				case FF_SYSTEM:
-					b->settings.sys.temp_scale = uint8_tRead(&f);
-					b->settings.sys.language = uint8_tRead(&f);
-					b->settings.sys.week_start = uint8_tRead(&f);
+					b->settings.sys.temp_scale = uint8_tRead(fp);
+					b->settings.sys.language = uint8_tRead(fp);
+					b->settings.sys.week_start = uint8_tRead(fp);
 					break;
 				case FF_INPUT:
-					b->settings.in.interface = uint8_tRead(&f);
-					b->settings.in.if_num = uint8_tRead(&f);
-					b->settings.in.log_rate = uint32_tRead(&f);
-					b->settings.in.data_units = uint8_tRead(&f);
-					b->settings.in.data_type = uint8_tRead(&f);
+					b->settings.in.interface = uint8_tRead(fp);
+					b->settings.in.if_num = uint8_tRead(fp);
+					b->settings.in.log_rate = uint32_tRead(fp);
+					b->settings.in.data_units = uint8_tRead(fp);
+					b->settings.in.data_type = uint8_tRead(fp);
 					break;
 				case FF_MONITOR:
-					b->settings.mon.input1 = uint16_tRead(&f);
-					b->settings.mon.input2 = uint16_tRead(&f);
-					b->settings.mon.input3 = uint16_tRead(&f);
-					b->settings.mon.input4 = uint16_tRead(&f);
-					b->settings.mon.act_val = floatRead(&f);
-					b->settings.mon.deact_val = floatRead(&f);
+					b->settings.mon.input1 = uint16_tRead(fp);
+					b->settings.mon.input2 = uint16_tRead(fp);
+					b->settings.mon.input3 = uint16_tRead(fp);
+					b->settings.mon.input4 = uint16_tRead(fp);
+					b->settings.mon.act_val = floatRead(fp);
+					b->settings.mon.deact_val = floatRead(fp);
 					break;
 				case FF_SCHEDULE:
-					uint8_tArrayRead(b->settings.sch.days, 7, &f);
-					b->settings.sch.time_start = uint32_tRead(&f);
-					b->settings.sch.time_end = uint32_tRead(&f);
-					b->settings.sch.time_duration = uint32_tRead(&f);
-					b->settings.sch.time_repeat = uint32_tRead(&f);
+					uint8_tArrayRead(b->settings.sch.days, 7, fp);
+					b->settings.sch.time_start = uint32_tRead(fp);
+					b->settings.sch.time_end = uint32_tRead(fp);
+					b->settings.sch.time_duration = uint32_tRead(fp);
+					b->settings.sch.time_repeat = uint32_tRead(fp);
 					break;
 				case FF_RULE:
-					b->settings.rl.param1 = uint16_tRead(&f);
-					b->settings.rl.param2 = uint16_tRead(&f);
-					b->settings.rl.param3 = uint16_tRead(&f);
-					b->settings.rl.param_not = uint16_tRead(&f);
+					b->settings.rl.param1 = uint16_tRead(fp);
+					b->settings.rl.param2 = uint16_tRead(fp);
+					b->settings.rl.param3 = uint16_tRead(fp);
+					b->settings.rl.param_not = uint16_tRead(fp);
 					break;
 				case FF_CONTROLLER:
-					b->settings.con.rule = uint16_tRead(&f);
-					b->settings.con.output = uint16_tRead(&f);
-					b->settings.con.act_cmd = uint8_tRead(&f);
-					b->settings.con.deact_cmd = uint8_tRead(&f);
+					b->settings.con.rule = uint16_tRead(fp);
+					b->settings.con.output = uint16_tRead(fp);
+					b->settings.con.act_cmd = uint8_tRead(fp);
+					b->settings.con.deact_cmd = uint8_tRead(fp);
 					break;
 				case FF_OUTPUT:
-					b->settings.out.interface = uint8_tRead(&f);
-					b->settings.out.if_num = uint8_tRead(&f);
-					b->settings.out.command = uint8_tRead(&f);
+					b->settings.out.interface = uint8_tRead(fp);
+					b->settings.out.if_num = uint8_tRead(fp);
+					b->settings.out.command = uint8_tRead(fp);
 					break;
 				default:
 
@@ -244,7 +254,7 @@ DebugLog("AddBlock not NULL");
 	};
 
 #ifdef FF_SIMULATOR
-	fclose(f);
+	fclose(fp);
 #endif
 #ifdef FF_ARDUINO
 	f.close();
@@ -273,13 +283,7 @@ void InitSystem(void) {
 	EventMsg(SSS, E_VERBOSE, M_D_SERIAL, 0, 0);
 #endif
 
-	// get some real time
-	// set sys time or fallback to 00:00
-	// log it
-	InitRTC();				// set up the Real Time Clock
-
-	// debug / console / serial / LCD UI set via ff_sys_config.h
-	// at compile time.
+	InitRTC();				// set up the Real Time Clock and synch system time to rtc
 
 	// setup real UI (LCD, TFT, QT, None)
 	//TODO - extend beyond LCD
@@ -288,10 +292,7 @@ void InitSystem(void) {
 	// TODO display some timed status pages
 
 	// check for a file system
-	InitFileSystem(); // DEPR placeholder - no longer needed
-
-	// Any other global setup routines that are handled at
-	// compile time, above, or or during system block configuration
+	InitFileSystem(); // DEPR placeholder - no longer really needed
 
 	#ifdef FF_SIMULATOR
 		srand(time(NULL)); //random seed for simulator

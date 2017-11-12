@@ -465,7 +465,7 @@ void HALDrawDataScreenCV(const UIDataSet* uids, time_t dt) {
 #endif
 }
 
-
+/*
 FFDateTime HALFFDTNow(void) {
 	FFDateTime dt;
 
@@ -504,6 +504,18 @@ FFDateTime HALFFDTNow(void) {
 	return dt;
 #endif
 }
+*/
+
+#ifdef FF_ARDUINO
+void HALSetSysTimeToRTC(void) {
+	DateTime rtcDT;
+	time_t bin_time;
+
+	rtcDT = rtc.now();
+	bin_time = rtcDT.secondstime();
+	set_system_time(bin_time);
+}
+#endif
 
 void HALInitRTC(void) {
 #ifdef FF_ARDUINO
@@ -523,6 +535,7 @@ void HALInitRTC(void) {
 			rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
 			EventMsg(SSS, E_WARNING, M_WARN_RTC_HARD_CODED, 0, 0);
 #endif
+			HALSetSysTimeToRTC();
 		} else {
 			EventMsg(SSS, E_WARNING, M_RTC_NOT_RUNNING, 0, 0);
 			// following line sets the RTC to the date & time this sketch was compiled

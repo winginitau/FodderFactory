@@ -26,7 +26,7 @@
 /************************************************
  Data Structures
  ************************************************/
-
+/*
 typedef struct FF_DATE_TIME {
 	uint16_t year;
 	uint8_t month;
@@ -42,7 +42,7 @@ typedef struct FF_TIME {
 	uint8_t second;
 } FFTime;
 
-
+*/
 /************************************************
  Function prototypes
  ************************************************/
@@ -73,9 +73,9 @@ FFDateTime DateTimeToFFDateTime(DateTime rtcDT);
 #ifdef FF_ARDUINO
 //String FFDateTimeStringNow(void);
 
-String FFShortTimeString(FFDateTime dt);
+//String FFShortTimeString(FFDateTime dt);
 
-String FFDateString(FFDateTime dt);
+//String FFDateString(FFDateTime dt);
 #endif
 
 

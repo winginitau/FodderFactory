@@ -17,6 +17,7 @@
 #include "ff_string_consts.h"
 #include "ff_events.h"
 #include "ff_registry.h"
+#include "ff_debug.h"
 
 #ifdef FF_SIMULATOR
 #endif
@@ -37,15 +38,21 @@
 ************************************************/
 
 void InputSetup(BlockNode *b) {
+//	DebugLog("Input Setup");
 	switch (b->block_type) {
 		case IN_ONEWIRE:
 			b->last_update = time(NULL);
+			TempSensorsTakeReading();
+			DebugLog("Input Operate");
+			b->f_val = GetTemperature(b->settings.in.if_num);
+			EventMsg(b->block_id, E_DATA, M_F_READ, 0, b->f_val);
 			break;
 		case IN_DIGITAL:
 			if (b->settings.in.interface == IF_DIG_PIN_IN) {
 				HALInitDigitalInput(b->settings.in.if_num);
 				b->last_update = time(NULL);
 				b->bool_val = HALDigitalRead(b->settings.in.if_num);
+
 			}
 			break;
 		default:
@@ -64,6 +71,7 @@ void InputOperate(BlockNode *b) {
 			if (now >= next) {
 				b->last_update = now;
 				TempSensorsTakeReading();
+				DebugLog("Input Operate");
 				b->f_val = GetTemperature(b->settings.in.if_num);
 				EventMsg(b->block_id, E_DATA, M_F_READ, 0, b->f_val);
 			}

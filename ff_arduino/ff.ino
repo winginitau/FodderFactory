@@ -95,6 +95,7 @@ int main(void) {
 	DebugLog(SSS, E_INFO, M_DISP_OPER_1ST);
 	ProcessDispatcher(Operate);
 	DebugLog(SSS, E_INFO, M_DISP_OPER_LOOP);
+	while (1) ProcessDispatcher(Operate);
 
 	#ifdef FF_SIMULATOR
 	//for (int n = 0; n < 10000; n++) {

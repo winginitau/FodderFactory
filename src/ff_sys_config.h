@@ -77,11 +77,10 @@
 #define DEBUG_CONSOLE					//write to stdout
 #endif
 
-#define MAX_DEBUG_LENGTH 100			//line buffer length for debug messages "stack smashing if too short"
 
 #endif //DEBUG
 
-#define SET_RTC YES						//WARNING - This hard codes the time on restart to the compile time
+//#define SET_RTC YES						//WARNING - This hard codes the time on restart to the compile time
 										//as the set time on device restart - use once to set then exclude
 
 /************************************************
@@ -119,7 +118,8 @@
 #define INI_ERROR_TYPES 9
 
 #define MAX_MESSAGE_STRING_LENGTH 50
-#define MAX_LOG_LINE_LENGTH 100
+#define MAX_LOG_LINE_LENGTH 150
+#define MAX_DEBUG_LENGTH 150			//line buffer length for debug messages "stack smashing if too short"
 #define MAX_LABEL_LENGTH 64
 #define MAX_DESCR_LENGTH 80
 #define MAX_BLOCKS 255
