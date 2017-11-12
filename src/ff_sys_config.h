@@ -19,10 +19,10 @@
 /************************************************
  PLATFORM Directives
  ************************************************/
-#define FF_ARDUINO
-#define FF_TEMPERATURE_SIM  //optionally
+//#define FF_ARDUINO
+//#define FF_TEMPERATURE_SIM  //optionally
 //OR
-//#define FF_SIMULATOR
+#define FF_SIMULATOR
 //OR
 //#define FF_CONFIG
 
@@ -117,7 +117,7 @@
 #define INI_FILE_MAX_LINE_LENGTH 150
 #define INI_ERROR_TYPES 9
 
-#define MAX_MESSAGE_STRING_LENGTH 50
+#define MAX_MESSAGE_STRING_LENGTH 80
 #define MAX_LOG_LINE_LENGTH 150
 #define MAX_DEBUG_LENGTH 150			//line buffer length for debug messages "stack smashing if too short"
 #define MAX_LABEL_LENGTH 64

@@ -22,7 +22,7 @@
 #include "ff_filesystem.h"
 
 #include <time.h>
-
+#include "ff_HAL.h"
 
 /************************************************
  Data Structures
@@ -123,7 +123,7 @@ void EventMsg(uint16_t source, uint8_t msg_type, uint8_t msg_str, int i_val, flo
 	}
 	EventNode event;
 
-	event.time_stamp = time(NULL);
+	event.time_stamp = TimeNow();
 	event.source = source;
 	event.message_type = msg_type;
 	event.message = msg_str;

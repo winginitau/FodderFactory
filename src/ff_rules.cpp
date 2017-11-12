@@ -22,6 +22,7 @@
 #include "ff_debug.h"
 
 #include <time.h>
+#include "ff_HAL.h"
 
 #ifdef FF_SIMULATOR
 //#include <stdio.h>
@@ -47,25 +48,25 @@ void RuleSetup(BlockNode *b) {
 
 		case RL_LOGIC_ANDNOT: {
 			b->active = 0;
-			b->last_update = time(NULL);
+			b->last_update = TimeNow();
 			break;
 		}
 
 		case RL_LOGIC_SINGLE: {
 			b->active = 0;
-			b->last_update = time(NULL);
+			b->last_update = TimeNow();
 			break;
 		}
 
 		case RL_LOGIC_AND: {
 			b->active = 0;
-			b->last_update = time(NULL);
+			b->last_update = TimeNow();
 			break;
 		}
 
 		case RL_LOGIC_SINGLENOT: {
 			b->active = 0;
-			b->last_update = time(NULL);
+			b->last_update = TimeNow();
 			break;
 		}
 		default:
@@ -83,13 +84,13 @@ void RuleOperate(BlockNode *b) {
 			if (IsActive(b->settings.rl.param1) && IsActive(b->settings.rl.param2) && (IsActive(b->settings.rl.param_not) == 0)) {
 				if (b->active == 0) {
 					b->active = 1;
-					b->last_update = time(NULL);
+					b->last_update = TimeNow();
 					EventMsg(b->block_id, E_ACT);
 				}
 			} else {
 				if (b->active == 1) {
 					b->active = 0;
-					b->last_update = time(NULL);
+					b->last_update = TimeNow();
 					EventMsg(b->block_id, E_DEACT);
 				}
 			}
@@ -100,13 +101,13 @@ void RuleOperate(BlockNode *b) {
 			if (IsActive(b->settings.rl.param1)) {
 				if (b->active == 0) {
 					b->active = 1;
-					b->last_update = time(NULL);
+					b->last_update = TimeNow();
 					EventMsg(b->block_id, E_ACT);
 				}
 			} else {
 				if (b->active == 1) {
 					b->active = 0;
-					b->last_update = time(NULL);
+					b->last_update = TimeNow();
 					EventMsg(b->block_id, E_DEACT);
 				}
 			}
@@ -117,13 +118,13 @@ void RuleOperate(BlockNode *b) {
 			if (IsActive(b->settings.rl.param1) && IsActive(b->settings.rl.param2)) {
 				if (b->active == 0) {
 					b->active = 1;
-					b->last_update = time(NULL);
+					b->last_update = TimeNow();
 					EventMsg(b->block_id, E_ACT);
 				}
 			} else {
 				if (b->active == 1) {
 					b->active = 0;
-					b->last_update = time(NULL);
+					b->last_update = TimeNow();
 					EventMsg(b->block_id, E_DEACT);
 				}
 			}
@@ -134,13 +135,13 @@ void RuleOperate(BlockNode *b) {
 			if (IsActive(b->settings.rl.param1) && (IsActive(b->settings.rl.param_not) == 0)) {
 				if (b->active == 0) {
 					b->active = 1;
-					b->last_update = time(NULL);
+					b->last_update = TimeNow();
 					EventMsg(b->block_id, E_ACT);
 				}
 			} else {
 				if (b->active == 1) {
 					b->active = 0;
-					b->last_update = time(NULL);
+					b->last_update = TimeNow();
 					EventMsg(b->block_id, E_DEACT);
 				}
 			}

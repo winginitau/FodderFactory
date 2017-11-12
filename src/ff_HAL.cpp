@@ -465,6 +465,21 @@ void HALDrawDataScreenCV(const UIDataSet* uids, time_t dt) {
 #endif
 }
 
+time_t TimeNow(void) {
+#ifdef FF_ARDUINO
+	DateTime rtcDT;
+	time_t epoch_time;
+
+	rtcDT = rtc.now();
+	epoch_time = rtcDT.secondstime();
+	return epoch_time;
+#endif
+
+
+#ifdef FF_SIMULATOR
+	return time(NULL);
+#endif
+}
 /*
 FFDateTime HALFFDTNow(void) {
 	FFDateTime dt;
@@ -509,11 +524,11 @@ FFDateTime HALFFDTNow(void) {
 #ifdef FF_ARDUINO
 void HALSetSysTimeToRTC(void) {
 	DateTime rtcDT;
-	time_t bin_time;
+	time_t epoch_time;
 
 	rtcDT = rtc.now();
-	bin_time = rtcDT.secondstime();
-	set_system_time(bin_time);
+	epoch_time = rtcDT.secondstime();
+	set_system_time(epoch_time);
 }
 #endif
 

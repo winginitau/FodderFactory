@@ -38,6 +38,7 @@ void HALInitUI(void);
 void HALDrawDataScreenCV(const UIDataSet* uids, time_t dt);
 //void HALDrawDataScreen(const UIDataSet* uids, time_t dt);
 //FFDateTime HALFFDTNow(void);
+time_t TimeNow(void);
 void HALInitRTC(void);
 
 #ifdef FF_ARDUINO

@@ -46,7 +46,7 @@ void ScheduleSetup(BlockNode *b) {
 	switch (b->block_type) {
 		case SCH_START_STOP:
 			b->active = 0;
-			b->last_update = time(NULL);
+			b->last_update = TimeNow();
 			break;
 
 		case SCH_ONE_SHOT:
@@ -55,12 +55,12 @@ void ScheduleSetup(BlockNode *b) {
 			// it may not been seen by recipients unless it is held activated for a period
 			// in which case debounce logic would then need to be implemented.
 			b->active = 0;
-			b->last_update = time(NULL);
+			b->last_update = TimeNow();
 			break;
 
 		case SCH_START_DURATION_REPEAT:
 			b->active = 0;
-			b->last_update = time(NULL);
+			b->last_update = TimeNow();
 			if (b->settings.sch.time_duration >= b->settings.sch.time_repeat) {
 				char log_message[MAX_LOG_LINE_LENGTH];
 				sprintf(log_message, "[%s] WARNING Duration >= Repeat", b->block_label);
@@ -85,7 +85,7 @@ void ScheduleOperate(BlockNode *b) {
 	time_t now;
 	time_t temp;
 
-	temp = time(NULL);
+	temp = TimeNow();
 	temp_tm = localtime(&temp);
 
 	temp_tm->tm_hour = 0;
@@ -93,7 +93,7 @@ void ScheduleOperate(BlockNode *b) {
 	temp_tm->tm_sec = 0;
 	zero_today = mktime(temp_tm);
 
-	now = time(NULL);
+	now = TimeNow();
 	now_tm = localtime(&now);
 
 
@@ -161,7 +161,7 @@ void ScheduleOperate(BlockNode *b) {
 		case SCH_ONE_SHOT:
 			//XXX to do - see comments in setup
 			b->active = 0;
-			b->last_update = time(NULL);
+			b->last_update = TimeNow();
 			break;
 
 		case SCH_START_DURATION_REPEAT: {

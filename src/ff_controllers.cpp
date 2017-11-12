@@ -19,6 +19,7 @@
 #include "ff_debug.h"
 
 #include <time.h>
+#include "ff_HAL.h"
 
 #ifdef FF_ARDUINO
 #include <Arduino.h>
@@ -44,7 +45,7 @@ void ControllerSetup(BlockNode *b) {
 	switch (b->block_type) {
 		case CON_ONOFF: {
 			b->active = 0;
-			b->last_update = time(NULL);
+			b->last_update = TimeNow();
 			break;
 		}
 
@@ -67,7 +68,7 @@ void ControllerOperate(BlockNode *b) {
 			if (IsActive(b->settings.con.rule)) {
 				if (b->active == 0) {
 					b->active = 1;
-					b->last_update = time(NULL);
+					b->last_update = TimeNow();
 					EventMsg(b->block_id, E_ACT);
 					SetCommand(b->settings.con.output, b->settings.con.act_cmd);
 					EventMsg(b->block_id, E_COMMAND, M_CMD_ACT);
@@ -75,7 +76,7 @@ void ControllerOperate(BlockNode *b) {
 			} else {
 				if (b->active == 1) {
 					b->active = 0;
-					b->last_update = time(NULL);
+					b->last_update = TimeNow();
 					EventMsg(b->block_id, E_DEACT);
 					SetCommand(b->settings.con.output, b->settings.con.deact_cmd);
 					EventMsg(b->block_id, E_COMMAND, M_CMD_DEACT);

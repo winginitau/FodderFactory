@@ -41,16 +41,16 @@ void InputSetup(BlockNode *b) {
 //	DebugLog("Input Setup");
 	switch (b->block_type) {
 		case IN_ONEWIRE:
-			b->last_update = time(NULL);
+			b->last_update = TimeNow();
 			TempSensorsTakeReading();
-			DebugLog("Input Operate");
+//			Dump(b, "IN_ONEWIRE Input Setup");
 			b->f_val = GetTemperature(b->settings.in.if_num);
 			EventMsg(b->block_id, E_DATA, M_F_READ, 0, b->f_val);
 			break;
 		case IN_DIGITAL:
 			if (b->settings.in.interface == IF_DIG_PIN_IN) {
 				HALInitDigitalInput(b->settings.in.if_num);
-				b->last_update = time(NULL);
+				b->last_update = TimeNow();
 				b->bool_val = HALDigitalRead(b->settings.in.if_num);
 
 			}
@@ -62,13 +62,15 @@ void InputSetup(BlockNode *b) {
 }
 
 void InputOperate(BlockNode *b) {
-	time_t now = time(NULL);
+	time_t now = TimeNow();
 	time_t next;
 
 	switch (b->block_type) {
 		case IN_ONEWIRE:
 			next = b->last_update + b->settings.in.log_rate;
+//			Dump(b, "IN_ONEWIRE Input Operate");
 			if (now >= next) {
+//				Dump(b, "now >=next IN_ONEWIRE Input Operate");
 				b->last_update = now;
 				TempSensorsTakeReading();
 				DebugLog("Input Operate");

@@ -23,6 +23,7 @@
 #include <stdio.h>
 #endif
 
+#include "ff_HAL.h"
 /************************************************
   Data Structures
 ************************************************/
@@ -42,27 +43,27 @@ void MonitorSetup(BlockNode *b) {
 	switch (b->block_type) {
 		case MON_CONDITION_LOW:
 			b->active = 0;
-			b->last_update = time(NULL);
+			b->last_update = TimeNow();
 			break;
 
 		case MON_CONDITION_HIGH:
 			b->active = 0;
-			b->last_update = time(NULL);
+			b->last_update = TimeNow();
 			break;
 
 		case MON_AVERAGE_CONDITION_LOW:
 			b->active = 0;
-			b->last_update = time(NULL);
+			b->last_update = TimeNow();
 			break;
 
 		case MON_AVERAGE_CONDITION_HIGH:
 			b->active = 0;
-			b->last_update = time(NULL);
+			b->last_update = TimeNow();
 			break;
 
 		case MON_TRIGGER:
 			b->active = 0;
-			b->last_update = time(NULL);
+			b->last_update = TimeNow();
 			break;
 
 		default:
@@ -88,14 +89,14 @@ void MonitorOperate(BlockNode *b) {
 				if (fval <= b->settings.mon.act_val) {
 					if (b->active == 0) {
 						b->active = 1;
-						b->last_update = time(NULL);
+						b->last_update = TimeNow();
 						EventMsg(b->block_id, E_ACT);
 					}
 				}
 				if (fval >= b->settings.mon.deact_val) {
 					if (b->active == 1) {
 						b->active = 0;
-						b->last_update = time(NULL);
+						b->last_update = TimeNow();
 						EventMsg(b->block_id, E_DEACT);
 					}
 				}
@@ -114,14 +115,14 @@ void MonitorOperate(BlockNode *b) {
 				if (GetFVal(b->settings.mon.input1) >= b->settings.mon.act_val) {
 					if (b->active == 0) {
 						b->active = 1;
-						b->last_update = time(NULL);
+						b->last_update = TimeNow();
 						EventMsg(b->block_id, E_ACT);
 					}
 				}
 				if (GetFVal(b->settings.mon.input1) <= b->settings.mon.deact_val) {
 					if (b->active == 1) {
 						b->active = 0;
-						b->last_update = time(NULL);
+						b->last_update = TimeNow();
 						EventMsg(b->block_id, E_DEACT);
 					}
 				}
@@ -142,14 +143,14 @@ void MonitorOperate(BlockNode *b) {
 				if (ave <= b->settings.mon.act_val) {
 					if (b->active == 0) {
 						b->active = 1;
-						b->last_update = time(NULL);
+						b->last_update = TimeNow();
 						EventMsg(b->block_id, E_ACT);
 					}
 				}
 				if (ave >= b->settings.mon.deact_val) {
 					if (b->active == 1) {
 						b->active = 0;
-						b->last_update = time(NULL);
+						b->last_update = TimeNow();
 						EventMsg(b->block_id, E_DEACT);
 					}
 				}
@@ -170,14 +171,14 @@ void MonitorOperate(BlockNode *b) {
 				if (ave >= b->settings.mon.act_val) {
 					if (b->active == 0) {
 						b->active = 1;
-						b->last_update = time(NULL);
+						b->last_update = TimeNow();
 						EventMsg(b->block_id, E_ACT);
 					}
 				}
 				if (ave <= b->settings.mon.deact_val) {
 					if (b->active == 1) {
 						b->active = 0;
-						b->last_update = time(NULL);
+						b->last_update = TimeNow();
 						EventMsg(b->block_id, E_DEACT);
 					}
 				}
@@ -195,14 +196,14 @@ void MonitorOperate(BlockNode *b) {
 				if (bool_val == (uint8_t)b->settings.mon.act_val) {
 					if (b->active == 0) {
 						b->active = 1;
-						b->last_update = time(NULL);
+						b->last_update = TimeNow();
 						EventMsg(b->block_id, E_ACT);
 					}
 				}
 				if (bool_val == (uint8_t)b->settings.mon.deact_val) {
 					if (b->active == 1) {
 						b->active = 0;
-						b->last_update = time(NULL);
+						b->last_update = TimeNow();
 						EventMsg(b->block_id, E_DEACT);
 					}
 				}

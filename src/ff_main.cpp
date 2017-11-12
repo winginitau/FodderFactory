@@ -22,6 +22,9 @@
 #include "ff_display.h"
 #include "ff_filesystem.h"
 
+#include <time.h>
+#include "ff_HAL.h"
+
 #ifdef FF_ARDUINO
 #include "SD.h"
 #endif
@@ -52,7 +55,7 @@ uint8_t uint8_tRead(FILE *f) {
 	uint8_t data;
 	//fscanf(f, "%hhu", &data);
 	fread(&data, sizeof(data), 1, f);
-	printf("%u\n", data);
+//	printf("%u\n", data);
 	return data;
 }
 
@@ -60,7 +63,7 @@ uint16_t uint16_tRead(FILE *f) {
 	uint16_t data;
 //	fscanf(f, "%hu", &data);
 	fread(&data, sizeof(data), 1, f);
-	printf("%u\n", data);
+//	printf("%u\n", data);
 	return data;
 }
 
@@ -68,14 +71,14 @@ uint32_t uint32_tRead(FILE *f) {
 	uint32_t data;
 //	fscanf(f, "%u", &data);
 	fread(&data, sizeof(data), 1, f);
-	printf("%u\n", data);
+//	printf("%u\n", data);
 	return data;
 }
 
 char* LabelRead(char* data, size_t s,  FILE *f) {
 	//fgets(data, s, f);
 	fread(data, s, 1, f);
-	printf("%s\n", data);
+//	printf("%s\n", data);
 	return data;
 }
 
@@ -83,7 +86,7 @@ uint8_t* uint8_tArrayRead(uint8_t* data, size_t s,  FILE *f) {
 	fread(data, s, 1, f);
 	for (uint8_t i=0; i<s; i++) {
 //		fscanf(f, "%hhu", &data[i]);
-		printf("%u\n", data[i]);
+//		printf("%u\n", data[i]);
 	}
 	return data;
 }
@@ -92,7 +95,7 @@ float floatRead(FILE *f) {
 	float data;
 	fread(&data, sizeof(data), 1, f);
 //	fscanf(f, "%f", &data);
-	printf("%.2f\n ", data);
+//	printf("%.2f\n ", data);
 	return data;
 }
 #endif
@@ -181,7 +184,7 @@ void ReadProcessedConfig(void) {
 #endif
 #ifdef FF_SIMULATOR
 		if(feof(fp)) {
-			DebugLog("EOF");
+//			DebugLog("EOF");
 			break;
 		}
 #endif
@@ -295,7 +298,7 @@ void InitSystem(void) {
 	InitFileSystem(); // DEPR placeholder - no longer really needed
 
 	#ifdef FF_SIMULATOR
-		srand(time(NULL)); //random seed for simulator
+		srand(TimeNow()); //random seed for simulator
 	#endif
 }
 

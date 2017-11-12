@@ -75,7 +75,7 @@ void DebugLog(const char* log_message) {
   char log_entry[MAX_DEBUG_LENGTH];
   char dt[24];
   time_t now;
-  now = time(NULL);
+  now = TimeNow();
   strftime(dt, 24, "%Y-%m-%d, %H:%M:%S", localtime(&now));		//yyyy-mm-dd, 00:00:00
   sprintf(log_entry, "%s, %s", dt, log_message);  				//assemble log entry with time stamp
 
@@ -118,6 +118,41 @@ void DebugLog(uint16_t source, uint8_t msg_type, uint8_t msg_str, int i_val, flo
 	}
 	DebugLog(debug_log_message);
 }
+
+
+void D(time_t t) {
+	char debug_log_message[MAX_DEBUG_LENGTH];
+	sprintf(debug_log_message, "    time_t:\t %lu", t);
+	DebugLog(debug_log_message);
+}
+
+void D(uint16_t source, char* str) {
+	char debug_log_message[MAX_DEBUG_LENGTH];
+	sprintf(debug_log_message, "[%s] %s", GetBlockLabelString(source), str);
+	DebugLog(debug_log_message);
+}
+void Dump(BlockNode *b, char* tag) {
+	char debug_log_message[MAX_DEBUG_LENGTH];
+
+	sprintf(debug_log_message, "    ");
+	DebugLog(debug_log_message);
+
+	sprintf(debug_log_message, "    %s label:\t %s", tag, b->block_label);
+	DebugLog(debug_log_message);
+
+	sprintf(debug_log_message, "    %s id:\t %u", tag, b->block_id);
+	DebugLog(debug_log_message);
+
+	sprintf(debug_log_message, "    %s cat:\t %u", tag, b->block_cat);
+	DebugLog(debug_log_message);
+
+	sprintf(debug_log_message, "    %s type:\t %u", tag, b->block_type);
+	DebugLog(debug_log_message);
+
+	sprintf(debug_log_message, "    %s act:\t %u", tag, b->active);
+	DebugLog(debug_log_message);
+}
+
 
 #endif //DEBUG
 

@@ -30,7 +30,7 @@
 #include <stdio.h>
 #endif
 
-
+#include "ff_HAL.h"
 /************************************************
  Data Structures
 ************************************************/
@@ -379,11 +379,11 @@ void UpdateStateRegister(uint16_t source, uint8_t msg_type, uint8_t msg_str, int
 			sr.ui_data.inside_current = f_val;
 			if (f_val < sr.ui_data.inside_min) {
 				sr.ui_data.inside_min = f_val;
-				sr.ui_data.inside_min_dt = time(NULL);
+				sr.ui_data.inside_min_dt = TimeNow();
 			}
 			if (f_val > sr.ui_data.inside_max) {
 				sr.ui_data.inside_max = f_val;
-				sr.ui_data.inside_max_dt = time(NULL);
+				sr.ui_data.inside_max_dt = TimeNow();
 			}
 		}
 
@@ -391,11 +391,11 @@ void UpdateStateRegister(uint16_t source, uint8_t msg_type, uint8_t msg_str, int
 			sr.ui_data.outside_current = f_val;
 			if (f_val < sr.ui_data.outside_min) {
 				sr.ui_data.outside_min = f_val;
-				sr.ui_data.outside_min_dt = time(NULL);
+				sr.ui_data.outside_min_dt = TimeNow();
 			}
 			if (f_val > sr.ui_data.outside_max) {
 				sr.ui_data.outside_max = f_val;
-				sr.ui_data.outside_max_dt = time(NULL);
+				sr.ui_data.outside_max_dt = TimeNow();
 			}
 		}
 
@@ -403,29 +403,29 @@ void UpdateStateRegister(uint16_t source, uint8_t msg_type, uint8_t msg_str, int
 			sr.ui_data.water_current = f_val;
 			if (f_val < sr.ui_data.water_min) {
 				sr.ui_data.water_min = f_val;
-				sr.ui_data.water_min_dt = time(NULL);
+				sr.ui_data.water_min_dt = TimeNow();
 			}
 			if (f_val > sr.ui_data.water_max) {
 				sr.ui_data.water_max = f_val;
-				sr.ui_data.water_max_dt = time(NULL);
+				sr.ui_data.water_max_dt = TimeNow();
 			}
 		}
 
 		if (strcmp(src_label, "RESET_MIN_MAX") == 0) {
 			sr.ui_data.inside_min = sr.ui_data.inside_current;
-			sr.ui_data.inside_min_dt = time(NULL);
+			sr.ui_data.inside_min_dt = TimeNow();
 			sr.ui_data.inside_max = sr.ui_data.inside_current;
-			sr.ui_data.inside_max_dt = time(NULL);
+			sr.ui_data.inside_max_dt = TimeNow();
 
 			sr.ui_data.outside_min = sr.ui_data.outside_current;
-			sr.ui_data.outside_min_dt = time(NULL);
+			sr.ui_data.outside_min_dt = TimeNow();
 			sr.ui_data.outside_max = sr.ui_data.outside_current;
-			sr.ui_data.outside_max_dt = time(NULL);
+			sr.ui_data.outside_max_dt = TimeNow();
 
 			sr.ui_data.water_min = sr.ui_data.water_current;
-			sr.ui_data.water_min_dt = time(NULL);
+			sr.ui_data.water_min_dt = TimeNow();
 			sr.ui_data.water_max = sr.ui_data.water_current;
-			sr.ui_data.water_max_dt = time(NULL);
+			sr.ui_data.water_max_dt = TimeNow();
 		}
 	} else { //src_label Null
 		DebugLog(SSS, E_ERROR, M_SR_BAD_ID);
@@ -452,21 +452,21 @@ void InitStateRegister(void) {
 //initialise the min and max counters used for UI display
 	sr.ui_data.inside_current = 0;
 	sr.ui_data.inside_min = 100;
-	sr.ui_data.inside_min_dt = time(NULL);
+	sr.ui_data.inside_min_dt = TimeNow();
 	sr.ui_data.inside_max = -50;
-	sr.ui_data.inside_max_dt = time(NULL);
+	sr.ui_data.inside_max_dt = TimeNow();
 
 	sr.ui_data.outside_current = 0;
 	sr.ui_data.outside_min = 100;
-	sr.ui_data.outside_min_dt = time(NULL);
+	sr.ui_data.outside_min_dt = TimeNow();
 	sr.ui_data.outside_max = -50;
-	sr.ui_data.outside_max_dt = time(NULL);
+	sr.ui_data.outside_max_dt = TimeNow();
 
 	sr.ui_data.water_current = 0;
 	sr.ui_data.water_min = 100;
-	sr.ui_data.water_min_dt = time(NULL);
+	sr.ui_data.water_min_dt = TimeNow();
 	sr.ui_data.water_max = -50;
-	sr.ui_data.water_max_dt = time(NULL);
+	sr.ui_data.water_max_dt = TimeNow();
 
 	//TODO these will go
 	sr.ui_data.light_flag = 0;

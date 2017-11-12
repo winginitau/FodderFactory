@@ -42,7 +42,7 @@ void OutputSetup(BlockNode *b) {
 
 		case OUT_DIGITAL: {
 			b->active = 0;
-			b->last_update = time(NULL);
+			b->last_update = TimeNow();
 			b->settings.out.command = UINT8_INIT;
 			HALInitDigitalOutput(b->settings.out.if_num);
 			break;
@@ -65,14 +65,14 @@ void OutputOperate(BlockNode *b) {
 			if (b->settings.out.command == CMD_OUTPUT_ON) {
 				if (b->active == 0) {
 					b->active = 1;
-					b->last_update = time(NULL);
+					b->last_update = TimeNow();
 					EventMsg(b->block_id, E_ACT);
 					HALDigitalWrite (b->settings.out.if_num, DIG_HIGH);
 				}
 			} else {
 				if (b->active == 1) {
 					b->active = 0;
-					b->last_update = time(NULL);
+					b->last_update = TimeNow();
 					EventMsg(b->block_id, E_DEACT);
 					HALDigitalWrite (b->settings.out.if_num, DIG_LOW);
 				}
