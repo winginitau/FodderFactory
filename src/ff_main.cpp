@@ -260,8 +260,11 @@ void ReadProcessedConfig(void) {
 	fclose(fp);
 #endif
 #ifdef FF_ARDUINO
+	DebugLog("Prior f.close");
 	f.close();
+	DebugLog("After f.close, prior SD.end");
 	SD.end();
+	DebugLog("After SD.end");
 #endif
 }
 

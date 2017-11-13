@@ -43,6 +43,31 @@
 
 #ifdef DEBUG
 
+#ifdef FF_ARDUINO
+#ifdef DEBUG_MEMORY
+char* GetMemPointers(char* str) {
+/* This function places the current value of the heap and stack pointers in the
+ * variables. You can call it from any place in your code and save the data for
+ * outputting or displaying later. This allows you to check at different parts of
+ * your program flow.
+ * The stack pointer starts at the top of RAM and grows downwards. The heap pointer
+ * starts just above the static variables etc. and grows upwards. SP should always
+ * be larger than HP or you'll be in big trouble! The smaller the gap, the more
+ * careful you need to be. Julian Gall 6-Feb-2009.
+ */
+
+	uint8_t * heapptr, * stackptr, *bll_tail;
+
+	bll_tail = (uint8_t *)GetLastBlockAddr();
+	stackptr = (uint8_t *)malloc(4);          // use stackptr temporarily
+	heapptr = stackptr;                     // save value of heap pointer
+	free(stackptr);      // free up the memory again (sets stackptr to 0)
+	stackptr =  (uint8_t *)(SP);           // save value of stack pointer
+	sprintf(str, "BLL: %u  SP: %u >< %u :HP", bll_tail, stackptr, heapptr);
+	return str;
+}
+#endif //DEBUG_MEMORY
+#endif
 
 #ifdef DEBUG_SERIAL
 void DebugSerial(char *log_entry) {
@@ -77,7 +102,13 @@ void DebugLog(const char* log_message) {
   time_t now;
   now = TimeNow();
   strftime(dt, 24, "%Y-%m-%d, %H:%M:%S", localtime(&now));		//yyyy-mm-dd, 00:00:00
+#ifdef DEBUG_MEMORY
+  char mem_str[MAX_DEBUG_LENGTH];
+  GetMemPointers(mem_str);
+  sprintf(log_entry, "%s, (%s) %s", dt, mem_str, log_message);  				//assemble log entry with time stamp
+#else
   sprintf(log_entry, "%s, %s", dt, log_message);  				//assemble log entry with time stamp
+#endif
 
 #ifdef DEBUG_SERIAL
   DebugSerial(log_entry);

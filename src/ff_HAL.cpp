@@ -96,7 +96,7 @@ uint8_t HALSaveEventBuffer(void) {
 	pinMode(53, OUTPUT);
 	// see if the card is present and can be initialized:
 	if (SD.begin(10, 11, 12, 13)) {
-		//DebugLog("DEBUG INFO sd.begin"); //cant use EventMsg
+//		DebugLog("DEBUG INFO sd.begin"); //cant use EventMsg
 
 		EventNode* e;
 		char e_str[MAX_LOG_LINE_LENGTH];
@@ -110,7 +110,7 @@ uint8_t HALSaveEventBuffer(void) {
 		if (!EventBufferEmpty()) {
 			e_file = SD.open(EVENT_FILENAME, FILE_WRITE);
 			if (e_file) {
-				//DebugLog("DEBUG INFO SD.open");
+//				DebugLog("DEBUG INFO SD.open");
 				while (!EventBufferEmpty()) {
 
 					e = EventBufferPop();
@@ -129,7 +129,7 @@ uint8_t HALSaveEventBuffer(void) {
 				}
 				e_file.flush();
 				e_file.close();
-				//DebugLog("DEBUG INFO Event Buffer Saved");
+//				DebugLog("DEBUG INFO Event Buffer Saved");
 				save_success = 1;
 			} else {
 				DebugLog(SSS, E_ERROR, M_SD_NO_FILE_HANDLE);
@@ -141,7 +141,7 @@ uint8_t HALSaveEventBuffer(void) {
 		}
 
 		SD.end();
-		//DebugLog("DEBUG INFO SD.end");
+//		DebugLog("DEBUG INFO SD.end");
 	} else {
 		DebugLog(SSS, E_ERROR, M_SD_BEGIN_FAIL);
 	}

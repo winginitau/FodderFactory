@@ -158,6 +158,7 @@ float GetFVal(uint16_t block_id);
 uint16_t GetBlockID(const char* label);
 char const* GetBlockLabelString(uint16_t block_id);
 void SetBlockLabelString(uint8_t block_type, int idx, const char* label);
+BlockNode* GetLastBlockAddr(void);
 BlockNode* GetBlockListHead(void);
 BlockNode* GetBlockByID(BlockNode *list_node, uint16_t block_id);
 BlockNode* GetBlockByLabel(const char *block_label);

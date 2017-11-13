@@ -266,7 +266,7 @@ display_name = Watering Schedule Top Sprinklers
 description = 
 # ALL, MON, TUE, WED, THU, FRI, SAT, SUN
 days = ALL
-time_start = 00:00:00
+time_start = 00:01:00
 time_duration = 00:00:26
 time_repeat = 00:2:00
 
@@ -276,7 +276,7 @@ display_name = Watering Schedule Bottom Sprinklers
 description = 
 # ALL, MON, TUE, WED, THU, FRI, SAT, SUN
 days = ALL
-time_start = 00:00:30
+time_start = 00:01:30
 time_duration = 00:00:26
 time_repeat = 00:02:00
 

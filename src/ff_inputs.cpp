@@ -73,7 +73,7 @@ void InputOperate(BlockNode *b) {
 //				Dump(b, "now >=next IN_ONEWIRE Input Operate");
 				b->last_update = now;
 				TempSensorsTakeReading();
-				DebugLog("Input Operate");
+//				DebugLog("Input Operate");
 				b->f_val = GetTemperature(b->settings.in.if_num);
 				EventMsg(b->block_id, E_DATA, M_F_READ, 0, b->f_val);
 			}

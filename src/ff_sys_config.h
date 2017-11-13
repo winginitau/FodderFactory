@@ -19,10 +19,10 @@
 /************************************************
  PLATFORM Directives
  ************************************************/
-//#define FF_ARDUINO
-//#define FF_TEMPERATURE_SIM  //optionally
+#define FF_ARDUINO
+#define FF_TEMPERATURE_SIM  //optionally
 //OR
-#define FF_SIMULATOR
+//#define FF_SIMULATOR
 //OR
 //#define FF_CONFIG
 
@@ -77,6 +77,9 @@
 #define DEBUG_CONSOLE					//write to stdout
 #endif
 
+#ifdef FF_ARDUINO
+#define DEBUG_MEMORY					//print heap and stack pointers in the debug process
+#endif
 
 #endif //DEBUG
 
@@ -120,7 +123,7 @@
 #define MAX_MESSAGE_STRING_LENGTH 80
 #define MAX_LOG_LINE_LENGTH 150
 #define MAX_DEBUG_LENGTH 150			//line buffer length for debug messages "stack smashing if too short"
-#define MAX_LABEL_LENGTH 64
+#define MAX_LABEL_LENGTH 48
 #define MAX_DESCR_LENGTH 80
 #define MAX_BLOCKS 255
 #define MAX_BLOCKS_PER_CATEGORY 32

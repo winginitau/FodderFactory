@@ -136,6 +136,21 @@ void ProcessDispatcher(void(*func)(BlockNode*)) {
 	}
 }
 
+BlockNode* GetLastBlockAddr(void) {
+	BlockNode* block_ptr;
+
+	block_ptr = bll;
+
+	if (block_ptr != NULL) {
+		while (block_ptr->next_block != NULL) {
+			block_ptr = block_ptr->next_block;
+		}
+		return block_ptr;
+	} else {
+		return NULL;
+	}
+}
+
 BlockNode* GetBlockByID(BlockNode *list_node, uint16_t block_id) {
 
 	if(list_node == NULL) {   //empty list
