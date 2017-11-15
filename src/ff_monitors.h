@@ -1,18 +1,21 @@
 /************************************************
- ff_main.h
- Fodder Factory Monitoring and Control
+ ff_monitors.h
+
+ FF System Core (Stand-alone Embedded)
 
  (c) Brendan McLearie - bmclearie@mclearie.com
 
- Main System Routines
-************************************************/
-#ifndef SRC_FF_MAIN_H_
-#define SRC_FF_MAIN_H_
+ Monitor Block Routines
+
+ ************************************************/
+
+#ifndef FF_MONITORS_H_
+#define FF_MONITORS_H_
 
 /************************************************
  Includes
 ************************************************/
-
+#include "ff_registry.h"
 
 /************************************************
  Public and Forward Data Structure Declarations
@@ -24,9 +27,8 @@
  Function Prototypes
 ************************************************/
 
+void MonitorSetup(BlockNode *b);
+void MonitorOperate(BlockNode *b);
 
-void ReadProcessedConfig(void);
-void InitSystem(void);
 
-
-#endif /* SRC_FF_MAIN_H_ */
+#endif /* FF_MONITORS_H_ */

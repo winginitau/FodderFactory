@@ -17,6 +17,8 @@
 #include "ff_HAL.h"
 #include "ff_string_consts.h"
 #include "ff_events.h"
+#include "ff_HAL.h"
+#include <time.h>
 
 /************************************************
  Data Structures
@@ -34,10 +36,10 @@
 void InitUI(void) {
 	HALInitUI();
 #ifdef FF_ARDUINO
-	EventMsg(SSS, INFO, M_LCD_INIT, 0, 0);
+	EventMsg(SSS, E_VERBOSE, M_LCD_INIT);
 #endif
 #ifdef FF_SIMULATOR
-	EventMsg(SSS, INFO, M_SIM_CONSOLE, 0, 0);
+	EventMsg(SSS, E_INFO, M_SIM_CONSOLE);
 #endif
 }
 
@@ -45,9 +47,8 @@ void UpdateUI(void) {
 
 	const UIDataSet* ui_data_ptr = GetUIDataSet();
 
-	FFDateTime dt_now = FFDTNow();
+	time_t dt_now = TimeNow();
 
-	//XXX put back in
 	HALDrawDataScreenCV(ui_data_ptr, dt_now);
 
 }

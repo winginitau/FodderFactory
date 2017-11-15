@@ -30,3 +30,8 @@
 *.exe
 *.out
 *.app
+/Debug/
+
+# Working Files
+FFEVENTS.TXT
+

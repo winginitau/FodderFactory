@@ -11,14 +11,18 @@
 /************************************************
  Includes
 ************************************************/
-#include "ff_sys_config.h"
 #include "ff_events.h"
-#include "ff_datetime.h"
+#include "ff_sys_config.h"
+#include "ff_string_consts.h"
+
+//#include "ff_datetime.h"
 #include "ff_debug.h"
 #include "ff_registry.h"
-#include "ff_utils.h"
+//#include "ff_utils.h"
 #include "ff_filesystem.h"
 
+#include <time.h>
+#include "ff_HAL.h"
 
 /************************************************
  Data Structures
@@ -29,7 +33,7 @@ typedef struct EVENT_BUFFER {
 	int head;
 	int tail;
 	int size;
-	uint8_t init = 1; //for to check for initialisation TODO - is this a const be init here?
+	uint8_t init;
 	EventNode event_list[EVENT_BUFFER_SIZE];
 } EventBuffer;
 
@@ -91,23 +95,35 @@ void EventBufferPush(EventNode event) {
 		}
 	} else {
 #ifdef FF_ARDUINO
-		DebugLog("STOP EventBufferPush before init");
+		DebugLog("STOP EventBufferPush before INIT");
 #endif
 		while (1);
 	}
 }
 
-void EventMsg(uint8_t source, uint8_t msg_type, uint8_t msg_str, int i_val, float f_val) {
+void EventMsg(uint16_t source, uint16_t destination, uint8_t msg_type, uint8_t msg_str) {
+//XXX
+}
+
+void EventMsg(uint16_t source, uint8_t msg_type) {
+	//source and type only
+	EventMsg(source, msg_type, M_NULL, UINT16_INIT, FLOAT_INIT);
+}
+
+void EventMsg(uint16_t source, uint8_t msg_type, uint8_t msg_str) {
+	//source, type, message string
+	EventMsg(source, msg_type, msg_str, UINT16_INIT, FLOAT_INIT);
+}
+
+void EventMsg(uint16_t source, uint8_t msg_type, uint8_t msg_str, int i_val, float f_val) {
 
 	if(event_buffer.init != 0) {
-#ifdef FF_ARDUINO
-		DebugLog("STOP EventMsg before init");
-#endif
+		DebugLog(SSS, E_STOP, M_EVENTMSG_BEFORE_INIT);
 		while (1);
 	}
 	EventNode event;
 
-	event.time_stamp = FFDTNow();
+	event.time_stamp = TimeNow();
 	event.source = source;
 	event.message_type = msg_type;
 	event.message = msg_str;
@@ -118,9 +134,9 @@ void EventMsg(uint8_t source, uint8_t msg_type, uint8_t msg_str, int i_val, floa
 
 	if(EventBufferFull()) {
 		if (SaveEventBuffer()) {     			//write to file
-			DebugLog("Events Saved to File");
+			//DebugLog("Events Saved to File");
 			if (!EventBufferEmpty()) {
-				DebugLog("ERROR Save did not fully flush Event Buffer");
+				DebugLog(SSS, E_ERROR, M_BUF_NOT_EMPTY);
 			}
 		}
 	}
@@ -144,11 +160,12 @@ void EventMsg(uint8_t source, uint8_t msg_type, uint8_t msg_str, int i_val, floa
 
 void EventBufferInit(void) {
 	// Initalise the event buffer
+	DebugLog(SSS, E_VERBOSE, M_INIT_EVENT_BUF);
 	event_buffer.head = 0;
 	event_buffer.tail = 0;
 	event_buffer.size = EVENT_BUFFER_SIZE;
 	for (int i = 0; i < event_buffer.size; i++) {
-		event_buffer.event_list[i].time_stamp = {0, 0, 0, 0, 0, 0};
+		event_buffer.event_list[i].time_stamp = 0;
 		event_buffer.event_list[i].source = 0;
 		event_buffer.event_list[i].message_type = 0;
 		event_buffer.event_list[i].message = 0;

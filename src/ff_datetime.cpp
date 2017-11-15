@@ -30,6 +30,7 @@
 #include "ff_datetime.h"
 #include "ff_string_consts.h"
 #include "ff_HAL.h"
+#include "ff_debug.h"
 
 
 //#include "ff_utils.h"
@@ -82,6 +83,43 @@ FFDateTime FFDT(uint16_t year, uint8_t month, uint8_t day, uint8_t hour, uint8_t
 }
 */
 
+
+TV_TYPE StrToTV(const char* time_str) {
+	int hh, mm, ss;
+	TV_TYPE tv = 0;
+
+	if (sscanf(time_str, "%d:%d:%d", &hh, &mm, &ss) == 3) {
+		tv = ss + (mm * 60) + (hh * 60 * 60);
+		return tv;
+	} else {
+		DebugLog(SSS, E_WARNING, M_BAD_TIME_STR);
+		tv = UINT32_INIT;
+		return tv;
+	}
+}
+
+
+/*
+FFTime StringToFFTime(const char* time_str) {
+	int hh, mm, ss;
+	FFTime fft;
+
+	if (sscanf(time_str, "%d:%d:%d", &hh, &mm, &ss) == 3) {
+		fft.hour = (uint8_t)hh;
+		fft.minute = (uint8_t)mm;
+		fft.second = (uint8_t)ss;
+		return fft;
+	} else {
+		DebugLog("ERROR: Malformed Time String");
+		fft.hour = 255;
+		fft.minute = 255;
+		fft.second = 255;
+		return fft;
+	}
+}
+*/
+
+/*
 uint8_t FFDTGrEq(FFDateTime a, FFDateTime b) {
 	if (a.year > b.year) {
 		return 1;
@@ -133,7 +171,9 @@ uint8_t FFDTGrEq(FFDateTime a, FFDateTime b) {
 		}
 	}
 }
+*/
 
+/*
 FFDateTime FFDTAdd(FFDateTime a, FFDateTime b) {
 	//TODO Handle Leap years
 	FFDateTime dt;
@@ -325,7 +365,7 @@ String FFDateString(FFDateTime dt) {
 	return sdate;
 }
 
-/*
+
 FFDateTime DateTimeToFFDateTime(DateTime rtcDT) {
 	FFDateTime dt;
 	dt.year = rtcDT.year();
@@ -336,9 +376,9 @@ FFDateTime DateTimeToFFDateTime(DateTime rtcDT) {
 	dt.second = rtcDT.second();
 	return dt;
 }
-*/
 
-/*
+
+
 String FFDateTimeStringNow(void) {
 	// Generate a date and time stamp as a string
 	FFDateTime dt = FFDTNow();
@@ -346,9 +386,11 @@ String FFDateTimeStringNow(void) {
 	String time = FFShortTimeString(dt);
 	return date + " " + time;
 }
-*/
+
 
 #endif
+
+*/
 
 void InitRTC(void) {		//setup the Real Time Clock
 	HALInitRTC();

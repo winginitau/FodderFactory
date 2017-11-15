@@ -1,31 +1,23 @@
 /************************************************
- ff_utils.h
+ ff_validate.h
  Fodder Factory Monitoring and Control
 
  (c) Brendan McLearie - bmclearie@mclearie.com
 
- Utility and System Functions
+ Block Validation Routines
  ************************************************/
-#ifndef FF_UTILS_H_
-#define FF_UTILS_H_
+#ifndef FF_VALIDATE_H_
+#define FF_VALIDATE_H_
+
 
 /************************************************
  Includes
  ************************************************/
 
-#include "ff_sys_config.h"
-
-#ifdef FF_ARDUINO
-#include <Arduino.h>
-#endif
-
-
-#ifdef FF_SIMULATOR
-#include <stdint.h>
-#endif
+#include "ff_registry.h"
 
 /************************************************
- Data Structures
+ Public Data Structures
  ************************************************/
 
 
@@ -34,18 +26,8 @@
  Function prototypes
  ************************************************/
 
-//cool macro for easier string handling
-//#define WriteMessageType(X) WriteMessageType(GetMessageTypeString((X)))
 
-uint8_t DayStrToFlag(uint8_t day_flag[7], const char* day_str);
-
-char* FFFloatToCString(char* buf, float f);
-
-#ifdef FF_ARDUINO
-String FFFloatString(float f);
-#endif
+void Validate(BlockNode* b);
 
 
-
-
-#endif /* FF_UTILS_H_ */
+#endif /* FF_VALIDATE_H_ */

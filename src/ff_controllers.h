@@ -9,15 +9,12 @@
 #ifndef SRC_FF_CONTROLLERS_H_
 #define SRC_FF_CONTROLLERS_H_
 
-
-
 #ifdef FF_ARDUINO
 //#include <Arduino.h>
 #endif
 
-//#include "ff_sys_config.h"
-//#include "ff_datetime.h"
 
+#include "ff_registry.h"
 
 /************************************************
  Data Structures
@@ -28,9 +25,9 @@
 /************************************************
  Function prototypes
  ************************************************/
-void SetupControllers(void);
-void RunControllers(void);
 
+void ControllerSetup(BlockNode *b);
+void ControllerOperate(BlockNode *b);
 
 
 #endif /* SRC_FF_CONTROLLERS_H_ */

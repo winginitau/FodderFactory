@@ -13,6 +13,7 @@
 ************************************************/
 #include "ff_debug.h"
 #include "ff_sys_config.h"
+#include "ff_string_consts.h"
 
 #ifdef FF_ARDUINO
 #include <Arduino.h> //TODO get rid of this
@@ -29,6 +30,7 @@
 #include "ff_HAL.h"
 #include "ff_registry.h"
 
+
 /************************************************
  Data Structures
 ************************************************/
@@ -41,35 +43,31 @@
 
 #ifdef DEBUG
 
-/*
-	String log_entry;
-  log_entry = FFDateTimeStringNow() + ", " + log_message;    //assemble log entry
-  //TODO open log file and write the message
-  #ifdef DEBUG_SERIAL
-    Serial.begin(DEBUG_SERIAL_BAUDRATE);
-    int loop = 2000;
-    while (loop > 0) {
-      loop--;
-      if (Serial) {
-        break;
-      };
-    };
-    if (loop > 0) {
-      //ie. connected before timeout
-      Serial.println(log_entry);
-      Serial.flush();
-    };
-    Serial.end();
-  #endif // DEBUG_SERIAL
+#ifdef FF_ARDUINO
+#ifdef DEBUG_MEMORY
+char* GetMemPointers(char* str) {
+/* This function places the current value of the heap and stack pointers in the
+ * variables. You can call it from any place in your code and save the data for
+ * outputting or displaying later. This allows you to check at different parts of
+ * your program flow.
+ * The stack pointer starts at the top of RAM and grows downwards. The heap pointer
+ * starts just above the static variables etc. and grows upwards. SP should always
+ * be larger than HP or you'll be in big trouble! The smaller the gap, the more
+ * careful you need to be. Julian Gall 6-Feb-2009.
+ */
 
-  #ifdef DEBUG_LCD
-    DebugLCD(log_entry);
-  #endif  //DEBUG_LCD
-};
+	uint8_t * heapptr, * stackptr, *bll_tail;
 
-*/
-
-
+	bll_tail = (uint8_t *)GetLastBlockAddr();
+	stackptr = (uint8_t *)malloc(4);          // use stackptr temporarily
+	heapptr = stackptr;                     // save value of heap pointer
+	free(stackptr);      // free up the memory again (sets stackptr to 0)
+	stackptr =  (uint8_t *)(SP);           // save value of stack pointer
+	sprintf(str, "BLL: %u  SP: %u >< %u :HP", bll_tail, stackptr, heapptr);
+	return str;
+}
+#endif //DEBUG_MEMORY
+#endif
 
 #ifdef DEBUG_SERIAL
 void DebugSerial(char *log_entry) {
@@ -98,12 +96,19 @@ void DebugConsole (const char* str) {
 #endif //DEBUG_CONSOLE
 
 
-
 void DebugLog(const char* log_message) {
   char log_entry[MAX_DEBUG_LENGTH];
   char dt[24];
-  FFDateTimeCStringNow(dt);					//yyyy-mm-dd, 00:00:00
-  sprintf(log_entry, "%s, %s", dt, log_message);  	//assemble log entry with time stamp
+  time_t now;
+  now = TimeNow();
+  strftime(dt, 24, "%Y-%m-%d, %H:%M:%S", localtime(&now));		//yyyy-mm-dd, 00:00:00
+#ifdef DEBUG_MEMORY
+  char mem_str[MAX_DEBUG_LENGTH];
+  GetMemPointers(mem_str);
+  sprintf(log_entry, "%s, (%s) %s", dt, mem_str, log_message);  				//assemble log entry with time stamp
+#else
+  sprintf(log_entry, "%s, %s", dt, log_message);  				//assemble log entry with time stamp
+#endif
 
 #ifdef DEBUG_SERIAL
   DebugSerial(log_entry);
@@ -123,15 +128,72 @@ void DebugLog(const char* log_message) {
 #endif
 }
 
+void DebugLog(uint16_t source, uint8_t msg_type, uint8_t msg_str) {
+	char debug_log_message[MAX_DEBUG_LENGTH];
+	sprintf(debug_log_message, "[%s], %s, %s", GetBlockLabelString(source), GetMessageTypeString(msg_type), GetMessageString(msg_str));
+	DebugLog(debug_log_message);
+}
 //overload function
-void DebugLog(uint8_t source, uint8_t msg_type, uint8_t msg_str, int i_val, float f_val) {
+void DebugLog(uint16_t source, uint8_t msg_type, uint8_t msg_str, int i_val, float f_val) {
 	char debug_log_message[MAX_DEBUG_LENGTH];
 	char f_str[8];
-	FFFloatToCString(f_str, f_val);
-	sprintf(debug_log_message, "%s, %s, %s, %d, %s", GetBlockLabelString(source), GetMessageTypeString(msg_type), GetMessageString(msg_str), i_val, f_str);
+	if (msg_str == M_NULL) {
+			sprintf(debug_log_message, "[%s] %s", GetBlockLabelString(source), GetMessageTypeString(msg_type));
+	} else {
+		if (i_val == UINT16_INIT) {
+			sprintf(debug_log_message, "[%s], %s, %s", GetBlockLabelString(source), GetMessageTypeString(msg_type), GetMessageString(msg_str));
+		} else {
+			FFFloatToCString(f_str, f_val);
+			sprintf(debug_log_message, "[%s], %s, %s, %d, %s", GetBlockLabelString(source), GetMessageTypeString(msg_type), GetMessageString(msg_str), i_val, f_str);
+		}
+	}
+	DebugLog(debug_log_message);
+}
+
+
+void D(time_t t) {
+	char debug_log_message[MAX_DEBUG_LENGTH];
+	sprintf(debug_log_message, "    time_t:\t %lu", t);
+	DebugLog(debug_log_message);
+}
+
+void D(uint16_t source, char* str) {
+	char debug_log_message[MAX_DEBUG_LENGTH];
+	sprintf(debug_log_message, "[%s] %s", GetBlockLabelString(source), str);
+	DebugLog(debug_log_message);
+}
+void Dump(BlockNode *b, char* tag) {
+	char debug_log_message[MAX_DEBUG_LENGTH];
+
+	sprintf(debug_log_message, "    ");
+	DebugLog(debug_log_message);
+
+	sprintf(debug_log_message, "    %s label:\t %s", tag, b->block_label);
+	DebugLog(debug_log_message);
+
+	sprintf(debug_log_message, "    %s id:\t %u", tag, b->block_id);
+	DebugLog(debug_log_message);
+
+	sprintf(debug_log_message, "    %s cat:\t %u", tag, b->block_cat);
+	DebugLog(debug_log_message);
+
+	sprintf(debug_log_message, "    %s type:\t %u", tag, b->block_type);
+	DebugLog(debug_log_message);
+
+	sprintf(debug_log_message, "    %s act:\t %u", tag, b->active);
 	DebugLog(debug_log_message);
 }
 
 
 #endif //DEBUG
 
+#ifndef DEBUG
+// XXX Debug Stubs for when DEBUG is not declared at all
+
+void DebugLog(const char* log_message) {
+}
+
+void DebugLog(uint16_t source, uint8_t msg_type, uint8_t msg_str, int i_val, float f_val) {
+}
+
+#endif

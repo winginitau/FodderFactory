@@ -16,7 +16,7 @@
 #include "ff_utils.h"
 #include "ff_sys_config.h"
 #include "ff_string_consts.h"
-//#include <string.h>
+#include <string.h>
 
 #ifdef FF_SIMULATOR
 #include <stdint.h>
@@ -37,19 +37,45 @@
   Utility and System Functions
 ************************************************/
 
-uint8_t GetLanguage(void) {
-	//TODO language switching functions
-	return ENGLISH;
-}
 
-char const* GetMessageTypeString(int message_type_enum) {
-	return message_type_strings[message_type_enum].text[GetLanguage()];
-}
 
-char const* GetMessageString(int message_enum) {
-	return message_strings[message_enum].text[GetLanguage()];
-}
+uint8_t DayStrToFlag(uint8_t day_flag[7], const char* day_str) {
+	// convert any combination of ALL, MON, TUE, WED, THU, FRI, SAT, SUN
+	// into an array[7] of booleans
+	// with reference to ff system day 0 = enum value (default SUN)
 
+	uint8_t found = 0;
+	if (strcasecmp(day_str, "ALL") == 0) {
+		for (int i=0; i<7; i++) {
+			day_flag[i] = 1;
+		}
+		found = 1;
+	} else {
+#ifdef USE_PROGMEM
+		SimpleStringArray temp;
+		for (int i = 0; i < LAST_DAY; i++ ) {
+			memcpy_P(&temp, &day_strings[i], sizeof(temp));
+			if (strcasestr(day_str, temp.text) != NULL) {
+				day_flag[i] = 1;
+				found = 1;
+			} else {
+				day_flag[i] = 0;
+			}
+		}
+#else
+		for (int i = 0; i < LAST_DAY; i++ ) {
+			if (strcasestr(day_str, day_strings[i].text) != NULL) {
+				day_flag[i] = 1;
+				found = 1;
+			} else {
+				day_flag[i] = 0;
+			}
+		}
+#endif
+
+	}
+	return found;
+}
 
 #ifdef FF_ARDUINO
 char* FFFloatToCString(char* buf, float f) {

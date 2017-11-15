@@ -1,29 +1,25 @@
 /************************************************
- ff_inputs.h
+ ff_schedules.h
  Fodder Factory Monitoring and Control
 
  (c) Brendan McLearie - bmclearie@mclearie.com
 
- Input Processing
+ Schedule Processing
  ************************************************/
-#ifndef FF_INPUTS_H_
-#define FF_INPUTS_H_
+#ifndef FF_SCHEDULES_H_
+#define FF_SCHEDULES_H_
 
 /************************************************
  Includes
 ************************************************/
-
 #include "ff_registry.h"
-
-//#ifdef FF_ARDUINO
-//#include "Arduino.h"
-//#endif
 
 /************************************************
   Function prototypes
 ************************************************/
-void InputOperate(BlockNode *b);
-void InputSetup(BlockNode *b);
+
+void ScheduleOperate(BlockNode *b);
+void ScheduleSetup(BlockNode *b);
 
 
-#endif /* FF_INPUTS_H_ */
+#endif /* FF_SCHEDULES_H_ */

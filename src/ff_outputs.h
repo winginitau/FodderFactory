@@ -13,34 +13,20 @@
 /************************************************
  Includes
 ************************************************/
-#include "ff_sys_config.h"
 
-#ifdef FF_ARDUINO
-#include "Arduino.h"
-#endif
-#ifdef FF_SIMULATOR
-#include <stdint.h>
-#endif
+#include "ff_registry.h"
 
 /************************************************
  Public and Forward Data Structure Declarations
 ************************************************/
 
-enum OUTPUT_COMMANDS {OUTPUT_OFF = 0, OUTPUT_ON =1};
-
-//typedef struct OUTPUT_BLOCK OutputBlock;
 
 /************************************************
  Function Prototypes
 ************************************************/
 
-void SetOutputCommand(char* label, uint8_t command);
-
-void SetupOutputs(void);
-
-void PollOutputs(void);
-
-
+void OutputSetup(BlockNode *b);
+void OutputOperate(BlockNode *b);
 
 
 #endif /* SRC_FF_OUTPUTS_H_ */

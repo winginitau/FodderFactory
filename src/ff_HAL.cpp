@@ -96,11 +96,11 @@ uint8_t HALSaveEventBuffer(void) {
 	pinMode(53, OUTPUT);
 	// see if the card is present and can be initialized:
 	if (SD.begin(10, 11, 12, 13)) {
-		//DebugLog("DEBUG INFO sd.begin"); //cant use EventMsg
+//		DebugLog("DEBUG INFO sd.begin"); //cant use EventMsg
 
 		EventNode* e;
-		char e_str[MAX_DEBUG_LENGTH];
-		char ymd_str[12];
+		char e_str[MAX_LOG_LINE_LENGTH];
+		char ymd_str[14];
 		char hms_str[12];
 		const char* source_str;
 		const char* msg_type_str;
@@ -110,13 +110,13 @@ uint8_t HALSaveEventBuffer(void) {
 		if (!EventBufferEmpty()) {
 			e_file = SD.open(EVENT_FILENAME, FILE_WRITE);
 			if (e_file) {
-				//DebugLog("DEBUG INFO SD.open");
+//				DebugLog("DEBUG INFO SD.open");
 				while (!EventBufferEmpty()) {
 
 					e = EventBufferPop();
 
-					FFDateCString((char *)ymd_str, e->time_stamp);
-					FFTimeCString((char *)hms_str, e->time_stamp);
+					strftime(ymd_str, 14, "%Y-%m-%d", localtime(&(e->time_stamp)));
+					strftime(hms_str, 12, "%H:%M:%S", localtime(&(e->time_stamp)));
 					source_str = GetBlockLabelString(e->source);
 					msg_type_str = GetMessageTypeString(e->message_type);
 					msg_str = GetMessageString(e->message);
@@ -129,37 +129,37 @@ uint8_t HALSaveEventBuffer(void) {
 				}
 				e_file.flush();
 				e_file.close();
-				//DebugLog("DEBUG INFO Event Buffer Saved");
+//				DebugLog("DEBUG INFO Event Buffer Saved");
 				save_success = 1;
 			} else {
-				DebugLog(GetMessageString(M_SD_NO_FILE_HANDLE));
+				DebugLog(SSS, E_ERROR, M_SD_NO_FILE_HANDLE);
+				//DebugLog("ERROR: (HALSaveEventBuffer) No SD File Handle");
 			}
 
 		} else {
-			DebugLog(GetMessageString(M_ERROR_EVENTS_EMPTY));
+			DebugLog(SSS, E_ERROR, M_ERROR_EVENTS_EMPTY);
 		}
 
 		SD.end();
-		//DebugLog("DEBUG INFO SD.end");
+//		DebugLog("DEBUG INFO SD.end");
 	} else {
-		DebugLog(GetMessageString(M_SD_BEGIN_FAIL));
+		DebugLog(SSS, E_ERROR, M_SD_BEGIN_FAIL);
 	}
 #endif
 #ifdef FF_SIMULATOR
 	FILE *e_file;
 	EventNode* e;
 	if (!EventBufferEmpty()) {
-		e_file = fopen(EVENT_FILENAME, "w");
+		e_file = fopen(EVENT_FILENAME, "a");
 		if (e_file) {
-			DebugLog("File open GOOD, have file handle");
+			//DebugLog("File open GOOD, have file handle");
 			while (!EventBufferEmpty()) {
 
 				e = EventBufferPop();
 				char time_str[12];
 				char date_str[14];
-				FFDateCString(date_str, e->time_stamp);
-				FFTimeCString(time_str, e->time_stamp);
-
+				strftime(date_str, 14, "%Y-%m-%d", localtime(&(e->time_stamp)));
+				strftime(time_str, 12, "%H:%M:%S", localtime(&(e->time_stamp)));
 				fprintf(e_file, "%s,", date_str);
 				fprintf(e_file, "%s,", time_str);
 				fprintf(e_file, "%s,", GetBlockLabelString(e->source));
@@ -169,14 +169,14 @@ uint8_t HALSaveEventBuffer(void) {
 				fprintf(e_file, "%f\n", e->float_val);
 			}
 			fclose(e_file);
-			DebugLog(SSS, INFO, M_BUF_SAVED, 0, 0);
+			DebugLog(SSS, E_VERBOSE, M_BUF_SAVED, UINT16_INIT, 0);
 			save_success = 1;
 		} else {
-			DebugLog(SSS, ERROR, M_ERR_EVENT_FILE, 0, 0);
+			DebugLog(SSS, E_ERROR, M_ERR_EVENT_FILE, 0, 0);
 		}
 
 	} else {
-		DebugLog("ERROR Buffer empty");
+		DebugLog(SSS, E_ERROR, M_SAVE_EMPTY_BUF);
 	}
 #endif
 
@@ -241,6 +241,7 @@ void HALDebugLCD(String log_entry) {
 float GetTemperature(int if_num) {
 	float temp_c;
 #ifdef FF_ARDUINO
+#ifndef FF_TEMPERATURE_SIM
 	//try this as a local each time called to save global memory
 	OneWire one_wire(ONE_WIRE_BUS);            		// oneWire instance to communicate with any OneWire devices
 	DallasTemperature temp_sensors(&one_wire);     // Pass our one_wire reference to Dallas Temperature
@@ -250,41 +251,79 @@ float GetTemperature(int if_num) {
 	//original code
 	temp_c = temp_sensors.getTempCByIndex(if_num);
 #endif
-#ifdef FF_TEMP_SIM
+#endif
 
+#ifdef FF_TEMPERATURE_SIM
+#ifdef FF_RANDOM_TEMP_SIM
+#ifdef FF_SIMULATOR
+	switch (if_num) {
+	case 0:
+		temp_c = (float)-5 + ((float)((rand() % 4000)) / 100);
+		break;
+	case 1:
+		temp_c = (float)-5 + ((float)((rand() % 4000)) / 100);
+		break;
+	case 2:
+		temp_c = (float)-5 + ((float)((rand() % 4000)) / 100);
+		break;
+	case 3:
+		temp_c = (float)-5 + ((float)((rand() % 4000)) / 100);
+		break;
+	default:
+		temp_c = FLOAT_INIT;
+	}
+#endif
+#endif
+#endif
+
+#ifdef FF_TEMPERATURE_SIM
+#ifdef FF_DEFINED_TEMP_SIM
 	switch (if_num) {
 	case 0:
 		temp_c = SIM_TEMP_0;
-#ifdef FF_ARDUINO
-		temp_c = random(5.01, 39.99);
-#endif
 		break;
 	case 1:
 		temp_c = SIM_TEMP_1;
-#ifdef FF_ARDUINO
-		temp_c = random(5.01, 39.99);
-#endif
 		break;
 	case 2:
 		temp_c = SIM_TEMP_2;
-#ifdef FF_ARDUINO
-		temp_c = random(5.01, 39.99);
-#endif
 		break;
 	case 3:
-		temp_c = SIM_TEMP_2;
-#ifdef FF_ARDUINO
-		temp_c = random(5.01, 39.99);
-#endif
+		temp_c = SIM_TEMP_3;
 		break;
 	default:
-		temp_c = -50;
+		temp_c = FLOAT_INIT;
 	}
 #endif
+#endif
+
+#ifdef FF_TEMPERATURE_SIM
+#ifdef FF_RANDOM_TEMP_SIM
+#ifdef FF_ARDUINO
+	switch (if_num) {
+	case 0:
+		temp_c = random(5.01, 39.99);
+		break;
+	case 1:
+		temp_c = random(5.01, 39.99);
+		break;
+	case 2:
+		temp_c = random(5.01, 39.99);
+		break;
+	case 3:
+		temp_c = random(5.01, 39.99);
+		break;
+	default:
+		temp_c = FLOAT_INIT;
+	}
+#endif
+#endif
+#endif
+
 	return temp_c;
 }
 
-void HALDigitalWrite (uint8_t if_num, uint8_t digital_val) {
+void HALDigitalWrite(uint8_t if_num, uint8_t digital_val) {
 #ifdef FF_ARDUINO
 	digitalWrite(if_num, digital_val);
 #endif
@@ -292,8 +331,7 @@ void HALDigitalWrite (uint8_t if_num, uint8_t digital_val) {
 #endif
 }
 
-
-void HALInitDigitalOutput (uint8_t if_num) {
+void HALInitDigitalOutput(uint8_t if_num) {
 #ifdef FF_ARDUINO
 	pinMode(if_num, OUTPUT);
 #endif
@@ -303,17 +341,36 @@ void HALInitDigitalOutput (uint8_t if_num) {
 
 }
 
+uint8_t HALDigitalRead(uint8_t if_num) {
+#ifdef FF_ARDUINO
+	return digitalRead(if_num);
+#endif
+
+#ifdef FF_SIMULATOR
+	return rand() % 2;
+#endif
+}
+
+void HALInitDigitalInput(uint8_t if_num) {
+#ifdef FF_ARDUINO
+	pinMode(if_num, INPUT);
+#endif
+#ifdef FF_SIMULATOR
+	// nothing to do
+#endif
+}
+
 void TempSensorsTakeReading(void) {
-	#ifdef FF_ARDUINO
+#ifdef FF_ARDUINO
 	//temp_sensors.requestTemperatures();  //tell them to take a reading (stored on device)
-	#endif
+#endif
 }
 
 void InitTempSensors(void) {
-	#ifdef FF_ARDUINO
+#ifdef FF_ARDUINO
 	//Dalas temp sensor
 	//temp_sensors.begin();
-	#endif
+#endif
 }
 
 void HALInitUI(void) {
@@ -325,7 +382,24 @@ void HALInitUI(void) {
 }
 
 
-void HALDrawDataScreenCV(const UIDataSet* uids, FFDateTime dt) {
+void HALDrawDataScreenCV(const UIDataSet* uids, time_t dt) {
+
+	char time_now_str[10];
+	char time_in_min[10];
+	char time_out_min[10];
+	char time_wat_min[10];
+	char time_in_max[10];
+	char time_out_max[10];
+	char time_wat_max[10];
+
+	strftime(time_now_str, 10, "%H:%M", localtime(&dt));
+	strftime(time_in_min, 10, "%H:%M", localtime(&(uids->inside_min_dt)));
+	strftime(time_out_min, 10, "%H:%M", localtime(&(uids->outside_min_dt)));
+	strftime(time_wat_min, 10, "%H:%M", localtime(&(uids->water_min_dt)));
+	strftime(time_in_max, 10, "%H:%M", localtime(&(uids->inside_max_dt)));
+	strftime(time_out_max, 10, "%H:%M", localtime(&(uids->outside_max_dt)));
+	strftime(time_wat_max, 10, "%H:%M", localtime(&(uids->water_max_dt)));
+
 #ifdef FF_ARDUINO
 	//U8G2_ST7920_128X64_F_SW_SPI lcd_128_64(U8G2_R0, /* clock=*/ 40 /* A4 */ , /* data=*/ 42 /* A2 */, /* CS=*/ 44 /* A3 */, /* reset=*/ U8X8_PIN_NONE); //LCD Device Object and Definition
 	//lcd_128_64.begin();
@@ -346,7 +420,7 @@ void HALDrawDataScreenCV(const UIDataSet* uids, FFDateTime dt) {
 
 	lcd_128_64.firstPage();
 	do {
-	lcd_128_64.drawStr(0, 7, FFShortTimeCString(str_buf, dt));
+	lcd_128_64.drawStr(0, 7, time_now_str);
 	lcd_128_64.drawStr(0, 18, "");
 	lcd_128_64.drawStr(0, 31, "Min");
 	lcd_128_64.drawStr(0, 41, "  @");
@@ -356,45 +430,28 @@ void HALDrawDataScreenCV(const UIDataSet* uids, FFDateTime dt) {
 	lcd_128_64.drawStr(43, 7, "IN");
 	lcd_128_64.drawStr(25, 18, FFFloatToCString(str_buf, uids->inside_current));
 	lcd_128_64.drawStr(25, 31, FFFloatToCString(str_buf, uids->inside_min));
-	lcd_128_64.drawStr(25, 41, FFShortTimeCString(str_buf, uids->inside_min_dt));
+	lcd_128_64.drawStr(25, 41, time_in_min);
 	lcd_128_64.drawStr(25, 54, FFFloatToCString(str_buf, uids->inside_max));
-	lcd_128_64.drawStr(25, 64, FFShortTimeCString(str_buf, uids->inside_max_dt));
+	lcd_128_64.drawStr(25, 64, time_in_max);
 
 	lcd_128_64.drawStr(72, 7, "OUT");
 	lcd_128_64.drawStr(60, 18, FFFloatToCString(str_buf, uids->outside_current));
 	lcd_128_64.drawStr(60, 31, FFFloatToCString(str_buf, uids->outside_min));
-	lcd_128_64.drawStr(60, 41, FFShortTimeCString(str_buf, uids->outside_min_dt));
+	lcd_128_64.drawStr(60, 41, time_out_min);
 	lcd_128_64.drawStr(60, 54, FFFloatToCString(str_buf, uids->outside_max));
-	lcd_128_64.drawStr(60, 64, FFShortTimeCString(str_buf, uids->outside_max_dt));
+	lcd_128_64.drawStr(60, 64, time_out_max);
 
 	lcd_128_64.drawStr(110, 7, "WAT");
 	lcd_128_64.drawStr(95, 18, FFFloatToCString(str_buf, uids->water_current));
 	lcd_128_64.drawStr(95, 31, FFFloatToCString(str_buf, uids->water_min));
-	lcd_128_64.drawStr(95, 41, FFShortTimeCString(str_buf, uids->water_min_dt));
+	lcd_128_64.drawStr(95, 41, time_wat_min);
 	lcd_128_64.drawStr(95, 54, FFFloatToCString(str_buf, uids->water_max));
-	lcd_128_64.drawStr(95, 64, FFShortTimeCString(str_buf, uids->water_max_dt));
+	lcd_128_64.drawStr(95, 64, time_wat_max);
 	} while (lcd_128_64.nextPage());
 
 	//lcd_128_64.sendBuffer();                      // transfer internal memory to the display
 #endif
 #ifdef FF_SIMULATOR
-	char time_now_str[10];
-	char time_in_min[10];
-	char time_out_min[10];
-	char time_wat_min[10];
-	char time_in_max[10];
-	char time_out_max[10];
-	char time_wat_max[10];
-
-	FFShortTimeCString(time_now_str, dt);
-	FFShortTimeCString(time_in_min, uids->inside_min_dt);
-	FFShortTimeCString(time_out_min, uids->outside_min_dt);
-	FFShortTimeCString(time_wat_min, uids->water_min_dt);
-	FFShortTimeCString(time_in_max, uids->inside_max_dt);
-	FFShortTimeCString(time_out_max, uids->outside_max_dt);
-	FFShortTimeCString(time_wat_max, uids->water_max_dt);
-
-
 	//printf("\e[1;1H\e[2J"); //clear screen
 	for (int n = 0; n<20; n++) {
 		printf("\n");
@@ -408,7 +465,22 @@ void HALDrawDataScreenCV(const UIDataSet* uids, FFDateTime dt) {
 #endif
 }
 
+time_t TimeNow(void) {
+#ifdef FF_ARDUINO
+	DateTime rtcDT;
+	time_t epoch_time;
 
+	rtcDT = rtc.now();
+	epoch_time = rtcDT.secondstime();
+	return epoch_time;
+#endif
+
+
+#ifdef FF_SIMULATOR
+	return time(NULL);
+#endif
+}
+/*
 FFDateTime HALFFDTNow(void) {
 	FFDateTime dt;
 
@@ -447,6 +519,18 @@ FFDateTime HALFFDTNow(void) {
 	return dt;
 #endif
 }
+*/
+
+#ifdef FF_ARDUINO
+void HALSetSysTimeToRTC(void) {
+	DateTime rtcDT;
+	time_t epoch_time;
+
+	rtcDT = rtc.now();
+	epoch_time = rtcDT.secondstime();
+	set_system_time(epoch_time);
+}
+#endif
 
 void HALInitRTC(void) {
 #ifdef FF_ARDUINO
@@ -457,27 +541,28 @@ void HALInitRTC(void) {
 	// and sync system time to RTC periodically - that way time still progresses even if RTC broken
 	Wire.begin();
 	if (rtc.begin()) {
-		EventMsg(SSS, DEBUG_MSG, M_RTC_DETECT, 0, 0);
+		EventMsg(SSS, E_VERBOSE, M_RTC_DETECT, 0, 0);
 		if (rtc.isrunning()) {
-			EventMsg(SSS, DEBUG_MSG, M_RTC_REPORT_RUNNING, 0, 0);
+			EventMsg(SSS, E_VERBOSE, M_RTC_REPORT_RUNNING, 0, 0);
 #ifdef SET_RTC
-			EventMsg(SSS, WARNING, M_WARN_SET_RTC, 0, 0);
+			EventMsg(SSS, E_WARNING, M_WARN_SET_RTC, 0, 0);
 			// following line sets the RTC to the date & time this sketch was compiled
 			rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
-			EventMsg(SSS, WARNING, M_WARN_RTC_HARD_CODED, 0, 0);
+			EventMsg(SSS, E_WARNING, M_WARN_RTC_HARD_CODED, 0, 0);
 #endif
+			HALSetSysTimeToRTC();
 		} else {
-			EventMsg(SSS, WARNING, M_RTC_NOT_RUNNING, 0, 0);
+			EventMsg(SSS, E_WARNING, M_RTC_NOT_RUNNING, 0, 0);
 			// following line sets the RTC to the date & time this sketch was compiled
 			rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
-			EventMsg(SSS, WARNING, M_WARN_RTC_HARD_CODED, 0, 0);
+			EventMsg(SSS, E_WARNING, M_WARN_RTC_HARD_CODED, 0, 0);
 		};
 		rtc_status = 1;
 	} else
-		EventMsg(SSS, ERROR, M_RTC_NOT_FOUND, 0, 0);
+		EventMsg(SSS, E_ERROR, M_RTC_NOT_FOUND, 0, 0);
 	#endif
 #ifdef FF_SIMULATOR
-	EventMsg(SSS, INFO, M_SIM_SYS_TIME, 0, 0);
+	EventMsg(SSS, E_INFO, M_SIM_SYS_TIME);
 #endif
 }
 
