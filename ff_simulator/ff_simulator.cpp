@@ -59,8 +59,12 @@ int main(void) {
 
 	// Read the config file, parse it and create a block list in memory
 	//XXX consider if Block0(SYSTEM) can be the state register?
-	//ReadAndParseConfig();	//from INI config file
+
+#ifdef FF_SIM_PARSECONFIG
+	ReadAndParseConfig();	//from INI config file
+#else
 	ReadProcessedConfig();
+#endif
 
 	// set up the runtime environment
 	InitSystem();
