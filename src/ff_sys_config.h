@@ -23,10 +23,7 @@
 //#define FF_TEMPERATURE_SIM  //optionally
 //OR
 #define FF_SIMULATOR
-<<<<<<< HEAD
 #define FF_SIM_PARSECONFIG	//optional parse the TXT config (default -> read BIN)
-=======
->>>>>>> 74b739aff16014aa8d88fafaf1d1ed9bf8275bec
 //OR
 //#define FF_CONFIG
 
