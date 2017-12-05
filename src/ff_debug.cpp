@@ -30,6 +30,7 @@
 #include "ff_HAL.h"
 #include "ff_registry.h"
 
+//#include <time.h>
 
 /************************************************
  Data Structures
@@ -151,11 +152,18 @@ void DebugLog(uint16_t source, uint8_t msg_type, uint8_t msg_str, int i_val, flo
 }
 
 
-void D(time_t t) {
+void D(char* tag, time_t t) {
 	char debug_log_message[MAX_DEBUG_LENGTH];
-	sprintf(debug_log_message, "    time_t:\t %lu", t);
+	sprintf(debug_log_message, "    %s: time_t:\t %lu", tag, t);
 	DebugLog(debug_log_message);
 }
+
+void D(char* tag, tm* t) {
+	char debug_log_message[MAX_DEBUG_LENGTH];
+	sprintf(debug_log_message, "    %s: tm:\t %d-%d-%d %d:%d:%d", tag, t->tm_year, t->tm_mon, t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec);
+	DebugLog(debug_log_message);
+}
+
 
 void D(uint16_t source, char* str) {
 	char debug_log_message[MAX_DEBUG_LENGTH];

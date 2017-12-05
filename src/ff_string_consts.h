@@ -391,7 +391,7 @@ static const StringArray message_type_strings[LAST_MESSAGE_TYPE] = {
 	12, { "INFO",				"INFO" },
 	10, { "WARNING",			"WARNUNG" },
 	12, { "ERROR",				"FEHLER" },
-	12, { "STOP"				"HALT" },
+	12, { "STOP",				"HALT" },
 };
 
 /**************************************************************
@@ -463,7 +463,7 @@ typedef enum {
 	M_BAD_BLOCK_CAT,
 	M_ADDING_BLOCK,
 	M_BLOCK_READ_BINARY,
-	M65,
+	M_ADDBLOCK_ERROR,
 	M66,
 	M67,
 	M68,
@@ -553,7 +553,7 @@ static const StringArray message_strings[LAST_MESSAGE] = {
 	14, { "(ConfigureBlock) Invalid Block Category",		"M62" },
 	14, { "(ConfigureBlock) Finding or Adding Block",		"M63" },
 	14, { "Block Configuraton Read from Binary File",		"M64" },
-	14, { "M65",								"M65" },
+	14, { "(AddBlock) malloc returned NULL",				"M65" },
 	14, { "M66",								"M66" },
 	14, { "M67",								"M67" },
 	14, { "M68",								"M68" },

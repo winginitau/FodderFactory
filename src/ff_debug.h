@@ -34,7 +34,8 @@
  Function Prototypes
 ************************************************/
 
-void D(time_t t);
+void D(char* tag, time_t t);
+void D(char* tag, tm* t);
 void D(uint16_t source, char* str);
 void Dump(BlockNode *b, char *tag);
 void DebugLog(const char* log_message);

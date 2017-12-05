@@ -526,8 +526,11 @@ void HALSetSysTimeToRTC(void) {
 	DateTime rtcDT;
 	time_t epoch_time;
 
+	set_zone(TIME_ZONE * 3600);
+	//set_dst(); //ugly - requires importing of TZ includes
 	rtcDT = rtc.now();
 	epoch_time = rtcDT.secondstime();
+
 	set_system_time(epoch_time);
 }
 #endif
@@ -546,7 +549,7 @@ void HALInitRTC(void) {
 			EventMsg(SSS, E_VERBOSE, M_RTC_REPORT_RUNNING, 0, 0);
 #ifdef SET_RTC
 			EventMsg(SSS, E_WARNING, M_WARN_SET_RTC, 0, 0);
-			// following line sets the RTC to the date & time this sketch was compiled
+			// following line sets the RTC localtime() to the date & time this sketch was compiled
 			rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
 			EventMsg(SSS, E_WARNING, M_WARN_RTC_HARD_CODED, 0, 0);
 #endif
@@ -557,6 +560,32 @@ void HALInitRTC(void) {
 			rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
 			EventMsg(SSS, E_WARNING, M_WARN_RTC_HARD_CODED, 0, 0);
 		};
+		   /**
+		        Initialize the system time. Examples are...
+
+		        From a Clock / Calendar type RTC:
+		        \code
+		        struct tm rtc_time;
+
+		        read_rtc(&rtc_time);
+		        rtc_time.tm_isdst = 0;
+		        set_system_time( mktime(&rtc_time) );
+		        \endcode
+
+		        From a Network Time Protocol time stamp:
+		        \code
+		        set_system_time(ntp_timestamp - NTP_OFFSET);
+		        \endcode
+
+		        From a UNIX time stamp:
+		         \code
+		        set_system_time(unix_timestamp - UNIX_OFFSET);
+		        \endcode
+
+		    */
+		//set_dst();
+		set_zone(TIME_ZONE * 3600);
+		HALSetSysTimeToRTC();
 		rtc_status = 1;
 	} else
 		EventMsg(SSS, E_ERROR, M_RTC_NOT_FOUND, 0, 0);

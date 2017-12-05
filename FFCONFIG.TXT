@@ -32,8 +32,8 @@ week_start = SUN
 [inputs]
 input1 = IN_INSIDE_TOP_TEMP
 input2 = IN_OUTSIDE_TEMP
-input3 = IN_WATER_TEMP
-input4 = IN_INSIDE_BOTTOM_TEMP
+#input3 = IN_WATER_TEMP
+input3 = IN_INSIDE_BOTTOM_TEMP
 #input5 = IN_LOADING_DOOR_SWITCH
 #input6 = IN_HARVEST_DOOR_SWITCH 
 #input7 =  
@@ -63,7 +63,7 @@ type = IN_ONEWIRE
 display_name = Water
 description = Dallas sensor in the header tank
 interface = ONEWIRE
-if_num = 2
+if_num = 3
 log_rate = 00:01:00
 data_units = Celsius
 data_type = float
@@ -73,7 +73,7 @@ type = IN_ONEWIRE
 display_name = Inside Bot
 description = Dallas sensor inside the bottom of the fodder factory
 interface = ONEWIRE
-if_num = 3
+if_num = 2
 log_rate = 00:01:00
 data_units = Celsius
 data_type = float
@@ -89,16 +89,6 @@ log_rate = 00:01:10
 data_units = ONOFF
 data_type = int
 
-[IN_HARVEST_DOOR_SWITCH]
-type = IN_DIGITAL
-display_name = Harvest Door
-description = Reed switch on harvest end door
-interface = DIG_PIN_IN
-# update with real pins and remove log_rate 
-if_num =            
-log_rate = 00:03:10
-data_units = ONOFF
-data_type = int
 
 #************************************************
 # Monitors
@@ -108,12 +98,12 @@ monitor1 = MON_INSIDE_TOP_TOO_COLD
 monitor2 = MON_INSIDE_TOP_TOO_HOT
 monitor3 = MON_INSIDE_BOTTOM_TOO_COLD
 monitor4 = MON_INSIDE_BOTTOM_TOO_HOT
-monitor5 = MON_WATER_TOO_HOT
-monitor6 = MON_WATER_TOO_COLD
-monitor7 = MON_OUTSIDE_HOT
-monitor8 = MON_OUTSIDE_COLD
-monitor9 = MON_INSIDE_AVERAGE_TOO_COLD
-monitor10 = MON_INSIDE_AVERAGE_TOO_HOT
+#monitor3 = MON_WATER_TOO_HOT
+#monitor4 = MON_WATER_TOO_COLD
+monitor5 = MON_OUTSIDE_HOT
+monitor6 = MON_OUTSIDE_COLD
+monitor7 = MON_INSIDE_AVERAGE_TOO_COLD
+monitor8 = MON_INSIDE_AVERAGE_TOO_HOT
 #monitor11 = MON_LOAD_DOOR_OPEN 
 #monitor12 = MON_HARVEST_DOOR_OPEN
 #monitor13 = 
@@ -209,14 +199,6 @@ input1 = IN_LOADING_DOOR_SWITCH
 act_val	= HIGH
 deact_val = LOW
 
-[MON_HARVEST_DOOR_OPEN]
-type = MON_TRIGGER
-display_name = Harvest End Door Open
-description =  
-input1 = IN_HARVEST_DOOR_SWITCH
-act_val	= HIGH
-deact_val = LOW
-
 #************************************************
 # Schedules
 #************************************************/
@@ -232,7 +214,6 @@ schedule5 = SCH_WATERING_BOTTOM_SCHEDULE
 #schedule9 = SCH_TEST4
 #schedule10 = SCH_TEST5
 #schedule11 = SCH_TEST6
-
 
 [SCH_EXCLUDE_WATER_HEAT_BY_DAY]
 type = SCH_START_STOP
@@ -266,7 +247,7 @@ display_name = Watering Schedule Top Sprinklers
 description = 
 # ALL, MON, TUE, WED, THU, FRI, SAT, SUN
 days = ALL
-time_start = 00:01:00
+time_start = 00:00:00
 time_duration = 00:00:26
 time_repeat = 00:2:00
 
@@ -276,7 +257,7 @@ display_name = Watering Schedule Bottom Sprinklers
 description = 
 # ALL, MON, TUE, WED, THU, FRI, SAT, SUN
 days = ALL
-time_start = 00:01:30
+time_start = 00:00:30
 time_duration = 00:00:26
 time_repeat = 00:02:00
 
@@ -289,9 +270,8 @@ rule1 = RL_TURN_ON_WATER_HEAT_IF_INSIDE_COLD
 rule2 = RL_RUN_LIGHTS_ON_SCHEDULE
 rule3 = RL_FAN_IF_INSIDE_BOTTOM_HOT_OUTSIDE_COLD
 rule4 = RL_CIRCULATE_IF_TOP_HOT_AND_BOTTOM_COLD
-rule5 = RL_RESET_MIN_MAX_ON_SCHEDULE 
-rule6 = RL_WATER_ON_SCHEDULE_TOP
-rule7 = RL_WATER_ON_SCHEDULE_BOTTOM 
+rule5 = RL_WATER_ON_SCHEDULE_TOP
+rule6 = RL_WATER_ON_SCHEDULE_BOTTOM 
 #rule8 = RL_SUSPEND_WATERING_IF_BOTH_DOORS_OPEN
 #rule9 =  
 #rule10 =  
@@ -301,10 +281,9 @@ rule7 = RL_WATER_ON_SCHEDULE_BOTTOM
 type = RL_LOGIC_SINGLENOT
 display_name = Water Heat Warming Inside
 description =
-param1 = MON_INSIDE_AVERAGE_TOO_COLD
+param1 = MON_INSIDE_TOP_TOO_COLD
 #param2 =
 param_not = SCH_EXCLUDE_WATER_HEAT_BY_DAY
-
 
 [RL_RUN_LIGHTS_ON_SCHEDULE]
 type = RL_LOGIC_SINGLE
@@ -313,7 +292,6 @@ description =
 param1 = SCH_RUN_LIGHTS_AT_NIGHT
 #param_not = 
 
-
 [RL_FAN_IF_INSIDE_BOTTOM_HOT_OUTSIDE_COLD]
 type = RL_LOGIC_AND
 display_name = Cooling Fan
@@ -321,7 +299,6 @@ description =
 param1 = MON_INSIDE_BOTTOM_TOO_HOT
 param2 = MON_OUTSIDE_COLD
 #param_not = 
-
 
 [RL_CIRCULATE_IF_TOP_HOT_AND_BOTTOM_COLD]
 type = RL_LOGIC_ANDNOT
@@ -332,16 +309,6 @@ param2 = MON_INSIDE_BOTTOM_TOO_COLD
 #prevent if cold air being sucked in already
 param_not = RL_FAN_IF_INSIDE_BOTTOM_HOT_OUTSIDE_COLD   
 
-
-[RL_SUSPEND_WATERING_IF_BOTH_DOORS_OPEN]
-type = RL_LOGIC_AND
-display_name = Suspend Watering
-description =
-param1 = MON_LOAD_DOOR_OPEN
-param2 = MON_HARVEST_DOOR_OPEN
-;param_not = 
-
-
 [RL_WATER_ON_SCHEDULE_TOP]
 type = RL_LOGIC_SINGLE
 display_name = Water Cycle Top
@@ -349,21 +316,12 @@ description =
 param1 = SCH_WATERING_TOP_SCHEDULE
 #param_not = RL_SUSPEND_WATERING_IF_BOTH_DOORS_OPEN
 
-
 [RL_WATER_ON_SCHEDULE_BOTTOM]
 type = RL_LOGIC_SINGLE
 display_name = Water Cycle Bottom
 description =
 param1 = SCH_WATERING_BOTTOM_SCHEDULE
 #param_not = RL_SUSPEND_WATERING_IF_BOTH_DOORS_OPEN
-
-
-[RL_RESET_MIN_MAX_ON_SCHEDULE]
-type = RL_LOGIC_SINGLE
-display_name = Reset Min and Max Counters
-description =
-param1 = SCH_RESET_MIN_MAX_COUNTERS
-#param_not =
 
 
 #************************************************
@@ -375,9 +333,8 @@ controller2 = CON_END_LIGHTS_CONTROLLER
 controller3 = CON_FRESH_AIR_CONTROLLER
 controller4 = CON_CIRCULATION_FAN_CONTROLLER
 controller5 = CON_EXHAUST_FAN_CONTROLLER
-controller6 = CON_SYSTEM_MIN_MAX_RESET 
-controller7 = CON_WATERING_TOP_CONTROLLER
-controller8 = CON_WATERING_BOTTOM_CONTROLLER
+controller6 = CON_WATERING_TOP_CONTROLLER
+controller7 = CON_WATERING_BOTTOM_CONTROLLER
 #controller9 = 
 #controller10 = 
 
@@ -444,14 +401,6 @@ output = OUT_WATERING_SOLENOID_BOTTOM
 act_cmd = CMD_OUTPUT_ON
 deact_cmd = CMD_OUTPUT_OFF
 
-[CON_SYSTEM_MIN_MAX_RESET]
-type = CON_SYSTEM
-display_name = System Min Mix Reset Controller
-description = 
-rule = RL_RESET_MIN_MAX_ON_SCHEDULE
-output = OUT_SYSTEM_INTERNAL
-act_cmd = CMD_RESET_MIN_MAX
-#deact_cmd =
 
 #************************************************
 # Outputs
@@ -462,65 +411,58 @@ output2 = OUT_WATER_HEATER
 output3 = OUT_FRESH_AIR_FAN
 output4 = OUT_CIRCULATION_FAN
 output5 = OUT_EXHAUST_FAN
-output6 = OUT_SYSTEM_INTERNAL 
-output7 = OUT_WATERING_SOLENOID_TOP
-output8 = OUT_WATERING_SOLENOID_BOTTOM
+#output6 = OUT_SYSTEM_INTERNAL 
+output6 = OUT_WATERING_SOLENOID_TOP
+output7 = OUT_WATERING_SOLENOID_BOTTOM
 #output9 = 
-
-[OUT_SYSTEM_INTERNAL]
-type = OUT_SYSTEM_CALL
-display_name = Internal System Call
-description = Send ACT_CMD to SYSTEM
-interface = SYSTEM_FUNCTION
-#if_num = 
 
 [OUT_END_LIGHTS]
 type = OUT_DIGITAL
 display_name = Fluro Lights
 description = Relay to Control Fluro End Lights
 interface = DIG_PIN_OUT
-if_num = 30
+if_num = 28
 
 [OUT_WATER_HEATER]
 type = OUT_DIGITAL
 display_name = Header Tank Heater
 description = Relay to Control Header Tank Water Heater
 interface = DIG_PIN_OUT
-if_num = 32
+if_num = 29
 
 [OUT_FRESH_AIR_FAN]
 type = OUT_DIGITAL
 display_name = Fresh Air Fan
 description = Relay to Control Fresh Air Fan
 interface = DIG_PIN_OUT
-if_num = 
+if_num = 30
 
 [OUT_CIRCULATION_FAN]
 type = OUT_DIGITAL
 display_name = Circulation Fan
 description = Relay to Control the Circulation Fan
 interface = DIG_PIN_OUT
-if_num = 
+if_num = 31
 
 [OUT_EXHAUST_FAN]
 type = OUT_DIGITAL
 display_name = Exhaust Fan
 description = Relay to Control the Exhaust Fan
 interface = DIG_PIN_OUT
-if_num = 
+if_num = 32
 
 [OUT_WATERING_SOLENOID_TOP]
 type = OUT_DIGITAL
 display_name = Water Value Top
 description = Relay to Control the Top Watering Solenoid
 interface = DIG_PIN_OUT
-if_num = 
+if_num = 33
 
 [OUT_WATERING_SOLENOID_BOTTOM]
 type = OUT_DIGITAL
 display_name = Water Value Bottom
 description = Relay to Control the Bottom Watering Solenoid
 interface = DIG_PIN_OUT
-if_num = 
+if_num = 34
 
 

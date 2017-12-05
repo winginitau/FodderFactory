@@ -76,25 +76,38 @@ void ScheduleSetup(BlockNode *b) {
 
 void ScheduleOperate(BlockNode *b) {
 	tm* now_tm;
-	tm* temp_tm;
+	tm zero_tm;
 
 	time_t start;
 	time_t end;
 	time_t zero_today;
-
 	time_t now;
-	time_t temp;
-
-	temp = TimeNow();
-	temp_tm = localtime(&temp);
-
-	temp_tm->tm_hour = 0;
-	temp_tm->tm_min = 0;
-	temp_tm->tm_sec = 0;
-	zero_today = mktime(temp_tm);
 
 	now = TimeNow();
 	now_tm = localtime(&now);
+
+	//D("now", now);
+	//D("now_tm", now_tm);
+
+
+	zero_tm.tm_year = now_tm->tm_year;
+	zero_tm.tm_mon = now_tm->tm_mon;
+	zero_tm.tm_mday = now_tm->tm_mday;
+	zero_tm.tm_hour = 0;
+	zero_tm.tm_min = 0;
+	zero_tm.tm_sec = 0;
+
+	//D("zero_locatime", &zero_tm);
+
+	zero_today = mktime(&zero_tm);
+
+
+	//D("zero_mktime", zero_today);
+	//D("zero_locatime", &zero_tm);
+
+
+	//now = TimeNow();
+	//now_tm = localtime(&now);
 
 
 	uint8_t target_state = UINT8_INIT;
@@ -183,6 +196,23 @@ void ScheduleOperate(BlockNode *b) {
 
 			start = last_start_time + zero_today;
 			end = start + b->settings.sch.time_duration;
+/*
+			D("time_now", time_now);
+			D("sched_start", sched_start);
+			D("repeat", repeat);
+
+			D("zero_today", zero_today);
+			D("last_start_num", last_start_num);
+			D("last_start_time", last_start_time);
+
+			D("start", start);
+			D("end", end);
+
+			D("now", now);
+			D("now_tm", now_tm);
+*/
+
+			//D("last_start_num", last_start_num);
 
 			if (b->settings.sch.days[today_num] == 1) {
 				if (start <= now && end > now) {

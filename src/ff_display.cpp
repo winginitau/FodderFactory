@@ -45,7 +45,7 @@ void InitUI(void) {
 
 void UpdateUI(void) {
 
-	const UIDataSet* ui_data_ptr = GetUIDataSet();
+	UIDataSet* ui_data_ptr = GetUIDataSet();
 
 	time_t dt_now = TimeNow();
 

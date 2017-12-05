@@ -23,7 +23,7 @@
 //#define FF_TEMPERATURE_SIM  //optionally
 //OR
 #define FF_SIMULATOR
-#define FF_SIM_PARSECONFIG	//optional parse the TXT config (default -> read BIN)
+//#define FF_SIM_PARSECONFIG	//optional parse the TXT config (default -> read BIN)
 //OR
 //#define FF_CONFIG
 
@@ -57,6 +57,13 @@
 
 #define EXCLUDE_DESCRIPTION			// to save .data segment and heap space on arduino
 #define EXCLUDE_DISPLAYNAME			// to save .data segment and heap space on arduino
+
+/************************************************
+ Localisation - TODO Move to Config
+ ************************************************/
+#define TIME_ZONE 0
+#define DAY_LIGHT_SAVING 0
+
 /************************************************
  DEBUG Directives
  ************************************************/
@@ -68,7 +75,7 @@
 #define DEBUG_SERIAL                  	// For use when USB connected
 #define DEBUG_SERIAL_BAUDRATE 9600
 //#define DEBUG_LCD                     	// Debug to a connected LCD screen
-#define DEBUG_LCD_DELAY 3000
+#define DEBUG_LCD_DELAY 0
 #endif
 
 //#define DEBUG_FILE						//write a debug file on SD or locally

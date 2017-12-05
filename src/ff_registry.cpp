@@ -15,6 +15,7 @@
 #include "ff_string_consts.h"
 #include "ff_debug.h"
 #include "ff_utils.h"
+#include "ff_display.h"
 
 #include "ff_inputs.h"
 #include "ff_monitors.h"
@@ -70,6 +71,7 @@ void Setup(BlockNode *b) {
 	switch (b->block_cat) {
 	case FF_SYSTEM:
 		//TODO
+		UpdateUI();
 		break;
 	case FF_INPUT:
 		InputSetup(b);
@@ -99,6 +101,7 @@ void Operate(BlockNode *b) {
 	switch (b->block_cat) {
 	case FF_SYSTEM:
 		//TODO
+		UpdateUI();
 		break;
 	case FF_INPUT:
 		InputOperate(b);
@@ -260,11 +263,11 @@ BlockNode* GetBlockListHead(void) {
 BlockNode* AddBlockNode(BlockNode** head_ref, uint8_t block_cat, const char *block_label) {
 	BlockNode* new_block;
 
-	if (*head_ref == NULL) {   //empty list
-		// common settings and setting holders for al blocks
+	if (*head_ref == NULL) {   //empty list or end of list
+		// common settings and setting holders for all blocks
 		new_block = (BlockNode *) malloc(sizeof(BlockNode));
 		if (new_block == NULL) {
-			DebugLog("STOP: (AddBlock) malloc returned NULL");
+			DebugLog(SSS, E_STOP, M_ADDBLOCK_ERROR);
 			while (1)
 				;
 		} else {
@@ -354,7 +357,20 @@ BlockNode* AddBlockNode(BlockNode** head_ref, uint8_t block_cat, const char *blo
 }
 
 BlockNode* AddBlock(uint8_t block_cat, const char *block_label) {
-	return AddBlockNode(&bll, block_cat, block_label);
+	//to save stack memory, iterate down the block list
+	//and only call the recursive AddBlockNode function
+	//once at the end of the list
+
+	if (bll == NULL) {
+		return AddBlockNode(&bll, block_cat, block_label);
+	} else {
+
+		BlockNode* walker = bll;
+		while(walker->next_block != NULL) {
+			walker = walker->next_block;
+		}
+		return AddBlockNode(&(walker->next_block), block_cat, block_label);
+	}
 }
 
 BlockNode* GetBlockNodeByLabel(BlockNode *list_node, const char *block_label) {
@@ -390,7 +406,7 @@ void UpdateStateRegister(uint16_t source, uint8_t msg_type, uint8_t msg_str, int
 	src_label = GetBlockLabelString(source);
 
 	if (src_label) {
-		if (strcmp(src_label, "INSIDE_TOP_TEMP") == 0) {
+		if (strcmp(src_label, "IN_INSIDE_TOP_TEMP") == 0) {
 			sr.ui_data.inside_current = f_val;
 			if (f_val < sr.ui_data.inside_min) {
 				sr.ui_data.inside_min = f_val;
@@ -402,7 +418,7 @@ void UpdateStateRegister(uint16_t source, uint8_t msg_type, uint8_t msg_str, int
 			}
 		}
 
-		if (strcmp(src_label, "OUTSIDE_TEMP") == 0) {
+		if (strcmp(src_label, "IN_OUTSIDE_TEMP") == 0) {
 			sr.ui_data.outside_current = f_val;
 			if (f_val < sr.ui_data.outside_min) {
 				sr.ui_data.outside_min = f_val;
@@ -414,7 +430,7 @@ void UpdateStateRegister(uint16_t source, uint8_t msg_type, uint8_t msg_str, int
 			}
 		}
 
-		if (strcmp(src_label, "WATER_TEMP") == 0) {
+		if (strcmp(src_label, "IN_WATER_TEMP") == 0) {
 			sr.ui_data.water_current = f_val;
 			if (f_val < sr.ui_data.water_min) {
 				sr.ui_data.water_min = f_val;

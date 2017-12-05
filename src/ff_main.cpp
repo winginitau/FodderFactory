@@ -155,39 +155,47 @@ void ReadProcessedConfig(void) {
 	BlockNode* b;
 	uint8_t b_cat; 	//used as read-ahead to test for eof before creating a new block
 
-#ifdef FF_SIMULATOR
+	#ifdef FF_SIMULATOR
 	FILE *fp;
 	fp = fopen(BIN_CONFIG_FILENAME, "r");
-#endif
-#ifdef FF_ARDUINO
+	#endif
+
+	#ifdef FF_ARDUINO
 	File f;
 	File *fp;
+	fp = &f;
 	pinMode(SS, OUTPUT);
 	pinMode(10, OUTPUT);
 	pinMode(53, OUTPUT);
+	#endif
+
+	#ifdef FF_ARDUINO
 	// see if the card is present and can be initialized:
 	if (SD.begin(10, 11, 12, 13)) {
 		//DebugLog("DEBUG INFO sd.begin"); //cant use EventMsg
 		f = SD.open(BIN_CONFIG_FILENAME, FILE_READ);
 	}
-	fp = &f;
-#endif
+	#endif
 
-	while (1) {
+	while (1) {    //continue reading the file until EOF break
+
+
 		b_cat = uint8_tRead(fp); //all blocks start with block category
 //		DebugLog("Read b_cat");
-#ifdef FF_ARDUINO
+		#ifdef FF_ARDUINO
 		if (!f.available()) {
 //			DebugLog("Not available - break");
 			break;
 		}
-#endif
-#ifdef FF_SIMULATOR
+		#endif
+
+		#ifdef FF_SIMULATOR
 		if(feof(fp)) {
 //			DebugLog("EOF");
 			break;
 		}
-#endif
+		#endif
+
 		b = AddBlock(FF_GENERIC_BLOCK, "NEW_BLANK_BLOCK"); //add a new one
 //		DebugLog("Add block passed");
 		if (b != NULL) {
@@ -197,12 +205,12 @@ void ReadProcessedConfig(void) {
 			b->block_type = uint16_tRead(fp);
 			b->block_id = uint16_tRead(fp);
 			LabelRead(b->block_label, MAX_LABEL_LENGTH, fp);
-#ifndef	EXCLUDE_DISPLAYNAME
+			#ifndef	EXCLUDE_DISPLAYNAME
 			LabelRead(b->display_name, MAX_LABEL_LENGTH, fp);
-#endif
-#ifndef EXCLUDE_DESCRIPTION
+			#endif
+			#ifndef EXCLUDE_DESCRIPTION
 			LabelRead(b->description, MAX_DESCR_LENGTH, fp);
-#endif
+			#endif
 			switch (b->block_cat) {
 				case FF_SYSTEM:
 					b->settings.sys.temp_scale = uint8_tRead(fp);
