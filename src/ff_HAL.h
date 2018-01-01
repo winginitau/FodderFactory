@@ -18,6 +18,7 @@
 
 #include "ff_registry.h"
 #include "ff_datetime.h"
+#include "ff_events.h"
 /************************************************
  Public and Forward Data Structure Declarations
 ************************************************/
@@ -27,6 +28,7 @@
  Function Prototypes
 ************************************************/
 uint8_t HALSaveEventBuffer(void);
+uint8_t HALEventSerialSend(EventNode* e, uint8_t port, uint16_t baudrate);
 uint8_t HALDigitalRead(uint8_t if_num);
 void HALInitDigitalInput(uint8_t if_num);
 void HALDigitalWrite (uint8_t if_num, uint8_t digital_val);

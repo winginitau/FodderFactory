@@ -22,6 +22,7 @@
 typedef struct EVENT_NODE {
 	time_t time_stamp;
 	uint16_t source;
+	uint16_t destination;
 	uint8_t message_type;
 	uint8_t message;
 	int int_val;
@@ -34,15 +35,16 @@ typedef struct EVENT_BUFFER EventBuffer;
  Function Prototypes
 ************************************************/
 
+const char* FormatEventMessage (EventNode* e, char* e_str);
 uint8_t EventBufferEmpty (void);
-
 EventNode* EventBufferPop(void);
 
+void EventMsg(uint16_t source, uint16_t destination, uint8_t msg_type, uint8_t msg_str, int16_t i_val, float f_val);
 void EventMsg(uint16_t source, uint16_t destination, uint8_t msg_type, uint8_t msg_str);
-void EventMsg(uint16_t source, uint8_t msg_type);
+void EventMsg(uint16_t source, uint8_t msg_type, uint8_t msg_str, int16_t i_val, float f_val);
 void EventMsg(uint16_t source, uint8_t msg_type, uint8_t msg_str);
+void EventMsg(uint16_t source, uint8_t msg_type);
 //void EventMsg(uint16_t source, uint8_t msg_type, float f_val);
-void EventMsg(uint16_t source, uint8_t msg_type, uint8_t log_msg, int i_val, float f_val);
 
 void EventBufferInit(void);
 

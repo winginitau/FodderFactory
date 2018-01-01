@@ -27,7 +27,7 @@
 
 void InitFileSystem(void);
 
-uint8_t SaveEventBuffer(void);
+
 
 
 #endif /* SRC_FF_FILESYSTEM_H_ */

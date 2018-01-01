@@ -69,7 +69,6 @@ void ControllerOperate(BlockNode *b) {
 				if (b->active == 0) {
 					b->active = 1;
 					b->last_update = TimeNow();
-//					EventMsg(b->block_id, E_ACT);
 					SetCommand(b->settings.con.output, b->settings.con.act_cmd);
 					EventMsg(b->block_id, E_COMMAND, M_CMD_ACT);
 				}
@@ -77,7 +76,6 @@ void ControllerOperate(BlockNode *b) {
 				if (b->active == 1) {
 					b->active = 0;
 					b->last_update = TimeNow();
-//					EventMsg(b->block_id, E_DEACT);
 					SetCommand(b->settings.con.output, b->settings.con.deact_cmd);
 					EventMsg(b->block_id, E_COMMAND, M_CMD_DEACT);
 				}

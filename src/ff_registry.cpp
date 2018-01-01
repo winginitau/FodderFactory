@@ -127,7 +127,6 @@ void Operate(BlockNode *b) {
 	}
 }
 
-
 void ProcessDispatcher(void(*func)(BlockNode*)) {
 	BlockNode* block_ptr;
 
@@ -238,11 +237,13 @@ uint16_t GetBlockID(const char* label) {
 }
 
 char const* GetBlockLabelString(uint16_t block_id) {
+
+	if (block_id == BLOCK_ID_NA) {
+		return "NA";
+	}
 	BlockNode* temp;
 	char debug_msg[MAX_LOG_LINE_LENGTH];
-
 	temp = bll;
-
 	while (temp != NULL) {
 		if (temp->block_id == block_id) {
 				return temp->block_label;
@@ -405,8 +406,9 @@ void UpdateStateRegister(uint16_t source, uint8_t msg_type, uint8_t msg_str, int
 	const char* src_label;
 	src_label = GetBlockLabelString(source);
 
+	//Update UI Data Fields with raw values and update MIN and MAX fields if they have changed
 	if (src_label) {
-		if (strcmp(src_label, "IN_INSIDE_TOP_TEMP") == 0) {
+		if (strcmp(src_label, DISPLAY_INSIDE_SOURCE_BLOCK) == 0) {
 			sr.ui_data.inside_current = f_val;
 			if (f_val < sr.ui_data.inside_min) {
 				sr.ui_data.inside_min = f_val;
@@ -418,7 +420,7 @@ void UpdateStateRegister(uint16_t source, uint8_t msg_type, uint8_t msg_str, int
 			}
 		}
 
-		if (strcmp(src_label, "IN_OUTSIDE_TEMP") == 0) {
+		if (strcmp(src_label, DISPLAY_OUTSIDE_SOURCE_BLOCK) == 0) {
 			sr.ui_data.outside_current = f_val;
 			if (f_val < sr.ui_data.outside_min) {
 				sr.ui_data.outside_min = f_val;
@@ -430,7 +432,7 @@ void UpdateStateRegister(uint16_t source, uint8_t msg_type, uint8_t msg_str, int
 			}
 		}
 
-		if (strcmp(src_label, "IN_WATER_TEMP") == 0) {
+		if (strcmp(src_label, DISPLAY_WATER_SOURCE_BLOCK) == 0) {
 			sr.ui_data.water_current = f_val;
 			if (f_val < sr.ui_data.water_min) {
 				sr.ui_data.water_min = f_val;
@@ -442,28 +444,33 @@ void UpdateStateRegister(uint16_t source, uint8_t msg_type, uint8_t msg_str, int
 			}
 		}
 
-		if (strcmp(src_label, "RESET_MIN_MAX") == 0) {
-			sr.ui_data.inside_min = sr.ui_data.inside_current;
-			sr.ui_data.inside_min_dt = TimeNow();
-			sr.ui_data.inside_max = sr.ui_data.inside_current;
-			sr.ui_data.inside_max_dt = TimeNow();
-
-			sr.ui_data.outside_min = sr.ui_data.outside_current;
-			sr.ui_data.outside_min_dt = TimeNow();
-			sr.ui_data.outside_max = sr.ui_data.outside_current;
-			sr.ui_data.outside_max_dt = TimeNow();
-
-			sr.ui_data.water_min = sr.ui_data.water_current;
-			sr.ui_data.water_min_dt = TimeNow();
-			sr.ui_data.water_max = sr.ui_data.water_current;
-			sr.ui_data.water_max_dt = TimeNow();
-		}
 	} else { //src_label Null
 		DebugLog(SSS, E_ERROR, M_SR_BAD_ID);
 	}
 
-	sr.ui_data.light_flag = 0;
-	sr.ui_data.water_heater_flag = 0;
+	if ( (msg_type == E_COMMAND) && (msg_str == CMD_RESET_MINMAX) ) {
+		sr.ui_data.inside_min = sr.ui_data.inside_current;
+		sr.ui_data.inside_min_dt = TimeNow();
+		sr.ui_data.inside_max = sr.ui_data.inside_current;
+		sr.ui_data.inside_max_dt = TimeNow();
+
+		sr.ui_data.outside_min = sr.ui_data.outside_current;
+		sr.ui_data.outside_min_dt = TimeNow();
+		sr.ui_data.outside_max = sr.ui_data.outside_current;
+		sr.ui_data.outside_max_dt = TimeNow();
+
+		sr.ui_data.water_min = sr.ui_data.water_current;
+		sr.ui_data.water_min_dt = TimeNow();
+		sr.ui_data.water_max = sr.ui_data.water_current;
+		sr.ui_data.water_max_dt = TimeNow();
+
+		DebugLog(SSS, E_INFO, M_SR_MINMAX_RESET);
+	}
+
+	//TODO - decide: flags for lights and heater on UI?
+	// Not used for now
+	//sr.ui_data.light_flag = 0;
+	//sr.ui_data.water_heater_flag = 0;
 }
 
 

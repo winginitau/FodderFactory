@@ -21,6 +21,8 @@ IniFile::IniFile(const char* filename, uint8_t mode, bool caseSensitive)
   _error = errorNoError;
   //_file = NULL;
   SD.begin(10, 11, 12, 13);
+//  SD.begin(10);
+
 }
 #endif
 #ifdef FF_SIMULATOR

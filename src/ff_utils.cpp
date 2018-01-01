@@ -84,7 +84,7 @@ char* FFFloatToCString(char* buf, float f) {
 #endif
 #ifdef FF_SIMULATOR
 char* FFFloatToCString(char* buf, float f) {
-	sprintf(buf, "%f", f);
+	sprintf(buf, "%.2f", f);
 	return buf;
 }
 #endif

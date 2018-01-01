@@ -303,7 +303,7 @@ display_name = Reset Min and Max Daily Counters
 description = 
 # ALL, MON, TUE, WED, THU, FRI, SAT, SUN
 days = ALL
-time_start = 16:00:00
+time_start = 11:00:00
 
 [SCH_WATERING_TOP_SCHEDULE]
 type = SCH_START_DURATION_REPEAT
@@ -347,7 +347,6 @@ rule4 = RL_CIRCULATE_IF_TOP_HOT_AND_BOTTOM_COLD
 rule5 = RL_SUSPEND_WATERING_IF_BOTH_DOORS_OPEN
 rule6 = RL_WATER_ON_SCHEDULE_TOP
 rule7 = RL_WATER_ON_SCHEDULE_BOTTOM 
-rule8 = RL_RESET_MIN_MAX_ON_SCHEDULE 
 #rule9 =  
 #rule10 =  
 #rule11 =
@@ -413,14 +412,6 @@ param1 = SCH_WATERING_BOTTOM_SCHEDULE
 param_not = RL_SUSPEND_WATERING_IF_BOTH_DOORS_OPEN
 
 
-[RL_RESET_MIN_MAX_ON_SCHEDULE]
-type = RL_LOGIC_SINGLE
-display_name = Reset Min and Max Counters
-description =
-param1 = SCH_RESET_MIN_MAX_COUNTERS
-#param_not =
-
-
 #************************************************
 # Controllers
 #************************************************/
@@ -432,7 +423,7 @@ controller4 = CON_CIRCULATION_FAN_CONTROLLER
 controller5 = CON_EXHAUST_FAN_CONTROLLER
 controller6 = CON_WATERING_TOP_CONTROLLER
 controller7 = CON_WATERING_BOTTOM_CONTROLLER
-controller8 = CON_SYSTEM_MIN_MAX_RESET 
+#controller8 = CON_SYSTEM_MIN_MAX_RESET 
 #controller9 = 
 #controller10 = 
 
@@ -519,7 +510,7 @@ output4 = OUT_CIRCULATION_FAN
 output5 = OUT_EXHAUST_FAN
 output6 = OUT_WATERING_SOLENOID_TOP
 output7 = OUT_WATERING_SOLENOID_BOTTOM
-output8 = OUT_SYSTEM_INTERNAL 
+#output8 = OUT_SYSTEM_INTERNAL 
 #output9 = 
 
 [OUT_SYSTEM_INTERNAL]

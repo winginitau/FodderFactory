@@ -172,19 +172,29 @@ void ReadProcessedConfig(void) {
 	#ifdef FF_ARDUINO
 	// see if the card is present and can be initialized:
 	if (SD.begin(10, 11, 12, 13)) {
-		//DebugLog("DEBUG INFO sd.begin"); //cant use EventMsg
+//	if (SD.begin(10)) {
+//DebugLog("DEBUG INFO sd.begin");
 		f = SD.open(BIN_CONFIG_FILENAME, FILE_READ);
+		if (!f) {
+			//DebugLog(SSS, E_STOP, M_NO_CONFIG);
+			DebugLog("NO CONFIG");
+			// Cannot do anything else
+			while (1);
+		}
+	} else {
+		//DebugLog(SSS, E_STOP, M_SD_BEGIN_FAIL);
+		DebugLog("SD FAIL");
+		while (1);
 	}
+
 	#endif
 
 	while (1) {    //continue reading the file until EOF break
-
-
 		b_cat = uint8_tRead(fp); //all blocks start with block category
-//		DebugLog("Read b_cat");
+//DebugLog("Read b_cat");
 		#ifdef FF_ARDUINO
 		if (!f.available()) {
-//			DebugLog("Not available - break");
+//DebugLog("Not available - break");
 			break;
 		}
 		#endif
@@ -197,10 +207,10 @@ void ReadProcessedConfig(void) {
 		#endif
 
 		b = AddBlock(FF_GENERIC_BLOCK, "NEW_BLANK_BLOCK"); //add a new one
-//		DebugLog("Add block passed");
+//DebugLog("Add block passed");
 		if (b != NULL) {
 			//we now have a valid block ptr pointing to a new block in the list
-//			DebugLog("AddBlock not NULL");
+//DebugLog("AddBlock not NULL");
 			b->block_cat = b_cat;
 			b->block_type = uint16_tRead(fp);
 			b->block_id = uint16_tRead(fp);
@@ -268,11 +278,11 @@ void ReadProcessedConfig(void) {
 	fclose(fp);
 #endif
 #ifdef FF_ARDUINO
-	DebugLog("Prior f.close");
+//	DebugLog("Prior f.close");
 	f.close();
-	DebugLog("After f.close, prior SD.end");
+//	DebugLog("After f.close, prior SD.end");
 	SD.end();
-	DebugLog("After SD.end");
+//	DebugLog("After SD.end");
 #endif
 }
 

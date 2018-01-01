@@ -22,6 +22,7 @@
 #include "ff_debug.h"
 
 #include <time.h>
+#include <string.h>
 
 #ifdef FF_SIMULATOR
 #include <stdio.h>
@@ -86,8 +87,8 @@ void ScheduleOperate(BlockNode *b) {
 	now = TimeNow();
 	now_tm = localtime(&now);
 
-	//D("now", now);
-	//D("now_tm", now_tm);
+//	D("now", now);
+//	D("now_tm", now_tm);
 
 
 	zero_tm.tm_year = now_tm->tm_year;
@@ -97,13 +98,13 @@ void ScheduleOperate(BlockNode *b) {
 	zero_tm.tm_min = 0;
 	zero_tm.tm_sec = 0;
 
-	//D("zero_locatime", &zero_tm);
+//	D("zero_locatime", &zero_tm);
 
 	zero_today = mktime(&zero_tm);
 
 
-	//D("zero_mktime", zero_today);
-	//D("zero_locatime", &zero_tm);
+//	D("zero_today", zero_today);
+//	D("zero_locatime", &zero_tm);
 
 
 	//now = TimeNow();
@@ -129,7 +130,7 @@ void ScheduleOperate(BlockNode *b) {
 				// is today an active day?
 				//XXX align day num conversion
 				if (b->settings.sch.days[today_num] == 1) {
-					// Could be in 1 of 3 periods
+					// Now could be in 1 of 3 periods
 					//	1 - before start time (start > now && end >= now)
 					//	2 - during the active period (start < now && end >= now)
 					//	3 - after the active period (start < now && end < now)
@@ -139,10 +140,10 @@ void ScheduleOperate(BlockNode *b) {
 				}
 			} else {
 				if (end < start) {
-					//schedule must cross midnight
-					// Could be in 1 of 3 periods
-					//	1 - yesterday was active and it started yesterday and is still running
-					//	2 - if it was active yesterday it is now finished, and not yet time to start again
+					//schedule must be a midnight crossing pattern
+					// Now could be in 1 of 3 periods
+					//	1 - before end time today where it started yesterday
+					//	2 - after end time and not yet time to start again
 					//	3 - in the next active period that will continue past the next midnight
 
 					// was yesterday an active day? (ie. active period started yesterday)
@@ -171,46 +172,70 @@ void ScheduleOperate(BlockNode *b) {
 
 			break;
 		}
-		case SCH_ONE_SHOT:
-			//XXX to do - see comments in setup
-			b->active = 0;
-			b->last_update = TimeNow();
-			break;
+		case SCH_ONE_SHOT: {
 
+			// convert start and end times to time_t values
+			start = zero_today + b->settings.sch.time_start;
+			end = start + ONE_SHOT_DURATION; 	// accommodate loop delays longer than 1 second
+
+			if (b->settings.sch.days[today_num] == 1) {
+				if (start <= now && end >= now) {
+					target_state = 1;
+				} else target_state = 0;
+			} else target_state = 0;
+
+			if (target_state == 1 && b->active == 0) {				//all conditions met, go active
+				b->active = 1;
+				b->last_update = now;
+				EventMsg(b->block_id, E_ACT);
+				//XXX work around for reset min max without having a full block sequence in the config
+				if (strcmp(b->block_label, RESET_MINMAX_SCH_BLOCK) == 0) {
+					EventMsg(b->block_id, SSS, E_COMMAND, CMD_RESET_MINMAX);
+				}
+			}
+			if (target_state == 0 && b->active == 1) { //deact
+				b->active = 0;
+				b->last_update = now;
+				EventMsg(b->block_id, E_DEACT);
+			}
+			break;
+		}
 		case SCH_START_DURATION_REPEAT: {
 
 			TV_TYPE last_start_time;
 			TV_TYPE sched_start;
 			TV_TYPE repeat;
-			TV_TYPE time_now;
+			TV_TYPE secs_today_now;
 			TV_TYPE last_start_num;
 
-			time_now = (now_tm->tm_sec) + (now_tm->tm_min * 60) + (now_tm->tm_hour * 60 * 60);
+//			secs_today_now = (now_tm->tm_sec) + (now_tm->tm_min * 60) + (now_tm->tm_hour * 60 * 60);
+			secs_today_now = now - zero_today;
+
 
 			sched_start = b->settings.sch.time_start;
 			repeat = b->settings.sch.time_repeat;
 
 
-			last_start_num = (time_now - sched_start) / repeat;
+			last_start_num = (secs_today_now - sched_start) / repeat;
 			last_start_time = sched_start + (last_start_num * repeat);
 
 			start = last_start_time + zero_today;
 			end = start + b->settings.sch.time_duration;
-/*
-			D("time_now", time_now);
-			D("sched_start", sched_start);
-			D("repeat", repeat);
 
-			D("zero_today", zero_today);
-			D("last_start_num", last_start_num);
-			D("last_start_time", last_start_time);
+//			D("secs_today_now", secs_today_now);
+//			D("sched_start", sched_start);
+//			D("repeat", repeat);
 
-			D("start", start);
-			D("end", end);
+//			D("zero_today", zero_today);
+//			D("last_start_num", last_start_num);
+//			D("last_start_time", last_start_time);
 
-			D("now", now);
-			D("now_tm", now_tm);
-*/
+//			D("start", start);
+//			D("end", end);
+
+//			D("now", now);
+//			D("now_tm", now_tm);
+
 
 			//D("last_start_num", last_start_num);
 

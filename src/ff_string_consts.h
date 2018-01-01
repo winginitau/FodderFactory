@@ -89,6 +89,8 @@ typedef struct SIMPLE_STRING_ARRAY_TYPE {
 } SimpleStringArray;
 #endif
 
+
+
 typedef struct BLOCK_CATS {
 	const uint8_t cat_id;
 	const char conf_section_label[MAX_LABEL_LENGTH];
@@ -212,18 +214,28 @@ enum {
 
 
 static const BlockCatArray block_cat_defs[LAST_BLOCK_CAT] = {
-	FF_ERROR_CAT, "\0", "\0", {
+
+	FF_ERROR_CAT,
+	"\0",
+	"\0",
+	{
 		"\0",
 	},
 
-	FF_GENERIC_BLOCK, "\0", "\0", {
-			"",		//not used - dummy to skip error enum = 0
-			"type",
-			"display_name",
-			"description",
+	FF_GENERIC_BLOCK,
+	"\0",
+	"\0",
+	{
+		"",		//not used - dummy to skip error enum = 0
+		"type",
+		"display_name",
+		"description",
 	},
 
-	FF_SYSTEM, "system", "", {
+	FF_SYSTEM,
+	"system",
+	"",
+	{
 		"",		//not used - dummy to skip error enum = 0
 		"type",
 		"display_name",
@@ -232,7 +244,11 @@ static const BlockCatArray block_cat_defs[LAST_BLOCK_CAT] = {
 		"temp_scale",
 		"week_start",
 	},
-	FF_INPUT, "inputs", "input", {
+
+	FF_INPUT,
+	"inputs",
+	"input",
+	{
 		"",		//not used - dummy to skip error enum = 0
 		"type",
 		"display_name",
@@ -243,7 +259,11 @@ static const BlockCatArray block_cat_defs[LAST_BLOCK_CAT] = {
 		"data_units",
 		"data_type"
 	},
-	FF_MONITOR, "monitors", "monitor", {
+
+	FF_MONITOR,
+	"monitors",
+	"monitor",
+	{
 		"",		//not used - dummy to skip error enum = 0
 		"type",
 		"display_name",
@@ -255,7 +275,11 @@ static const BlockCatArray block_cat_defs[LAST_BLOCK_CAT] = {
 		"act_val",
 		"deact_val"
 	},
-	FF_SCHEDULE, "schedules", "schedule", {
+
+	FF_SCHEDULE,
+	"schedules",
+	"schedule",
+	{
 		"",		//not used - dummy to skip error enum = 0
 		"type",
 		"display_name",
@@ -266,7 +290,11 @@ static const BlockCatArray block_cat_defs[LAST_BLOCK_CAT] = {
 		"time_duration",
 		"time_repeat",
 	},
-	FF_RULE, "rules", "rule", {
+
+	FF_RULE,
+	"rules",
+	"rule",
+	{
 		"",		//not used - dummy to skip error enum = 0
 		"type",
 		"display_name",
@@ -276,7 +304,11 @@ static const BlockCatArray block_cat_defs[LAST_BLOCK_CAT] = {
 		"param3",
 		"param_not",
 	},
-	FF_CONTROLLER, "controllers", "controller", {
+
+	FF_CONTROLLER,
+	"controllers",
+	"controller",
+	{
 		"",		//not used - dummy to skip error enum = 0
 		"type",
 		"display_name",
@@ -288,7 +320,10 @@ static const BlockCatArray block_cat_defs[LAST_BLOCK_CAT] = {
 
 	},
 
-	FF_OUTPUT, "outputs", "output", {
+	FF_OUTPUT,
+	"outputs",
+	"output",
+	{
 		"",		//not used - dummy to skip error enum = 0
 		"type",
 		"display_name",
@@ -357,18 +392,18 @@ static const SimpleStringArray block_type_strings[LAST_BLOCK_TYPE] = {
 
 
 /**************************************************************
- * EventTypes
+ * Event / Message / Debug Types
  **************************************************************/
 
 typedef enum {
 	E_ZERO_ERROR = 0,
 	E_DEBUG_MSG,
 	E_VERBOSE,
+	E_INFO,
 	E_DATA,
 	E_ACT,
 	E_DEACT,
 	E_COMMAND,
-	E_INFO,
 	E_WARNING,
 	E_ERROR,
 	E_STOP,
@@ -384,18 +419,18 @@ static const StringArray message_type_strings[LAST_MESSAGE_TYPE] = {
 	12, { "ZERO_ERROR",			"" },
 	12, { "DEBUG",				"DEBUGGEN" },
 	12, { "VERBOSE"				"" },
+	12, { "INFO",				"INFO" },
 	12, { "DATA",				"DATEN" },
 	12, { "ACTIVATED",			"" },
 	12, { "DEACTIVATED", 		"" },
 	12, { "COMMAND", 			"" },
-	12, { "INFO",				"INFO" },
 	10, { "WARNING",			"WARNUNG" },
 	12, { "ERROR",				"FEHLER" },
 	12, { "STOP",				"HALT" },
 };
 
 /**************************************************************
- * Message Strings
+ * Message Strings and Command Strings
  **************************************************************/
 typedef enum {
 	M_FF_ERROR = 0,
@@ -464,8 +499,8 @@ typedef enum {
 	M_ADDING_BLOCK,
 	M_BLOCK_READ_BINARY,
 	M_ADDBLOCK_ERROR,
-	M66,
-	M67,
+	CMD_RESET_MINMAX,
+	M_SR_MINMAX_RESET,
 	M68,
 	M69,
 	M70,
@@ -510,8 +545,8 @@ static const StringArray message_strings[LAST_MESSAGE] = {
 	14, { "Processing Each Block Conf",						"M19" },
 	14, { "(Operate) Block Cat Not Matched",				"M20" },
 	14, { "(DISPATCHER) Called (Validate) for each block",	"M21" },
-	14, { "Command Activate",								"M22" },
-	14, { "Command Deactivate",								"M23" },
+	14, { "CMD_ACT",								"M22" },
+	14, { "CMD_DEACT",								"M23" },
 	14, { "(DISPATCHER) Calling (Setup) for each block",	"M24" },
 	14, { "(DISPATCHER) First call to (Operate)",			"M25" },
 	14, { "Error Opening Event Log File",					"M26" },
@@ -554,8 +589,8 @@ static const StringArray message_strings[LAST_MESSAGE] = {
 	14, { "(ConfigureBlock) Finding or Adding Block",		"M63" },
 	14, { "Block Configuraton Read from Binary File",		"M64" },
 	14, { "(AddBlock) malloc returned NULL",				"M65" },
-	14, { "M66",								"M66" },
-	14, { "M67",								"M67" },
+	14, { "CMD_RESET_MINMAX",								"M66" },
+	14, { "(UpdateS..R..) MinMax Display Registers Reset",	"M67" },
 	14, { "M68",								"M68" },
 	14, { "M69",								"M69" },
 	14, { "M70",								"M70" },

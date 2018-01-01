@@ -18,11 +18,12 @@
 //#include "ff_datetime.h"
 #include "ff_debug.h"
 #include "ff_registry.h"
-//#include "ff_utils.h"
+#include "ff_utils.h"
 #include "ff_filesystem.h"
 
 #include <time.h>
 #include "ff_HAL.h"
+#include <stdio.h>
 
 /************************************************
  Data Structures
@@ -49,6 +50,59 @@ static EventBuffer event_buffer;
  Functions
 ************************************************/
 
+const char* FormatEventMessage (EventNode* e, char* e_str) {
+	char ymd_str[14];
+	char hms_str[12];
+	const char* source_str;
+	const char* destination_str;
+	const char* msg_type_str;
+	const char* msg_str;
+	char float_str[20];
+
+	strftime(ymd_str, 14, "%Y-%m-%d", localtime(&(e->time_stamp)));
+	strftime(hms_str, 12, "%H:%M:%S", localtime(&(e->time_stamp)));
+	source_str = GetBlockLabelString(e->source);
+	destination_str = GetBlockLabelString(e->destination);
+	msg_type_str = GetMessageTypeString(e->message_type);
+	msg_str = GetMessageString(e->message);
+	FFFloatToCString(float_str, e->float_val);
+	sprintf(e_str, "%s,%s,%s,%s,%s,%s,%d,%s", ymd_str, hms_str, source_str, destination_str, msg_type_str, msg_str, e->int_val, float_str);
+
+	return e_str;
+}
+
+
+uint8_t EventSendSubscribers(EventNode* e) {
+	// XXX add logic to iterate a subscriber list and send to each
+	//Manual inclusions to start with - need to implement subscriber publisher registry functions
+
+	#ifdef EVENT_SERIAL
+		HALEventSerialSend(e, EVENT_SERIAL_PORT, EVENT_SERIAL_BAUDRATE);
+	#endif
+
+	#ifdef EVENT_CONSOLE
+		char e_str[MAX_LOG_LINE_LENGTH];
+		FormatEventMessage(e, e_str);
+		printf("%s\n", e_str);
+	#endif //DEBUG_CONSOLE
+
+	//TODO - OLD Comment:
+	//Possibly call this from the Blocks rather than processing for every event
+	//Or possible not - who should know if a reg update is required? Block or Event?
+
+	// Partial move in this direction
+	if     ((e->source == GetBlockID(DISPLAY_INSIDE_SOURCE_BLOCK)) ||
+			(e->source == GetBlockID(DISPLAY_OUTSIDE_SOURCE_BLOCK)) ||
+			(e->source == GetBlockID(DISPLAY_WATER_SOURCE_BLOCK)) ) {
+		UpdateStateRegister(e->source, e->message_type, e->message, e->int_val, e->float_val);
+	}
+
+	if ( (e->message_type == E_COMMAND) && (e->message == CMD_RESET_MINMAX) )
+		UpdateStateRegister(e->source, e->message_type, e->message, e->int_val, e->float_val);
+
+
+	return 1;
+}
 
 uint8_t EventBufferEmpty (void) {
 	if (event_buffer.head == event_buffer.tail) {
@@ -78,6 +132,7 @@ EventNode* EventBufferPop(void) {
 		return e_ptr;
 	} else {
 #ifdef FF_ARDUINO
+		//XXX move to strings
 		DebugLog("STOP EventBufferPop before init");
 #endif
 		while (1);
@@ -85,6 +140,7 @@ EventNode* EventBufferPop(void) {
 }
 
 void EventBufferPush(EventNode event) {
+	//XXX review assignments - event is local but is used in assignment.
 	if (event_buffer.init == 0) {
 
 		event_buffer.event_list[event_buffer.head] = event;
@@ -95,14 +151,57 @@ void EventBufferPush(EventNode event) {
 		}
 	} else {
 #ifdef FF_ARDUINO
+		//XXX move to strings
 		DebugLog("STOP EventBufferPush before INIT");
 #endif
 		while (1);
 	}
 }
 
+//***** source and destination functions
+
+void EventMsg(uint16_t source, uint16_t destination, uint8_t msg_type, uint8_t msg_str, int16_t i_val, float f_val) {
+	// most developed message function - all fields
+	if(event_buffer.init != 0) {
+		DebugLog(SSS, E_STOP, M_EVENTMSG_BEFORE_INIT);
+		while (1);
+	}
+	EventNode event;
+
+	event.time_stamp = TimeNow();
+	event.source = source;
+	event.destination = destination;
+	event.message_type = msg_type;
+	event.message = msg_str;
+	event.int_val = i_val;
+	event.float_val = f_val;
+
+	EventBufferPush(event);
+	EventSendSubscribers(&event);
+
+	if(EventBufferFull()) {
+		if (HALSaveEventBuffer()) {     			//write to file
+			//DebugLog("Events Saved to File");
+			if (!EventBufferEmpty()) {
+				DebugLog(SSS, E_ERROR, M_BUF_NOT_EMPTY);
+			}
+		}
+	}
+
+	#ifdef DEBUG
+		DebugLog(source, destination, msg_type, msg_str, i_val, f_val);
+	#endif
+}
+
 void EventMsg(uint16_t source, uint16_t destination, uint8_t msg_type, uint8_t msg_str) {
-//XXX
+	// simplified messages - no numerical data
+	EventMsg(source, destination, msg_type, msg_str, INT16_INIT, FLOAT_INIT);
+}
+
+//***** source only event functions - for backwards compatibility
+
+void EventMsg(uint16_t source, uint8_t msg_type, uint8_t msg_str, int16_t i_val, float f_val) {
+	EventMsg(source, BLOCK_ID_NA, msg_type, msg_str, i_val, f_val);
 }
 
 void EventMsg(uint16_t source, uint8_t msg_type) {
@@ -114,49 +213,6 @@ void EventMsg(uint16_t source, uint8_t msg_type, uint8_t msg_str) {
 	//source, type, message string
 	EventMsg(source, msg_type, msg_str, UINT16_INIT, FLOAT_INIT);
 }
-
-void EventMsg(uint16_t source, uint8_t msg_type, uint8_t msg_str, int i_val, float f_val) {
-
-	if(event_buffer.init != 0) {
-		DebugLog(SSS, E_STOP, M_EVENTMSG_BEFORE_INIT);
-		while (1);
-	}
-	EventNode event;
-
-	event.time_stamp = TimeNow();
-	event.source = source;
-	event.message_type = msg_type;
-	event.message = msg_str;
-	event.int_val = i_val;
-	event.float_val = f_val;
-
-	EventBufferPush(event);
-
-	if(EventBufferFull()) {
-		if (SaveEventBuffer()) {     			//write to file
-			//DebugLog("Events Saved to File");
-			if (!EventBufferEmpty()) {
-				DebugLog(SSS, E_ERROR, M_BUF_NOT_EMPTY);
-			}
-		}
-	}
-
-	//TODO - Possibly call this from the Blocks rather than processing for every event
-	//Or possible not - who should know if a reg update is required? Block or Event?
-
-	UpdateStateRegister(source, msg_type, msg_str, i_val, f_val);
-
-#ifdef DEBUG
-
-	//String debug_log_message;
-	//debug_log_message = (String)GetBlockLabelString(source) + ", " + (String)GetMessageTypeString(msg_type) + ", " + (String)GetMessageString(msg_str) + ", " + (String)i_val + ", " + (String)f_val;
-	//DebugLog(debug_log_message);
-	DebugLog(source, msg_type, msg_str, i_val, f_val);
-
-#endif
-}
-
-
 
 void EventBufferInit(void) {
 	// Initalise the event buffer

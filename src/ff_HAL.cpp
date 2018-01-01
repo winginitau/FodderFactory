@@ -75,11 +75,13 @@ uint8_t rtc_status = 0;		// assume dead until we can find it and talk to it
 #ifdef FF_ARDUINO
 #endif
 #ifdef FF_SIMULATOR
+	int screen_refresh_counter = 0;
 #endif
 
 /************************************************
  Functions
 ************************************************/
+
 
 uint8_t HALSaveEventBuffer(void) {
 
@@ -95,37 +97,24 @@ uint8_t HALSaveEventBuffer(void) {
 	pinMode(10, OUTPUT);
 	pinMode(53, OUTPUT);
 	// see if the card is present and can be initialized:
+
+	//try using updated library
 	if (SD.begin(10, 11, 12, 13)) {
+//	if (SD.begin(10)) {
+
 //		DebugLog("DEBUG INFO sd.begin"); //cant use EventMsg
 
 		EventNode* e;
 		char e_str[MAX_LOG_LINE_LENGTH];
-		char ymd_str[14];
-		char hms_str[12];
-		const char* source_str;
-		const char* msg_type_str;
-		const char* msg_str;
-		char float_str[20];
 
 		if (!EventBufferEmpty()) {
 			e_file = SD.open(EVENT_FILENAME, FILE_WRITE);
 			if (e_file) {
 //				DebugLog("DEBUG INFO SD.open");
 				while (!EventBufferEmpty()) {
-
 					e = EventBufferPop();
-
-					strftime(ymd_str, 14, "%Y-%m-%d", localtime(&(e->time_stamp)));
-					strftime(hms_str, 12, "%H:%M:%S", localtime(&(e->time_stamp)));
-					source_str = GetBlockLabelString(e->source);
-					msg_type_str = GetMessageTypeString(e->message_type);
-					msg_str = GetMessageString(e->message);
-					FFFloatToCString((char *)float_str, e->float_val);
-
-					sprintf(e_str,"%s, %s, %s, %s, %s, %d, %s",  ymd_str, hms_str, source_str, msg_type_str, msg_str, e->int_val, float_str);
-
+					FormatEventMessage(e, e_str);
 					e_file.println(e_str);
-
 				}
 				e_file.flush();
 				e_file.close();
@@ -146,9 +135,12 @@ uint8_t HALSaveEventBuffer(void) {
 		DebugLog(SSS, E_ERROR, M_SD_BEGIN_FAIL);
 	}
 #endif
+
 #ifdef FF_SIMULATOR
 	FILE *e_file;
 	EventNode* e;
+	char e_str[MAX_LOG_LINE_LENGTH];
+
 	if (!EventBufferEmpty()) {
 		e_file = fopen(EVENT_FILENAME, "a");
 		if (e_file) {
@@ -156,6 +148,9 @@ uint8_t HALSaveEventBuffer(void) {
 			while (!EventBufferEmpty()) {
 
 				e = EventBufferPop();
+				FormatEventMessage(e, e_str);
+				fprintf(e_file, "%s\n", e_str);
+				/*
 				char time_str[12];
 				char date_str[14];
 				strftime(date_str, 14, "%Y-%m-%d", localtime(&(e->time_stamp)));
@@ -163,10 +158,12 @@ uint8_t HALSaveEventBuffer(void) {
 				fprintf(e_file, "%s,", date_str);
 				fprintf(e_file, "%s,", time_str);
 				fprintf(e_file, "%s,", GetBlockLabelString(e->source));
+				fprintf(e_file, "%s,", GetBlockLabelString(e->destination));
 				fprintf(e_file, "%s,", GetMessageTypeString(e->message_type));
 				fprintf(e_file, "%s,", GetMessageString(e->message));
 				fprintf(e_file, "%d,", e->int_val);
 				fprintf(e_file, "%f\n", e->float_val);
+				*/
 			}
 			fclose(e_file);
 			DebugLog(SSS, E_VERBOSE, M_BUF_SAVED, UINT16_INIT, 0);
@@ -181,7 +178,54 @@ uint8_t HALSaveEventBuffer(void) {
 #endif
 
 	return save_success;
+}
 
+uint8_t HALEventSerialSend(EventNode* e, uint8_t port, uint16_t baudrate) {
+
+	char e_str[MAX_LOG_LINE_LENGTH];
+	FormatEventMessage(e, e_str);
+
+	#ifdef FF_ARDUINO
+	switch (port) {
+		case 0:
+			Serial.begin(baudrate);
+			break;
+		case 1:
+			Serial1.begin(baudrate);
+			break;
+		case 2:
+			Serial2.begin(baudrate);
+			break;
+		default:
+			break;
+	}
+	int loop = 2000;
+    while (loop > 0) {
+    	loop--;
+    	if (Serial) {
+    		break;
+    	}
+    }
+    if (loop > 0) {
+    	//ie. connected before timeout
+    	Serial.println(e_str);
+    	Serial.flush();
+    }
+	switch (port) {
+		case 0:
+			Serial.end();
+			break;
+		case 1:
+			Serial1.end();
+			break;
+		case 2:
+			Serial2.end();
+			break;
+		default:
+			break;
+	}
+	#endif
+	return 1;
 }
 
 
@@ -368,7 +412,7 @@ void TempSensorsTakeReading(void) {
 
 void InitTempSensors(void) {
 #ifdef FF_ARDUINO
-	//Dalas temp sensor
+	//Dallas temp sensor
 	//temp_sensors.begin();
 #endif
 }
@@ -451,17 +495,21 @@ void HALDrawDataScreenCV(const UIDataSet* uids, time_t dt) {
 
 	//lcd_128_64.sendBuffer();                      // transfer internal memory to the display
 #endif
-#ifdef FF_SIMULATOR
+#ifdef FF_SIMULATOR_DATA_SCREEN
 	//printf("\e[1;1H\e[2J"); //clear screen
-	for (int n = 0; n<20; n++) {
+	if (screen_refresh_counter >= SCREEN_REFRESH) {
 		printf("\n");
+		printf("%s IN   OUT  WATER\n", time_now_str);
+		printf("NOW %f %f %f\n", uids->inside_current, uids->outside_current, uids->water_current);
+		printf("MIN %f %f %f\n", uids->inside_min, uids->outside_min, uids->water_min);
+		printf("    %s %s %s\n", time_in_min, time_out_min, time_wat_min);
+		printf("MAX %f %f %f\n", uids->inside_max, uids->outside_max, uids->water_max);
+		printf("    %s %s %s\n", time_in_max, time_out_max, time_wat_max);
+		printf("\n");
+		screen_refresh_counter = 0;
+	} else {
+		screen_refresh_counter +=1;
 	}
-	printf("%s IN   OUT  WATER\n", time_now_str);
-	printf("NOW %f %f %f\n", uids->inside_current, uids->outside_current, uids->water_current);
-	printf("MIN %f %f %f\n", uids->inside_min, uids->outside_min, uids->water_min);
-	printf("    %s %s %s\n", time_in_min, time_out_min, time_wat_min);
-	printf("MAX %f %f %f\n", uids->inside_max, uids->outside_max, uids->water_max);
-	printf("    %s %s %s\n", time_in_max, time_out_max, time_wat_max);
 #endif
 }
 
@@ -553,7 +601,7 @@ void HALInitRTC(void) {
 			rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
 			EventMsg(SSS, E_WARNING, M_WARN_RTC_HARD_CODED, 0, 0);
 #endif
-			HALSetSysTimeToRTC();
+			//HALSetSysTimeToRTC();
 		} else {
 			EventMsg(SSS, E_WARNING, M_RTC_NOT_RUNNING, 0, 0);
 			// following line sets the RTC to the date & time this sketch was compiled
@@ -584,8 +632,8 @@ void HALInitRTC(void) {
 
 		    */
 		//set_dst();
-		set_zone(TIME_ZONE * 3600);
-		HALSetSysTimeToRTC();
+		//set_zone(TIME_ZONE * 3600);
+		//HALSetSysTimeToRTC();
 		rtc_status = 1;
 	} else
 		EventMsg(SSS, E_ERROR, M_RTC_NOT_FOUND, 0, 0);

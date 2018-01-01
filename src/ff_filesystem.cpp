@@ -36,9 +36,6 @@ void InitFileSystem(void) {
 }
 
 
-uint8_t SaveEventBuffer(void) {
-	return HALSaveEventBuffer();
-}
 
 
 

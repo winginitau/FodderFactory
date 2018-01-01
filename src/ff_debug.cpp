@@ -64,7 +64,7 @@ char* GetMemPointers(char* str) {
 	heapptr = stackptr;                     // save value of heap pointer
 	free(stackptr);      // free up the memory again (sets stackptr to 0)
 	stackptr =  (uint8_t *)(SP);           // save value of stack pointer
-	sprintf(str, "BLL: %u  SP: %u >< %u :HP", bll_tail, stackptr, heapptr);
+	sprintf(str, "BLL: %d  SP: %d >< %d :HP", (int)bll_tail, (int)stackptr, (int)heapptr);
 	return str;
 }
 #endif //DEBUG_MEMORY
@@ -98,67 +98,91 @@ void DebugConsole (const char* str) {
 
 
 void DebugLog(const char* log_message) {
-  char log_entry[MAX_DEBUG_LENGTH];
-  char dt[24];
-  time_t now;
-  now = TimeNow();
-  strftime(dt, 24, "%Y-%m-%d, %H:%M:%S", localtime(&now));		//yyyy-mm-dd, 00:00:00
-#ifdef DEBUG_MEMORY
-  char mem_str[MAX_DEBUG_LENGTH];
-  GetMemPointers(mem_str);
-  sprintf(log_entry, "%s, (%s) %s", dt, mem_str, log_message);  				//assemble log entry with time stamp
-#else
-  sprintf(log_entry, "%s, %s", dt, log_message);  				//assemble log entry with time stamp
-#endif
+	//Base function - add date and time to a string and send to defined debug destinations
 
-#ifdef DEBUG_SERIAL
-  DebugSerial(log_entry);
-#endif
+	char log_entry[MAX_DEBUG_LENGTH];
+	char dt[24];
+	time_t now;
+	now = TimeNow();
+	strftime(dt, 24, "%Y-%m-%d, %H:%M:%S", localtime(&now));		//yyyy-mm-dd, 00:00:00
+	#ifdef DEBUG_MEMORY
+		char mem_str[MAX_DEBUG_LENGTH];
+		GetMemPointers(mem_str);
+		sprintf(log_entry, "DEBUG, %s, (%s) %s", dt, mem_str, log_message);  				//assemble log entry with time stamp
+	#else
+		sprintf(log_entry, "DEBUG, %s, %s", dt, log_message);  				//assemble log entry with time stamp
+	#endif
 
-#ifdef DEBUG_LCD
-  HALDebugLCD(log_entry);
-#endif
+	#ifdef DEBUG_SERIAL
+		DebugSerial(log_entry);
+	#endif
 
-#ifdef DEBUG_FILE
-  //TODO
-  //DebugFile(log_entry);
-#endif
+	#ifdef DEBUG_LCD
+		HALDebugLCD(log_entry);
+	#endif
 
-#ifdef DEBUG_CONSOLE
-  DebugConsole(log_entry);
-#endif
+	#ifdef DEBUG_FILE
+		//TODO
+		//DebugFile(log_entry);
+	#endif
+
+	#ifdef DEBUG_CONSOLE
+		DebugConsole(log_entry);
+	#endif
 }
+
+
+void DebugLog(uint16_t source, uint16_t destination, uint8_t msg_type, uint8_t msg_str, int16_t i_val, float f_val) {
+	// Full version - mirrors event message format
+	if (msg_type >= DEBUG_LEVEL) {
+		char debug_log_message[MAX_DEBUG_LENGTH];
+		char f_str[8];
+
+		if (destination != UINT16_INIT) {
+			FFFloatToCString(f_str, f_val);
+			sprintf(debug_log_message, "[%s]->[%s], %s, %s, %d, %s", GetBlockLabelString(source), GetBlockLabelString(destination), GetMessageTypeString(msg_type), GetMessageString(msg_str), i_val, f_str);
+		} else {
+			if (msg_str == M_NULL) {
+				sprintf(debug_log_message, "[%s] %s", GetBlockLabelString(source), GetMessageTypeString(msg_type));
+			} else {
+				if (i_val == (int16_t)INT16_INIT) {
+					sprintf(debug_log_message, "[%s], %s, %s", GetBlockLabelString(source), GetMessageTypeString(msg_type), GetMessageString(msg_str));
+				} else {
+					FFFloatToCString(f_str, f_val);
+					sprintf(debug_log_message, "[%s], %s, %s, %d, %s", GetBlockLabelString(source), GetMessageTypeString(msg_type), GetMessageString(msg_str), i_val, f_str);
+				}
+			}
+		}
+		DebugLog(debug_log_message);
+	}
+}
+
+void DebugLog(uint16_t source, uint8_t msg_type, uint8_t msg_str, int16_t i_val, float f_val) {
+	//full version without destination
+	DebugLog(source, UINT16_INIT, msg_type, msg_str, i_val, f_val);
+}
+
 
 void DebugLog(uint16_t source, uint8_t msg_type, uint8_t msg_str) {
-	char debug_log_message[MAX_DEBUG_LENGTH];
-	sprintf(debug_log_message, "[%s], %s, %s", GetBlockLabelString(source), GetMessageTypeString(msg_type), GetMessageString(msg_str));
-	DebugLog(debug_log_message);
-}
-//overload function
-void DebugLog(uint16_t source, uint8_t msg_type, uint8_t msg_str, int i_val, float f_val) {
-	char debug_log_message[MAX_DEBUG_LENGTH];
-	char f_str[8];
-	if (msg_str == M_NULL) {
-			sprintf(debug_log_message, "[%s] %s", GetBlockLabelString(source), GetMessageTypeString(msg_type));
-	} else {
-		if (i_val == UINT16_INIT) {
-			sprintf(debug_log_message, "[%s], %s, %s", GetBlockLabelString(source), GetMessageTypeString(msg_type), GetMessageString(msg_str));
-		} else {
-			FFFloatToCString(f_str, f_val);
-			sprintf(debug_log_message, "[%s], %s, %s, %d, %s", GetBlockLabelString(source), GetMessageTypeString(msg_type), GetMessageString(msg_str), i_val, f_str);
-		}
+	// Simplified version
+	if (msg_type >= DEBUG_LEVEL) {
+		char debug_log_message[MAX_DEBUG_LENGTH];
+		sprintf(debug_log_message, "[%s], %s, %s", GetBlockLabelString(source), GetMessageTypeString(msg_type), GetMessageString(msg_str));
+		DebugLog(debug_log_message);
 	}
-	DebugLog(debug_log_message);
 }
+
 
 
 void D(char* tag, time_t t) {
+	// short-hand dev version of DebugLog
 	char debug_log_message[MAX_DEBUG_LENGTH];
 	sprintf(debug_log_message, "    %s: time_t:\t %lu", tag, t);
 	DebugLog(debug_log_message);
 }
 
 void D(char* tag, tm* t) {
+	// short-hand dev version of DebugLog
 	char debug_log_message[MAX_DEBUG_LENGTH];
 	sprintf(debug_log_message, "    %s: tm:\t %d-%d-%d %d:%d:%d", tag, t->tm_year, t->tm_mon, t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec);
 	DebugLog(debug_log_message);
@@ -166,11 +190,14 @@ void D(char* tag, tm* t) {
 
 
 void D(uint16_t source, char* str) {
+	// short-hand dev version of DebugLog
 	char debug_log_message[MAX_DEBUG_LENGTH];
 	sprintf(debug_log_message, "[%s] %s", GetBlockLabelString(source), str);
 	DebugLog(debug_log_message);
 }
+
 void Dump(BlockNode *b, char* tag) {
+	// short-hand dev version of DebugLog
 	char debug_log_message[MAX_DEBUG_LENGTH];
 
 	sprintf(debug_log_message, "    ");
@@ -191,7 +218,6 @@ void Dump(BlockNode *b, char* tag) {
 	sprintf(debug_log_message, "    %s act:\t %u", tag, b->active);
 	DebugLog(debug_log_message);
 }
-
 
 #endif //DEBUG
 

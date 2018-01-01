@@ -34,13 +34,17 @@
  Function Prototypes
 ************************************************/
 
+
+void DebugLog(const char* log_message);
+
+void DebugLog(uint16_t source, uint16_t destination, uint8_t msg_type, uint8_t msg_str, int16_t i_val, float f_val);
+void DebugLog(uint16_t source, uint8_t msg_type, uint8_t msg_str, int16_t i_val, float f_val);
+void DebugLog(uint16_t source, uint8_t msg_type, uint8_t msg_str);
+
 void D(char* tag, time_t t);
 void D(char* tag, tm* t);
 void D(uint16_t source, char* str);
 void Dump(BlockNode *b, char *tag);
-void DebugLog(const char* log_message);
-void DebugLog(uint16_t source, uint8_t msg_type, uint8_t msg_str);
-void DebugLog(uint16_t source, uint8_t msg_type, uint8_t msg_str, int i_val, float f_val);
 
 
 #endif /* FF_DEBUG_H_ */
