@@ -592,9 +592,9 @@ void HALInitRTC(void) {
 	// and sync system time to RTC periodically - that way time still progresses even if RTC broken
 	Wire.begin();
 	if (rtc.begin()) {
-		EventMsg(SSS, E_VERBOSE, M_RTC_DETECT, 0, 0);
+		EventMsg(SSS, E_INFO, M_RTC_DETECT, 0, 0);
 		if (rtc.isrunning()) {
-			EventMsg(SSS, E_VERBOSE, M_RTC_REPORT_RUNNING, 0, 0);
+			EventMsg(SSS, E_INFO, M_RTC_REPORT_RUNNING, 0, 0);
 #ifdef SET_RTC
 			EventMsg(SSS, E_WARNING, M_WARN_SET_RTC, 0, 0);
 			// following line sets the RTC localtime() to the date & time this sketch was compiled

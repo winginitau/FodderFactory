@@ -222,12 +222,13 @@ void Dump(BlockNode *b, char* tag) {
 #endif //DEBUG
 
 #ifndef DEBUG
-// XXX Debug Stubs for when DEBUG is not declared at all
+// XXX Debug Stubs for when DEBUG is not declared at all but calls remain in the code base
 
-void DebugLog(const char* log_message) {
-}
+void DebugLog(const char* log_message) {};
 
-void DebugLog(uint16_t source, uint8_t msg_type, uint8_t msg_str, int i_val, float f_val) {
-}
+void DebugLog(uint16_t source, uint16_t destination, uint8_t msg_type, uint8_t msg_str, int16_t i_val, float f_val) {};
+void DebugLog(uint16_t source, uint8_t msg_type, uint8_t msg_str, int16_t i_val, float f_val) {};
+void DebugLog(uint16_t source, uint8_t msg_type, uint8_t msg_str) {};
+
 
 #endif

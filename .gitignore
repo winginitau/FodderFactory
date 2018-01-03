@@ -31,7 +31,11 @@
 *.out
 *.app
 /Debug/
+/Release/
+/ff_simulator/Release/
+/ff_simulator/Debug/
 
 # Working Files
 FFEVENTS.TXT
+
 

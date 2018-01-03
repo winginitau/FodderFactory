@@ -66,7 +66,7 @@
 /************************************************
  DEBUG Directives
  ************************************************/
-#define DEBUG			// Call debug output at all or not?
+//#define DEBUG			// Call debug output at all or not?
 
 #ifdef DEBUG
 
@@ -117,7 +117,7 @@
 
 #define ONE_WIRE_BUS 6                			//for Dallas temp signals
 
-//#define EVENT_SERIAL							//send event messages over a serial link
+#define EVENT_SERIAL							//send event messages over a serial link
 #define EVENT_SERIAL_PORT 0
 #define EVENT_SERIAL_BAUDRATE 9600
 #ifdef FF_SIMULATOR
