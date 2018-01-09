@@ -20,15 +20,17 @@
  PLATFORM Directives
  ************************************************/
 #define FF_ARDUINO
-#define FF_TEMPERATURE_SIM  //optionally
+//#define FF_TEMPERATURE_SIM  //optionally
 //OR
 //#define FF_SIMULATOR
 //#define FF_SIM_PARSECONFIG	//optional parse the TXT config (default -> read BIN)
 //OR
 //#define FF_CONFIG
 
+
 #ifdef FF_CONFIG
 #define FF_SIMULATOR
+#define DEBUG
 #undef FF_ARDUINO
 #endif
 
@@ -66,7 +68,7 @@
 /************************************************
  DEBUG Directives
  ************************************************/
-//#define DEBUG			// Call debug output at all or not?
+#define DEBUG			// Call debug output at all or not?
 
 #ifdef DEBUG
 
@@ -102,6 +104,7 @@
 
 #ifdef FF_ARDUINO
 //#define DEBUG_MEMORY					//print heap and stack pointers in the debug process
+//#define DEBUG_DALLAS				//Check and dump details on Dallas temperature sensors during start up
 #endif
 
 #endif //DEBUG
@@ -115,14 +118,20 @@
 #define DIG_HIGH 0x1
 #define DIG_LOW 0x0
 
-#define ONE_WIRE_BUS 6                			//for Dallas temp signals
+#define ONE_WIRE_BUS_1 6                			//for Dallas temp signals
+#define ONE_WIRE_BUS_2 7                			//for Dallas temp signals
 
 #define EVENT_SERIAL							//send event messages over a serial link
-#define EVENT_SERIAL_PORT 0
-#define EVENT_SERIAL_BAUDRATE 9600
+
+#define EVENT_SERIAL_PORT 2
+#define EVENT_SERIAL_BAUDRATE 57600
+
 #ifdef FF_SIMULATOR
 #define EVENT_CONSOLE
-#endif
+#ifdef FF_CONFIG
+#undef EVENT_CONSOLE
+#endif //FF_CONFIG
+#endif //FF_SIMULATOR
 
 #define ONE_SHOT_DURATION 2						//SCH_ONE_SHOT stay active seconds - inc case loop delay >= 1 second
 #define RESET_MINMAX_SCH_BLOCK "SCH_RESET_MIN_MAX_COUNTERS"  //workaround - the block that triggers resetting of min and max display counters

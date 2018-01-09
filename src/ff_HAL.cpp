@@ -95,7 +95,7 @@ uint8_t HALSaveEventBuffer(void) {
 	//const int chipSelect = 10;
 	pinMode(SS, OUTPUT);
 	pinMode(10, OUTPUT);
-	pinMode(53, OUTPUT);
+	//pinMode(53, OUTPUT);
 	// see if the card is present and can be initialized:
 
 	//try using updated library
@@ -200,16 +200,45 @@ uint8_t HALEventSerialSend(EventNode* e, uint8_t port, uint16_t baudrate) {
 			break;
 	}
 	int loop = 2000;
+	int check = 0;
     while (loop > 0) {
     	loop--;
-    	if (Serial) {
+    	switch (port) {
+    		case 0:
+    			check = Serial;
+    			break;
+    		case 1:
+    			check = Serial1;
+    			break;
+    		case 2:
+    			check = Serial2;
+    			break;
+    		default:
+    			break;
+    	}
+
+    	if (check) {
     		break;
     	}
     }
     if (loop > 0) {
     	//ie. connected before timeout
-    	Serial.println(e_str);
-    	Serial.flush();
+    	switch (port) {
+    		case 0:
+    	    	Serial.println(e_str);
+    	    	Serial.flush();
+    			break;
+    		case 1:
+    	    	Serial1.println(e_str);
+    	    	Serial1.flush();
+    			break;
+    		case 2:
+    	    	Serial2.println(e_str);
+    	    	Serial2.flush();
+    			break;
+    		default:
+    			break;
+    	}
     }
 	switch (port) {
 		case 0:
@@ -286,14 +315,20 @@ float GetTemperature(int if_num) {
 	float temp_c;
 #ifdef FF_ARDUINO
 #ifndef FF_TEMPERATURE_SIM
-	//try this as a local each time called to save global memory
-	OneWire one_wire(ONE_WIRE_BUS);            		// oneWire instance to communicate with any OneWire devices
+	//trying this as a local each time called to save global memory
+	uint8_t bus_pin;
+	if (if_num < 4) {
+		bus_pin = ONE_WIRE_BUS_1;
+	} else {
+		bus_pin = ONE_WIRE_BUS_2;
+	}
+	OneWire one_wire(bus_pin); // oneWire instance to communicate with any OneWire devices
 	DallasTemperature temp_sensors(&one_wire);     // Pass our one_wire reference to Dallas Temperature
 	temp_sensors.begin();
 	temp_sensors.requestTemperatures();  //tell them to take a reading (stored on device)
 
 	//original code
-	temp_c = temp_sensors.getTempCByIndex(if_num);
+	temp_c = temp_sensors.getTempCByIndex(if_num % 4);
 #endif
 #endif
 
@@ -412,8 +447,68 @@ void TempSensorsTakeReading(void) {
 
 void InitTempSensors(void) {
 #ifdef FF_ARDUINO
-	//Dallas temp sensor
-	//temp_sensors.begin();
+#ifdef DEBUG_DALLAS
+
+	OneWire one_wire_1(ONE_WIRE_BUS_1);            		// oneWire instance to communicate with any OneWire devices
+	//OneWire one_wire_2(ONE_WIRE_BUS_2);            		// oneWire instance to communicate with any OneWire devices
+	DallasTemperature temp_sensors_1(&one_wire_1);     // Pass our one_wire reference to Dallas Temperature
+	//DallasTemperature temp_sensors_2(&one_wire_2);     // Pass our one_wire reference to Dallas Temperature
+
+
+	uint8_t d_count;
+	uint8_t d_addr;
+	//uint8_t d_index;
+	uint8_t d_res;
+
+	float d_temp;
+	char f_str[10];
+
+	char str[MAX_DEBUG_LENGTH];
+
+	DebugLog("\t Dallas Temperature Sensors Debug");
+
+	temp_sensors_1.begin();
+
+	d_count = temp_sensors_1.getDeviceCount();
+
+	sprintf(str, "\t Bus 1 Device Count: %d", d_count);
+	DebugLog(str);
+
+	for (uint8_t d_index = 0; d_index < d_count; d_index++) {
+		temp_sensors_1.getAddress(&d_addr, d_index);
+		temp_sensors_1.requestTemperaturesByIndex(d_index);
+		d_temp = temp_sensors_1.getTempCByIndex(d_index);
+		d_res = temp_sensors_1.getResolution(&d_addr);
+
+		FFFloatToCString(f_str, d_temp);
+
+		sprintf(str, "\t bus: 1/%d, d_index: %d, d_addr: %d, d_res: %d, d_temp: %s", d_count, d_index, d_addr, d_res, f_str);
+		DebugLog(str);
+
+	}
+//XXX more than once instance of Onewire / Dallas fails - suspect due lack of memory
+
+	OneWire one_wire_2(ONE_WIRE_BUS_2);            		// oneWire instance to communicate with any OneWire devices
+	DallasTemperature temp_sensors_2(&one_wire_2);     // Pass our one_wire reference to Dallas Temperature
+
+	temp_sensors_2.begin();
+	d_count = temp_sensors_2.getDeviceCount();
+	sprintf(str, "\t Bus 2 Device Count: %d", d_count);
+	DebugLog(str);
+	for (uint8_t d_index = 0; d_index < d_count; d_index++) {
+		temp_sensors_2.getAddress(&d_addr, d_index);
+		temp_sensors_2.requestTemperaturesByIndex(d_index);
+		d_temp = temp_sensors_2.getTempCByIndex(d_index);
+		d_res = temp_sensors_2.getResolution(&d_addr);
+
+		FFFloatToCString(f_str, d_temp);
+
+		sprintf(str, "\t bus: 2/%d, d_index: %d, d_addr: %d, d_res: %d, d_temp: %s", d_count, d_index, d_addr, d_res, f_str);
+		DebugLog(str);
+
+	}
+
+#endif
 #endif
 }
 

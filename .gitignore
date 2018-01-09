@@ -35,6 +35,11 @@
 /ff_simulator/Release/
 /ff_simulator/Debug/
 
+/ff_dallastemp_test/.cproject
+/ff_dallastemp_test/.project
+/ff_dallastemp_test/.settings/
+/ff_dallastemp_test/Release/
+
 # Working Files
 FFEVENTS.TXT
 

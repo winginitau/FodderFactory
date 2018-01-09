@@ -166,7 +166,7 @@ void ReadProcessedConfig(void) {
 	fp = &f;
 	pinMode(SS, OUTPUT);
 	pinMode(10, OUTPUT);
-	pinMode(53, OUTPUT);
+	//pinMode(53, OUTPUT);
 	#endif
 
 	#ifdef FF_ARDUINO
@@ -321,6 +321,15 @@ void InitSystem(void) {
 	#ifdef FF_SIMULATOR
 		srand(TimeNow()); //random seed for simulator
 	#endif
+
+#ifdef FF_ARDUINO
+#ifdef DEBUG_DALLAS
+//		while (1) {
+			InitTempSensors();
+//			delay(1000);
+//		}
+#endif
+#endif
 }
 
 
