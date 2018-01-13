@@ -335,22 +335,7 @@ float GetTemperature(int if_num) {
 #ifdef FF_TEMPERATURE_SIM
 #ifdef FF_RANDOM_TEMP_SIM
 #ifdef FF_SIMULATOR
-	switch (if_num) {
-	case 0:
-		temp_c = (float)-5 + ((float)((rand() % 4000)) / 100);
-		break;
-	case 1:
-		temp_c = (float)-5 + ((float)((rand() % 4000)) / 100);
-		break;
-	case 2:
-		temp_c = (float)-5 + ((float)((rand() % 4000)) / 100);
-		break;
-	case 3:
-		temp_c = (float)-5 + ((float)((rand() % 4000)) / 100);
-		break;
-	default:
-		temp_c = FLOAT_INIT;
-	}
+	temp_c = (float)-5 + ((float)((rand() % 4000)) / 100);
 #endif
 #endif
 #endif
@@ -379,22 +364,7 @@ float GetTemperature(int if_num) {
 #ifdef FF_TEMPERATURE_SIM
 #ifdef FF_RANDOM_TEMP_SIM
 #ifdef FF_ARDUINO
-	switch (if_num) {
-	case 0:
 		temp_c = random(5.01, 39.99);
-		break;
-	case 1:
-		temp_c = random(5.01, 39.99);
-		break;
-	case 2:
-		temp_c = random(5.01, 39.99);
-		break;
-	case 3:
-		temp_c = random(5.01, 39.99);
-		break;
-	default:
-		temp_c = FLOAT_INIT;
-	}
 #endif
 #endif
 #endif

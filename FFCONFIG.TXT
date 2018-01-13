@@ -31,39 +31,29 @@ week_start = SUN
 #************************************************/
 [inputs]
 input1 = IN_INSIDE_TOP_TEMP
-input2 = IN_OUTSIDE_TEMP
-input3 = IN_WATER_TEMP
-input4 = IN_INSIDE_BOTTOM_TEMP
-input5 = IN_AUX1_TEMP
-input6 = IN_AUX2_TEMP
+input2 = IN_INSIDE_BOTTOM_TEMP
+input3 = IN_OUTSIDE_TEMP
+input4 = IN_WATER_TEMP
+input5 = IN_CABINET_TEMP
+input6 = IN_LONGRUN_TEMP
 #input5 = IN_LOADING_DOOR_SWITCH
 #input6 = IN_HARVEST_DOOR_SWITCH 
 #input7 =  
 
-[IN_AUX1_TEMP]
+[IN_INSIDE_TOP_TEMP]
 type = IN_ONEWIRE
-display_name = Aux Temp 1
-description = Dallas sensor
-interface = ONEWIRE
-if_num = 0
-log_rate = 00:01:00
-data_units = Celsius
-data_type = float
-
-[IN_AUX2_TEMP]
-type = IN_ONEWIRE
-display_name = Aux Temp 1
-description = Dallas sensor
+display_name = Inside Top
+description = Dallas sensor inside the top of the fodder factory
 interface = ONEWIRE
 if_num = 1
 log_rate = 00:01:00
 data_units = Celsius
 data_type = float
 
-[IN_INSIDE_TOP_TEMP]
+[IN_INSIDE_BOTTOM_TEMP]
 type = IN_ONEWIRE
-display_name = Inside Top
-description = Dallas sensor inside the top of the fodder factory
+display_name = Inside Bot
+description = Dallas sensor inside the bottom of the fodder factory
 interface = ONEWIRE
 if_num = 2
 log_rate = 00:01:00
@@ -85,17 +75,27 @@ type = IN_ONEWIRE
 display_name = Water
 description = Dallas sensor in the header tank
 interface = ONEWIRE
-if_num = 4
+if_num = 0
 log_rate = 00:01:00
 data_units = Celsius
 data_type = float
 
-[IN_INSIDE_BOTTOM_TEMP]
+[IN_CABINET_TEMP]
 type = IN_ONEWIRE
-display_name = Inside Bot
-description = Dallas sensor inside the bottom of the fodder factory
+display_name = Aux Temp 1
+description = Dallas sensor
 interface = ONEWIRE
 if_num = 5
+log_rate = 00:01:00
+data_units = Celsius
+data_type = float
+
+[IN_LONGRUN_TEMP]
+type = IN_ONEWIRE
+display_name = Aux Temp 1
+description = Dallas sensor
+interface = ONEWIRE
+if_num = 4
 log_rate = 00:01:00
 data_units = Celsius
 data_type = float
