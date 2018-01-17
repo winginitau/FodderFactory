@@ -165,21 +165,24 @@ class ParsedMessage():
 def parse_message_string(raw_msg_string):
 #    print(raw_msg_string)
     parsed_message = ParsedMessage()
-    if len(raw_msg_string) > 30:                            #  valid message not init junk
+    parsed_message.valid = False
+    print (raw_msg_string)
+    if len(raw_msg_string) > 30:                            #  possibly valid message not init junk
         string_list = raw_msg_string.decode().split(",")
-        parsed_message.date_string = string_list[0]
-        parsed_message.time_string = string_list[1]
-        parsed_message.source_block_string = string_list[2]
-        parsed_message.dest_block_string = string_list[3]
-        parsed_message.msg_type_string = string_list[4]
-        parsed_message.msg_string = string_list[5]
-        parsed_message.int_val = int(string_list[6])
-        parsed_message.float_val = float(string_list[7])
-        parsed_message.valid = True
-    else:
-        parsed_message.valid = False
-        
+        print (string_list)
+        if not("DEBUG" in string_list):
+            parsed_message.date_string = string_list[0]
+            parsed_message.time_string = string_list[1]
+            parsed_message.source_block_string = string_list[2]
+            parsed_message.dest_block_string = string_list[3]
+            parsed_message.msg_type_string = string_list[4]
+            parsed_message.msg_string = string_list[5]
+            parsed_message.int_val = int(string_list[6])
+            parsed_message.float_val = float(string_list[7])
+            parsed_message.valid = True
+
     return parsed_message
+
 
 def parse_and_update(dt):               # dt passed in kivy callback - not used
 #    print("*******Callback parse_and_update called by clock *****************")
