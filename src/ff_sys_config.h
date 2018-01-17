@@ -123,7 +123,7 @@
 
 #define EVENT_SERIAL							//send event messages over a serial link
 
-#define EVENT_SERIAL_PORT 1
+#define EVENT_SERIAL_PORT 0
 #define EVENT_SERIAL_BAUDRATE 9600
 
 #ifdef FF_SIMULATOR
