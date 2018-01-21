@@ -45,8 +45,8 @@ type = IN_ONEWIRE
 display_name = Inside Top
 description = Dallas sensor inside the top of the fodder factory
 interface = ONEWIRE
-if_num = 1
-log_rate = 00:01:00
+if_num = 5
+log_rate = 00:02:00
 data_units = Celsius
 data_type = float
 
@@ -56,7 +56,7 @@ display_name = Inside Bot
 description = Dallas sensor inside the bottom of the fodder factory
 interface = ONEWIRE
 if_num = 2
-log_rate = 00:01:00
+log_rate = 00:02:00
 data_units = Celsius
 data_type = float
 
@@ -66,7 +66,7 @@ display_name = Outside
 description = Dallas sensor for outside air temprature
 interface = ONEWIRE
 if_num = 3
-log_rate = 00:01:00
+log_rate = 00:02:00
 data_units = Celsius
 data_type = float
 
@@ -76,7 +76,7 @@ display_name = Water
 description = Dallas sensor in the header tank
 interface = ONEWIRE
 if_num = 0
-log_rate = 00:01:00
+log_rate = 00:02:00
 data_units = Celsius
 data_type = float
 
@@ -85,8 +85,8 @@ type = IN_ONEWIRE
 display_name = Aux Temp 1
 description = Dallas sensor
 interface = ONEWIRE
-if_num = 5
-log_rate = 00:01:00
+if_num = 1
+log_rate = 00:02:00
 data_units = Celsius
 data_type = float
 
@@ -96,7 +96,7 @@ display_name = Aux Temp 1
 description = Dallas sensor
 interface = ONEWIRE
 if_num = 4
-log_rate = 00:01:00
+log_rate = 00:02:00
 data_units = Celsius
 data_type = float
 
@@ -136,32 +136,32 @@ type = MON_CONDITION_LOW
 display_name = Inside Top Too Cold
 description =  
 input1 = IN_INSIDE_TOP_TEMP
-act_val	= 21.00
-deact_val = 23.00
+act_val	= 20.00
+deact_val = 24.00
 
 [MON_INSIDE_TOP_TOO_HOT]
 type = MON_CONDITION_HIGH
 display_name = Inside Top Too Hot
 description = 
 input1 = IN_INSIDE_TOP_TEMP
-act_val	= 23.00
-deact_val = 21.00
+act_val	= 24.00
+deact_val = 20.00
 
 [MON_INSIDE_BOTTOM_TOO_COLD]
 type = MON_CONDITION_LOW
 display_name = Inside Bottom Too Cold
 description =  
 input1 = IN_INSIDE_BOTTOM_TEMP
-act_val	= 21.00
-deact_val = 23.00
+act_val	= 20.00
+deact_val = 24.00
 
 [MON_INSIDE_BOTTOM_TOO_HOT]
 type = MON_CONDITION_HIGH
 display_name = Inside Bottom Too Hot
 description = 
 input1 = IN_INSIDE_BOTTOM_TEMP
-act_val	= 23.00
-deact_val = 21.00
+act_val	= 24.00
+deact_val = 20.00
 
 [MON_INSIDE_AVERAGE_TOO_COLD]
 type = MON_AVERAGE_CONDITION_LOW
@@ -169,8 +169,8 @@ display_name = Average Inside Too Cold
 description =  
 input1 = IN_INSIDE_BOTTOM_TEMP
 input2 = IN_INSIDE_TOP_TEMP
-act_val	= 21.00
-deact_val = 23.00
+act_val	= 20.00
+deact_val = 24.00
 
 [MON_INSIDE_AVERAGE_TOO_HOT]
 type = MON_AVERAGE_CONDITION_HIGH
@@ -178,8 +178,8 @@ display_name = Average Inside Too Hot
 description =  
 input1 = IN_INSIDE_BOTTOM_TEMP
 input2 = IN_INSIDE_TOP_TEMP
-act_val	= 23.00
-deact_val = 21.00
+act_val	= 24.00
+deact_val = 20.00
 
 [MON_WATER_TOO_HOT]
 type = MON_CONDITION_HIGH
@@ -261,7 +261,7 @@ display_name = Reset Min and Max Daily Counters
 description = 
 # ALL, MON, TUE, WED, THU, FRI, SAT, SUN
 days = ALL
-time_start = 11:00:00
+time_start = 18:00:00
 
 [SCH_WATERING_TOP_SCHEDULE]
 type = SCH_START_DURATION_REPEAT
@@ -271,7 +271,7 @@ description =
 days = ALL
 time_start = 00:00:00
 time_duration = 00:00:26
-time_repeat = 00:2:00
+time_repeat = 00:45:00
 
 [SCH_WATERING_BOTTOM_SCHEDULE]
 type = SCH_START_DURATION_REPEAT
@@ -281,7 +281,7 @@ description =
 days = ALL
 time_start = 00:00:30
 time_duration = 00:00:26
-time_repeat = 00:02:00
+time_repeat = 00:45:00
 
 
 #************************************************
@@ -509,5 +509,4 @@ display_name = Water Value Bottom
 description = Relay to Control the Bottom Watering Solenoid
 interface = DIG_PIN_OUT
 if_num = 36
-
 

@@ -42,7 +42,7 @@ void InputSetup(BlockNode *b) {
 	switch (b->block_type) {
 		case IN_ONEWIRE:
 			b->last_update = TimeNow();
-			TempSensorsTakeReading();
+//			TempSensorsTakeReading();
 //			Dump(b, "IN_ONEWIRE Input Setup");
 			b->f_val = GetTemperature(b->settings.in.if_num);
 			EventMsg(b->block_id, E_DATA, M_F_READ, 0, b->f_val);
@@ -72,7 +72,7 @@ void InputOperate(BlockNode *b) {
 			if (now >= next) {
 //				Dump(b, "now >=next IN_ONEWIRE Input Operate");
 				b->last_update = now;
-				TempSensorsTakeReading();
+//				TempSensorsTakeReading();
 //				DebugLog("Input Operate");
 				b->f_val = GetTemperature(b->settings.in.if_num);
 				EventMsg(b->block_id, E_DATA, M_F_READ, 0, b->f_val);

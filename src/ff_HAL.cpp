@@ -325,10 +325,11 @@ float GetTemperature(int if_num) {
 	OneWire one_wire(bus_pin); // oneWire instance to communicate with any OneWire devices
 	DallasTemperature temp_sensors(&one_wire);     // Pass our one_wire reference to Dallas Temperature
 	temp_sensors.begin();
+	//delay(500);
 	temp_sensors.requestTemperatures();  //tell them to take a reading (stored on device)
-
-	//original code
+	//delay(500);
 	temp_c = temp_sensors.getTempCByIndex(if_num % 4);
+	//delay(500);
 #endif
 #endif
 
