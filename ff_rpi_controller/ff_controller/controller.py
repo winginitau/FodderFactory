@@ -171,7 +171,9 @@ def parse_message_string(raw_msg_string):
     parsed_message = ParsedMessage()
     parsed_message.valid = False
     print (raw_msg_string)
+    msg_log_file = open(MESSAGE_FILENAME, "a")
     msg_log_file.write(raw_msg_string)
+    msg_log_file.close();
     if len(raw_msg_string) > 30:                            #  possibly valid message not init junk
         string_list = raw_msg_string.decode().split(",")
         print (string_list)
@@ -331,7 +333,6 @@ if __name__ == '__main__':
         print ("Failed to connect")
         exit()
         
-    msg_log_file = open(MESSAGE_FILENAME, "w")    
 
     # Launch the app
     MyApp().run()
@@ -340,8 +341,7 @@ if __name__ == '__main__':
     print("Closing Radio Modem Connection")
     radio_modem_port.close()
     
-    msg_log_file.close()
-
+    
 #import RPi.GPIO as GPIO
 
 #for now, use a global for blink speed (better implementation TBD):
