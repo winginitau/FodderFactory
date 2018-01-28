@@ -28,8 +28,9 @@ from kivy.graphics import Color, Rectangle
 
 # Constants
 
-# Colours
-
+################################################### 
+#Colours
+###################################################
 _FF_RED = [196, 3, 51]
 _FF_GREEN = [0, 158, 107]
 _FF_BLUE = [0, 135, 189]
@@ -68,8 +69,9 @@ FF_SLATE = [x/255 for x in _FF_SLATE]
 FF_SLATE.append(1.0)
 
 
+#########################################################
 # [Index, "SOURCE BLOCK", "Display Label"]
-
+#########################################################
 INPUTS_LIST = (
     [0, "IN_INSIDE_TOP_TEMP", "Inside Top"],
     [1, "IN_INSIDE_BOTTOM_TEMP", "Inside Bottom"],
@@ -91,13 +93,15 @@ OUTPUTS_LIST = (
     [6, "OUT_WATERING_SOLENOID_BOTTOM", "Bottom Sprinklers"]
 )
 
+########################################################
 INT8_INIT = -127
 UINT8_INIT = 255
 
 UINT16_INIT = 65535
 FLOAT_INIT = 255.255
 
-
+########################################################
+MESSAGE_FILENAME = "/root/message.log"
 MODEM_SERIAL_PORT = "/dev/ttyV0"
 MODEM_SERIAL_SPEED = 9600
 
@@ -167,6 +171,7 @@ def parse_message_string(raw_msg_string):
     parsed_message = ParsedMessage()
     parsed_message.valid = False
     print (raw_msg_string)
+    msg_log_file.write(raw_msg_string)
     if len(raw_msg_string) > 30:                            #  possibly valid message not init junk
         string_list = raw_msg_string.decode().split(",")
         print (string_list)
@@ -325,6 +330,8 @@ if __name__ == '__main__':
     except:
         print ("Failed to connect")
         exit()
+        
+    msg_log_file = open(MESSAGE_FILENAME, "w")    
 
     # Launch the app
     MyApp().run()
@@ -332,6 +339,8 @@ if __name__ == '__main__':
     # Close serial communication
     print("Closing Radio Modem Connection")
     radio_modem_port.close()
+    
+    msg_log_file.close()
 
 #import RPi.GPIO as GPIO
 
