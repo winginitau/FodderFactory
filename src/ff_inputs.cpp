@@ -46,6 +46,9 @@ void InputSetup(BlockNode *b) {
 //			Dump(b, "IN_ONEWIRE Input Setup");
 			b->f_val = GetTemperature(b->settings.in.if_num);
 			EventMsg(b->block_id, E_DATA, M_F_READ, 0, b->f_val);
+			#ifdef IN_LOGRATE_OVERRIDE
+			b->settings.in.log_rate = IN_LOGRATE_OVERRIDE;
+			#endif
 			break;
 		case IN_DIGITAL:
 			if (b->settings.in.interface == IF_DIG_PIN_IN) {

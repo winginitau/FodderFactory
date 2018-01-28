@@ -24,8 +24,10 @@
 #include <Arduino.h>
 #include <OneWire.h>                  // comms to Dallas temprature sensors
 #include <DallasTemperature.h>
+#ifdef LCD_DISPLAY
 #include <U8g2lib.h>                  // LCD display library
 #include <U8x8lib.h>
+#endif
 #include "RTClib.h"
 #include "SD.h"
 #include <time.h>
@@ -59,13 +61,14 @@
 //OneWire one_wire(ONE_WIRE_BUS);            		// oneWire instance to communicate with any OneWire devices
 //DallasTemperature temp_sensors(&one_wire);     // Pass our one_wire reference to Dallas Temperature
 
+#ifdef LCD_DISPLAY
 //moving this to local too (try - result: flashing. moved back)
 U8G2_ST7920_128X64_1_SW_SPI lcd_128_64(U8G2_R0, /* clock=*/ 40 /* A4 */ , /* data=*/ 42 /* A2 */, /* CS=*/ 44 /* A3 */, /* reset=*/ U8X8_PIN_NONE); //LCD Device Object and Definition
 //U8X8_ST7920_128X64_SW_SPI(uint8_t clock, uint8_t data, uint8_t cs, uint8_t reset = U8X8_PIN_NONE)
 //trying 8x8 version - no frame buffer!!! less RAM
 //U8X8_ST7920_128X64_SW_SPI lcd_128_64(40, 42, 44, U8X8_PIN_NONE);
-
 //U8X8_ST7920_128X64_SW_SPI u8x8(40, 42, 44, U8X8_PIN_NONE);
+#endif
 
 RTC_DS1307 rtc;
 #endif
@@ -317,7 +320,7 @@ float GetTemperature(int if_num) {
 #ifndef FF_TEMPERATURE_SIM
 	//trying this as a local each time called to save global memory
 	uint8_t bus_pin;
-	if (if_num < 4) {
+	if (if_num < OWB1_SENSOR_COUNT) {
 		bus_pin = ONE_WIRE_BUS_1;
 	} else {
 		bus_pin = ONE_WIRE_BUS_2;
@@ -328,7 +331,7 @@ float GetTemperature(int if_num) {
 	//delay(500);
 	temp_sensors.requestTemperatures();  //tell them to take a reading (stored on device)
 	//delay(500);
-	temp_c = temp_sensors.getTempCByIndex(if_num % 4);
+	temp_c = temp_sensors.getTempCByIndex(if_num % OWB1_SENSOR_COUNT);
 	//delay(500);
 #endif
 #endif
@@ -427,7 +430,9 @@ void InitTempSensors(void) {
 
 
 	uint8_t d_count;
-	uint8_t d_addr;
+	uint8_t d_addr_arr[9];
+	uint8_t *d_addr;
+	d_addr = &d_addr_arr[0];
 	//uint8_t d_index;
 	uint8_t d_res;
 
@@ -446,14 +451,14 @@ void InitTempSensors(void) {
 	DebugLog(str);
 
 	for (uint8_t d_index = 0; d_index < d_count; d_index++) {
-		temp_sensors_1.getAddress(&d_addr, d_index);
+		temp_sensors_1.getAddress(d_addr, d_index);
 		temp_sensors_1.requestTemperaturesByIndex(d_index);
 		d_temp = temp_sensors_1.getTempCByIndex(d_index);
-		d_res = temp_sensors_1.getResolution(&d_addr);
+		d_res = temp_sensors_1.getResolution(d_addr);
 
 		FFFloatToCString(f_str, d_temp);
 
-		sprintf(str, "\t bus: 1/%d, d_index: %d, d_addr: %d, d_res: %d, d_temp: %s", d_count, d_index, d_addr, d_res, f_str);
+		sprintf(str, "\t bus: 2/%d, d_index: %d, d_addr: %u:%u:%u:%u:%u:%u:%u, d_res: %d, d_temp: %s", d_count, d_index, d_addr_arr[0], d_addr_arr[1], d_addr_arr[2], d_addr_arr[3], d_addr_arr[4], d_addr_arr[5], d_addr_arr[6], d_addr_arr[7], d_res, f_str);
 		DebugLog(str);
 
 	}
@@ -467,14 +472,14 @@ void InitTempSensors(void) {
 	sprintf(str, "\t Bus 2 Device Count: %d", d_count);
 	DebugLog(str);
 	for (uint8_t d_index = 0; d_index < d_count; d_index++) {
-		temp_sensors_2.getAddress(&d_addr, d_index);
+		temp_sensors_2.getAddress(d_addr, d_index);
 		temp_sensors_2.requestTemperaturesByIndex(d_index);
 		d_temp = temp_sensors_2.getTempCByIndex(d_index);
-		d_res = temp_sensors_2.getResolution(&d_addr);
+		d_res = temp_sensors_2.getResolution(d_addr);
 
 		FFFloatToCString(f_str, d_temp);
 
-		sprintf(str, "\t bus: 2/%d, d_index: %d, d_addr: %d, d_res: %d, d_temp: %s", d_count, d_index, d_addr, d_res, f_str);
+		sprintf(str, "\t bus: 2/%d, d_index: %d, d_addr: %u:%u:%u:%u:%u:%u:%u, d_res: %d, d_temp: %s", d_count, d_index, d_addr_arr[0], d_addr_arr[1], d_addr_arr[2], d_addr_arr[3], d_addr_arr[4], d_addr_arr[5], d_addr_arr[6], d_addr_arr[7], d_res, f_str);
 		DebugLog(str);
 
 	}
@@ -485,7 +490,9 @@ void InitTempSensors(void) {
 
 void HALInitUI(void) {
 #ifdef FF_ARDUINO
+#ifdef LCD_DISPLAY
 	lcd_128_64.begin();
+#endif
 #endif
 #ifdef FF_SIMULATOR
 #endif
@@ -511,6 +518,7 @@ void HALDrawDataScreenCV(const UIDataSet* uids, time_t dt) {
 	strftime(time_wat_max, 10, "%H:%M", localtime(&(uids->water_max_dt)));
 
 #ifdef FF_ARDUINO
+#ifdef LCD_DISPLAY
 	//U8G2_ST7920_128X64_F_SW_SPI lcd_128_64(U8G2_R0, /* clock=*/ 40 /* A4 */ , /* data=*/ 42 /* A2 */, /* CS=*/ 44 /* A3 */, /* reset=*/ U8X8_PIN_NONE); //LCD Device Object and Definition
 	//lcd_128_64.begin();
 
@@ -560,6 +568,8 @@ void HALDrawDataScreenCV(const UIDataSet* uids, time_t dt) {
 	} while (lcd_128_64.nextPage());
 
 	//lcd_128_64.sendBuffer();                      // transfer internal memory to the display
+
+#endif
 #endif
 #ifdef FF_SIMULATOR_DATA_SCREEN
 	//printf("\e[1;1H\e[2J"); //clear screen

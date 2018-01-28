@@ -14,7 +14,7 @@
 #ifndef FF_SYS_CONFIG_H_
 #define FF_SYS_CONFIG_H_
 
-#define VERSION v0.31dev
+#define VERSION v0.4b
 
 /************************************************
  PLATFORM Directives
@@ -86,8 +86,10 @@
 10 = E_STOP
 */
 
+//#define IN_LOGRATE_OVERRIDE 30				// seconds. Override defined logging rate (for debug)
+
 #ifdef FF_ARDUINO
-#define DEBUG_SERIAL                  	// For use when USB connected
+#define DEBUG_SERIAL                  		// For use when USB connected
 #define DEBUG_SERIAL_BAUDRATE 9600
 //#define DEBUG_LCD                     	// Debug to a connected LCD screen
 #define DEBUG_LCD_DELAY 0
@@ -97,9 +99,9 @@
 #define DEBUG_FILENAME "FFDEBUG.TXT"
 
 #ifdef FF_SIMULATOR
-#define DEBUG_CONSOLE					//write to stdout
-#define FF_SIMULATOR_DATA_SCREEN		//simulate the LCD data screen to stdout
-#define SCREEN_REFRESH 50000		//how many times through the loop should the data screen not be updated
+#define DEBUG_CONSOLE						//write to stdout
+#define FF_SIMULATOR_DATA_SCREEN			//simulate the LCD data screen to stdout
+#define SCREEN_REFRESH 50000				//how many times through the loop should the data screen not be updated
 #endif
 
 #ifdef FF_ARDUINO
@@ -120,9 +122,10 @@
 
 #define ONE_WIRE_BUS_1 6                			//for Dallas temp signals
 #define ONE_WIRE_BUS_2 7                			//for Dallas temp signals
+#define OWB1_SENSOR_COUNT 3
+#define OWB2_SENSOR_COUNT 2
 
 #define EVENT_SERIAL							//send event messages over a serial link
-
 #define EVENT_SERIAL_PORT 0
 #define EVENT_SERIAL_BAUDRATE 9600
 
@@ -136,6 +139,7 @@
 #define ONE_SHOT_DURATION 2						//SCH_ONE_SHOT stay active seconds - inc case loop delay >= 1 second
 #define RESET_MINMAX_SCH_BLOCK "SCH_RESET_MIN_MAX_COUNTERS"  //workaround - the block that triggers resetting of min and max display counters
 
+//#define LCD_DISPLAY
 // Data sources for display on 128x64 LCD screen
 #define DISPLAY_INSIDE_SOURCE_BLOCK "IN_INSIDE_TOP_TEMP"
 #define DISPLAY_OUTSIDE_SOURCE_BLOCK "IN_OUTSIDE_TEMP"
