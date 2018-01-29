@@ -105,7 +105,7 @@ MESSAGE_FILENAME = "/root/message.log"
 MODEM_SERIAL_PORT = "/dev/ttyV0"
 MODEM_SERIAL_SPEED = 9600
 
-SERIAL_POLL_INTERVAL = 0.5          # Seconds
+SERIAL_POLL_INTERVAL = 0.1          # Seconds
 UI_UPDATE_INTERVAL = 1.0            # Seconds
 
 HEAT_PALLET = (
@@ -171,9 +171,10 @@ def parse_message_string(raw_msg_string):
     parsed_message = ParsedMessage()
     parsed_message.valid = False
     print (raw_msg_string)
-    msg_log_file = open(MESSAGE_FILENAME, "a")
-    msg_log_file.write(raw_msg_string)
-    msg_log_file.close()
+
+    with open(MESSAGE_FILENAME, "a") as msg_log_file:
+        print(raw_msg_string, file=msg_log_file)
+
     if len(raw_msg_string) > 30:                            #  possibly valid message not init junk
         string_list = raw_msg_string.decode().split(",")
         print (string_list)
