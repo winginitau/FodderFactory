@@ -1,0 +1,26 @@
+#!/bin/sh -e
+#
+# rc.local
+#
+# This script is executed at the end of each multiuser runlevel.
+# Make sure that the script will "exit 0" on success or any other
+# value on error.
+#
+# In order to enable or disable this script just change the execution
+# bits.
+#
+# By default this script does nothing.
+
+# Print the IP address
+_IP=$(hostname -I) || true
+if [ "$_IP" ]; then
+  printf "My IP address is %s\n" "$_IP"
+fi
+
+chmod ugo+rw /dev/ttyACM0
+pppd /dev/ttyUSB0 57600 noauth crtscts nocdtrcts lock mru 296 mtu 296 passive 192.168.10.2:192.168.10.1 ktune local maxfail 0 persist proxyarp updetach usepeerdns defaultroute replacedefaultroute
+
+# bsdcomp  12
+ser2net
+
+exit 0

@@ -1,0 +1,822 @@
+
+# IOT Device - Configuration and Management Grammar for: 
+#	- Device interactive terminal shell
+#	- Interactive terminal configurtion parser
+#	- Configuration file parser
+#	- for the IOT Device Concept (and example config) below.
+#
+# Copyright 2018 Brendan McLearie
+#	- Upon completion to be released under an appropriate GPL/MIT
+#	  licence on as part of the FodderFactory project or its
+#	  derivations - also Copyright Brendan McLearie and other
+#	  contributors.
+#	- see https://github.com/winginitau/FodderFactory
+#
+# IOT Device Concept -> Configurtion and management of "Blocks".
+#	Blocks are identified by a <block-label> that is unique 
+#	within the local device on which they run. Blocks are 
+#	of a category <block-category> which may be one of:
+#	
+#	- SYSTEM block -> config of the device / platform itself 
+#	  (MCU, SOC, Compute Module). Definiton of the SYSTEM block
+#	  includes its globally unique <64bit-device-address>, security
+#	  keys, language/time/date localisation, capabilities, 
+#	  local device name (synonomous to a hostname), and the
+#	  X.500(ish) distinguished name representing the hierchical
+#	  primary message pathway to the most central hub.    
+#	- INTERFACE blocks -> the local HARDWARE specfic PINS, 
+#	  SoftwareSerial, UARTS, SPI, I2C etc and their setup / config.
+#	  Also local internal and remote serial, socket, stream
+#	  MESSAGE interfaces to message busses / MQTT / Cloud IOT etc 
+#	  including their setup / authentication / encryption / keepalive etc
+#
+#	- INPUT blocks -> sensors and input data streams connected 
+#	  via a HARDWARE INTERFACE. They accomplish local data
+#	  logging and "push" messaging to MONITOR blocks running
+#	  internally, locally or on another device / platform over 
+#	  a MESSAGE INTERFACE.
+#	  INPUT blocks may be of type SHADDOW if the real input stream / 
+#	  sensor etc is connected to an interface on another remote 
+#	  "down-tree" real device. In this case the SHADDOW block is
+#	  only defined for the purpose of holding the config provisioning
+#	  information that needs to be pushed down-tree.
+#   
+# 	- MONITOR blocks -> monitor data received from inputs (local 
+#	  INPUTS or INPUTS from elsewhere) for preset conditions, 
+#	  thresholds and derivations. MONITORs may monitor INPUTs or 
+#	  multiple other MONITOR blocks for derived conditions eg
+#	  averages accross two or more other MONITORs or INPUTs.
+#	  MONITOR blocks may extract tokenised data from INPUT block
+#	  streams - eg looking for a StateOfCharge value extracted
+#	  from a battery monitor data set that includes other info  
+# 
+#	- SCHEDULE blocks -> activate on start-duration-repeat, 
+#	  start-stop, and one-shot time/date events configured for 
+#	  specific days of the week or ALL and with a resolution 
+#	  down to 1 sec. 
+# 
+#	- RULE blocks -> bolean logic activation blocks responding 
+#	  to connected MONIOR and SCHEDULE blocks. eg AND, OR, XOR, NOT,
+#	  AND-but-NOT, OR-but-NOT, TRUE-but-(NOT AND NOT), etc
+#	  Final set TBD with possible substitution of a new type - RULESET
+#	  blocks which would imlement a variable rule base - think firewall
+#	  rule set evaluted line by line with fall through and catch all.   
+#
+#	- CONTROLLER blocks -> boolean responders attached to a RULE 
+#	  block that contain the the logic / sequence / commands to
+#	  activate, deactivate or set/send values on OUTPUT blocks 
+#	  and to confirm that the action was sucessful. Eg sending a 
+#	  CMD_ON message to a water pump OUTPUT (local or remote) 
+#	  and then checking a MONITOR to confirm a current draw 
+#	  within specification; raising a warning or error 
+#	  message on failure. CONTROLLER blocks send messages to 
+#	  OUTPUT blocks either locally or remotely over a MESSAGE INTERFACE 
+#
+#	- OUTPUT blocks -> listen to a MESSAGE INTERFACE for commands
+#	  sent to them from an associated CONTROLLER block (either local
+#	  or remote). The OUTPUT block controls the real device (eg actuators,
+#	  relays, PWM recivers, etc) connected locally over a HARDWARE INTERFACE.       
+#
+#  This is a comment line
+// This is an alternative comment line
+// 
+// Comment tokens # or // may appear anywhere on a line
+// All characters after a comment token are ignored
+// Therfore it is safe to use reserved keywords and
+// the escape sequence (see below) within comments.
+//
+// The entire grammar is NOT case sesnitive.
+// UPPER, lower and mixed case herein are provided only to aid
+// readability and denote:
+//	- KEYWORDS
+//	- <identifiers>
+//	- <TYPES> eg <INT> <FLOAT>
+//	- String Literals
+//
+!
+!  Lines beginning with exclamation marks "!" are:
+!	- Configuration section breaks (equiv to CTRL-Z or EXIT in terminal mode)
+! 	- Denote the end of sub-section of configuration statements
+!     and ruturns parsing to the enclosing scope
+!   - In a config file read, if not closing a subsection 
+!     (ie parse state is already in outermost global scope) they
+!	  it is ignored and treated like a comment token.
+!
+!  Reading and parsing of configurtion statements starts when:
+!	- the system boots and sucessfully reads from the 
+!	  default config file "config.txt" from:
+!		- the root of an attached SD card if AVR
+!		- the path of the executable on unix (for now)
+!		- TODO: configure make install for /usr/local/ or /etc/
+!	- from a terminal when a user connected to a serial terminal 
+!	  issues the command: CONFIGURE TERMINAL. See command summary. 
+!
+!  Reading and parsing of configuration statements ends when:
+!	- if reading a config file <EOF> is encountered
+!	- if reading from the terminal, CTRL-Z or the statement EXIT
+!	  is encountered while in the top global configuration scope.
+!
+!  If CTRL-Z, EXIT or ! are encountred while in a section or
+!  subsection scope, then the parsing context changes to the
+!  enclosing parent scope.
+!  
+// To support the same stream (eg a serial port) being used 
+//	as both the inter-device message and or debug stream and
+//	TERMINAL/CONFIG mode over the same stream (eg a
+//	serial port on an MCU), the escape sequence ^^^<EOL> is 
+//	used to invoke an interactive TERMINAL mode.   
+//
+//	A future enhancement will provide ssh key authentication 
+//	following the ^^^ sequence before TERMINAL mode will be 
+//	activated. TERMINAL mode "^^^" will have an inactivity timeout and an 
+//	expotentially increasing re-listen time between authentication failure 
+//	attempts to prevent the ^^^ being used as a DOS attack.
+//
+//	The squence of 3x + chars should be avoided to prevent
+//	inadvertant escpaping within streams carried over radio
+//	modems that support the AT command set. (Unlikley on an 
+//	IP connected device as the stream will be encapsulated (eg ppp),
+//  however possible for radio links between a parent hub and 
+//  radio serial-only connected MCUs.
+//
+// Reading config from a terminal or from a file are synonyous:
+//	- the config sytax is the same
+//	- except that automatic machine reading of a config file 
+//	  (for example on boot) implies entry into CONFIGURE mode and invokes 
+//	  the config parser without needing an explicit issue CONFIGURE command.    
+//
+//
+#############################################################################
+// TERMINAL MODE COMMANDS
+#############################################################################
+
+# SHOW BLOCKS					// List all blocks on device as an enumerated list by <block-cat> 
+# SHOW <block-label>			// show settings and current values for block
+# SHOW <block-category><INT>	// show settings and current values for block
+# SHOW SYSTEM					// dislay system block settings
+
+# MUTE MESSAGES ON				// stop displaying event and debug messages to this terminal
+# MUTE MESSAGES OFF				// start displaying.....
+
+# MONITOR <block-label>			// Add block to the monitor pool
+# MONITOR <block-category><INT>	// Add block to the monitor pool
+# MONITOR STOP <block-label>			// Remove block from the monitor pool
+# MONITOR STOP <block-category><INT>	// Remove block from the monitor pool
+# MONITOR STOP ALL						// Remove all blocks from the monitor pool
+# MONITOR START					// Show all activity from and to monitored blocks. <any key> to exit.
+
+# CLEAR <block-label>					// Clear block's local datalog
+# CLEAR <block-category><INT>			// Clear block's local datalog
+
+# MESSAGE COMMAND OUTPUT<INT> CMD_ON			// Send command message to output block
+# MESSAGE COMMAND <output-block-label> CMD_ON
+# MESSAGE COMMAND OUTPUT<INT> CMD_OFF
+# MESSAGE COMMAND <output-block-label> CMD_OFF
+
+# MESSAGE DATA <input-block-label> INT <INT> 		// Simulate input block sending integer data
+# MESSAGE DATA INPUT<INT> INT <INT> 				// Simulate input block sending integer data
+# MESSAGE DATA <input-block-label> FLOAT <FLOAT>	// Simulate input block sending float data
+# MESSAGE DATA <input-block-label> FLOAT <FLOAT>	// Simulate input block sending float data
+
+# DEBUG LEVEL <INT>					// 1 - 10 (lower is more verbose)
+# DEBUG ON							// turn debug messages on or off system wide
+# DEBUG OFF							//  to all configured message interfaces
+# DEBUG TERMINAL					// send debug messages to this terminal 
+
+# CLOCK					// Show the time
+# CLOCK SET <hh:mm:ss>	// Set the time
+# DATE					// Show the date
+# DATE SET <yyyy-mm-dd>	// Set the date
+
+# CONFIGURE CLEAR BLOCKS		// drop all block config except SYSTEM
+# CONFIGURE CLEAR ALL			// drop all config
+# CONFIGURE TERMINAL			// read configurtion statements from the terminal
+# CONFIGURE FILE				// read the default file into the running config
+# CONFIGURE FILE <filename>		// read a specified file into the running config
+
+# WRITE					// writes running config to default file "config.txt"
+# WRITE INIT			// write and empty init config to the default config "config.txt"
+# WRITE <filename>		// write running config to a specific filename
+
+# COPY <filename> <filename>  // copy contents of one config file to another
+
+# DISABLE <block-label>			// enable and disable blocks from processing
+# DISABLE <block-category><n>	
+# ENABLE <block-label>
+# ENABLE <block-category><n>
+
+# LOGOUT   								// disconnect this terminal
+
+# RENAME <block-label> <block-label>	// only possible within block types and avoiding duplicates
+
+# REBOOT
+
+##########################################################################
+// EXAMPLE CONFIG FILE (or statements entered in Terminal Mode following
+// CONFIGURE TERMINAL
+##########################################################################
+!
+SYSTEM
+ CNAME mcu1
+ DNAME mcu1.localhub1.foddercontrol.headwaters.segment1.core 
+ ADDRESS 10:22:34:46:58:6A:7C:8E
+ DISPLAY MCU 1
+ DESCRIPTION MCU 1 on Fodder Box 1
+ LANGUAGE English
+ TEMPERATURE celsius
+ WEEKSTART sunday
+ TYPE MCU				// <MCU/SBC/HOST/CLOUD> 
+ FAMILY AVR				// <AVR/RPI/UNIX/AWS/AZURE>
+ HARDWARE ATmega2560	// Board Identifiers (for firmware flashing)
+ DEBUG LEVEL 4
+ DEBUG ON
+ DEBUG INTERFACE SERIAL0 
+! 
+CLOCK				
+ TYPE RTC_DS1307	// <rtc_<type>/system/ntp/message>	 
+ PORT i2c			// rtc source / <> for system / address for ntp / 
+ 					// "message" will periodically request time synch on the up-tree serial interface   
+ 
+
+input1 = IN_INSIDE_TOP_TEMP
+input2 = IN_INSIDE_BOTTOM_TEMP
+input3 = IN_OUTSIDE_TEMP
+input4 = IN_WATER_TEMP
+input5 = IN_CABINET_TEMP
+#input6 = IN_LONGRUN_TEMP
+#input5 = IN_LOADING_DOOR_SWITCH
+#input6 = IN_HARVEST_DOOR_SWITCH 
+#input7 =  
+
+INTERFACE ONEWIRE0		// INTERFACE <identifter>
+ TYPE ONEWIRE			// TYPE <ONEWIRE/UART/SOFTWARE_SERIAL/USB/DIG_PIN/ANALOG_PIN>
+  PORT 6				// The digital pin in this case
+  DEVICES 3				// How many onewire devices on this interface
+
+INTERFACE RELAY0
+  TYPE DIG_PIN
+  PORT 22		
+ !
+ DISPLAY OneWire 0		// Friendly display name for UIs
+!
+
+INTERFACE SERIAL0
+ TYPE USB
+ PORT /dev/ttyUSB0
+ 
+INTERFACE ONEWIRE1
+ TYPE ONEWIRE
+  HWPIN 7
+  DEVICES 2
+ !
+ DISPLAY OneWire 1
+!
+INTERFACE SERIAL1
+ TYPE ARDUINOUART
+  PORT Serial1	
+  SPEED 9600
+ !
+!
+INTERFACE SERIAL2
+ TYPE arduinouart
+  PORT Serial2	
+  SPEED 57600
+ !
+!
+INTERFACE SERIAL3
+ TYPE arduinouart
+  PORT Serial2	
+  SPEED 19200
+ !
+!
+INTERFACE DIGITAL0
+ TYPE DIG_PIN
+ PORT 22
+!
+INTERFACE DIGITAL1
+ TYPE DIG_PIN
+ PORT 24
+!
+INTERFACE DIGITAL2
+ TYPE DIG_PIN
+ PORT 26
+!
+INTERFACE DIGITAL3
+ TYPE DIG_PIN
+ PORT 28
+!
+INTERFACE DIGITAL4
+ TYPE DIG_PIN
+ PORT 30
+!
+INTERFACE DIGITAL5
+ TYPE DIG_PIN
+ PORT 32
+!
+INTERFACE DIGITAL6
+ TYPE DIG_PIN
+ PORT 34
+!
+INTERFACE DIGITAL7
+ TYPE DIG_PIN
+ PORT 36
+!
+INTERFACE DIGITAL8
+ TYPE DIG_PIN
+ PORT 38
+!
+INTERFACE DIGITAL9
+ TYPE DIG_PIN
+ PORT 40 
+!
+
+INPUT IN_INSIDE_TOP_TEMP
+ TYPE IN_ONEWIRE
+ DISPLAY Inside Top
+ DESCRIPTION Dallas sensor inside the top of the fodder factory
+ INTERFACE ONEWIRE0
+ if_num 1
+ log_rate 00:02:00
+ data_units = Celsius
+ data_type = float
+
+[IN_INSIDE_BOTTOM_TEMP]
+type = IN_ONEWIRE
+display_name = Inside Bot
+description = Dallas sensor inside the bottom of the fodder factory
+interface = ONEWIRE
+if_num = 2
+log_rate = 00:02:00
+data_units = Celsius
+data_type = float
+
+[IN_OUTSIDE_TEMP]
+type = IN_ONEWIRE
+display_name = Outside
+description = Dallas sensor for outside air temprature
+interface = ONEWIRE
+if_num = 4
+log_rate = 00:02:00
+data_units = Celsius
+data_type = float
+
+[IN_WATER_TEMP]
+type = IN_ONEWIRE
+display_name = Water
+description = Dallas sensor in the header tank
+interface = ONEWIRE
+if_num = 0
+log_rate = 00:02:00
+data_units = Celsius
+data_type = float
+
+[IN_CABINET_TEMP]
+type = IN_ONEWIRE
+display_name = Aux Temp 1
+description = Dallas sensor
+interface = ONEWIRE
+if_num = 3
+log_rate = 00:02:00
+data_units = Celsius
+data_type = float
+
+[IN_LONGRUN_TEMP]
+type = IN_ONEWIRE
+display_name = Aux Temp 1
+description = Dallas sensor
+interface = ONEWIRE
+if_num = 
+log_rate = 00:02:00
+data_units = Celsius
+data_type = float
+
+[IN_LOADING_DOOR_SWITCH]
+type = IN_DIGITAL
+display_name = Loading Door
+description = Reed switch on loading end door
+interface = DIG_PIN_IN
+# update with real pins and remove log_rate 
+if_num =             
+log_rate = 00:01:10
+data_units = ONOFF
+data_type = int
+
+
+#************************************************
+# Monitors
+#************************************************/
+[monitors]
+monitor1 = MON_INSIDE_TOP_TOO_COLD
+monitor2 = MON_INSIDE_TOP_TOO_HOT
+monitor3 = MON_INSIDE_BOTTOM_TOO_COLD
+monitor4 = MON_INSIDE_BOTTOM_TOO_HOT
+monitor5 = MON_WATER_TOO_HOT
+monitor6 = MON_WATER_TOO_COLD
+monitor7 = MON_OUTSIDE_HOT
+monitor8 = MON_OUTSIDE_COLD
+monitor9 = MON_INSIDE_AVERAGE_TOO_COLD
+monitor10 = MON_INSIDE_AVERAGE_TOO_HOT
+#monitor11 = MON_LOAD_DOOR_OPEN 
+#monitor12 = MON_HARVEST_DOOR_OPEN
+#monitor13 = 
+
+
+[MON_INSIDE_TOP_TOO_COLD]
+type = MON_CONDITION_LOW
+display_name = Inside Top Too Cold
+description =  
+input1 = IN_INSIDE_TOP_TEMP
+act_val	= 20.00
+deact_val = 24.00
+
+[MON_INSIDE_TOP_TOO_HOT]
+type = MON_CONDITION_HIGH
+display_name = Inside Top Too Hot
+description = 
+input1 = IN_INSIDE_TOP_TEMP
+act_val	= 24.00
+deact_val = 20.00
+
+[MON_INSIDE_BOTTOM_TOO_COLD]
+type = MON_CONDITION_LOW
+display_name = Inside Bottom Too Cold
+description =  
+input1 = IN_INSIDE_BOTTOM_TEMP
+act_val	= 20.00
+deact_val = 24.00
+
+[MON_INSIDE_BOTTOM_TOO_HOT]
+type = MON_CONDITION_HIGH
+display_name = Inside Bottom Too Hot
+description = 
+input1 = IN_INSIDE_BOTTOM_TEMP
+act_val	= 24.00
+deact_val = 20.00
+
+[MON_INSIDE_AVERAGE_TOO_COLD]
+type = MON_AVERAGE_CONDITION_LOW
+display_name = Average Inside Too Cold
+description =  
+input1 = IN_INSIDE_BOTTOM_TEMP
+input2 = IN_INSIDE_TOP_TEMP
+act_val	= 20.00
+deact_val = 24.00
+
+[MON_INSIDE_AVERAGE_TOO_HOT]
+type = MON_AVERAGE_CONDITION_HIGH
+display_name = Average Inside Too Hot
+description =  
+input1 = IN_INSIDE_BOTTOM_TEMP
+input2 = IN_INSIDE_TOP_TEMP
+act_val	= 24.00
+deact_val = 20.00
+
+[MON_WATER_TOO_HOT]
+type = MON_CONDITION_HIGH
+display_name = Water too hot
+description = Water Inside the Header tank is too hot
+input1 = IN_WATER_TEMP
+act_val	= 23.00
+deact_val = 21.00
+
+[MON_WATER_TOO_COLD]
+type = MON_CONDITION_LOW
+display_name = Water too cold
+description = 
+input1 = IN_WATER_TEMP
+act_val	= 21.00
+deact_val = 23.00
+
+[MON_OUTSIDE_HOT]
+type = MON_CONDITION_HIGH
+display_name = Outside Hot
+description = Outside Temprature Above Set Point
+input1 = IN_OUTSIDE_TEMP
+act_val	= 23.00
+deact_val = 21.00
+
+[MON_OUTSIDE_COLD]
+type = MON_CONDITION_LOW
+display_name = Outside Cold
+description = Outside Temprature Below Set Point
+input1 = IN_OUTSIDE_TEMP
+act_val	= 21.00
+deact_val = 23.00
+
+[MON_LOAD_DOOR_OPEN]
+type = MON_TRIGGER
+display_name = Loading End Door Open
+description =  
+input1 = IN_LOADING_DOOR_SWITCH
+act_val	= HIGH
+deact_val = LOW
+
+#************************************************
+# Schedules
+#************************************************/
+[schedules]
+schedule1 = SCH_EXCLUDE_WATER_HEAT_BY_DAY
+schedule2 = SCH_RUN_LIGHTS_AT_NIGHT
+schedule3 = SCH_RESET_MIN_MAX_COUNTERS
+schedule4 = SCH_WATERING_TOP_SCHEDULE
+schedule5 = SCH_WATERING_BOTTOM_SCHEDULE
+#schedule6 = SCH_TEST1
+#schedule7 = SCH_TEST2
+#schedule8 = SCH_TEST3
+#schedule9 = SCH_TEST4
+#schedule10 = SCH_TEST5
+#schedule11 = SCH_TEST6
+
+[SCH_EXCLUDE_WATER_HEAT_BY_DAY]
+type = SCH_START_STOP
+display_name = Exclude Water Heat During Day
+description = 
+# ALL, MON, TUE, WED, THU, FRI, SAT, SUN
+days = ALL
+time_start = 09:00:00
+time_end = 18:00:00
+
+[SCH_RUN_LIGHTS_AT_NIGHT]
+type = SCH_START_STOP
+display_name = Run Lights at Night
+description = 
+# ALL, MON, TUE, WED, THU, FRI, SAT, SUN
+days = ALL
+time_start = 22:00:00
+time_end = 07:00:00
+
+[SCH_RESET_MIN_MAX_COUNTERS]
+type = SCH_ONE_SHOT
+display_name = Reset Min and Max Daily Counters
+description = 
+# ALL, MON, TUE, WED, THU, FRI, SAT, SUN
+days = ALL
+time_start = 18:00:00
+
+[SCH_WATERING_TOP_SCHEDULE]
+type = SCH_START_DURATION_REPEAT
+display_name = Watering Schedule Top Sprinklers
+description = 
+# ALL, MON, TUE, WED, THU, FRI, SAT, SUN
+days = ALL
+time_start = 00:00:00
+time_duration = 00:00:26
+time_repeat = 00:45:00
+
+[SCH_WATERING_BOTTOM_SCHEDULE]
+type = SCH_START_DURATION_REPEAT
+display_name = Watering Schedule Bottom Sprinklers
+description = 
+# ALL, MON, TUE, WED, THU, FRI, SAT, SUN
+days = ALL
+time_start = 00:00:30
+time_duration = 00:00:26
+time_repeat = 00:45:00
+
+
+#************************************************
+# Rules
+#************************************************/
+[rules]
+rule1 = RL_TURN_ON_WATER_HEAT_IF_INSIDE_COLD
+rule2 = RL_RUN_LIGHTS_ON_SCHEDULE
+rule3 = RL_FAN_IF_INSIDE_BOTTOM_HOT_OUTSIDE_COLD
+rule4 = RL_CIRCULATE_IF_TOP_HOT_AND_BOTTOM_COLD
+rule5 = RL_WATER_ON_SCHEDULE_TOP
+rule6 = RL_WATER_ON_SCHEDULE_BOTTOM 
+#rule7 = RL_RESET_MINMAX_ON_SCHEDULE  
+#rule8 = RL_SUSPEND_WATERING_IF_BOTH_DOORS_OPEN
+#rule10 =  
+#rule11 =
+
+[RL_RESET_MINMAX_ON_SCHEDULE]
+type = RL_LOGIC_SINGLE
+display_name = Reset MinMax
+description =
+param1 = SCH_RESET_MIN_MAX_COUNTERS
+#param_not = 
+
+[RL_TURN_ON_WATER_HEAT_IF_INSIDE_COLD]
+type = RL_LOGIC_SINGLENOT
+display_name = Water Heat Warming Inside
+description =
+param1 = MON_INSIDE_TOP_TOO_COLD
+#param2 =
+param_not = SCH_EXCLUDE_WATER_HEAT_BY_DAY
+
+[RL_RUN_LIGHTS_ON_SCHEDULE]
+type = RL_LOGIC_SINGLE
+display_name = Light Schedule
+description =
+param1 = SCH_RUN_LIGHTS_AT_NIGHT
+#param_not = 
+
+[RL_FAN_IF_INSIDE_BOTTOM_HOT_OUTSIDE_COLD]
+type = RL_LOGIC_AND
+display_name = Cooling Fan
+description =
+param1 = MON_INSIDE_BOTTOM_TOO_HOT
+param2 = MON_OUTSIDE_COLD
+#param_not = 
+
+[RL_CIRCULATE_IF_TOP_HOT_AND_BOTTOM_COLD]
+type = RL_LOGIC_ANDNOT
+display_name = Circualtion Fan
+description =
+param1 = MON_INSIDE_TOP_TOO_HOT
+param2 = MON_INSIDE_BOTTOM_TOO_COLD
+#prevent if cold air being sucked in already
+param_not = RL_FAN_IF_INSIDE_BOTTOM_HOT_OUTSIDE_COLD   
+
+[RL_WATER_ON_SCHEDULE_TOP]
+type = RL_LOGIC_SINGLE
+display_name = Water Cycle Top
+description =
+param1 = SCH_WATERING_TOP_SCHEDULE
+#param_not = RL_SUSPEND_WATERING_IF_BOTH_DOORS_OPEN
+
+[RL_WATER_ON_SCHEDULE_BOTTOM]
+type = RL_LOGIC_SINGLE
+display_name = Water Cycle Bottom
+description =
+param1 = SCH_WATERING_BOTTOM_SCHEDULE
+#param_not = RL_SUSPEND_WATERING_IF_BOTH_DOORS_OPEN
+
+
+#************************************************
+# Controllers
+#************************************************/
+[controllers]
+controller1 = CON_WATER_HEATER_CONTROLLER
+controller2 = CON_END_LIGHTS_CONTROLLER
+controller3 = CON_FRESH_AIR_CONTROLLER
+controller4 = CON_CIRCULATION_FAN_CONTROLLER
+controller5 = CON_EXHAUST_FAN_CONTROLLER
+controller6 = CON_WATERING_TOP_CONTROLLER
+controller7 = CON_WATERING_BOTTOM_CONTROLLER
+#controller8 = CON_RESET_MINMAX 
+#controller10 = 
+
+[CON_RESET_MINMAX]
+type = CON_SYSTEM
+display_name = Reset Min Max
+description = 
+rule = RL_RESET_MINMAX_ON_SCHEDULE
+output = OUT_SYSTEM_INTERNAL
+act_cmd = CMD_OUTPUT_ON
+deact_cmd = CMD_OUTPUT_OFF
+
+[CON_WATER_HEATER_CONTROLLER]
+type = CON_ONOFF
+display_name = Water Heating Controller
+description = 
+rule = RL_TURN_ON_WATER_HEAT_IF_INSIDE_COLD
+output = OUT_WATER_HEATER
+act_cmd = CMD_OUTPUT_ON
+deact_cmd = CMD_OUTPUT_OFF
+
+[CON_END_LIGHTS_CONTROLLER]
+type = CON_ONOFF
+display_name = End Lights Controller
+description = 
+rule = RL_RUN_LIGHTS_ON_SCHEDULE
+output = OUT_END_LIGHTS
+act_cmd = CMD_OUTPUT_ON
+deact_cmd = CMD_OUTPUT_OFF
+
+[CON_FRESH_AIR_CONTROLLER]
+type = CON_ONOFF
+display_name = Fresh Air Controller
+description = 
+rule = RL_FAN_IF_INSIDE_BOTTOM_HOT_OUTSIDE_COLD
+output = OUT_FRESH_AIR_FAN
+act_cmd = CMD_OUTPUT_ON
+deact_cmd = CMD_OUTPUT_OFF
+
+[CON_CIRCULATION_FAN_CONTROLLER]
+type = CON_ONOFF
+display_name = Circulation Fan Controller
+description = 
+rule = RL_CIRCULATE_IF_TOP_HOT_AND_BOTTOM_COLD
+output = OUT_CIRCULATION_FAN
+act_cmd = CMD_OUTPUT_ON
+deact_cmd = CMD_OUTPUT_OFF
+
+[CON_EXHAUST_FAN_CONTROLLER]
+type = CON_ONOFF
+display_name = Exhaust Fan Controller
+description = 
+rule = RL_FAN_IF_INSIDE_BOTTOM_HOT_OUTSIDE_COLD
+output = OUT_EXHAUST_FAN
+act_cmd = CMD_OUTPUT_ON
+deact_cmd = CMD_OUTPUT_OFF
+
+[CON_WATERING_TOP_CONTROLLER]
+type = CON_ONOFF
+display_name = Top Sprinklers Solenoid Controller
+description = 
+rule = RL_WATER_ON_SCHEDULE_TOP
+output = OUT_WATERING_SOLENOID_TOP
+act_cmd = CMD_OUTPUT_ON
+deact_cmd = CMD_OUTPUT_OFF
+
+[CON_WATERING_BOTTOM_CONTROLLER]
+type = CON_ONOFF
+display_name = Bottom Sprinklers Solenoid Controller
+description = 
+rule = RL_WATER_ON_SCHEDULE_BOTTOM
+output = OUT_WATERING_SOLENOID_BOTTOM
+act_cmd = CMD_OUTPUT_ON
+deact_cmd = CMD_OUTPUT_OFF
+
+
+#************************************************
+# Outputs
+#************************************************
+[outputs]
+output1 = OUT_END_LIGHTS
+output2 = OUT_WATER_HEATER
+output3 = OUT_FRESH_AIR_FAN
+output4 = OUT_CIRCULATION_FAN
+output5 = OUT_EXHAUST_FAN
+output6 = OUT_WATERING_SOLENOID_TOP
+output7 = OUT_WATERING_SOLENOID_BOTTOM
+#output6 = OUT_SYSTEM_INTERNAL 
+#output9 = 
+
+#PINS 8  7  6  4  4  3  2  1
+#PINS 1  2  3  4  5  6  7  8
+#PINS 53 51 49 47 45 43 41 39
+#PINS 22 24 26 28 30 32 34 36
+#PINS LT WH IF CF EF -- S1 S2 
+#PINS S2 S1 -- EF CF IF WH LT 
+
+OUTPUT OUT_END_LIGHTS
+type = OUT_DIGITAL
+display_name = Fluro Lights
+description = Relay to Control Fluro End Lights
+interface = DIG_PIN_OUT
+if_num = 22
+
+OUTPUT OUT_WATER_HEATER
+type = OUT_DIGITAL
+display_name = Header Tank Heater
+description = Relay to Control Header Tank Water Heater
+interface = DIG_PIN_OUT
+if_num = 24
+
+OUTPUT OUT_FRESH_AIR_FAN
+type = OUT_DIGITAL
+display_name = Fresh Air Fan
+description = Relay to Control Fresh Air Fan
+interface = DIG_PIN_OUT
+if_num = 26
+
+OUTPUT OUT_CIRCULATION_FAN
+type = OUT_DIGITAL
+display_name = Circulation Fan
+description = Relay to Control the Circulation Fan
+interface = DIG_PIN_OUT
+if_num = 28
+
+OUTPUT OUT_EXHAUST_FAN
+type = OUT_DIGITAL
+display_name = Exhaust Fan
+description = Relay to Control the Exhaust Fan
+interface = DIG_PIN_OUT
+if_num = 30
+
+OUTPUT OUT_WATERING_SOLENOID_TOP
+type = OUT_DIGITAL
+display_name = Water Value Top
+description = Relay to Control the Top Watering Solenoid
+interface = DIG_PIN_OUT
+if_num = 34
+
+OUTPUT OUT_WATERING_SOLENOID_BOTTOM
+ TYPE OUT_DIGITAL
+ DISPLAY = Water Value Bottom
+description = Relay to Control the Bottom Watering Solenoid
+interface = DIG_PIN_OUT
+if_num = 36
+
+
+
+
+
+
+
+EXIT
+BLOCK
+DELETE <block
+HOSTNAME
+DEVICENAME
+NO
+RELOAD
+RENAME
+SEND 
+SET
+VERIFY
+
+
+

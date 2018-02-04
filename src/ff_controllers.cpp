@@ -70,14 +70,14 @@ void ControllerOperate(BlockNode *b) {
 					b->active = 1;
 					b->last_update = TimeNow();
 					SetCommand(b->settings.con.output, b->settings.con.act_cmd);
-					EventMsg(b->block_id, E_COMMAND, M_CMD_ACT);
+					EventMsg(b->block_id, b->settings.con.output, E_COMMAND, M_CMD_ACT);
 				}
 			} else {
 				if (b->active == 1) {
 					b->active = 0;
 					b->last_update = TimeNow();
 					SetCommand(b->settings.con.output, b->settings.con.deact_cmd);
-					EventMsg(b->block_id, E_COMMAND, M_CMD_DEACT);
+					EventMsg(b->block_id, b->settings.con.output, E_COMMAND, M_CMD_DEACT);
 				}
 			}
 			break;

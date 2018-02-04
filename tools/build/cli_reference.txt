@@ -1,0 +1,17 @@
+
+wifi
+wpa_cli -i wlan0 reconfigure
+
+iwlist wlan0 scan
+
+
+Core Temp
+/opt/vc/bin/vcgencmd measure_temp
+
+https://github.com/SurferTim/documentation/blob/6bc583965254fa292a470990c40b145f553f6b34/configuration/wireless/access-point.md
+
+socat /dev/ttyS0,raw,echo=0 SYSTEM:'tee input.txt | socat - "PTY,link=/tmp/ttyV0,raw,echo=0,waitslave" | tee output.txt'
+
+
+
+

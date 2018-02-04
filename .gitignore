@@ -40,6 +40,16 @@
 /ff_dallastemp_test/.settings/
 /ff_dallastemp_test/Release/
 
+.project
+.pydevproject
+.gitignore.swp
+
+tools/.project
+
+ff_local_hub/.cproject
+ff_local_hub/.settings/
+
+
 # Working Files
 FFEVENTS.TXT
 

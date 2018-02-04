@@ -10,20 +10,22 @@
    here as static consts so they will be loaded into
    ROM on embedded systems with Von Neuemann architctures.
  - For Harvard architectures (AtMel AVR Arduino), the
-   PROGMEM modifier is used (if USE_PROGMEM) is defined
-   so that strings are locaded into the .text section
+   PROGMEM modifier is used (if USE_PROGMEM is defined)
+   so that strings are loaded into the .text section
    which is the same memory used for program memory.
- - Then refer to all strings and lists via associated
+ - All strings and lists are accessed via associated
    enums thereby leaving the run-time with memory and
-   CPU efficient types.
+   CPU efficient types for performance, and referring to
+   the string data only as needed for use (from ROM or
+   PROGMEM as the case may be).
  - enums are defined with:
     - Zero (0) element being a reserved error to
       catch via debug / error reporting any iterations
       or evaluations that return 0 unintentionally.
     - The last element is always defined as LAST_<type>
       as a fall through catch in loops and iterations
-      and allowing nice informative loops eg:
-       while (iterator < LAST_TYPE) {iterator++;};
+      and allowing nicely written loops eg:
+      while (iterator < LAST_TYPE) {iterator++;};
 
 
  ************************************************/
@@ -226,33 +228,33 @@ static const BlockCatArray block_cat_defs[LAST_BLOCK_CAT] = {
 	"\0",
 	"\0",
 	{
-		"",		//not used - dummy to skip error enum = 0
-		"type",
-		"display_name",
-		"description",
+		"",					// not used - dummy to skip error enum = 0
+		"type",				// Block Tpye - See block_type_strings
+		"display_name",		// Short user friendly display label (TODO: needs limit)
+		"description",		// Optional descriptive for design stage
 	},
 
 	FF_SYSTEM,
 	"system",
 	"",
 	{
-		"",		//not used - dummy to skip error enum = 0
-		"type",
-		"display_name",
-		"description",
-		"language",
-		"temp_scale",
-		"week_start",
+		"",					// not used - dummy to skip error enum = 0
+		"type",				// See Generic Above
+		"display_name",		// See Generic Above
+		"description",		// See Generic Above
+		"language",			// TODO: Partially Implemented on message and debug strings
+		"temp_scale",		// TODO: Setable but ignored presently. Celisus assumed
+		"week_start",		// TODO: implement, currently hard coded
 	},
 
 	FF_INPUT,
 	"inputs",
 	"input",
 	{
-		"",		//not used - dummy to skip error enum = 0
-		"type",
-		"display_name",
-		"description",
+		"",					//not used - dummy to skip error enum = 0
+		"type",				// See Generic Above
+		"display_name",		// See Generic Above
+		"description",		// See Generic Above
 		"interface",
 		"if_num",
 		"log_rate",
@@ -264,10 +266,10 @@ static const BlockCatArray block_cat_defs[LAST_BLOCK_CAT] = {
 	"monitors",
 	"monitor",
 	{
-		"",		//not used - dummy to skip error enum = 0
-		"type",
-		"display_name",
-		"description",
+		"",					// not used - dummy to skip error enum = 0
+		"type",				// See Generic Above
+		"display_name",		// See Generic Above
+		"description",		// See Generic Above
 		"input1",
 		"input2",
 		"input3",
@@ -280,10 +282,10 @@ static const BlockCatArray block_cat_defs[LAST_BLOCK_CAT] = {
 	"schedules",
 	"schedule",
 	{
-		"",		//not used - dummy to skip error enum = 0
-		"type",
-		"display_name",
-		"description",
+		"",					// not used - dummy to skip error enum = 0
+		"type",				// See Generic Above
+		"display_name",		// See Generic Above
+		"description",		// See Generic Above
 		"days",
 		"time_start",
 		"time_end",
@@ -295,10 +297,10 @@ static const BlockCatArray block_cat_defs[LAST_BLOCK_CAT] = {
 	"rules",
 	"rule",
 	{
-		"",		//not used - dummy to skip error enum = 0
-		"type",
-		"display_name",
-		"description",
+		"",					// not used - dummy to skip error enum = 0
+		"type",				// See Generic Above
+		"display_name",		// See Generic Above
+		"description",		// See Generic Above
 		"param1",
 		"param2",
 		"param3",
@@ -309,10 +311,10 @@ static const BlockCatArray block_cat_defs[LAST_BLOCK_CAT] = {
 	"controllers",
 	"controller",
 	{
-		"",		//not used - dummy to skip error enum = 0
-		"type",
-		"display_name",
-		"description",
+		"",					// not used - dummy to skip error enum = 0
+		"type",				// See Generic Above
+		"display_name",		// See Generic Above
+		"description",		// See Generic Above
 		"rule",
 		"output",
 		"act_cmd",
@@ -324,10 +326,10 @@ static const BlockCatArray block_cat_defs[LAST_BLOCK_CAT] = {
 	"outputs",
 	"output",
 	{
-		"",		//not used - dummy to skip error enum = 0
-		"type",
-		"display_name",
-		"description",
+		"",					// not used - dummy to skip error enum = 0
+		"type",				// See Generic Above
+		"display_name",		// See Generic Above
+		"description",		// See Generic Above
 		"interface",
 		"if_num",
 	},
@@ -671,7 +673,7 @@ static const SimpleStringArray unit_strings[LAST_UNIT] = {
 	"ONOFF",
 };
 
-enum {
+enum {				// TODO: Code presently assumes SUN = 0
 	SUN = 0,
 	MON,
 	TUE,
@@ -716,7 +718,7 @@ static const SimpleStringArray command_strings[LAST_COMMAND] = {
 	"CMD_RESET_MIN_MAX",
 };
 
-enum {
+enum {						// Interface Types
 	IF_ERROR = 0,
 	IF_PWM_IN,
 	IF_PWM_OUT,
@@ -745,7 +747,7 @@ static const SimpleStringArray interface_strings[LAST_INTERFACE] = {
 	"SYSTEM_FUNCTION",
 };
 
-enum {
+enum {						// Block states
 	STATUS_ERROR = 0,
 	STATUS_INIT,
 	STATUS_VALID_DATA,
@@ -774,7 +776,7 @@ enum {
 #endif
 
 /**************************************************************
- * String Functions Prototypes
+ * String Access Functions Prototypes
  **************************************************************/
 char const* GetMessageTypeString(int message_type_enum);
 

@@ -1,0 +1,54 @@
+#!/bin/sh -e
+#
+# rc.local
+#
+# This script is executed at the end of each multiuser runlevel.
+# Make sure that the script will "exit 0" on success or any other
+# value on error.
+#
+# In order to enable or disable this script just change the execution
+# bits.
+#
+# By default this script does nothing.
+
+# Print the IP address
+_IP=$(hostname -I) || true
+if [ "$_IP" ]; then
+  printf "My IP address is %s\n" "$_IP"
+fi
+
+# make sure non root processes can open the radio modem
+chmod ugo+rw /dev/ttyUSB0
+
+# set up the pppd to allow the remote unit to connect as an IP peer
+# additional options for remote end: usepeerdns defaultroute replacedefultroute
+
+pppd /dev/ttyUSB0 57600 noauth crtscts nocdtrcts lock mru 296 mtu 296 passive 192.168.10.1:192.168.10.2 local maxfail 0 persist proxyarp updetach 
+
+#ktune bsdcomp 12 xonxoff nocrtscts
+
+# make sure the kernel is forwarding ip (the ktune param in pppd should do this)
+sysctl -w net.ipv4.ip_forward=1
+
+# NAT the ppp link over the wireless lan wlan0
+# note although proxyarp is used in pppd, this host is not ethernet connected so it is pointless
+# likewise the local ip range is not known at dev time, so NAT needs to occur rather than proxyarp
+iptables -t nat -A POSTROUTING -o wlan0 -j MASQUERADE
+
+# set up socat to create /dev/ttyV0 connected to remote 192.168.10.2:3333 - ser2net mapped arduino serial port
+# run from a forked script that ininite loops becuase socat exits whenever ttyV0 is closed by the app
+
+
+/root/run_socat.sh &
+
+# run script to ping-keep-alive the vpn. Dodgy at present - it will fail ping, try to unload it and then reload it (which will establish for first time), then settle down.
+
+/root/run_vpn.sh &
+
+
+#run the UI app
+
+/root/run_controller.sh &
+
+
+exit 0
