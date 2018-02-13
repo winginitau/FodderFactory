@@ -136,8 +136,9 @@ typedef struct UI_DATA_SET {
 	float water_max;
 	time_t water_max_dt;
 
-	uint8_t light_flag;				//current state of lights
-	uint8_t water_heater_flag;		//current state of water heater
+	//TODO not being used - delete?
+	//uint8_t light_flag;				//current state of lights
+	//uint8_t water_heater_flag;		//current state of water heater
 } UIDataSet;
 
 

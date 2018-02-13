@@ -57,10 +57,6 @@
  Globals
 ************************************************/
 #ifdef FF_ARDUINO
-//moved to local
-//OneWire one_wire(ONE_WIRE_BUS);            		// oneWire instance to communicate with any OneWire devices
-//DallasTemperature temp_sensors(&one_wire);     // Pass our one_wire reference to Dallas Temperature
-
 #ifdef LCD_DISPLAY
 //moving this to local too (try - result: flashing. moved back)
 U8G2_ST7920_128X64_1_SW_SPI lcd_128_64(U8G2_R0, /* clock=*/ 40 /* A4 */ , /* data=*/ 42 /* A2 */, /* CS=*/ 44 /* A3 */, /* reset=*/ U8X8_PIN_NONE); //LCD Device Object and Definition
@@ -84,8 +80,6 @@ uint8_t rtc_status = 0;		// assume dead until we can find it and talk to it
 /************************************************
  Functions
 ************************************************/
-
-
 uint8_t HALSaveEventBuffer(void) {
 
 	uint8_t save_success = 0;

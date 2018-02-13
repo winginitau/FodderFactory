@@ -1,0 +1,186 @@
+/****************************************************************************
+  Type Definitions
+****************************************************************************/
+typedef struct REF_NODE {
+    int line;
+    struct REF_NODE *next;
+} ref_node;
+
+typedef struct WORD_NODE {
+    char word[MAX_WORD_LENGTH];
+    ref_node *ref_list;
+    struct WORD_NODE *next;
+} word_node;
+
+
+/****************************************************************************
+   Function Prototypes
+****************************************************************************/
+word_node *add_word(word_node *, char *, int);
+ref_node *add_ref(ref_node *, int);
+word_node *alloc_word_node();
+ref_node *alloc_ref_node();
+void dump_word_list(word_node *);
+void dump_ref_list(ref_node *);
+
+
+/****************************************************************************
+   Function: alloc_word_node()
+         malloc necessary memory for a word_node.
+
+   Arguments: void.
+
+   Returns: pointer to a word_node.
+****************************************************************************/
+word_node *alloc_word_node(void) {
+    word_node *temp;
+    temp = (word_node *)malloc(sizeof(word_node));
+    if (temp == NULL) {
+        perror("alloc_word_node(malloc)");
+        exit(1);
+    }
+    return temp;
+}
+
+/****************************************************************************
+   Function: alloc_ref_node()
+         malloc necessary memory for a ref_node.
+
+   Arguments: void.
+
+   Returns: pointer to a ref_node.
+****************************************************************************/
+ref_node *alloc_ref_node(void) {
+    ref_node *temp;
+    temp = (ref_node *)malloc(sizeof(ref_node));
+    if (temp == NULL) {
+        perror("alloc_ref_node(malloc)");
+        exit(1);
+    }
+    return temp;
+}
+
+/****************************************************************************
+   Function: add_word()
+        adds a new word into word_list, allocates a reference
+        list for it and inserts line_number into the reference
+        list for that word. If word already exists in the list
+        then add line_number to the reference list for that word.
+
+   Arguments: word_list
+         pointer to the first node in the linked list or NULL
+          word
+         character string containing word to add
+          line_number
+         line number where word appears
+
+   Returns: word_list
+        pointer to (new) head of linked list
+****************************************************************************/
+word_node *add_word(word_node *word_list, char *word, int line_number) {
+    int comp;
+    word_node *temp;
+
+    if (word_list == NULL) {
+        /* end of list, allocate new node */
+        word_list = alloc_word_node();
+        strcpy(word_list->word, word);
+        word_list->next = NULL;
+        word_list->ref_list = add_ref(NULL,line_number);
+    }
+    else if ((comp = strcmp(word,word_list->word)) == 0) {
+        /* word found - add line number to reference list */
+        word_list->ref_list = add_ref(word_list->ref_list,line_number);
+    }
+    else if (comp > 0) {
+        /* possible match further down list */
+        word_list->next = add_word(word_list->next,word,line_number);
+    }
+    else if (comp < 0) {
+        /* found correct position allocate new node and insert it */
+        temp = alloc_word_node();
+        temp->next = word_list;
+        strcpy(temp->word,word);
+        temp->ref_list = add_ref(NULL,line_number);
+        return temp;
+    }
+    return word_list;
+}
+
+/****************************************************************************
+   Function: add_ref()
+        adds line_number into the list pointed to by ref_list.
+
+   Arguments: ref_list
+         pointer to the first node in the list or NULL.
+          line_number
+         the line number to insert.
+
+   Returns: ref_list
+         pointer to (new) head of list
+****************************************************************************/
+ref_node *add_ref(ref_node *ref_list, int line_number) {
+
+    if (ref_list == NULL) {
+        /* at end of list - allocate new node */
+        ref_list = alloc_ref_node();
+        ref_list->line = line_number;
+        ref_list->next = NULL;
+    }
+    else {
+        /* walk down list */
+        ref_list->next = add_ref(ref_list->next,line_number);
+    }
+    return ref_list;
+}
+
+
+/****************************************************************************
+   Function: dump_word_list()
+         output to standard out, the list of words contained in
+         word_list and the line numbers on which each word occurs.
+
+   Arguments: word_list
+         pointer to the first node in the list or NULL.
+
+   Returns: void.
+****************************************************************************/
+void dump_word_list(word_node *word_list) {
+    if (word_list != NULL) {
+        printf("%s : ",word_list->word);
+        dump_ref_list(word_list->ref_list);
+        printf("\n");
+        dump_word_list(word_list->next);
+    }
+}
+
+
+/****************************************************************************
+   Function: dump_ref_list()
+         output to standard out, the list of line numbers contained
+         in ref_list.
+
+   Arguments: ref_list
+         pointer to the first node in the list or NULL.
+
+   Returns: void.
+****************************************************************************/
+void dump_ref_list(ref_node *ref_list) {
+    if (ref_list != NULL) {
+        printf("%d ",ref_list->line);
+        dump_ref_list(ref_list->next);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+

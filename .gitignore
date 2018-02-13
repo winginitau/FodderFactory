@@ -30,25 +30,21 @@
 *.exe
 *.out
 *.app
+
+# Eclispe Project Files
+.project
+.pydevproject
+.gitignore.swp
+.cproject
+.settings
+
+# Eclipse Build Directories
+
 /Debug/
 /Release/
 /ff_simulator/Release/
 /ff_simulator/Debug/
-
-/ff_dallastemp_test/.cproject
-/ff_dallastemp_test/.project
-/ff_dallastemp_test/.settings/
 /ff_dallastemp_test/Release/
-
-.project
-.pydevproject
-.gitignore.swp
-
-tools/.project
-
-ff_local_hub/.cproject
-ff_local_hub/.settings/
-
 
 # Working Files
 FFEVENTS.TXT

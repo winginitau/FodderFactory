@@ -1,0 +1,405 @@
+%# flybln - FLex Yacc Bison Lex Bison Lex - Not!
+%#
+%# Command, Config and Enumerated Identifier Lists and Callback Definition
+%#      
+%# Read by noblofy to produce an output header
+%#  file .h for ANSI C definition of:
+%#  - Anonyous or typed enum lists
+%#  - Keyword definitions
+%#  -  
+%#
+%# Premable code to insert "as is" between %code and %end-code 
+%#  Use to define Class or typedef structs referenced in the grammar
+%#  "%#" used as comments to noblofly to allow #compiler directives
+%#  to be included in code and still be able to make noblofly comments.
+
+%code-start
+
+/**************************************************************
+ * Languages Enum - Must Precede typedefs that use it
+ **************************************************************/
+// We don't have an "error language" to start the enum here
+// as it would bloat every multi language StringArrayType
+// with an extra useless dimension.
+
+typedef enum LANG_TYPE {
+    ENGLISH = 0, GERMAN, LAST_LANGUAGE
+} LanguageType;
+
+/**************************************************************
+ * String array typedefs
+ **************************************************************/
+#ifdef USE_PROGMEM
+typedef struct STRING_ARRAY_TYPE {
+    // Longest length of this string in all languages
+    int max_len;
+    // Array of pointers to each language-specific string of type
+    char text[LAST_LANGUAGE][MAX_MESSAGE_STRING_LENGTH];
+} StringArray;
+
+#else
+typedef struct STRING_ARRAY_TYPE {
+    // Longest length of this string in all languages
+    const int max_len;
+    // Array of pointers to each language-specific string of type
+    const char* const text[LAST_LANGUAGE];
+} StringArray;
+#endif
+
+#ifdef USE_PROGMEM
+typedef struct SIMPLE_STRING_ARRAY_TYPE {
+    // Array of strings (usually labels and messages) relating to enums
+    // Inside this struct, extended intitaliser lists are ok
+    char text[MAX_MESSAGE_STRING_LENGTH];
+} SimpleStringArray;
+#else
+typedef struct SIMPLE_STRING_ARRAY_TYPE {
+    // Array of strings (usually labels and messages) relating to enums
+    // Inside this struct, extended intitaliser lists are ok
+    const char* text;
+} SimpleStringArray;
+#endif
+
+typedef struct BLOCK_CATS {
+    const uint8_t cat_id;
+    const char conf_section_label[MAX_LABEL_LENGTH];
+    const char conf_section_key_base[MAX_LABEL_LENGTH];
+    const char* const conf_keys[MAX_CONF_KEYS_PER_BLOCK];
+} BlockCatArray;
+
+/**************************************************************
+ * Language Strings - Must Follow the typedef that defines it
+ **************************************************************/
+#ifdef USE_PROGMEM
+static const SimpleStringArray language_strings[LAST_LANGUAGE] PROGMEM = {
+#else
+static const SimpleStringArray language_strings[LAST_LANGUAGE] = {
+#endif
+    "English",
+    "Deutsch",
+};
+
+%code-end
+
+%#
+%#  Grammar defs start with %grammar and end with %end-grammar  
+%#
+
+%grammar-start
+
+%comment #
+%comment //
+
+%sub-section-close !
+%sub-section-close EXIT
+%sub-section-close 0x26
+
+%redundant-close-as-comment
+
+%ignore-case
+
+%escape-sequence ^^^
+
+%#  Usage: %enum-list
+%#  
+%#      %enum-list [ <EnumIdentififer> | anon ] <start-value> \
+%#          <ArraryType> <static-const-var-identifier> <field-name>
+%#          (<keyword-id>)  
+%#
+%#  Creates a code block:
+%#
+%#      enum { ENUM1 = start-value, ENUM2, ... } optional-EnumIdentifier;
+%#
+
+
+%enum-terminating-member
+%enum-plus-list-array
+
+%enum-start-value 0
+%enum-array-type SimpleStringArray
+%enum-array-instance block_cat_defs
+%enum-array-member-label text
+
+%enum-array-reserve-words
+%enum-array-no-reserve-words
+%enum-array-reserve-words
+
+%enum-array-reserve-identifier <block-category>
+
+%enum-start
+FF_ERROR_CAT ERROR_CAT
+FF_GENERIC_BLOCK GENERIC
+FF_SYSTEM SYSTEM
+FF_INPUT INPUT
+FF_MONITOR MONITOR 
+FF_SCHEDULE SCHEDULE
+FF_RULE RULE
+FF_CONTROLLER CONROLLER
+FF_OUTPUT OUTPUT
+LAST_BLOCK_CAT
+%enum-end
+
+%#  Usage: %lookup-list
+%#  
+%#      %lookup-list noblofly-identifier FunctionName identifier-type-to-pass type-to-receive error-value 
+%#  uint16_t GetBlockID(const char* label);
+
+
+%# lookup-list <block-label> 
+%# lookup-list-function GetBlockID
+%# char* %return uint_16 %error 0 
+
+%action-define SHOW_BLOCKS 
+%action-define SHOW_SYSTEM
+%action-define SHOW_BLOCK_LABEL
+%action-define SHOW_BLOCK_CATEGORY
+%action-define SHOW_BLOCK_ID 
+
+
+
+%# SHOW BLOCKS                   // List all blocks on device with their label and integer ID 
+%# SHOW <block-category>         // List all blocks within a category with their label and integer ID
+%# SHOW <block-label>            // Show settings and current values for block
+%# SHOW <block-id>               // Show the details of the block with ID <block-id> 
+%# SHOW SYSTEM                   // dislay system block settings
+
+%1 keyword SHOW
+%2 keyword BLOCKS 
+%action SHOW_BLOCKS
+%2 keyword SYSTEM 
+%action SHOW_SYSTEM
+%2 identifier <block-category> 
+%action SHOW_BLOCK_CATEGORY
+%2 lookup <block-id> 
+%action SHOW_BLOCK_ID
+
+
+
+%# MUTE MESSAGES ON				        // stop displaying event and debug messages to this terminal
+%# MUTE MESSAGES OFF				        // start displaying.....
+
+%1 keyword MUTE 
+%2 keyword MESSAGES 
+%3 keyword ON 
+%action MUTE_MESSAGES_ON
+%3 keyword OFF 
+%action MUTE MESSAGES_OFF
+
+
+
+%# MONITOR <block-label>                 // Add block to the monitor pool
+%# MONITOR <block-category> <INT>        // Add block to the monitor pool
+%# MONITOR STOP <block-label>            // Remove block from the monitor pool
+%# MONITOR STOP <block-category> <INT>   // Remove block from the monitor pool
+%# MONITOR STOP ALL                      // Remove all blocks from the monitor pool
+%# MONITOR START                 // Show all activity from and to monitored blocks. <any key> to exit.
+
+%1 keyword MONITOR
+%2 keyword START
+%action MONIOTR_START
+%2 keyword STOP
+%3 keyword ALL
+%action MONITOR_STOP_ALL
+%3 lookup <block-label>
+%action MONITOR STOP_BLOCK_LABEL
+%3 identifier <block-category>
+%4 param-integer
+%action MONITOR_STOP_BLOCK_CAT
+%2 lookup <block-label>
+%action MONITOR_BLOCK_LABEL
+%2 identifier <block-category>
+%3 param-integer
+%action MONITOR_BLOCK_CAT_N
+
+
+
+%# CLEAR <block-label>                   // Clear block's local datalog
+%# CLEAR <block-category> <INT>          // Clear block's local datalog
+
+%1 keyword CLEAR
+%2 lookup <block-label>
+%action CLEAR_BLOCK_LABEL
+%2 identifier <block-category>
+%3 param-integer
+%action CLEAR_BLOCK_CAT_N
+
+
+
+%# MESSAGE COMMAND <block-category> <INT> <command>          // Send command message to output block
+%# MESSAGE COMMAND <block-label> <command>
+
+%1 keyword MESSAGE
+%2 keyword COMMAND
+%3 identifier <block-category>
+%4 param-integer
+%5 identifier <command>
+%action COMMAND_BLOCK_CAT_N
+%3 lookup <block-label>
+%4 identifier <command>
+%action COMMAND_BLOCK_LABEL
+
+
+%# MESSAGE DATA <block-label> INT <INT>              // Simulate input block sending integer data
+%# MESSAGE DATA <block-category> <INT> INT <INT>     // Simulate input block sending integer data
+%# MESSAGE DATA <block-label> FLOAT <FLOAT>          // Simulate input block sending float data
+%# MESSAGE DATA <block-category> <INT> FLOAT <FLOAT> // Simulate input block sending float data
+
+%1 keyword MESSAGE
+%2 keyword DATA
+%3 identifier <block-category>
+%4 param-integer
+%5 keyword INT
+%6 param-integer
+%5 keyword FLOAT
+%6 param-float
+%3 lookup <block-label>
+%4 keyword INT
+%5 param-integer
+%4 keyword FLOAT
+%5 param-float
+
+
+
+
+%# DEBUG LEVEL <INT>                 // 1 - 10 (lower is more verbose)
+%# DEBUG ON                          // turn debug messages on or off system wide
+%# DEBUG OFF                         //  to all configured message interfaces
+%# DEBUG TERMINAL                    // send debug messages to this terminal 
+
+%1 keyword DEBUG
+%2 keyword ON
+%action DEBUG_ON
+%2 keyword OFF
+%action DEBUG_OFF
+%2 keyword TERMINAL
+%action DEBUG_TERMINAL
+%2 keyword LEVEL
+%3 param-integer
+%action DEBUG_LEVEL
+
+
+
+%# CLOCK                 // Show the time
+%# CLOCK SET <hh:mm:ss>  // Set the time
+%# DATE                  // Show the date
+%# DATE SET <yyyy-mm-dd> // Set the date
+
+%1 keyword CLOCK
+%action SHOW_TIME
+%2 keyword SET
+%3 param-time
+%action SET_TIME
+%1 keyword DATE
+%action SHOW_DATE
+%2 keyword SET
+%3 param-date
+
+
+
+%# CONFIGURE CLEAR BLOCKS        // drop all block config except SYSTEM
+%# CONFIGURE CLEAR ALL           // drop all config
+%# CONFIGURE TERMINAL            // read configurtion statements from the terminal
+%# CONFIGURE FILE                // read the default file into the running config
+%# CONFIGURE FILE filename       // read a specified file into the running config
+
+%action-define CONF_CLEAR_BLOCKS
+%action-define CONF_CLEAR_ALL
+%action-define CONF_FILE_DEFAULT
+%action-define CONF_FILE_FILENAME
+
+%# context-define CONFIG
+
+%1 keyword CONFIGURE
+%2 keyword CLEAR
+%3 keyword BLOCKS
+%action CONF_CLEAR_BLOCKS
+%3 keyword ALL
+%action CONF_CLEAR_ALL
+%# 2 keyword TERMINAL
+%# context CONFIG
+%2 keyword FILE
+%action CONF_FILE_DEFAULT
+%3 param-string
+%action CONF_FILE_FILENAME
+
+
+
+
+%# WRITE                 // writes running config to default file "config.txt"
+%# WRITE INIT            // write empty init config to the default config "config.txt"
+%# WRITE filename        // write running config to a specific filename
+%# COPY filename filename  // copy contents of one config file to another
+
+%#                        // Init start-up behavior: If config.txt cannot be found or
+%#                        //  if no SYSTEM section is present (in order to define a terminal)
+%#                        //  the system will attempt to start terminal interfaces at 9600 N81
+%#                        //  on well known serial ports. For Adruino - "Serial". On mega
+%#                        //  Serrial, Serial1, Serial2 Serial3. On UNIX systems
+%#                        //  /dev/ttyACM0 /dev/ttyS0, /dev/ttyUSB0 and on 
+%#                        //  tcp ports 23, 6001, 8001
+%#                        // If a SYSTEM section is found, but it does not specify a
+%#                        //  TERMINAL section then no terminals will be started as this
+%#                        //  may be intended behavior - eg if access to the config file is
+%#                        //  is provided by the operating system. 
+
+%1 keyword WRITE
+%action WRITE_DEFAULT
+%2 keyword INIT
+%action WRITE_INIT
+%2 param-string
+%action WRITE_FILENAME
+%1 keyword COPY
+%2 param-string
+%3 param-string
+%action COPY_FILE_FILE
+
+
+
+%# DISABLE <block-label>         // enable and disable blocks from processing
+%# DISABLE <block-category> <INT>    
+%# ENABLE <block-label>
+%# ENABLE <block-category> <INT>
+%# DELETE <block-label>          // delete block from running config
+%# DELETE <block-category> <INT>
+%# RENAME <block-label> new-block-label  // only possible within block types and avoiding duplicates names
+
+
+%1 keyword DISABLE
+%2 identifier <block-category>
+%3 param-integer
+%action DISABLE_BLOCK_CAT_N
+%2 param-string
+%action DISABLE_BLOCK_LABEL
+%1 keyword ENABLE
+%2 identifier <block-category>
+%3 param-integer
+%action ENABLE_BLOCK_CAT_N
+%2 param-string
+%action ENABLE_BLOCK_LABEL
+%1 keyword DELETE
+%2 identifier <block-category>
+%3 param-integer
+%action DELETE_BLOCK_CAT_N
+%2 param-string
+%action DELETE_BLOCK_LABEL
+%1 keyword RENAME
+%2 param-string
+%3 param-string
+%action RENAME_BLOCK
+
+
+%# EXIT                          // close configuration section, move to enclosing scope
+%#                                // Also ! and CTRL-Z for same purpose
+%#                                // EXIT in termal mode (non config) implies LOGOUT 
+%# LOGOUT                                // disconnect this terminal
+%# REBOOT
+
+%1 keyword EXIT
+%action EXIT
+%1 keyword LOGOUT
+%action LOGOUT
+%1 keyword REBOOT
+%action REBOOT
+
+%# NO        // *** undecided - per cisco IOS model, negate a statement
+

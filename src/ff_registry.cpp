@@ -43,7 +43,7 @@ typedef struct BLOCK_TYPE {
 
 
 typedef struct FF_STATE_REGISTER {
-	//system config ad flags
+	//system config and flags
 	uint8_t language;
 	uint8_t temperature_scale;
 	uint8_t time_real_status;

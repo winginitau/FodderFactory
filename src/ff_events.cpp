@@ -132,18 +132,18 @@ EventNode* EventBufferPop(void) {
 		return e_ptr;
 	} else {
 #ifdef FF_ARDUINO
-		//XXX move to strings
-		DebugLog("STOP EventBufferPop before init");
+		DebugLog(SSS, E_STOP, M_EVENTMSG_BEFORE_INIT);
 #endif
 		while (1);
 	}
 }
 
 void EventBufferPush(EventNode event) {
-	//XXX review assignments - event is local but is used in assignment.
 	if (event_buffer.init == 0) {
 
+		// event is a simple struct of basic types, so assignment here works to copy
 		event_buffer.event_list[event_buffer.head] = event;
+
 
 		event_buffer.head = (event_buffer.head + 1) % event_buffer.size;
 		if (event_buffer.head == event_buffer.tail) {
@@ -151,8 +151,7 @@ void EventBufferPush(EventNode event) {
 		}
 	} else {
 #ifdef FF_ARDUINO
-		//XXX move to strings
-		DebugLog("STOP EventBufferPush before INIT");
+		DebugLog(SSS, E_STOP, M_EVENTMSG_BEFORE_INIT);
 #endif
 		while (1);
 	}
