@@ -13,6 +13,7 @@
 #include "StringList.h"
 #include "LineBuffer.h"
 #include "Identifier.h"
+#include "Identifiers.h"
 #include "AST.h"
 
 class Lexer {
@@ -24,10 +25,8 @@ private:
     int directive;
     int process_result;
     int last_directive;
-    bool output_available;
-    char output_string[MAX_LINE_LENGTH];
-    StringList output_queue;
     int error_type;
+    LineBuffer line;
 
     // sectionally persistent directives
     // persist while result = R_UNFINISHED
@@ -35,7 +34,7 @@ private:
     bool enum_section;
     char enum_array_type[MAX_WORD_LENGTH];
     char enum_array_instance[MAX_WORD_LENGTH];
-    char enum_array_reserve_identifier[MAX_WORD_LENGTH];
+    char enum_identifier[MAX_WORD_LENGTH];
 
     // globally persistent directives
     // Values in these need to survive calls to Init();
@@ -50,14 +49,19 @@ private:
     char enum_start_value[MAX_WORD_LENGTH];
     char enum_array_member_label[MAX_WORD_LENGTH];
     bool enum_array_reserve_words;
+    bool output_available;
+    char output_string[MAX_LINE_LENGTH];
+    StringList output_queue;
     int term_level;
     ASTNode* ast_node_temp;
+    int previous_directive;
+    bool action_since_last_term;
 
 
     // global structures and variables (that generally persist into the parser)
     Identifier ids[MAX_IDENTIFIERS];
     uint16_t id_idx;
-    AST ast;
+    Identifiers idents;
 
 
 
@@ -70,6 +74,24 @@ public:
     char* GetOutputAsString(char* output_str);
     int MatchToken(char* token_str);
     char* GetErrorString(char* error_str);
+	AST ast;
+
+protected:
+	void Process_D_ESCAPE_SEQUENCE(void);
+	void Process_D_ENUM_START_VALUE(void);
+	void Process_D_ENUM_ARRAY_TYPE(void);
+	void Process_D_ENUM_ARRAY_INSTANCE(void);
+	void Process_D_ENUM_ARRAY_MEMBER_LABEL(void);
+	void Process_D_ENUM_ARRAY_RESERVE(void);
+	void Process_D_ENUM_ARRAY_NO_RESERVE(void);
+	void Process_D_ENUM_IDENTIFIFER(void);
+	void Process_D_ENUM_START(void);
+	void Process_D_ENUM_END(void);
+	void Process_D_TERM(void);
+    void Process_D_ACTION_DEFINE(void);
+    void Process_D_ACTION(void);
+    void Process_D_GRAMMAR_END(void);
+	void Process_D_INCLUDE(void);
 
 };
 

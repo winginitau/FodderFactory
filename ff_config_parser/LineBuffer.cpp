@@ -79,7 +79,11 @@ void LineBuffer::PrintTokens() {
 }
 
 char* LineBuffer::GetTokenStr(char* token, uint16_t idx) {
-    if (idx < word_count) {
+    if (empty_line) {
+    	token[0] = '\0';
+    	return token;
+    }
+	if (idx < word_count) {
     	return strcpy(token, word_list[idx]);
     } else return NULL;
 }
@@ -98,3 +102,9 @@ void LineBuffer::Reset() {
     Init();
 }
 
+char* LineBuffer::GetToEOL(char* result, int after_token) {
+
+	result = strstr(buf_preserve, word_list[after_token+1]);
+
+    return result;
+}

@@ -36,6 +36,8 @@ public:
     bool Available();
     bool IsEmptyLine();
     void Reset();
+    char* GetToEOL(char* result, int after_token);
+
 };
 
 

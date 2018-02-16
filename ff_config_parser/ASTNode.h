@@ -28,6 +28,8 @@ public:
 	ASTNode* next_sibling;
 	ASTNode* first_child;
 
+	char action_identifier[MAX_WORD_LENGTH];
+
 	ASTNode();
 	virtual ~ASTNode();
 

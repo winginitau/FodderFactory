@@ -58,7 +58,7 @@ enum {
 	D_ENUM_ARRAY_MEMBER_LABEL,
 	D_ENUM_ARRAY_RESERVE,
 	D_ENUM_ARRAY_NO_RESERVE,
-	D_ENUM_ARRAY_RESERVE_IDENTIFIFER,
+	D_ENUM_IDENTIFIFER,
 	D_ENUM_START,
 	D_ENUM_END,
 	D_TERM_1,
@@ -72,6 +72,7 @@ enum {
 	D_TERM_9,
 	D_ACTION_DEFINE,
 	D_ACTION,
+	D_INCLUDE,
 	LAST_DIRECTIVE,
 };
 
@@ -102,7 +103,7 @@ static const SimpleStringArray grammar_directives[LAST_DIRECTIVE] = {
 		"%enum-array-member-label",
 		"%enum-array-reserve-words",
 		"%enum-array-no-reserve-words",
-		"%enum-array-reserve-identifier",
+		"%enum-identifier",
 		"%enum-start",
 		"%enum-end",
 		"%1",
@@ -116,6 +117,7 @@ static const SimpleStringArray grammar_directives[LAST_DIRECTIVE] = {
 		"%9",
 		"%action-define",
 		"%action",
+		"%include",
 
 
 };
@@ -148,12 +150,22 @@ enum {
 	E_ENUM_ARRAY_TYPE_NULL,
 	E_ENUM_ARRAY_INSTANCE_NULL,
 	E_ENUM_ARRAY_MEMBER_LABEL_NULL,
-	E_ENUM_ARRAY_RESERVE_IDENTFIFER_NULL,
+	E_ENUM_IDENTFIFER_NULL,
 	E_ENUM_START_BEFORE_PREREQ,
 	E_TERM_WITHOUT_ARGUMENTS,
 	E_TERM_TYPE_NOT_RECOGNISED,
 	E_TERM_LEVEL_NOT_INCRMENTAL,
 	E_SIBLING_TO_ROOT_ATTEMPTED,
+	E_INCLUDE_WITHOUT_FILENAME,
+	E_READING_INCLUDE_FILE,
+	E_IDENTIFIER_NOT_FOUND_IN_LIST_OR_PAIR,
+	E_IDENTIFER_NAME_NOT_FOUND,
+	E_IDENTIFIER_ALREADY_EXISTS,
+	E_ACTON_WITHOUT_IDENTIFIFER,
+	E_ACTION_NOT_DEFINED,
+	E_TERM_DEC_WIHTOUT_ACTION,
+	E_EXPECTED_FUNCTION_FOR_ACTION,
+	E_EXPECTED_ACTION_IDENTIFIER,
 	LAST_ERROR,
 };
 
@@ -177,21 +189,31 @@ static const SimpleStringArray error_strings[LAST_ERROR] = {
 		"Expected token following %enum-array-type, got NULL",
 		"Expected token following %enum-array-instance, got NULL",
 		"Expected token following %enum-array-member-label, got NULL",
-		"Expected token following %enum-array-reserve-identifier, got NULL",
+		"Expected token following %enum-identifier, got NULL",
 		"%enums-plus-list-array declared but encountered %enum-start before array pre-requisites defined",
 		"%1..%9 term directive encountered with incomplete arguments",
 		"Type following term directive (%1...%9) not recognised",
 		"Encountered term that skipped incremental sequence",
 		"Error in call to AST - first node should be a child of root but AddSibling called while root == NULL",
-
+		"%include encountered without filename argument",
+		"Error reading include file (either file open or during read)",
+		"Identifier name not found as any label for lists or pairs",
+		"Identifier name not found trying to set instance name",
+		"Identifier already exists and can't be defined more than once",
+		"Expected identifier following %action",
+		"Action identifier not previously defined",
+		"Grammar ambiguous - term level decrement without preceding action",
+		"Expected FunctionName following action identifier",
+		"Expected action identifier following %action-define",
 
 };
 
 enum {
 	ID_TYPE_UNDEFINED = 0,
-	ID_ENUM_LIST_ARRAY,
+	ID_ENUM_ARRAY_PAIR,
 	ID_ENUM_LIST,
 	ID_LOOKUP_LIST,
+	ID_ACTION_PAIR,
 	LAST_IDENTIFIER_TYPE,
 };
 

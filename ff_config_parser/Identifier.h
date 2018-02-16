@@ -19,7 +19,8 @@ public:
 	Identifier();
 	virtual ~Identifier();
 
-	char ReservedName[MAX_LINE_LENGTH];
+	char IdentifierName[MAX_LINE_LENGTH];
+	char InstanceName[MAX_LINE_LENGTH];
 
 	int Type;
 

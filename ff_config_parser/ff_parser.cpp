@@ -11,10 +11,14 @@
 #include "StringList.h"
 #include "Lexer.h"
 
+FILE* hf;
+
 //XXX: Placeholder
 void SendToOutput(char* out) {
 	// place holder for output directing
+	fprintf(hf, "%s", out);
 	printf("%s", out);
+
 }
 
 
@@ -33,25 +37,11 @@ int Grammar::ReadDefinition(const char * filename) {
 };
 
 
-
-
-
-/****************************************************************************
-   Main Calling Routine
-****************************************************************************/
-int main(void) {
-
-	//handle arguments
-	// - g <grammar_file> grammar file in
-	// - o <header_file_out>
-
-	//open grammar file
-	FILE *gf;
-	gf = fopen("config_grammar.txt", "r");
+void ProcessGrammarFile(Lexer lex, FILE* gf) {
 
 	int line_count=0;
 	LineBuffer line;
-	Lexer lex;
+	//Lexer lex;
 	char ch;
 
 	char output_line[MAX_LINE_LENGTH];
@@ -65,12 +55,12 @@ int main(void) {
     	if (line.Available()) {
     		line_count++;
     		line.Tokenise();
-    		if (line.IsEmptyLine()) {
-    			// could be line spacing in a code fragment so print it
-    			line.GetRawBuffer(output_line);
-    			strcat(output_line, "\n");
-    			SendToOutput(output_line);
-    		} else {
+//    		if (line.IsEmptyLine()) {
+//    			// could be line spacing in a code fragment so print it
+//    			line.GetRawBuffer(output_line);
+//    			strcat(output_line, "\n");
+//    			SendToOutput(output_line);
+//    		} else {
     			result = lex.ProcessLine(line);
     			switch (result) {
     				case R_ERROR:
@@ -113,13 +103,115 @@ int main(void) {
     	    			break;
     				}
     			}
-    		}
+    		//}
     		line.Reset();
     	}
     	ch=fgetc(gf);
     }
 
-    printf("Lines Processed: %d", line_count);
+    printf("// Lines Processed: %d\n\n", line_count);
+}
+
+void ICLI() {
+	int line_count=0;
+
+	LineBuffer line;
+	//Lexer lex;
+	char ch;
+
+	char output_line[MAX_LINE_LENGTH];
+
+	int result;
+
+    ch=getc(stdin);
+    while (ch != EOF) {
+    	line.AddChar(ch);
+
+    	if (line.Available()) {
+    		line_count++;
+    		line.Tokenise();
+//    		if (line.IsEmptyLine()) {
+//    			// could be line spacing in a code fragment so print it
+//    			line.GetRawBuffer(output_line);
+//    			strcat(output_line, "\n");
+//    			SendToOutput(output_line);
+//    		} else {
+    			//result = lex.ProcessLine(line);
+    			switch (result) {
+    				case R_ERROR:
+    	    			sprintf(output_line, ">> Error on Line: %d\n>> ", line_count);
+    	    			SendToOutput(output_line);
+    			//		lex.GetErrorString(output_line);
+    					strcat(output_line, "\n>> " );
+    	    			SendToOutput(output_line);
+    	    			line.GetRawBuffer(output_line);
+    	    			strcat(output_line, "\n");
+    	    			SendToOutput(output_line);
+    	    			//TODO: send to stdout and errorout
+    	    			//TODO: Lookup error code
+    					exit(-1);
+    					break;
+    				case R_NONE:
+       	    			sprintf(output_line, ">> Error on Line: %d\n>> ", line_count);
+        	    		SendToOutput(output_line);
+        	    		sprintf(output_line, "Lexer did not return a result at all. Error in Lexer?\n>> ");
+        	    		SendToOutput(output_line);
+        	    		line.GetRawBuffer(output_line);
+        	    		strcat(output_line, "\n");
+        	    		SendToOutput(output_line);
+           	    		//TODO: send to stdout and errorout
+            	    	//TODO: Lookup error code
+            			exit(-1);
+    					break; //continue
+    				case R_UNFINISHED:
+    	  //  			while (lex.OutputAvailable()) {
+    	  //  				lex.GetOutputAsString(output_line);
+    	  //  				SendToOutput(output_line);
+    	  //  			}
+    					break; //continue
+    				case R_COMPLETE: {
+    	 //   			while (lex.OutputAvailable()) {
+    	 //   				lex.GetOutputAsString(output_line);
+    	 //   				SendToOutput(output_line);
+    	 //   			}
+    	 //   			lex.Init();
+    	    			break;
+    				}
+    			}
+    		//}
+    		line.Reset();
+    	}
+    	ch=getc(stdin);
+    }
+
+
+}
+
+/****************************************************************************
+   Main Calling Routine
+****************************************************************************/
+int main(void) {
+	//handle arguments
+	// - g <grammar_file> grammar file in
+	// - o <header_file_out>
+
+	//open grammar file
+	FILE* gf;
+	gf = fopen("config_grammar.txt", "r");
+
+
+	hf = fopen("parser_out.h", "w");
+
+	Lexer lex;
+
+	ProcessGrammarFile(lex, gf);
+
+	fclose(gf);
+	fclose(hf);
+
+	//lex.ast.DumpTree();
+
+	//ICLI();
 
 	return 0;
 }

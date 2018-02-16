@@ -177,9 +177,10 @@
 # MESSAGE DATA <block-category> <INT> FLOAT <FLOAT>	// Simulate input block sending float data
 
 # DEBUG LEVEL <INT>					// 1 - 10 (lower is more verbose)
-# DEBUG ON							// turn debug messages on or off system wide
-# DEBUG OFF							//  to all configured message interfaces
-# DEBUG TERMINAL					// send debug messages to this terminal 
+# DEBUG ON							// Turn debug messages on or off system wide
+# DEBUG OFF							// to all configured message interfaces
+# DEBUG TERMINAL ON					// Send debug messages to this terminal 
+# DEBUG TERMINAL OFF                // Stop sending debug messages to this terminal 
 
 # CLOCK					// Show the time
 # CLOCK SET <hh:mm:ss>	// Set the time

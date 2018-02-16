@@ -14,6 +14,10 @@ AST::AST() {
 	current = NULL;
 	current_level = 0;
 	next_id = 1;
+
+    output_string[0] = '\0';
+
+	grammar_def_count = 0;
 }
 
 AST::~AST() {
@@ -45,7 +49,7 @@ int AST::AddSiblingToCurrent(ASTNode * node) {
 int AST::AddChildToCurrent(ASTNode* node) {
 	ASTNode* walker;
 
-	if (root == NULL) {		//special case - first node from context 0
+	if (root == NULL) {		//special case - first node from level 0
 		root = node;
 		node->parent = NULL;
 	} else {
@@ -58,8 +62,9 @@ int AST::AddChildToCurrent(ASTNode* node) {
 			}
 			walker->next_sibling = node;
 		}
+		node->parent = current;
 	}
-	node->parent = current;
+
 	node->first_child = NULL;
 	node->next_sibling = NULL;
 	current = node;
@@ -101,4 +106,73 @@ int AST::AddNode(int term_level, const char* term_type, const char* term) {
 		current = current->parent;
 	}
 	return AddSiblingToCurrent(n);
+}
+
+void AST::DumpTree() {
+
+	grammar_def_count = 0;
+
+	DT(root, false);  // to count the output lines
+
+	sprintf(output_string, "#ifdef USE_PROGMEM\n");
+	output.EnQueue(output_string);
+	sprintf(output_string, "static const GrammarDef grammar_def [%d] PROGMEM = {\n", grammar_def_count);
+	output.EnQueue(output_string);
+	sprintf(output_string, "#else\n");
+	output.EnQueue(output_string);
+	sprintf(output_string, "static const GrammarDef grammar_def [%d] = {\n", grammar_def_count);
+	output.EnQueue(output_string);
+	sprintf(output_string, "#endif\n");
+	output.EnQueue(output_string);
+
+	DT(root, true);
+
+	sprintf(output_string, "};\n");
+	output.EnQueue(output_string);
+
+	output.SetOutputAvailable();
+}
+
+void AST::DT(ASTNode* w, bool print) {
+	char temp[MAX_LINE_LENGTH];
+
+	if(w != NULL) {
+		sprintf(output_string, "\t%u, \"%s\", \"%s\", \"%s\", %u, %u, %d, %d, ", w->id, w->label, w->unique, w->help, w->term_level, w->type, w->action, w->finish);
+		if(w->parent != NULL) {
+			sprintf(temp, "%u, ", w->parent->id);
+		} else {
+			sprintf(temp, "0, ");
+		}
+		strcat(output_string, temp);
+
+		if(w->first_child != NULL) {
+			sprintf(temp, "%u, ", w->first_child->id);
+		} else {
+			sprintf(temp, "0, ");
+		}
+		strcat(output_string, temp);
+
+		if(w->next_sibling != NULL) {
+			sprintf(temp, "%u, ", w->next_sibling->id);
+		} else {
+			sprintf(temp, "0, ");
+		}
+		strcat(output_string, temp);
+
+		sprintf(temp, "\"%s\",\n", w->action_identifier);
+		strcat(output_string, temp);
+
+		grammar_def_count++;
+
+		if(print) output.EnQueue(output_string);
+
+		DT(w->first_child, print);
+		DT(w->next_sibling, print);
+	}
+}
+
+
+void AST::AttachActionToCurrent(char* action_identifier) {
+	current->action = true;
+	strcpy(current->action_identifier, action_identifier);
 }

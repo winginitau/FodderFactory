@@ -13,6 +13,8 @@
 %#  "%#" used as comments to noblofly to allow #compiler directives
 %#  to be included in code and still be able to make noblofly comments.
 
+%include test_defines.h
+
 %code-start
 
 /**************************************************************
@@ -67,6 +69,21 @@ typedef struct BLOCK_CATS {
     const char* const conf_keys[MAX_CONF_KEYS_PER_BLOCK];
 } BlockCatArray;
 
+typedef struct GRAMMAR_DEF {
+    uint16_t id;
+    char label[MAX_WORD_LENGTH];
+    char unique[MAX_WORD_LENGTH];
+    char help[MAX_LINE_LENGTH];
+    int term_level;
+    int type;
+    bool action;
+    bool finish;
+    uint16_t parent;
+    uint16_t next_sibling;
+    uint16_t first_child;
+    char action_identifier[MAX_WORD_LENGTH];
+} GrammarDef;
+
 /**************************************************************
  * Language Strings - Must Follow the typedef that defines it
  **************************************************************/
@@ -78,6 +95,10 @@ static const SimpleStringArray language_strings[LAST_LANGUAGE] = {
     "English",
     "Deutsch",
 };
+
+
+
+
 
 %code-end
 
@@ -114,48 +135,99 @@ static const SimpleStringArray language_strings[LAST_LANGUAGE] = {
 
 %enum-terminating-member
 %enum-plus-list-array
-
 %enum-start-value 0
 %enum-array-type SimpleStringArray
-%enum-array-instance block_cat_defs
 %enum-array-member-label text
-
-%enum-array-reserve-words
-%enum-array-no-reserve-words
 %enum-array-reserve-words
 
-%enum-array-reserve-identifier <block-category>
-
+%enum-identifier block-category
+%enum-array-instance block_cat_defs
 %enum-start
-FF_ERROR_CAT ERROR_CAT
-FF_GENERIC_BLOCK GENERIC
-FF_SYSTEM SYSTEM
-FF_INPUT INPUT
-FF_MONITOR MONITOR 
-FF_SCHEDULE SCHEDULE
-FF_RULE RULE
-FF_CONTROLLER CONROLLER
-FF_OUTPUT OUTPUT
+FF_ERROR_CAT        ERROR_CAT
+FF_GENERIC_BLOCK    GENERIC
+FF_SYSTEM           SYSTEM
+FF_INPUT            INPUT
+FF_MONITOR          MONITOR 
+FF_SCHEDULE         SCHEDULE
+FF_RULE             RULE
+FF_CONTROLLER       CONROLLER
+FF_OUTPUT           OUTPUT
 LAST_BLOCK_CAT
 %enum-end
 
-%#  Usage: %lookup-list
+%# 
+%#  Usage: %lookup-list <lookup-identifier> <FunctionName>
+%#
+%#  Results in a prototype being defined in the output header file which is the
+%#  combination of the FunctionName and the identifier to be looked up, including
+%#  any previous params, identifiers and lookups in the gramatical pathway.
 %#  
-%#      %lookup-list noblofly-identifier FunctionName identifier-type-to-pass type-to-receive error-value 
-%#  uint16_t GetBlockID(const char* label);
+%#  Example:
+%#
+%#      %lookup-list block-label LookupBlockLabel
+%#
+%#  to be used by the line:
+%#
+%#      %2 lookup block-label 
+%#
+%#  which has been defined as:
+%#
+%#      %1 keyword SHOW
+%#      %2 keyword BLOCKS 
+%#      %action SHOW_BLOCKS
+%#      %2 keyword SYSTEM 
+%#      %action SHOW_SYSTEM
+%#      %2 identifier block-category 
+%#      %action SHOW_BLOCK_CATEGORY
+%#      %2 lookup block-label
+%#      %action SHOW_BLOCK_LABEL
+%#
+%#  the resulting prototype would be:
+%#
+%#      char** LookupBlockLabel(char* block-label); 
+%#  
+
+%# %lookup-list block-label LookupBlockLabel
+%# %lookup-list block-id 
 
 
-%# lookup-list <block-label> 
-%# lookup-list-function GetBlockID
-%# char* %return uint_16 %error 0 
 
-%action-define SHOW_BLOCKS 
-%action-define SHOW_SYSTEM
-%action-define SHOW_BLOCK_LABEL
-%action-define SHOW_BLOCK_CATEGORY
-%action-define SHOW_BLOCK_ID 
+%# 
+%#  Usage: %action-define <ACTION_IDENTIFIER> <FunctionName>
+%#
+%#  Results in a prototype being defined in the output header file which is a
+%#  combination of the FunctionName and the grammar entered to call the action.
+%#  The parts of the grammar included are identifiers, params and lookups used
+%#  to arrive at the action. Keywords are excluded as redundant.
+%#  
+%#  Example:
+%#
+%#      %action-define MESSAGE_DATA_BCAT_N_INT SendMessage
+%#
+%#  to be triggered by the line:
+%#
+%#      MESSAGE DATA <block-category> <INT> FLOAT <FLOAT>
+%#
+%#  which has been defined as:
+%#
+%#      %1 keyword MESSAGE
+%#      %2 keyword DATA
+%#      %3 identifier <block-category>
+%#      %4 param-integer
+%#      %5 keyword INT
+%#      %6 param-integer
+%#
+%#  the resulting prototype would be:
+%#
+%#      char** SendMessage( int block_category, 
+%#                          int param_int_1, int param_int_2); 
+%#  
 
-
+%action-define SHOW_BLOCKS ShowBlocks
+%action-define SHOW_SYSTEM ShowSystem
+%action-define SHOW_BLOCK_LABEL ShowBlockByLabel
+%action-define SHOW_BLOCK_CATEGORY ShowBlocksInCategory
+%action-define SHOW_BLOCK_ID ShowBlockByID
 
 %# SHOW BLOCKS                   // List all blocks on device with their label and integer ID 
 %# SHOW <block-category>         // List all blocks within a category with their label and integer ID
@@ -168,12 +240,17 @@ LAST_BLOCK_CAT
 %action SHOW_BLOCKS
 %2 keyword SYSTEM 
 %action SHOW_SYSTEM
-%2 identifier <block-category> 
+%2 identifier block-category 
 %action SHOW_BLOCK_CATEGORY
-%2 lookup <block-id> 
+%2 lookup block-label
+%action SHOW_BLOCK_LABEL
+%2 lookup block-id 
 %action SHOW_BLOCK_ID
 
 
+
+%action-define MUTE_MESSAGES_ON MessagesMute
+%action-define MUTE_MESSAGES_OFF MessagesUnmute
 
 %# MUTE MESSAGES ON				        // stop displaying event and debug messages to this terminal
 %# MUTE MESSAGES OFF				        // start displaying.....
@@ -183,9 +260,16 @@ LAST_BLOCK_CAT
 %3 keyword ON 
 %action MUTE_MESSAGES_ON
 %3 keyword OFF 
-%action MUTE MESSAGES_OFF
+%action MUTE_MESSAGES_OFF
 
 
+
+%action-define MONIOTR_START MonitorStart
+%action-define MONITOR_STOP_ALL MonitorStop
+%action-define MONITOR_STOP_BLOCK_LABEL MonitorRemoveByLabel
+%action-define MONITOR_STOP_BLOCK_CAT_N MonitorRemoveByBlockCatN
+%action-define MONITOR_BLOCK_LABEL MonitorByLabel
+%action-define MONITOR_BLOCK_CAT_N MonitorByBlockCatN
 
 %# MONITOR <block-label>                 // Add block to the monitor pool
 %# MONITOR <block-category> <INT>        // Add block to the monitor pool
@@ -201,10 +285,10 @@ LAST_BLOCK_CAT
 %3 keyword ALL
 %action MONITOR_STOP_ALL
 %3 lookup <block-label>
-%action MONITOR STOP_BLOCK_LABEL
+%action MONITOR_STOP_BLOCK_LABEL
 %3 identifier <block-category>
 %4 param-integer
-%action MONITOR_STOP_BLOCK_CAT
+%action MONITOR_STOP_BLOCK_CAT_N
 %2 lookup <block-label>
 %action MONITOR_BLOCK_LABEL
 %2 identifier <block-category>
@@ -212,6 +296,9 @@ LAST_BLOCK_CAT
 %action MONITOR_BLOCK_CAT_N
 
 
+
+%action-define CLEAR_BLOCK_LABEL ClearBlockByLabel
+%action-define CLEAR_BLOCK_CAT_N ClearBlockByBlockCatN
 
 %# CLEAR <block-label>                   // Clear block's local datalog
 %# CLEAR <block-category> <INT>          // Clear block's local datalog
@@ -224,6 +311,9 @@ LAST_BLOCK_CAT
 %action CLEAR_BLOCK_CAT_N
 
 
+
+%action-define COMMAND_BLOCK_CAT_N SendCommandToBlockCatN
+%action-define COMMAND_BLOCK_LABEL SendCommandToBlockLabel
 
 %# MESSAGE COMMAND <block-category> <INT> <command>          // Send command message to output block
 %# MESSAGE COMMAND <block-label> <command>
@@ -239,6 +329,12 @@ LAST_BLOCK_CAT
 %action COMMAND_BLOCK_LABEL
 
 
+
+%action-define MESSAGE_DATA_BCAT_N_INT SimIntDataMessageFromBCatN
+%action-define MESSAGE_DATA_BCAT_N_FLOAT SimFloatDataMessageFromBCatN
+%action-define MESSAGE_DATA_LABEL_INT SimIntDataMessageFromBlockLabel
+%action-define MESSAGE_DATA_LABEL_FLOAT SimFloatDataMessageFromBlockLabel
+
 %# MESSAGE DATA <block-label> INT <INT>              // Simulate input block sending integer data
 %# MESSAGE DATA <block-category> <INT> INT <INT>     // Simulate input block sending integer data
 %# MESSAGE DATA <block-label> FLOAT <FLOAT>          // Simulate input block sending float data
@@ -250,21 +346,31 @@ LAST_BLOCK_CAT
 %4 param-integer
 %5 keyword INT
 %6 param-integer
+%action MESSAGE_DATA_BCAT_N_INT
 %5 keyword FLOAT
 %6 param-float
+%action MESSAGE_DATA_BCAT_N_FLOAT
 %3 lookup <block-label>
 %4 keyword INT
 %5 param-integer
+%action MESSAGE_DATA_LABEL_INT
 %4 keyword FLOAT
 %5 param-float
+%action MESSAGE_DATA_LABEL_FLOAT
 
 
 
+%action-define DEBUG_ON DebugOn
+%action-define DEBUG_OFF DebugOff
+%action-define DEBUG_TERMINAL_ON DebugTermOn
+%action-define DEBUG_TERMINAL_OFF DebugTermOff
+%action-define DEBUG_LEVEL DebugSetLEvel
 
 %# DEBUG LEVEL <INT>                 // 1 - 10 (lower is more verbose)
-%# DEBUG ON                          // turn debug messages on or off system wide
-%# DEBUG OFF                         //  to all configured message interfaces
-%# DEBUG TERMINAL                    // send debug messages to this terminal 
+%# DEBUG ON                          // Turn debug messages on or off system wide
+%# DEBUG OFF                         //     to all configured message interfaces
+%# DEBUG TERMINAL ON                 // Send debug messages to this terminal 
+%# DEBUG TERMINAL OFF                // Stop sending debug messages to this terminal 
 
 %1 keyword DEBUG
 %2 keyword ON
@@ -272,12 +378,20 @@ LAST_BLOCK_CAT
 %2 keyword OFF
 %action DEBUG_OFF
 %2 keyword TERMINAL
-%action DEBUG_TERMINAL
+%3 keyword ON
+%action DEBUG_TERMINAL_ON
+%3 keyword OFF
+%action DEBUG_TERMINAL_OFF
 %2 keyword LEVEL
 %3 param-integer
 %action DEBUG_LEVEL
 
 
+
+%action-define SHOW_TIME ShowTime
+%action-define SET_TIME SetTime
+%action-define SHOW_DATE ShowDate
+%action-define SET_DATE SetDate
 
 %# CLOCK                 // Show the time
 %# CLOCK SET <hh:mm:ss>  // Set the time
@@ -293,19 +407,20 @@ LAST_BLOCK_CAT
 %action SHOW_DATE
 %2 keyword SET
 %3 param-date
+%action SET_DATE
 
 
+
+%action-define CONF_CLEAR_BLOCKS ConfClearBlocks
+%action-define CONF_CLEAR_ALL ConfClearAll
+%action-define CONF_FILE_DEFAULT ConfReadDefaultFile
+%action-define CONF_FILE_FILENAME ConfReadFilename
 
 %# CONFIGURE CLEAR BLOCKS        // drop all block config except SYSTEM
 %# CONFIGURE CLEAR ALL           // drop all config
 %# CONFIGURE TERMINAL            // read configurtion statements from the terminal
 %# CONFIGURE FILE                // read the default file into the running config
 %# CONFIGURE FILE filename       // read a specified file into the running config
-
-%action-define CONF_CLEAR_BLOCKS
-%action-define CONF_CLEAR_ALL
-%action-define CONF_FILE_DEFAULT
-%action-define CONF_FILE_FILENAME
 
 %# context-define CONFIG
 
@@ -324,6 +439,10 @@ LAST_BLOCK_CAT
 
 
 
+%action-define WRITE_DEFAULT WriteToDefaultConfigFile
+%action-define WRITE_INIT WriteEmptyDefaultConfigFile
+%action-define WRITE_FILENAME WriteToFilenameConfigFile
+%action-define COPY_FILE_FILE CopyConfigFileToFile
 
 %# WRITE                 // writes running config to default file "config.txt"
 %# WRITE INIT            // write empty init config to the default config "config.txt"
@@ -355,6 +474,14 @@ LAST_BLOCK_CAT
 
 
 
+%action-define DISABLE_BLOCK_CAT_N BlockDisableByBlockCatN
+%action-define DISABLE_BLOCK_LABEL BlockDisableByLabel
+%action-define ENABLE_BLOCK_CAT_N BlockEnableByBlockCatN
+%action-define ENABLE_BLOCK_LABEL BlockEnableByLabel
+%action-define DELETE_BLOCK_CAT_N BlockDeleteByBlockCatN
+%action-define DELETE_BLOCK_LABEL BlockDeleteByLabel
+%action-define RENAME_BLOCK BlockRename
+
 %# DISABLE <block-label>         // enable and disable blocks from processing
 %# DISABLE <block-category> <INT>    
 %# ENABLE <block-label>
@@ -362,7 +489,6 @@ LAST_BLOCK_CAT
 %# DELETE <block-label>          // delete block from running config
 %# DELETE <block-category> <INT>
 %# RENAME <block-label> new-block-label  // only possible within block types and avoiding duplicates names
-
 
 %1 keyword DISABLE
 %2 identifier <block-category>
@@ -387,6 +513,9 @@ LAST_BLOCK_CAT
 %3 param-string
 %action RENAME_BLOCK
 
+%action-define EXIT TerminalExit
+%action-define LOGOUT TerminalLogout
+%action-define REBOOT SystemReboot
 
 %# EXIT                          // close configuration section, move to enclosing scope
 %#                                // Also ! and CTRL-Z for same purpose
@@ -403,3 +532,4 @@ LAST_BLOCK_CAT
 
 %# NO        // *** undecided - per cisco IOS model, negate a statement
 
+%grammar-end
