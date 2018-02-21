@@ -10,10 +10,11 @@
 #ifndef AST_H_
 #define AST_H_
 
-#include "config.h"
 #include "ASTNode.h"
+//#include "common_config.h"
 #include "StringList.h"
 #include "OutputBuffer.h"
+#include "Identifiers.h"
 
 class AST {
 private:
@@ -21,9 +22,9 @@ private:
 	ASTNode* current;
 	uint8_t current_level;
 	uint16_t next_id;
-	void DT(ASTNode* tree, bool print);
+	void DT(ASTNode* tree, Identifiers* idents, bool print);
 
-    char output_string[MAX_LINE_LENGTH];
+    char output_string[MAX_BUFFER_LENGTH];
 
     int grammar_def_count;
 
@@ -36,11 +37,15 @@ public:
 
 	int AddSiblingToCurrent(ASTNode* node);
 	int AddChildToCurrent(ASTNode* node);
+	int ValidateTermTypeStr(const char * type_str);
+	bool CheckForExistingSiblingKeywords(ASTNode* start_node, const char* keyword);
 	int AddNode(int term_level, const char* term_type);
 	int AddNode(int term_level, const char* term_type, const char* term);
-	void DumpTree();
+	void WriteASTArray(Identifiers* idents); // needs idents as well as AST to write the AST Array
 
 	void AttachActionToCurrent(char* action_identifier);
+	int BuildActionPrototype(Identifiers& idents);
+	int DetermineUnique(void);
 };
 
 #endif /* AST_H_ */

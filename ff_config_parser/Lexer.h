@@ -15,13 +15,111 @@
 #include "Identifier.h"
 #include "Identifiers.h"
 #include "AST.h"
+#include <regex.h>
+
+
+#define TOKEN_DELIM " "
+
+// Grammar definition directives (all start with %)
+
+enum {
+// directives used to describe a grammar
+	D_UNKNOWN = 0,
+	D_NONE,
+	D_NULL,
+    D_GRAMMAR_COMMENT,
+	D_CODE_START,
+	D_CODE_END,
+	D_GRAMMAR_START,
+	D_GRAMMAR_END,
+	D_COMMENT,
+	D_SUB_SECTION_CLOSE,
+	D_REDUNDANT_CLOSE_AS_COMMENT,
+	D_IGNORE_CASE,
+	D_ESCAPE_SEQUENCE,
+	D_ENUM_TERMINATING_MEMBER,
+	D_ENUM_PLUS_LIST_ARRAY,
+	D_ENUM_NO_ERROR_MEMBER,
+	D_ENUM_NO_TERMINATING_MEMBER,
+	D_ENUM_NO_LIST_ARRAY,
+	D_ENUM_START_VALUE,
+	D_ENUM_ARRAY_TYPE,
+	D_ENUM_ARRAY_INSTANCE,
+	D_ENUM_ARRAY_MEMBER_LABEL,
+	D_ENUM_ARRAY_RESERVE,
+	D_ENUM_ARRAY_NO_RESERVE,
+	D_ENUM_IDENTIFIFER,
+	D_ENUM_START,
+	D_ENUM_END,
+	D_TERM_1,
+	D_TERM_2,
+	D_TERM_3,
+	D_TERM_4,
+	D_TERM_5,
+	D_TERM_6,
+	D_TERM_7,
+	D_TERM_8,
+	D_TERM_9,
+	D_ACTION_DEFINE,
+	D_ACTION,
+	D_INCLUDE,
+	D_LOOKUP_LIST,
+	LAST_DIRECTIVE,
+};
+
+
+
+static const EnumStringArray grammar_directives[LAST_DIRECTIVE] = {
+		"DIRECTVE_UNKNOWN",
+		"DIRECTIVE_NONE",
+		"\0",
+		"%#",
+		"%code-start",
+		"%code-end",
+		"%grammar-start",
+		"%grammar-end",
+		"%comment",
+		"%sub-section-close",
+		"%redundant-close-as-comment",
+		"%ignore-case",
+		"%escape-sequence",
+		"%enum-terminating-member",
+		"%enum-plus-list-array",
+		"%enum-no-error-member",
+		"%enum-no-terminating-member",
+		"%enum-no-list-array",
+		"%enum-start-value",
+		"%enum-array-type",
+		"%enum-array-instance",
+		"%enum-array-member-label",
+		"%enum-array-reserve-words",
+		"%enum-array-no-reserve-words",
+		"%enum-identifier",
+		"%enum-start",
+		"%enum-end",
+		"%1",
+		"%2",
+		"%3",
+		"%4",
+		"%5",
+		"%6",
+		"%7",
+		"%8",
+		"%9",
+		"%action-define",
+		"%action",
+		"%include",
+		"%lookup-list",
+};
+
+
 
 class Lexer {
 private:
     // temporary holders and processing flags
-    char token_str[MAX_WORD_LENGTH];
-    char tokens[MAX_WORDS_PER_LINE][MAX_WORD_LENGTH];
-    char directive_str[MAX_WORD_LENGTH];
+    char token_str[MAX_BUFFER_WORD_LENGTH];
+    char tokens[MAX_BUFFER_WORDS_PER_LINE][MAX_BUFFER_WORD_LENGTH];
+    char directive_str[MAX_BUFFER_WORD_LENGTH];
     int directive;
     int process_result;
     int last_directive;
@@ -32,9 +130,9 @@ private:
     // persist while result = R_UNFINISHED
     bool code_section;
     bool enum_section;
-    char enum_array_type[MAX_WORD_LENGTH];
-    char enum_array_instance[MAX_WORD_LENGTH];
-    char enum_identifier[MAX_WORD_LENGTH];
+    char enum_array_type[MAX_BUFFER_WORD_LENGTH];
+    char enum_array_instance[MAX_BUFFER_WORD_LENGTH];
+    char enum_identifier[MAX_BUFFER_WORD_LENGTH];
 
     // globally persistent directives
     // Values in these need to survive calls to Init();
@@ -46,11 +144,11 @@ private:
     StringList escape_sequences;            //initialised in constructor
     bool enum_terminating_member;
     bool enum_plus_list_array;
-    char enum_start_value[MAX_WORD_LENGTH];
-    char enum_array_member_label[MAX_WORD_LENGTH];
+    char enum_start_value[MAX_BUFFER_WORD_LENGTH];
+    char enum_array_member_label[MAX_BUFFER_WORD_LENGTH];
     bool enum_array_reserve_words;
     bool output_available;
-    char output_string[MAX_LINE_LENGTH];
+    char output_string[MAX_BUFFER_LENGTH];
     StringList output_queue;
     int term_level;
     ASTNode* ast_node_temp;
@@ -74,10 +172,25 @@ public:
     char* GetOutputAsString(char* output_str);
     int MatchToken(char* token_str);
     char* GetErrorString(char* error_str);
-	AST ast;
+    AST ast;
+
 
 protected:
+	void Process_D_UNKNOWN(void);
+	void Process_D_GRAMMAR_COMMENT(void);
+	void Process_D_NULL(void);
+	void Process_D_CODE_START(void);
+	void Process_D_CODE_END(void);
+	void Process_D_GRAMMAR_START(void);
+	void Process_D_COMMENT(void);
+	void Process_D_SUB_SECTION_CLOSE(void);
+	void Process_D_REDUNDANT_CLOSE_AS_COMMENT(void);
+	void Process_D_IGNORE_CASE(void);
 	void Process_D_ESCAPE_SEQUENCE(void);
+	void Process_D_ENUM_TERMINATING_MEMBER(void);
+	void Process_D_ENUM_PLUS_LIST_ARRAY(void);
+	void Process_D_ENUM_NO_TERMINATING_MEMBER(void);
+	void Process_D_ENUM_NO_LIST_ARRAY(void);
 	void Process_D_ENUM_START_VALUE(void);
 	void Process_D_ENUM_ARRAY_TYPE(void);
 	void Process_D_ENUM_ARRAY_INSTANCE(void);
@@ -92,7 +205,7 @@ protected:
     void Process_D_ACTION(void);
     void Process_D_GRAMMAR_END(void);
 	void Process_D_INCLUDE(void);
-
+	void Process_D_LOOKUP_LIST(void);
 };
 
 #endif /* LEXER_H_ */

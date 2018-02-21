@@ -10,12 +10,12 @@
 #include "KeyValuePairList.h"
 
 KeyValuePairList::KeyValuePairList() {
-	// TODO Auto-generated constructor stub
+	// Auto-generated constructor stub
 
 }
 
 KeyValuePairList::~KeyValuePairList() {
-	// TODO Auto-generated destructor stub
+	// Auto-generated destructor stub
 }
 
 bool KeyValuePairList::Add(char* key_str, char* value_str) {

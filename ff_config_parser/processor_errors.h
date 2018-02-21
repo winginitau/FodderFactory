@@ -1,135 +1,14 @@
 /*****************************************************************
- defines.h
+ processor_errors.h
 
  Copyright (C) 2018 Brendan McLearie 
 
- Created on: 9 Feb. 2018
+ Created on: 19 Feb. 2018
 
 ******************************************************************/
 
-#ifndef CONFIG_H_
-#define CONFIG_H_
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
-#include <stdint.h>
-
-#define MAX_LINE_LENGTH 150
-#define MAX_WORD_LENGTH 150
-#define MAX_WORDS_PER_LINE 30
-#define MAX_IDENTIFIERS 50
-
-#define TOKEN_DELIM " "
-
-typedef struct SIMPLE_STRING_ARRAY_TYPE {
-	// Array of strings (usually labels and messages) relating to enums
-	// Inside this struct, extended intitaliser lists are ok
-	char text[MAX_LINE_LENGTH];
-} SimpleStringArray;
-
-
-// Grammar definition directives (all start with %)
-
-enum {
-// directives used to describe a grammar
-	D_UNKNOWN = 0,
-	D_NONE,
-	D_NULL,
-    D_GRAMMAR_COMMENT,
-	D_CODE_START,
-	D_CODE_END,
-	D_GRAMMAR_START,
-	D_GRAMMAR_END,
-	D_COMMENT,
-	D_SUB_SECTION_CLOSE,
-	D_REDUNDANT_CLOSE_AS_COMMENT,
-	D_IGNORE_CASE,
-	D_ESCAPE_SEQUENCE,
-	D_ENUM_TERMINATING_MEMBER,
-	D_ENUM_PLUS_LIST_ARRAY,
-	D_ENUM_NO_ERROR_MEMBER,
-	D_ENUM_NO_TERMINATING_MEMBER,
-	D_ENUM_NO_LIST_ARRAY,
-	D_ENUM_START_VALUE,
-	D_ENUM_ARRAY_TYPE,
-	D_ENUM_ARRAY_INSTANCE,
-	D_ENUM_ARRAY_MEMBER_LABEL,
-	D_ENUM_ARRAY_RESERVE,
-	D_ENUM_ARRAY_NO_RESERVE,
-	D_ENUM_IDENTIFIFER,
-	D_ENUM_START,
-	D_ENUM_END,
-	D_TERM_1,
-	D_TERM_2,
-	D_TERM_3,
-	D_TERM_4,
-	D_TERM_5,
-	D_TERM_6,
-	D_TERM_7,
-	D_TERM_8,
-	D_TERM_9,
-	D_ACTION_DEFINE,
-	D_ACTION,
-	D_INCLUDE,
-	LAST_DIRECTIVE,
-};
-
-
-
-static const SimpleStringArray grammar_directives[LAST_DIRECTIVE] = {
-		"DIRECTVE_UNKNOWN",
-		"DIRECTIVE_NONE",
-		"\0",
-		"%#",
-		"%code-start",
-		"%code-end",
-		"%grammar-start",
-		"%grammar-end",
-		"%comment",
-		"%sub-section-close",
-		"%redundant-close-as-comment",
-		"%ignore-case",
-		"%escape-sequence",
-		"%enum-terminating-member",
-		"%enum-plus-list-array",
-		"%enum-no-error-member",
-		"%enum-no-terminating-member",
-		"%enum-no-list-array",
-		"%enum-start-value",
-		"%enum-array-type",
-		"%enum-array-instance",
-		"%enum-array-member-label",
-		"%enum-array-reserve-words",
-		"%enum-array-no-reserve-words",
-		"%enum-identifier",
-		"%enum-start",
-		"%enum-end",
-		"%1",
-		"%2",
-		"%3",
-		"%4",
-		"%5",
-		"%6",
-		"%7",
-		"%8",
-		"%9",
-		"%action-define",
-		"%action",
-		"%include",
-
-
-};
-
-
-enum {
-	R_ERROR = 0,
-	R_NONE,
-	R_UNFINISHED,
-	R_COMPLETE,
-};
-
+#ifndef PROCESSOR_ERRORS_H_
+#define PROCESSOR_ERRORS_H_
 
 enum {
 	E_ERROR_ERROR = 0,
@@ -166,11 +45,18 @@ enum {
 	E_TERM_DEC_WIHTOUT_ACTION,
 	E_EXPECTED_FUNCTION_FOR_ACTION,
 	E_EXPECTED_ACTION_IDENTIFIER,
+	E_EXPECTED_LOOKUP_IDENTIFIER,
+	E_EXPECTED_FUNCTION_FOR_LOOKUP,
+	E_UNKNOWN_IDENT_OR_LOOKUP,
+	E_UNKNOWN_TERM_OR_MALFORMED_DIRECTIVE,
+	E_AST_NODE_UNDEFINED_TYPE,
+	E_BUILDING_ACTION_PROTO,
+	E_INVALID_IDENTIFIER,
+	E_DUPLICATE_KEYWORD_AT_LEVEL,
 	LAST_ERROR,
 };
 
-
-static const SimpleStringArray error_strings[LAST_ERROR] = {
+static const EnumStringArray error_strings[LAST_ERROR] = {
 		"Processing error type",
 		"Unknown error",
 		"Unknown directive encountered",
@@ -205,52 +91,16 @@ static const SimpleStringArray error_strings[LAST_ERROR] = {
 		"Grammar ambiguous - term level decrement without preceding action",
 		"Expected FunctionName following action identifier",
 		"Expected action identifier following %action-define",
-
-};
-
-enum {
-	ID_TYPE_UNDEFINED = 0,
-	ID_ENUM_ARRAY_PAIR,
-	ID_ENUM_LIST,
-	ID_LOOKUP_LIST,
-	ID_ACTION_PAIR,
-	LAST_IDENTIFIER_TYPE,
-};
-
-
-enum {
-	AST_UNDEFINED = 0,
-	AST_KEYWORD,
-	AST_IDENTIFIER,
-	AST_LOOKUP,
-	AST_PARAM_STRING,
-	AST_PARAM_INTEGER,
-	AST_PARAM_FLOAT,
-	AST_PARAM_TIME,
-	AST_PARAM_DATE,
-	LAST_AST_TYPE,
-};
-
-static const SimpleStringArray ast_type_strings[LAST_AST_TYPE] = {
-		"undefined",
-		"keyword",
-		"identifier",
-		"lookup",
-		"param-string",
-		"param-integer",
-		"param-float",
-		"param-time",
-		"param-date",
+		"Expected lookup identifier following %lookup-list",
+		"Expected FunctionName following lookup identifier",
+		"Identifier or lookup token not previously defined",
+		"Unknown term following term-level directive or malformed directive",
+		"Encountered AST parent of undefined type while building function parameter list",
+		"Error building action prototype",
+		"Identifier did not match ANSI C identifier regular expression",
+		"Duplication of keyword at this term level detected",
 
 };
 
 
-enum {
-	AST_END_YES,
-	AST_END_NO,
-	AST_END_MAYBE,
-};
-
-
-
-#endif /* CONFIG_H_ */
+#endif /* PROCESSOR_ERRORS_H_ */

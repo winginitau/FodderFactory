@@ -8,19 +8,21 @@
  ******************************************************************/
 
 #include "StringList.h"
+#include <string.h>
+#include <stdlib.h>
 
 StringList::StringList() {
 	head = NULL;
 }
 
 StringList::~StringList() {
-	// TODO Auto-generated destructor stub
+	Reset();
 }
 
 bool StringList::AddString(const char * str) {
 	StringNode* walker;
 
-	if (head == NULL) { 	// special case - empty list
+	if (head == NULL) { 	// empty list
 		head = (StringNode *)malloc(sizeof(StringNode));
 		if (head != NULL) {
 			strcpy(head->str, str);
@@ -29,7 +31,6 @@ bool StringList::AddString(const char * str) {
 		} else return false;
 
 	}
-
 	walker = head;
 
 	while (walker->next != NULL) {
@@ -72,12 +73,24 @@ bool StringList::EnQueue(const char * str) {
 }
 
 char* StringList::DeQueue(char* str) {
-	StringNode* temp;
-	strcpy(str, head->str);
-	temp = head;
-	head = head->next;
-	free(temp);
-	return str;
+	if (head == NULL) {
+		return NULL;
+	} else {
+		// head exists
+		strcpy(str, head->str);
+		if (head->next == NULL) {
+			// head was the only node
+			free(head);
+			head = NULL;
+		} else {
+			// more in list - grab next and make it new head
+			StringNode* temp;
+			temp = head->next;
+			free(head);
+			head = temp;
+		}
+		return str;
+	}
 }
 
 uint16_t StringList::GetSize(void) {
@@ -99,15 +112,15 @@ uint16_t StringList::GetLocation(const char* match_str) {
 	StringNode* walker;
 	walker = head;
 
-	uint16_t count;
+	uint16_t index;
 
-	count = 0;
+	index = 0;
 
 	while (walker != NULL) {
 		if(strcmp(walker->str, match_str) == 0) {
-			return count;
+			return index;
 		}
-		count++;
+		index++;
 		walker = walker->next;
 	}
 	return -1;
@@ -117,20 +130,47 @@ char* StringList::GetStringAtLocation(char* result, uint16_t location) {
 	StringNode* walker;
 	walker = head;
 
-	uint16_t count;
+	uint16_t index;
 
-	count = 0;
+	index = 0;
 
 	while (walker != NULL) {
-		if (count == location) {
+		if (index == location) {
 			return strcpy(result, walker->str);
 		} else {
-			count++;
-			walker = walker->next;
+			if (walker->next == NULL) {
+				result = NULL;
+				return NULL;
+			} else {
+				index++;
+				walker = walker->next;
+			}
 		}
 	}
 	result = NULL;
 	return NULL;
+}
+
+void StringList::Reset() {
+	ResetFromHead(head);
+	head = NULL;
+}
+
+void StringList::ResetFromHead(StringNode* s) {
+	StringNode* child;
+	if (s == NULL) {
+		//do nothing
+	} else {
+		// Child?
+		if (s->next != NULL) {
+			//Reserve a pointer to the child
+			child = s->next;
+			//recursively delete the child (and its children)
+			ResetFromHead(child);
+		}
+		// now that the child and its children are gone, free up the node memory
+		free(s);
+	}
 }
 
 

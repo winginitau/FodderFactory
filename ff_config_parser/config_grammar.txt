@@ -13,9 +13,18 @@
 %#  "%#" used as comments to noblofly to allow #compiler directives
 %#  to be included in code and still be able to make noblofly comments.
 
-%include test_defines.h
+%code-start
+
+#ifndef PROCESSOR_OUT_H_
+#define PROCESSOR_OUT_H_
+
+%code-end
+
+%include ff_sys_config.h
 
 %code-start
+
+#include <stdint.h>
 
 /**************************************************************
  * Languages Enum - Must Precede typedefs that use it
@@ -69,20 +78,20 @@ typedef struct BLOCK_CATS {
     const char* const conf_keys[MAX_CONF_KEYS_PER_BLOCK];
 } BlockCatArray;
 
-typedef struct GRAMMAR_DEF {
+typedef struct AST_ARRAY {
     uint16_t id;
-    char label[MAX_WORD_LENGTH];
-    char unique[MAX_WORD_LENGTH];
-    char help[MAX_LINE_LENGTH];
-    int term_level;
     int type;
+    char label[MAX_LABEL_LENGTH];
+//    char unique[MAX_LABEL_LENGTH];
+//    char help[MAX_DESCR_LENGTH];
+//    int term_level;
     bool action;
-    bool finish;
+//    bool finish;
     uint16_t parent;
-    uint16_t next_sibling;
     uint16_t first_child;
-    char action_identifier[MAX_WORD_LENGTH];
-} GrammarDef;
+    uint16_t next_sibling;
+    char action_identifier[MAX_LABEL_LENGTH];
+} ASTA;
 
 /**************************************************************
  * Language Strings - Must Follow the typedef that defines it
@@ -96,14 +105,10 @@ static const SimpleStringArray language_strings[LAST_LANGUAGE] = {
     "Deutsch",
 };
 
-
-
-
-
 %code-end
 
 %#
-%#  Grammar defs start with %grammar and end with %end-grammar  
+%#  Grammar defs start with %grammar-start and end with %grammar-end  
 %#
 
 %grammar-start
@@ -136,11 +141,11 @@ static const SimpleStringArray language_strings[LAST_LANGUAGE] = {
 %enum-terminating-member
 %enum-plus-list-array
 %enum-start-value 0
-%enum-array-type SimpleStringArray
 %enum-array-member-label text
 %enum-array-reserve-words
 
-%enum-identifier block-category
+%enum-identifier block_category
+%enum-array-type SimpleStringArray
 %enum-array-instance block_cat_defs
 %enum-start
 FF_ERROR_CAT        ERROR_CAT
@@ -155,6 +160,17 @@ FF_OUTPUT           OUTPUT
 LAST_BLOCK_CAT
 %enum-end
 
+%enum-identifier command
+%enum-array-type SimpleStringArray
+%enum-array-instance command_strings
+%enum-start
+CMD_ERROR           CMD_ERROR   
+CMD_OUTPUT_OFF      CMD_OUTPUT_OFF
+CMD_OUTPUT_ON       CMD_OUTPUT_ON
+CMD_RESET_MIN_MAX   CMD_RESET_MIN_MAX
+LAST_COMMAND
+%enum-end
+
 %# 
 %#  Usage: %lookup-list <lookup-identifier> <FunctionName>
 %#
@@ -164,32 +180,30 @@ LAST_BLOCK_CAT
 %#  
 %#  Example:
 %#
-%#      %lookup-list block-label LookupBlockLabel
+%#      %lookup-list block_label LookupBlockLabel
 %#
 %#  to be used by the line:
 %#
-%#      %2 lookup block-label 
+%#      %2 lookup block_label 
 %#
-%#  which has been defined as:
+%#  which has been defined in:
 %#
 %#      %1 keyword SHOW
 %#      %2 keyword BLOCKS 
 %#      %action SHOW_BLOCKS
 %#      %2 keyword SYSTEM 
 %#      %action SHOW_SYSTEM
-%#      %2 identifier block-category 
+%#      %2 identifier block_category 
 %#      %action SHOW_BLOCK_CATEGORY
-%#      %2 lookup block-label
+%#      %2 lookup block_label
 %#      %action SHOW_BLOCK_LABEL
 %#
 %#  the resulting prototype would be:
 %#
-%#      char** LookupBlockLabel(char* block-label); 
+%#      char** LookupBlockLabel(char* block_label); 
 %#  
 
-%# %lookup-list block-label LookupBlockLabel
-%# %lookup-list block-id 
-
+%lookup-list block_label LookupBlockLabel
 
 
 %# 
@@ -204,15 +218,15 @@ LAST_BLOCK_CAT
 %#
 %#      %action-define MESSAGE_DATA_BCAT_N_INT SendMessage
 %#
-%#  to be triggered by the line:
+%#  to be triggered by the command:
 %#
-%#      MESSAGE DATA <block-category> <INT> FLOAT <FLOAT>
+%#      MESSAGE DATA <block_category> <INT> FLOAT <FLOAT>
 %#
 %#  which has been defined as:
 %#
 %#      %1 keyword MESSAGE
 %#      %2 keyword DATA
-%#      %3 identifier <block-category>
+%#      %3 identifier block_category
 %#      %4 param-integer
 %#      %5 keyword INT
 %#      %6 param-integer
@@ -230,8 +244,8 @@ LAST_BLOCK_CAT
 %action-define SHOW_BLOCK_ID ShowBlockByID
 
 %# SHOW BLOCKS                   // List all blocks on device with their label and integer ID 
-%# SHOW <block-category>         // List all blocks within a category with their label and integer ID
-%# SHOW <block-label>            // Show settings and current values for block
+%# SHOW <block_category>         // List all blocks within a category with their label and integer ID
+%# SHOW <block_label>            // Show settings and current values for block
 %# SHOW <block-id>               // Show the details of the block with ID <block-id> 
 %# SHOW SYSTEM                   // dislay system block settings
 
@@ -240,11 +254,11 @@ LAST_BLOCK_CAT
 %action SHOW_BLOCKS
 %2 keyword SYSTEM 
 %action SHOW_SYSTEM
-%2 identifier block-category 
+%2 identifier block_category 
 %action SHOW_BLOCK_CATEGORY
-%2 lookup block-label
+%2 lookup block_label
 %action SHOW_BLOCK_LABEL
-%2 lookup block-id 
+%2 param-integer 
 %action SHOW_BLOCK_ID
 
 
@@ -271,10 +285,10 @@ LAST_BLOCK_CAT
 %action-define MONITOR_BLOCK_LABEL MonitorByLabel
 %action-define MONITOR_BLOCK_CAT_N MonitorByBlockCatN
 
-%# MONITOR <block-label>                 // Add block to the monitor pool
-%# MONITOR <block-category> <INT>        // Add block to the monitor pool
-%# MONITOR STOP <block-label>            // Remove block from the monitor pool
-%# MONITOR STOP <block-category> <INT>   // Remove block from the monitor pool
+%# MONITOR <block_label>                 // Add block to the monitor pool
+%# MONITOR <block_category> <INT>        // Add block to the monitor pool
+%# MONITOR STOP <block_label>            // Remove block from the monitor pool
+%# MONITOR STOP <block_category> <INT>   // Remove block from the monitor pool
 %# MONITOR STOP ALL                      // Remove all blocks from the monitor pool
 %# MONITOR START                 // Show all activity from and to monitored blocks. <any key> to exit.
 
@@ -284,14 +298,14 @@ LAST_BLOCK_CAT
 %2 keyword STOP
 %3 keyword ALL
 %action MONITOR_STOP_ALL
-%3 lookup <block-label>
+%3 lookup block_label
 %action MONITOR_STOP_BLOCK_LABEL
-%3 identifier <block-category>
+%3 identifier block_category
 %4 param-integer
 %action MONITOR_STOP_BLOCK_CAT_N
-%2 lookup <block-label>
+%2 lookup block_label
 %action MONITOR_BLOCK_LABEL
-%2 identifier <block-category>
+%2 identifier block_category
 %3 param-integer
 %action MONITOR_BLOCK_CAT_N
 
@@ -300,13 +314,13 @@ LAST_BLOCK_CAT
 %action-define CLEAR_BLOCK_LABEL ClearBlockByLabel
 %action-define CLEAR_BLOCK_CAT_N ClearBlockByBlockCatN
 
-%# CLEAR <block-label>                   // Clear block's local datalog
-%# CLEAR <block-category> <INT>          // Clear block's local datalog
+%# CLEAR <block_label>                   // Clear block's local datalog
+%# CLEAR <block_category> <INT>          // Clear block's local datalog
 
 %1 keyword CLEAR
-%2 lookup <block-label>
+%2 lookup block_label
 %action CLEAR_BLOCK_LABEL
-%2 identifier <block-category>
+%2 identifier block_category
 %3 param-integer
 %action CLEAR_BLOCK_CAT_N
 
@@ -315,17 +329,17 @@ LAST_BLOCK_CAT
 %action-define COMMAND_BLOCK_CAT_N SendCommandToBlockCatN
 %action-define COMMAND_BLOCK_LABEL SendCommandToBlockLabel
 
-%# MESSAGE COMMAND <block-category> <INT> <command>          // Send command message to output block
-%# MESSAGE COMMAND <block-label> <command>
+%# MESSAGE COMMAND <block_category> <INT> <command>          // Send command message to output block
+%# MESSAGE COMMAND <block_label> <command>
 
 %1 keyword MESSAGE
 %2 keyword COMMAND
-%3 identifier <block-category>
+%3 identifier block_category
 %4 param-integer
-%5 identifier <command>
+%5 identifier command
 %action COMMAND_BLOCK_CAT_N
-%3 lookup <block-label>
-%4 identifier <command>
+%3 lookup block_label
+%4 identifier command
 %action COMMAND_BLOCK_LABEL
 
 
@@ -335,14 +349,14 @@ LAST_BLOCK_CAT
 %action-define MESSAGE_DATA_LABEL_INT SimIntDataMessageFromBlockLabel
 %action-define MESSAGE_DATA_LABEL_FLOAT SimFloatDataMessageFromBlockLabel
 
-%# MESSAGE DATA <block-label> INT <INT>              // Simulate input block sending integer data
-%# MESSAGE DATA <block-category> <INT> INT <INT>     // Simulate input block sending integer data
-%# MESSAGE DATA <block-label> FLOAT <FLOAT>          // Simulate input block sending float data
-%# MESSAGE DATA <block-category> <INT> FLOAT <FLOAT> // Simulate input block sending float data
+%# MESSAGE DATA <block_label> INT <INT>              // Simulate input block sending integer data
+%# MESSAGE DATA <block_category> <INT> INT <INT>     // Simulate input block sending integer data
+%# MESSAGE DATA <block_label> FLOAT <FLOAT>          // Simulate input block sending float data
+%# MESSAGE DATA <block_category> <INT> FLOAT <FLOAT> // Simulate input block sending float data
 
 %1 keyword MESSAGE
 %2 keyword DATA
-%3 identifier <block-category>
+%3 identifier block_category
 %4 param-integer
 %5 keyword INT
 %6 param-integer
@@ -350,7 +364,7 @@ LAST_BLOCK_CAT
 %5 keyword FLOAT
 %6 param-float
 %action MESSAGE_DATA_BCAT_N_FLOAT
-%3 lookup <block-label>
+%3 lookup block_label
 %4 keyword INT
 %5 param-integer
 %action MESSAGE_DATA_LABEL_INT
@@ -364,7 +378,7 @@ LAST_BLOCK_CAT
 %action-define DEBUG_OFF DebugOff
 %action-define DEBUG_TERMINAL_ON DebugTermOn
 %action-define DEBUG_TERMINAL_OFF DebugTermOff
-%action-define DEBUG_LEVEL DebugSetLEvel
+%action-define DEBUG_LEVEL DebugSetLevel
 
 %# DEBUG LEVEL <INT>                 // 1 - 10 (lower is more verbose)
 %# DEBUG ON                          // Turn debug messages on or off system wide
@@ -482,28 +496,28 @@ LAST_BLOCK_CAT
 %action-define DELETE_BLOCK_LABEL BlockDeleteByLabel
 %action-define RENAME_BLOCK BlockRename
 
-%# DISABLE <block-label>         // enable and disable blocks from processing
-%# DISABLE <block-category> <INT>    
-%# ENABLE <block-label>
-%# ENABLE <block-category> <INT>
-%# DELETE <block-label>          // delete block from running config
-%# DELETE <block-category> <INT>
-%# RENAME <block-label> new-block-label  // only possible within block types and avoiding duplicates names
+%# DISABLE <block_label>         // enable and disable blocks from processing
+%# DISABLE <block_category> <INT>    
+%# ENABLE <block_label>
+%# ENABLE <block_category> <INT>
+%# DELETE <block_label>          // delete block from running config
+%# DELETE <block_category> <INT>
+%# RENAME <block_label> new_block_label  // only possible within block types and avoiding duplicates names
 
 %1 keyword DISABLE
-%2 identifier <block-category>
+%2 identifier block_category
 %3 param-integer
 %action DISABLE_BLOCK_CAT_N
 %2 param-string
 %action DISABLE_BLOCK_LABEL
 %1 keyword ENABLE
-%2 identifier <block-category>
+%2 identifier block_category
 %3 param-integer
 %action ENABLE_BLOCK_CAT_N
 %2 param-string
 %action ENABLE_BLOCK_LABEL
 %1 keyword DELETE
-%2 identifier <block-category>
+%2 identifier block_category
 %3 param-integer
 %action DELETE_BLOCK_CAT_N
 %2 param-string
@@ -533,3 +547,11 @@ LAST_BLOCK_CAT
 %# NO        // *** undecided - per cisco IOS model, negate a statement
 
 %grammar-end
+
+%code-start
+
+#endif /* PROCESSOR_OUT_H_ */
+
+%code-end
+
+

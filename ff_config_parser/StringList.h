@@ -10,15 +10,18 @@
 #ifndef STRINGLIST_H_
 #define STRINGLIST_H_
 
-#include "config.h"
+#include "common_config.h"
+#include <stdint.h>
 
 typedef struct STRING_NODE {
-	char str[MAX_LINE_LENGTH];
+	char str[MAX_BUFFER_LENGTH];
 	struct STRING_NODE* next;
 } StringNode;
 
 class StringList {
 private:
+	void ResetFromHead(StringNode* s);
+
 	StringNode* head;
 
 public:
@@ -32,6 +35,7 @@ public:
 	uint16_t GetSize(void);
 	uint16_t GetLocation(const char* match_str);
 	char * GetStringAtLocation(char* result, uint16_t location);
+	void Reset();
 };
 
 #endif /* STRINGLIST_H_ */

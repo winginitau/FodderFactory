@@ -8,8 +8,11 @@
  ******************************************************************/
 
 #include "Lexer.h"
+#include "processor_errors.h"
 #include "AST.h"
 #include "ASTNode.h"
+#include <string.h>
+#include <stdlib.h>
 
 Lexer::Lexer() {
     // Initialise globally persistent directives
@@ -83,141 +86,30 @@ int Lexer::ProcessLine(LineBuffer& line_buf) {
     line.GetTokenStr(tokens[0], 0);
     directive = MatchToken(token_str);
     switch (directive) {
-        case D_UNKNOWN:
-            if (code_section) {
-                line.GetRawBuffer(output_string);
-                strcat(output_string, "\n");
-                output_queue.EnQueue(output_string);
-                output_available = true;
-                process_result = R_UNFINISHED;
-            } else {
-                if (enum_section) {
-                    line.GetTokenStr(tokens[0], 0);
-                    line.GetTokenStr(tokens[1], 1);
-                    idents.Add(enum_identifier, tokens[0], tokens[1]);
-                    // TODO possibly add code to process lines as enum-only entries
-                    // if token[1] fails
-                    process_result = R_UNFINISHED;
-                } else {
-                    process_result = R_ERROR;
-                    error_type = E_UNKNOWN_DIRECTIVE;
-                }
-            }
-            break;
-        case D_GRAMMAR_COMMENT:
-            //ignore
-            process_result = R_COMPLETE;
-            break;
-        case D_NULL:
-            if (code_section) {  // handle blank lines in the code section
-                line.GetRawBuffer(output_string);
-                strcat(output_string, "\n");
-                output_queue.EnQueue(output_string);
-                output_available = true;
-                process_result = R_UNFINISHED;
-            } else {
-            	// ignore NULL token
-            	process_result = R_COMPLETE;
-            	//error_type = E_NULL_TOKEN_TO_LEXER;
-            }
-            break;
-        case D_CODE_START:
-            if (code_section) {
-                process_result = R_ERROR;
-                error_type = E_CODE_SECTION_ALREADY_ACTIVE;
-            } else {
-                if (grammar_section) {
-                    process_result = R_ERROR;
-                    error_type = E_CODE_SECTION_IN_GRAMMAR_SECTION;
-                } else {
-                    code_section = true;
-                    process_result = R_UNFINISHED;
-                }
-            }
-            break;
-        case D_CODE_END:
-            if (code_section) {
-                code_section = false;
-                process_result = R_COMPLETE;
-            } else {
-                process_result = R_ERROR;
-                error_type = E_CODE_END_WITHOUT_START;
-            }
-            break;
-        case D_GRAMMAR_START:
-            if (grammar_section) {
-                process_result = R_ERROR;
-                error_type = E_GRAMMAR_SECTION_ALREADY_ACTIVE;
-            } else {
-                if (code_section) {
-                    process_result = R_ERROR;
-                    error_type = E_GRAMMAR_SECTION_IN_CODE_SECTION;
-                } else {
-                    grammar_section = true;
-                    process_result = R_COMPLETE;
-                }
-            }
-            break;
-        case D_COMMENT:
-            if (line.GetTokenStr(token_str, 1) == NULL) {
-                process_result = R_ERROR;
-                error_type = E_COMMENT_TOKEN_NULL;
-            } else {
-                if (comments.AddString(token_str)) {
-                    process_result = R_COMPLETE;
-                } else {
-                    process_result = R_ERROR;
-                    error_type = E_INTERNAL_ERROR_ADDING_TO_SET;
-                }
-            }
-            break;
-        case D_SUB_SECTION_CLOSE:
-            if (line.GetTokenStr(token_str, 1) == NULL) {
-                process_result = R_ERROR;
-                error_type = E_SUBSECTION_CLOSE_TOKEN_NULL;
-            } else {
-                if (sub_section_closes.AddString(token_str)) {
-                    process_result = R_COMPLETE;
-                } else {
-                    process_result = R_ERROR;
-                    error_type = E_INTERNAL_ERROR_ADDING_TO_SET;
-                }
-            }
-            break;
-        case D_REDUNDANT_CLOSE_AS_COMMENT:
-            redundant_close_as_comment = true;
-            process_result = R_COMPLETE;
-            break;
-        case D_IGNORE_CASE:
-            ignore_case = true;
-            process_result = R_COMPLETE;
-            break;
-        case D_ESCAPE_SEQUENCE: Process_D_ESCAPE_SEQUENCE(); break;
-        case D_ENUM_TERMINATING_MEMBER:
-            enum_terminating_member = true;
-            process_result = R_COMPLETE;
-            break;
-        case D_ENUM_PLUS_LIST_ARRAY:
-            enum_plus_list_array = true;
-            process_result = R_COMPLETE;
-            break;
-        case D_ENUM_NO_TERMINATING_MEMBER:
-            enum_terminating_member = false;
-            process_result = R_COMPLETE;
-            break;
-        case D_ENUM_NO_LIST_ARRAY:
-            enum_plus_list_array = false;
-            process_result = R_COMPLETE;
-            break;
-        case D_ENUM_START_VALUE: 	Process_D_ENUM_START_VALUE(); break;
-        case D_ENUM_ARRAY_TYPE: 	Process_D_ENUM_ARRAY_TYPE(); break;
-        case D_ENUM_ARRAY_INSTANCE: Process_D_ENUM_ARRAY_INSTANCE(); break;
-        case D_ENUM_ARRAY_MEMBER_LABEL:	Process_D_ENUM_ARRAY_MEMBER_LABEL(); break;
-        case D_ENUM_ARRAY_RESERVE: 	Process_D_ENUM_ARRAY_RESERVE(); break;
-        case D_ENUM_ARRAY_NO_RESERVE: Process_D_ENUM_ARRAY_NO_RESERVE(); break;
-        case D_ENUM_IDENTIFIFER:	Process_D_ENUM_IDENTIFIFER();	break;
-        case D_ENUM_START: 			Process_D_ENUM_START(); 		break;
-        case D_ENUM_END: 			Process_D_ENUM_END(); 			break;
+        case D_UNKNOWN: 					Process_D_UNKNOWN(); 						break;
+        case D_GRAMMAR_COMMENT: 			Process_D_GRAMMAR_COMMENT(); 				break;
+        case D_NULL:						Process_D_NULL();							break;
+		case D_CODE_START: 					Process_D_CODE_START();	 					break;
+        case D_CODE_END: 					Process_D_CODE_END(); 						break;
+        case D_GRAMMAR_START: 				Process_D_GRAMMAR_START(); 					break;
+        case D_COMMENT: 					Process_D_COMMENT(); 						break;
+        case D_SUB_SECTION_CLOSE: 			Process_D_SUB_SECTION_CLOSE(); 				break;
+        case D_REDUNDANT_CLOSE_AS_COMMENT: 	Process_D_REDUNDANT_CLOSE_AS_COMMENT();	 	break;
+        case D_IGNORE_CASE: 				Process_D_IGNORE_CASE(); 					break;
+        case D_ESCAPE_SEQUENCE: 			Process_D_ESCAPE_SEQUENCE(); 				break;
+        case D_ENUM_TERMINATING_MEMBER: 	Process_D_ENUM_TERMINATING_MEMBER(); 		break;
+        case D_ENUM_PLUS_LIST_ARRAY: 		Process_D_ENUM_PLUS_LIST_ARRAY(); 			break;
+        case D_ENUM_NO_TERMINATING_MEMBER: 	Process_D_ENUM_NO_TERMINATING_MEMBER(); 	break;
+        case D_ENUM_NO_LIST_ARRAY: 			Process_D_ENUM_NO_LIST_ARRAY(); 			break;
+        case D_ENUM_START_VALUE: 			Process_D_ENUM_START_VALUE(); 				break;
+        case D_ENUM_ARRAY_TYPE: 			Process_D_ENUM_ARRAY_TYPE(); 				break;
+        case D_ENUM_ARRAY_INSTANCE: 		Process_D_ENUM_ARRAY_INSTANCE(); 			break;
+        case D_ENUM_ARRAY_MEMBER_LABEL:		Process_D_ENUM_ARRAY_MEMBER_LABEL(); 		break;
+        case D_ENUM_ARRAY_RESERVE: 			Process_D_ENUM_ARRAY_RESERVE(); 			break;
+        case D_ENUM_ARRAY_NO_RESERVE: 		Process_D_ENUM_ARRAY_NO_RESERVE(); 			break;
+        case D_ENUM_IDENTIFIFER:			Process_D_ENUM_IDENTIFIFER();				break;
+        case D_ENUM_START: 					Process_D_ENUM_START(); 					break;
+        case D_ENUM_END: 					Process_D_ENUM_END(); 						break;
         case D_TERM_1:
         case D_TERM_2:
         case D_TERM_3:
@@ -226,14 +118,134 @@ int Lexer::ProcessLine(LineBuffer& line_buf) {
         case D_TERM_6:
         case D_TERM_7:
         case D_TERM_8:
-        case D_TERM_9: 				Process_D_TERM(); 				break;
-        case D_ACTION_DEFINE: 		Process_D_ACTION_DEFINE(); 		break;
-        case D_ACTION: 				Process_D_ACTION(); 			break;
-        case D_GRAMMAR_END: 		Process_D_GRAMMAR_END(); 		break;
-        case D_INCLUDE: 			Process_D_INCLUDE(); 			break;
+        case D_TERM_9: 						Process_D_TERM(); 							break;
+        case D_ACTION_DEFINE: 				Process_D_ACTION_DEFINE(); 					break;
+        case D_ACTION: 						Process_D_ACTION(); 						break;
+        case D_GRAMMAR_END: 				Process_D_GRAMMAR_END(); 					break;
+        case D_INCLUDE: 					Process_D_INCLUDE(); 						break;
+        case D_LOOKUP_LIST:					Process_D_LOOKUP_LIST();					break;
     }
     previous_directive = directive;
     return process_result;
+}
+
+void Lexer::Process_D_UNKNOWN(void) {
+	if (code_section) {
+		line.GetRawBuffer(output_string);
+		strcat(output_string, "\n");
+		output_queue.EnQueue(output_string);
+		output_available = true;
+		process_result = R_UNFINISHED;
+	} else {
+		if (enum_section) {
+			line.GetTokenStr(tokens[0], 0);
+			line.GetTokenStr(tokens[1], 1);
+			idents.Add(enum_identifier, tokens[0], tokens[1]);
+			// TODO possibly add code to process lines as enum-only entries
+			// if token[1] fails
+			process_result = R_UNFINISHED;
+		} else {
+			process_result = R_ERROR;
+			error_type = E_UNKNOWN_DIRECTIVE;
+		}
+	}
+}
+
+void Lexer::Process_D_GRAMMAR_COMMENT(void) {
+	//ignore
+	process_result = R_COMPLETE;
+}
+
+void Lexer::Process_D_NULL(void) {
+	if (code_section) {  // handle blank lines in the code section
+		line.GetRawBuffer(output_string);
+		strcat(output_string, "\n");
+		output_queue.EnQueue(output_string);
+		output_available = true;
+		process_result = R_UNFINISHED;
+	} else {
+		// ignore NULL token
+		process_result = R_COMPLETE;
+		//error_type = E_NULL_TOKEN_TO_LEXER;
+	}
+}
+
+void Lexer::Process_D_CODE_START(void) {
+	if (code_section) {
+		process_result = R_ERROR;
+		error_type = E_CODE_SECTION_ALREADY_ACTIVE;
+	} else {
+		if (grammar_section) {
+			process_result = R_ERROR;
+			error_type = E_CODE_SECTION_IN_GRAMMAR_SECTION;
+		} else {
+			code_section = true;
+			process_result = R_UNFINISHED;
+		}
+	}
+}
+
+void Lexer::Process_D_CODE_END(void) {
+	if (code_section) {
+		code_section = false;
+		process_result = R_COMPLETE;
+	} else {
+		process_result = R_ERROR;
+		error_type = E_CODE_END_WITHOUT_START;
+	}
+}
+
+void Lexer::Process_D_GRAMMAR_START(void) {
+	if (grammar_section) {
+		process_result = R_ERROR;
+		error_type = E_GRAMMAR_SECTION_ALREADY_ACTIVE;
+	} else {
+		if (code_section) {
+			process_result = R_ERROR;
+			error_type = E_GRAMMAR_SECTION_IN_CODE_SECTION;
+		} else {
+			grammar_section = true;
+			process_result = R_COMPLETE;
+		}
+	}
+}
+
+void Lexer::Process_D_COMMENT(void) {
+	if (line.GetTokenStr(token_str, 1) == NULL) {
+		process_result = R_ERROR;
+		error_type = E_COMMENT_TOKEN_NULL;
+	} else {
+		if (comments.AddString(token_str)) {
+			process_result = R_COMPLETE;
+		} else {
+			process_result = R_ERROR;
+			error_type = E_INTERNAL_ERROR_ADDING_TO_SET;
+		}
+	}
+}
+
+void Lexer::Process_D_SUB_SECTION_CLOSE(void) {
+	if (line.GetTokenStr(token_str, 1) == NULL) {
+		process_result = R_ERROR;
+		error_type = E_SUBSECTION_CLOSE_TOKEN_NULL;
+	} else {
+		if (sub_section_closes.AddString(token_str)) {
+			process_result = R_COMPLETE;
+		} else {
+			process_result = R_ERROR;
+			error_type = E_INTERNAL_ERROR_ADDING_TO_SET;
+		}
+	}
+}
+
+void Lexer::Process_D_REDUNDANT_CLOSE_AS_COMMENT(void) {
+	redundant_close_as_comment = true;
+	process_result = R_COMPLETE;
+}
+
+void Lexer::Process_D_IGNORE_CASE(void) {
+	ignore_case = true;
+	process_result = R_COMPLETE;
 }
 
 void Lexer::Process_D_ESCAPE_SEQUENCE(void) {
@@ -248,6 +260,26 @@ void Lexer::Process_D_ESCAPE_SEQUENCE(void) {
             error_type = E_INTERNAL_ERROR_ADDING_TO_SET;
         }
     }
+}
+
+void Lexer::Process_D_ENUM_TERMINATING_MEMBER(void) {
+	enum_terminating_member = true;
+	process_result = R_COMPLETE;
+}
+
+void Lexer::Process_D_ENUM_PLUS_LIST_ARRAY(void) {
+	enum_plus_list_array = true;
+	process_result = R_COMPLETE;
+}
+
+void Lexer::Process_D_ENUM_NO_TERMINATING_MEMBER(void) {
+	enum_terminating_member = false;
+	process_result = R_COMPLETE;
+}
+
+void Lexer::Process_D_ENUM_NO_LIST_ARRAY(void) {
+	enum_plus_list_array = false;
+	process_result = R_COMPLETE;
 }
 
 void Lexer::Process_D_ENUM_START_VALUE(void) {
@@ -321,29 +353,34 @@ void Lexer::Process_D_ENUM_START(void) {
         error_type = E_ENUM_START_BEFORE_PREREQ;
     }
     if (enum_plus_list_array) {
-        if ((enum_array_type == '\0') ||
-        (enum_array_instance == '\0') ||
-        (enum_array_member_label == '\0')) {
+        if ((enum_array_type[0] == '\0') ||
+        (enum_array_instance[0] == '\0') ||
+        (enum_array_member_label[0] == '\0')) {
             process_result = R_ERROR;
             error_type = E_ENUM_START_BEFORE_PREREQ;
         }
     }
     if (enum_array_reserve_words) {
         if ((!enum_plus_list_array) ||
-        (enum_identifier == '\0')) {
+        (enum_identifier[0] == '\0')) {
             process_result = R_ERROR;
             error_type = E_ENUM_START_BEFORE_PREREQ;
         }
     }
     if (process_result != R_ERROR) {
     	if (enum_plus_list_array) {
-    		idents.NewIdent(enum_identifier, ID_ENUM_ARRAY_PAIR);
+    		error_type = idents.NewIdent(enum_identifier, ID_ENUM_ARRAY_PAIR);
     		idents.SetInstanceName(enum_identifier, enum_array_instance);
     	} else {
-    		idents.NewIdent(enum_identifier, ID_ENUM_LIST);
+    		error_type = idents.NewIdent(enum_identifier, ID_ENUM_LIST);
     	}
-        enum_section = true;
-        process_result = R_UNFINISHED;
+    	if (error_type == E_NO_ERROR) {
+    		enum_section = true;
+    		process_result = R_UNFINISHED;
+    	} else {
+            process_result = R_ERROR;
+
+    	}
     }
 }
 
@@ -373,7 +410,7 @@ void Lexer::Process_D_ENUM_END(void) {
 		if (enum_terminating_member) {
 			// array size cardinal will be the enum value of the last member
 			// less the value of the first entry (if not 0)
-			// XXX: enum_terminating_member only works if enum_start_value == 0
+			// TODO: enum_terminating_member only works if enum_start_value == 0
 			//  add checks to enum start pre-req checks
 
 			// get the last enum @ size-1
@@ -444,7 +481,7 @@ void Lexer::Process_D_TERM(void) {
 	} else {
 		// get rid of the leading %
 		int i;
-		for (i = 1; i < MAX_WORD_LENGTH; i++) {
+		for (i = 1; i < MAX_BUFFER_WORD_LENGTH; i++) {
 			tokens[0][i - 1] = tokens[0][i];
 		}
 		tokens[0][i - 1] = '\0';
@@ -471,15 +508,31 @@ void Lexer::Process_D_TERM(void) {
 			// <n> param-float				// AST_PARAM_FLOAT,
 			// <n> param-time				// AST_PARAM_TIME,
 			// <n> param-date				// AST_PARAM_DATE,
+
+			// see if this is a 2 or 3 token form
 			if (line.GetTokenStr(tokens[2], 2) == NULL) {
+				// Must be a param type - AST will check for valid types when added
 				error_type = ast.AddNode(term_level, tokens[1]);
 			} else {
-				//
-				// XXX
-				//
-				// add existence checking for identifiers and lookups
-				//
-				error_type = ast.AddNode(term_level, tokens[1], tokens[2]);
+				// is 3 token form (keyword, ident or lookup)
+				if (   (strcmp(tokens[1], "identifier") == 0)
+					|| (strcmp(tokens[1], "lookup") == 0) ) {
+					// check that it has not already been defined
+					if (idents.Exists(tokens[2])) {
+						error_type = ast.AddNode(term_level, tokens[1], tokens[2]);
+					} else {
+						error_type = E_UNKNOWN_IDENT_OR_LOOKUP;
+					}
+				} else {
+					// it should be a keyword - check
+					if (strcmp(tokens[1], "keyword") == 0) {
+						// duplicate check needs to be done in AST - its the only place the keywords persist
+						error_type = ast.AddNode(term_level, tokens[1], tokens[2]);
+					} else {
+						error_type = E_UNKNOWN_TERM_OR_MALFORMED_DIRECTIVE;
+					}
+
+				}
 			}
 		}
 	}
@@ -513,9 +566,12 @@ void Lexer::Process_D_ACTION_DEFINE(void) {
 				error_type = E_IDENTIFIER_ALREADY_EXISTS;
 				process_result = R_ERROR;
 			} else {
-				idents.NewIdent(tokens[1], ID_ACTION_PAIR);
-				idents.SetInstanceName(tokens[1], tokens[2]);
-				process_result = R_COMPLETE;
+				if ((error_type = idents.NewIdent(tokens[1], ID_ACTION_PAIR)) == E_NO_ERROR) {
+					idents.SetInstanceName(tokens[1], tokens[2]);
+					process_result = R_COMPLETE;
+				} else {
+					process_result = R_ERROR;
+				}
 			}
 		}
 	}
@@ -533,6 +589,12 @@ void Lexer::Process_D_ACTION(void) {
     		process_result = R_ERROR;
     	} else {
     		ast.AttachActionToCurrent(tokens[1]);
+    		ast.BuildActionPrototype(idents);
+    		while (ast.output.OutputAvailable()) {
+    			ast.output.GetOutputAsString(output_string);
+    			output_queue.EnQueue(output_string);
+        		output_available = true;
+    		}
     		process_result = R_COMPLETE;
     		action_since_last_term = true;
     	}
@@ -544,8 +606,6 @@ void Lexer::Process_D_GRAMMAR_END(void) {
 		//
 		// XXX
 		//
-		strcpy(output_string, "//TODO: Lexer Lookup Hooks\n");
-		output_queue.EnQueue(output_string);
 		strcpy(output_string, "//TODO: Command Line Options Processing\n");
 		output_queue.EnQueue(output_string);
 		strcpy(output_string, "//TODO: AST Validation Walk - \n");
@@ -565,8 +625,8 @@ void Lexer::Process_D_GRAMMAR_END(void) {
 		strcpy(output_string, "//TODO: Context change on <identifier> value\n\n");
 		output_queue.EnQueue(output_string);
 
-		ast.DumpTree();
-		idents.DumpIdentifiers();
+		ast.WriteASTArray(&idents);
+		//idents.DumpIdentifiers();
 
 		while (ast.output.OutputAvailable()) {
 			ast.output.GetOutputAsString(output_string);
@@ -594,11 +654,11 @@ void Lexer::Process_D_INCLUDE(void) {
 	} else {
 		FILE* f;
 		char* res;
-		char in_buf[MAX_LINE_LENGTH];
+		char in_buf[MAX_BUFFER_LENGTH];
 		f = fopen(tokens[1], "r");
 		if (f != NULL) {
 			while (!feof(f)) {
-				res = fgets(in_buf, MAX_LINE_LENGTH, f);
+				res = fgets(in_buf, MAX_BUFFER_LENGTH, f);
 				if (res != NULL) {
 					output_queue.EnQueue(in_buf);
 					output_available = true;
@@ -611,6 +671,40 @@ void Lexer::Process_D_INCLUDE(void) {
 		} else {
 			process_result = R_ERROR;
 			error_type = E_READING_INCLUDE_FILE;
+		}
+	}
+}
+
+void Lexer::Process_D_LOOKUP_LIST(void) {
+	// Set up an identifier list of key val pairs
+	//	<lookup-identifier> as IdentifierName
+	// Set FunctionName as InstanceName
+	//
+	//	Then later populate through grammar parsing for
+	//		parameter types and names in order.
+	line.GetTokenStr(tokens[0], 0);
+
+	if (line.GetTokenStr(tokens[1], 1) == NULL) {
+		error_type = E_EXPECTED_LOOKUP_IDENTIFIER;
+		process_result = R_ERROR;
+
+	} else {
+		if (line.GetTokenStr(tokens[2], 2) == NULL) {
+			error_type = E_EXPECTED_FUNCTION_FOR_LOOKUP;
+			process_result = R_ERROR;
+		} else {
+			if (idents.Exists(tokens[1])) {
+				error_type = E_IDENTIFIER_ALREADY_EXISTS;
+				process_result = R_ERROR;
+			} else {
+				error_type = idents.NewIdent(tokens[1], ID_ACTION_PAIR);
+				if (error_type == E_NO_ERROR) {
+					idents.SetInstanceName(tokens[1], tokens[2]);
+					process_result = R_COMPLETE;
+				} else {
+					process_result = R_ERROR;
+				}
+			}
 		}
 	}
 }

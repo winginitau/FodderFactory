@@ -1,30 +1,23 @@
 /*****************************************************************
- ASTNode.cpp
+ MapNode.cpp
 
  Copyright (C) 2018 Brendan McLearie 
 
- Created on: 11 Feb. 2018
+ Created on: 17 Feb. 2018
 
  ******************************************************************/
 
-#include "ASTNode.h"
+#include "MapNode.h"
 #include <stdlib.h>
 
-ASTNode::ASTNode() {
-	id = 0;
-	term_level = 0;
-	label[0] = '\0';
-	unique[0] = '\0';
-	help[0] = '\0';
-	type = AST_UNDEFINED;
-	action = false;
-	finish = false;
-	parent = NULL;
+MapNode::MapNode() {
 	first_child = NULL;
 	next_sibling = NULL;
+	parent = NULL;
+	data_ref = 0;
 }
 
-ASTNode::~ASTNode() {
+MapNode::~MapNode() {
 	// Auto-generated destructor stub
 }
 

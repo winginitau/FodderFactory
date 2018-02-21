@@ -23,7 +23,7 @@ void LineBuffer::Init() {
     word_idx = 0;
     available = false;
     empty_line = false;
-    for (int i = 0; i < MAX_WORDS_PER_LINE; i++) {
+    for (int i = 0; i < MAX_BUFFER_WORDS_PER_LINE; i++) {
         word_list[i] = '\0';
     }
     word_count = 0;

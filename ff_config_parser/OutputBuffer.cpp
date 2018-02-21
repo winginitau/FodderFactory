@@ -8,16 +8,15 @@
  ******************************************************************/
 
 #include "OutputBuffer.h"
+#include <string.h>
 
 OutputBuffer::OutputBuffer() {
     output_available = false;;
 
-	// TODO Auto-generated constructor stub
-
 }
 
 OutputBuffer::~OutputBuffer() {
-	// TODO Auto-generated destructor stub
+	// Auto-generated destructor stub
 }
 
 bool OutputBuffer::OutputAvailable() {
@@ -34,6 +33,9 @@ char* OutputBuffer::GetOutputAsString(char* output_str) {
 }
 
 void OutputBuffer::SetOutputAvailable(void) {
-    output_available = true;
-
+    if (GetSize() > 0) {
+        output_available = true;
+    } else {
+    	output_available = false;
+    }
 }

@@ -10,8 +10,26 @@
 #ifndef IDENTIFIER_H_
 #define IDENTIFIER_H_
 
-#include "config.h"
+#include "common_config.h"
 #include "KeyValuePairList.h"
+
+enum {
+	ID_TYPE_UNDEFINED = 0,
+	ID_ENUM_ARRAY_PAIR,
+	ID_ENUM_LIST,
+	ID_LOOKUP_LIST,
+	ID_ACTION_PAIR,
+	LAST_IDENTIFIER_TYPE,
+};
+
+static const EnumStringArray identifier_types[LAST_IDENTIFIER_TYPE] = {
+		"ID_TYPE_UNDEFINED",
+		"ID_ENUM_ARRAY_PAIR",
+		"ID_ENUM_LIST",
+		"ID_LOOKUP_LIST",
+		"ID_ACTION_PAIR",
+};
+
 
 class Identifier {
 public:
@@ -19,8 +37,8 @@ public:
 	Identifier();
 	virtual ~Identifier();
 
-	char IdentifierName[MAX_LINE_LENGTH];
-	char InstanceName[MAX_LINE_LENGTH];
+	char IdentifierName[MAX_BUFFER_LENGTH];
+	char InstanceName[MAX_BUFFER_LENGTH];
 
 	int Type;
 

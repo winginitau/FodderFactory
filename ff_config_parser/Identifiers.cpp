@@ -8,23 +8,38 @@
  ******************************************************************/
 
 #include "Identifiers.h"
+#include "processor_errors.h"
+#include <regex.h>
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+#ifdef DEBUG
+#include "Debug.h"
+Debug debug;
+#endif
 
 Identifiers::Identifiers() {
 	count = 0;
-	// TODO Auto-generated constructor stub
 
 }
 
 Identifiers::~Identifiers() {
-	// TODO Auto-generated destructor stub
+	// Auto-generated destructor stub
 }
 
-void Identifiers::NewIdent(char* reserved_name, int id_type){
+int Identifiers::NewIdent(char* reserved_name, int id_type) {
 	int idx;
-	idx = count;
-	count++;
-	strcpy(ids[idx].IdentifierName, reserved_name);
-	ids[idx].Type = id_type;
+
+	if (IdentifierValid(reserved_name)) {
+
+		idx = count;
+		count++;
+		strcpy(ids[idx].IdentifierName, reserved_name);
+		ids[idx].Type = id_type;
+		return E_NO_ERROR;
+	} else
+		return E_INVALID_IDENTIFIER;
 }
 
 int Identifiers::Add(char* identifier_name, char* key, char* value) {
@@ -91,6 +106,18 @@ int Identifiers::SetInstanceName(char* identifier_name, char* instance_name) {
 		return E_IDENTIFER_NAME_NOT_FOUND;
 }
 
+int Identifiers::GetInstanceName(char* identifier_name, char* instance_name) {
+	int idx = 0;
+		while (idx < count) {
+			if (strcmp(ids[idx].IdentifierName, identifier_name) == 0) { //found
+				strcpy(instance_name, ids[idx].InstanceName);
+				return E_NO_ERROR;
+			}
+			idx++;
+		}
+		return E_IDENTIFER_NAME_NOT_FOUND;
+}
+
 int Identifiers::GetEntryAtLocation(char* identifier_name, char* key_result, char* value_result, int location) {
 	int idx = 0;
 		while (idx < count) {
@@ -128,12 +155,15 @@ bool Identifiers::Exists(char* identifier_name) {
 
 void Identifiers::DumpIdentifiers(void) {
 	int idx = 0;
-	char out[MAX_LINE_LENGTH];
-	char temp[MAX_LINE_LENGTH];
-	char temp2[MAX_LINE_LENGTH];
+	char out[MAX_BUFFER_LENGTH];
+	char temp[MAX_BUFFER_LENGTH];
+	char temp2[MAX_BUFFER_LENGTH];
 
 		while (idx < count) {
 			sprintf(out, "IdentifierName: %s\n", ids[idx].IdentifierName);
+			output.EnQueue(out);
+			debug.GetFromStringArray(temp, identifier_types, ids[idx].Type);
+			sprintf(out, "Type \t\t%s\n", temp);
 			output.EnQueue(out);
 			sprintf(out, "InstanceName: \t%s\n", ids[idx].InstanceName);
 			output.EnQueue(out);
@@ -161,3 +191,37 @@ void Identifiers::DumpIdentifiers(void) {
 		output.SetOutputAvailable();
 }
 
+bool Identifiers::IdentifierValid(char* ident) {
+	//
+	// Thanks to Laurence Gonsalves edited by Dmitry Egorov in answer to
+	// a question on StackOverflow:
+	//   https://stackoverflow.com/questions/1085083/regular-expressions-in-c-examples
+	// for the structure of the code in this function.
+	//
+	regex_t regex;
+	int result;
+	char error_buf[150];
+
+	// compile
+	result = regcomp(&regex, IDENTIFIER_REGEX, REG_EXTENDED);
+	if (result) {
+	    fprintf(stdout, "Could not compile IDENTIFIER_REGEX\n");
+	    exit(1);
+	}
+
+	// execute
+	result = regexec(&regex, ident, 0, NULL, 0);
+	if (!result) {
+	    return true;
+	}
+	else if (result == REG_NOMATCH) {
+	    return false;
+	}
+	else {
+	    regerror(result, &regex, error_buf, sizeof(error_buf));
+	    fprintf(stdout, "Regex matching failed: %s\n", error_buf);
+	    exit(-1);
+	}
+	regfree(&regex);
+
+}
