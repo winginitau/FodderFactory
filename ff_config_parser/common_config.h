@@ -34,6 +34,7 @@ enum {
 	R_COMPLETE,
 	R_IGNORE,
 	R_HELP,
+	R_CONTINUE,
 };
 
 // AST types shared across grammar processor and parser

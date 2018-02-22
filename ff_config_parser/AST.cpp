@@ -38,10 +38,22 @@ int AST::AddSiblingToCurrent(ASTNode * node) {
 	}
 
 	if(current->next_sibling == NULL) {
+		// check for duplicate keyword entries as we walk
+		if ((current->type == AST_KEYWORD) && (node->type == AST_KEYWORD )) {
+			if (strcmp(current->label, node->label) == 0) {
+				return E_DUPLICATE_KEYWORD_AT_LEVEL;
+			}
+		}
 		current->next_sibling = node;
 	} else {
 		walker = current->next_sibling;
 		while(walker->next_sibling != NULL) {
+			// check for duplicate keyword entries as we walk
+			if ((walker->type == AST_KEYWORD) && (node->type == AST_KEYWORD )) {
+				if (strcmp(walker->label, node->label) == 0) {
+					return E_DUPLICATE_KEYWORD_AT_LEVEL;
+				}
+			}
 			walker = walker->next_sibling;
 		}
 		walker->next_sibling = node;
@@ -65,6 +77,12 @@ int AST::AddChildToCurrent(ASTNode* node) {
 		} else {
 			walker = current->first_child;
 			while(walker->next_sibling != NULL) {
+				// check for duplicate keyword entries as we walk
+				if ((walker->type == AST_KEYWORD) && (node->type == AST_KEYWORD )) {
+					if (strcmp(walker->label, node->label) == 0) {
+						return E_DUPLICATE_KEYWORD_AT_LEVEL;
+					}
+				}
 				walker = walker->next_sibling;
 			}
 			walker->next_sibling = node;
@@ -76,15 +94,6 @@ int AST::AddChildToCurrent(ASTNode* node) {
 	node->next_sibling = NULL;
 	current = node;
 	return E_NO_ERROR;
-}
-
-// check for duplicate keyword entries at this
-// level in the AST (ie amongst current sibling list)
-
-if (ValidateTermTypeStr(term_type) == AST_KEYWORD) {
-	if (CheckForExistingSiblingKeywords(current, term)) {
-		return E_DUPLICATE_KEYWORD_AT_LEVEL;
-	}
 }
 
 

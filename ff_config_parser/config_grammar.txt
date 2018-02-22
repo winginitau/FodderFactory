@@ -267,7 +267,7 @@ LAST_COMMAND
 %action-define MUTE_MESSAGES_OFF MessagesUnmute
 
 %# MUTE MESSAGES ON				        // stop displaying event and debug messages to this terminal
-%# MUTE MESSAGES OFF				        // start displaying.....
+%# MUTE MESSAGES OFF				    // start displaying.....
 
 %1 keyword MUTE 
 %2 keyword MESSAGES 
@@ -328,9 +328,17 @@ LAST_COMMAND
 
 %action-define COMMAND_BLOCK_CAT_N SendCommandToBlockCatN
 %action-define COMMAND_BLOCK_LABEL SendCommandToBlockLabel
+%action-define MESSAGE_DATA_BCAT_N_INT SimIntDataMessageFromBCatN
+%action-define MESSAGE_DATA_BCAT_N_FLOAT SimFloatDataMessageFromBCatN
+%action-define MESSAGE_DATA_LABEL_INT SimIntDataMessageFromBlockLabel
+%action-define MESSAGE_DATA_LABEL_FLOAT SimFloatDataMessageFromBlockLabel
 
 %# MESSAGE COMMAND <block_category> <INT> <command>          // Send command message to output block
 %# MESSAGE COMMAND <block_label> <command>
+%# MESSAGE DATA <block_label> INT <INT>              // Simulate input block sending integer data
+%# MESSAGE DATA <block_category> <INT> INT <INT>     // Simulate input block sending integer data
+%# MESSAGE DATA <block_label> FLOAT <FLOAT>          // Simulate input block sending float data
+%# MESSAGE DATA <block_category> <INT> FLOAT <FLOAT> // Simulate input block sending float data
 
 %1 keyword MESSAGE
 %2 keyword COMMAND
@@ -341,20 +349,6 @@ LAST_COMMAND
 %3 lookup block_label
 %4 identifier command
 %action COMMAND_BLOCK_LABEL
-
-
-
-%action-define MESSAGE_DATA_BCAT_N_INT SimIntDataMessageFromBCatN
-%action-define MESSAGE_DATA_BCAT_N_FLOAT SimFloatDataMessageFromBCatN
-%action-define MESSAGE_DATA_LABEL_INT SimIntDataMessageFromBlockLabel
-%action-define MESSAGE_DATA_LABEL_FLOAT SimFloatDataMessageFromBlockLabel
-
-%# MESSAGE DATA <block_label> INT <INT>              // Simulate input block sending integer data
-%# MESSAGE DATA <block_category> <INT> INT <INT>     // Simulate input block sending integer data
-%# MESSAGE DATA <block_label> FLOAT <FLOAT>          // Simulate input block sending float data
-%# MESSAGE DATA <block_category> <INT> FLOAT <FLOAT> // Simulate input block sending float data
-
-%1 keyword MESSAGE
 %2 keyword DATA
 %3 identifier block_category
 %4 param-integer

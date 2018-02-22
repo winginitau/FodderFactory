@@ -322,6 +322,165 @@ static const SimpleStringArray command_strings [LAST_COMMAND] = {
 	"CMD_RESET_MIN_MAX",
 };
 
->> Error on Line: 395
->> Duplication of keyword at this term level detected
->> %3 keyword ON
+//TODO: Command Line Options Processing
+//TODO: AST Validation Walk - 
+//TODO: AST Flag end points
+//TODO: AST Order Ambiguity Report
+//TODO: AST Determine Partial Keyword Uniqueness
+//TODO: AST Warn unused IDs, lookups, params
+//TODO: Parser/AST output Action prototypes
+//TODO: Configuration Grammar with %section directive
+//TODO: Context change on <identifier> value
+
+char** ShowBlocksInCategory(int block_category);
+
+char** ShowBlockByLabel(char* block_label);
+
+char** ShowBlockByID(int param0_int);
+
+char** MonitorRemoveByLabel(char* block_label);
+
+char** MonitorRemoveByBlockCatN(int block_category, int param0_int);
+
+char** MonitorByLabel(char* block_label);
+
+char** MonitorByBlockCatN(int block_category, int param0_int);
+
+char** ClearBlockByLabel(char* block_label);
+
+char** ClearBlockByBlockCatN(int block_category, int param0_int);
+
+char** SendCommandToBlockCatN(int block_category, int param0_int, int command);
+
+char** SendCommandToBlockLabel(char* block_label, int command);
+
+char** SimIntDataMessageFromBCatN(int block_category, int param1_int, int param0_int);
+
+char** SimFloatDataMessageFromBCatN(int block_category, int param1_int, float param0_float);
+
+char** SimIntDataMessageFromBlockLabel(char* block_label, int param0_int);
+
+char** SimFloatDataMessageFromBlockLabel(char* block_label, float param0_float);
+
+char** DebugSetLevel(int param0_int);
+
+char** SetTime(char* param0_time);
+
+char** SetDate(char* param0_date);
+
+char** ConfReadFilename(char* param0_string);
+
+char** WriteToFilenameConfigFile(char* param0_string);
+
+char** CopyConfigFileToFile(char* param1_string, char* param0_string);
+
+char** BlockDisableByBlockCatN(int block_category, int param0_int);
+
+char** BlockDisableByLabel(char* param0_string);
+
+char** BlockEnableByBlockCatN(int block_category, int param0_int);
+
+char** BlockEnableByLabel(char* param0_string);
+
+char** BlockDeleteByBlockCatN(int block_category, int param0_int);
+
+char** BlockDeleteByLabel(char* param0_string);
+
+char** BlockRename(char* param1_string, char* param0_string);
+
+#ifdef USE_PROGMEM
+static const ASTA asta [87] PROGMEM = {
+#else
+static const ASTA asta [87] = {
+#endif
+	1, 1, "SHOW", 0, 0, 2, 7, "",
+	2, 1, "BLOCKS", 1, 1, 0, 3, "SHOW_BLOCKS",
+	3, 1, "SYSTEM", 1, 1, 0, 4, "SHOW_SYSTEM",
+	4, 2, "block_cat_defs", 1, 1, 0, 5, "SHOW_BLOCK_CATEGORY",
+	5, 3, "block_label", 1, 1, 0, 6, "SHOW_BLOCK_LABEL",
+	6, 5, "", 1, 1, 0, 0, "SHOW_BLOCK_ID",
+	7, 1, "MUTE", 0, 0, 8, 11, "",
+	8, 1, "MESSAGES", 0, 7, 9, 0, "",
+	9, 1, "ON", 1, 8, 0, 10, "MUTE_MESSAGES_ON",
+	10, 1, "OFF", 1, 8, 0, 0, "MUTE_MESSAGES_OFF",
+	11, 1, "MONITOR", 0, 0, 12, 21, "",
+	12, 1, "START", 1, 11, 0, 13, "MONIOTR_START",
+	13, 1, "STOP", 0, 11, 14, 18, "",
+	14, 1, "ALL", 1, 13, 0, 15, "MONITOR_STOP_ALL",
+	15, 3, "block_label", 1, 13, 0, 16, "MONITOR_STOP_BLOCK_LABEL",
+	16, 2, "block_cat_defs", 0, 13, 17, 0, "",
+	17, 5, "", 1, 16, 0, 0, "MONITOR_STOP_BLOCK_CAT_N",
+	18, 3, "block_label", 1, 11, 0, 19, "MONITOR_BLOCK_LABEL",
+	19, 2, "block_cat_defs", 0, 11, 20, 0, "",
+	20, 5, "", 1, 19, 0, 0, "MONITOR_BLOCK_CAT_N",
+	21, 1, "CLEAR", 0, 0, 22, 25, "",
+	22, 3, "block_label", 1, 21, 0, 23, "CLEAR_BLOCK_LABEL",
+	23, 2, "block_cat_defs", 0, 21, 24, 0, "",
+	24, 5, "", 1, 23, 0, 0, "CLEAR_BLOCK_CAT_N",
+	25, 1, "MESSAGE", 0, 0, 26, 44, "",
+	26, 1, "COMMAND", 0, 25, 27, 32, "",
+	27, 2, "block_cat_defs", 0, 26, 28, 30, "",
+	28, 5, "", 0, 27, 29, 0, "",
+	29, 2, "command_strings", 1, 28, 0, 0, "COMMAND_BLOCK_CAT_N",
+	30, 3, "block_label", 0, 26, 31, 0, "",
+	31, 2, "command_strings", 1, 30, 0, 0, "COMMAND_BLOCK_LABEL",
+	32, 1, "DATA", 0, 25, 33, 0, "",
+	33, 2, "block_cat_defs", 0, 32, 34, 39, "",
+	34, 5, "", 0, 33, 35, 0, "",
+	35, 1, "INT", 0, 34, 36, 37, "",
+	36, 5, "", 1, 35, 0, 0, "MESSAGE_DATA_BCAT_N_INT",
+	37, 1, "FLOAT", 0, 34, 38, 0, "",
+	38, 6, "", 1, 37, 0, 0, "MESSAGE_DATA_BCAT_N_FLOAT",
+	39, 3, "block_label", 0, 32, 40, 0, "",
+	40, 1, "INT", 0, 39, 41, 42, "",
+	41, 5, "", 1, 40, 0, 0, "MESSAGE_DATA_LABEL_INT",
+	42, 1, "FLOAT", 0, 39, 43, 0, "",
+	43, 6, "", 1, 42, 0, 0, "MESSAGE_DATA_LABEL_FLOAT",
+	44, 1, "DEBUG", 0, 0, 45, 52, "",
+	45, 1, "ON", 1, 44, 0, 46, "DEBUG_ON",
+	46, 1, "OFF", 1, 44, 0, 47, "DEBUG_OFF",
+	47, 1, "TERMINAL", 0, 44, 48, 50, "",
+	48, 1, "ON", 1, 47, 0, 49, "DEBUG_TERMINAL_ON",
+	49, 1, "OFF", 1, 47, 0, 0, "DEBUG_TERMINAL_OFF",
+	50, 1, "LEVEL", 0, 44, 51, 0, "",
+	51, 5, "", 1, 50, 0, 0, "DEBUG_LEVEL",
+	52, 1, "CLOCK", 1, 0, 53, 55, "SHOW_TIME",
+	53, 1, "SET", 0, 52, 54, 0, "",
+	54, 7, "", 1, 53, 0, 0, "SET_TIME",
+	55, 1, "DATE", 1, 0, 56, 58, "SHOW_DATE",
+	56, 1, "SET", 0, 55, 57, 0, "",
+	57, 8, "", 1, 56, 0, 0, "SET_DATE",
+	58, 1, "CONFIGURE", 0, 0, 59, 64, "",
+	59, 1, "CLEAR", 0, 58, 60, 62, "",
+	60, 1, "BLOCKS", 1, 59, 0, 61, "CONF_CLEAR_BLOCKS",
+	61, 1, "ALL", 1, 59, 0, 0, "CONF_CLEAR_ALL",
+	62, 1, "FILE", 1, 58, 63, 0, "CONF_FILE_DEFAULT",
+	63, 4, "", 1, 62, 0, 0, "CONF_FILE_FILENAME",
+	64, 1, "WRITE", 1, 0, 65, 67, "WRITE_DEFAULT",
+	65, 1, "INIT", 1, 64, 0, 66, "WRITE_INIT",
+	66, 4, "", 1, 64, 0, 0, "WRITE_FILENAME",
+	67, 1, "COPY", 0, 0, 68, 70, "",
+	68, 4, "", 0, 67, 69, 0, "",
+	69, 4, "", 1, 68, 0, 0, "COPY_FILE_FILE",
+	70, 1, "DISABLE", 0, 0, 71, 74, "",
+	71, 2, "block_cat_defs", 0, 70, 72, 73, "",
+	72, 5, "", 1, 71, 0, 0, "DISABLE_BLOCK_CAT_N",
+	73, 4, "", 1, 70, 0, 0, "DISABLE_BLOCK_LABEL",
+	74, 1, "ENABLE", 0, 0, 75, 78, "",
+	75, 2, "block_cat_defs", 0, 74, 76, 77, "",
+	76, 5, "", 1, 75, 0, 0, "ENABLE_BLOCK_CAT_N",
+	77, 4, "", 1, 74, 0, 0, "ENABLE_BLOCK_LABEL",
+	78, 1, "DELETE", 0, 0, 79, 82, "",
+	79, 2, "block_cat_defs", 0, 78, 80, 81, "",
+	80, 5, "", 1, 79, 0, 0, "DELETE_BLOCK_CAT_N",
+	81, 4, "", 1, 78, 0, 0, "DELETE_BLOCK_LABEL",
+	82, 1, "RENAME", 0, 0, 83, 85, "",
+	83, 4, "", 0, 82, 84, 0, "",
+	84, 4, "", 1, 83, 0, 0, "RENAME_BLOCK",
+	85, 1, "EXIT", 1, 0, 0, 86, "EXIT",
+	86, 1, "LOGOUT", 1, 0, 0, 87, "LOGOUT",
+	87, 1, "REBOOT", 1, 0, 0, 0, "REBOOT",
+};
+
+#endif /* PROCESSOR_OUT_H_ */
+

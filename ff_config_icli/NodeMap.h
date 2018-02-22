@@ -29,21 +29,27 @@ enum {
 	MR_INCOMPLETE,
 	MR_ACTION_POSSIBLE,
 	MR_DELIM_SKIP,
+	MR_CONTINUE,
 };
+
+typedef struct MATCH_FLAGS {
+	uint8_t help_active;
+	uint8_t keyword_match;
+	uint8_t last_matched_id;
+	uint8_t match_result;
+} M_FLAGS;
+
 
 class NodeMap {
 private:
-	uint8_t id_current;
-	uint8_t last_matched_id;
-	uint8_t str_pos;
-
-	uint8_t help_active;
-	uint8_t keyword_match;
+	M_FLAGS mf;
+	uint8_t line_pos;
+	uint16_t id_current;	// currently matched node
+	uint16_t id_walker;		// to walk through the asta array nodes by id
 
 public:
 	NodeMap();
 	virtual ~NodeMap();
-
 
 	void Reset(void);
 	uint16_t GetASTAByID(uint16_t ASTA_ID, ASTA* result);
@@ -52,9 +58,18 @@ public:
 	uint16_t Advance(uint8_t in_buf_idx);
 	uint8_t GetAction(uint16_t asta_id, char* action_str);
 
-
 protected:
-
+	uint8_t DetermineTarget(uint8_t* target_size, char* target, char* line);
+	void SelectMatchingNodes(char* target, TokenList* matched_list);
+	uint8_t EvaluateMatchedList(TokenList* matched_list);
+	uint8_t Compare_N_PARAM_DATE(char* target, ASTA* temp_node);
+	uint8_t Compare_N_PARAM_TIME(char* target, ASTA* temp_node);
+	uint8_t Compare_N_PARAM_FLOAT(char* target, ASTA* temp_node);
+	uint8_t Compare_N_PARAM_INTEGER(char* target, ASTA* temp_node);
+	uint8_t Compare_N_PARAM_STRING(char* target, ASTA* temp_node);
+	uint8_t Compare_N_LOOKUP(char* target, ASTA* temp_node);
+	uint8_t Compare_N_IDENTIFIER(char* target, ASTA* temp_node);
+	uint8_t Compare_N_KEYWORD(char* target, ASTA* temp_node);
 };
 
 #endif /* NODEMAP_H_ */

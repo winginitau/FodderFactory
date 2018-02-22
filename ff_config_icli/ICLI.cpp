@@ -76,6 +76,7 @@ void ICLI::Poll(void) {
 					break;
 				case R_IGNORE:
 					// parser discarding something irrelevant (eg extra whitespace)
+					// 	or the rest of the input buffer after error detected
 					while (parser.output.OutputAvailable()) {
 						parser.output.GetOutputAsString(output_line);
 						fputs(output_line, osp);
