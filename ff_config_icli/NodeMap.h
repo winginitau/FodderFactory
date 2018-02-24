@@ -30,6 +30,8 @@ enum {
 	MR_ACTION_POSSIBLE,
 	MR_DELIM_SKIP,
 	MR_CONTINUE,
+	MR_UNIQUE,
+	MR_HELP_ACTIVE,
 };
 
 typedef struct MATCH_FLAGS {
@@ -37,6 +39,7 @@ typedef struct MATCH_FLAGS {
 	uint8_t keyword_match;
 	uint8_t last_matched_id;
 	uint8_t match_result;
+	uint16_t error_code;
 } M_FLAGS;
 
 
@@ -57,6 +60,8 @@ public:
 	uint8_t Match(char* target, TokenList* match_list);
 	uint16_t Advance(uint8_t in_buf_idx);
 	uint8_t GetAction(uint16_t asta_id, char* action_str);
+	uint16_t MatchReduce(TokenList* list);
+	uint16_t GetErrorCode();
 
 protected:
 	uint8_t DetermineTarget(uint8_t* target_size, char* target, char* line);

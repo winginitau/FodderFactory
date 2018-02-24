@@ -15,11 +15,11 @@ enum {
 	E_NO_ERROR,
 	E_UNKNOWN_DIRECTIVE,
 	E_NULL_TOKEN_TO_LEXER,
-	E_CODE_SECTION_ALREADY_ACTIVE,
-	E_CODE_SECTION_IN_GRAMMAR_SECTION,
+	E_CODE_WHILE_OTHER_ACTIVE,
+	E_SPARE_1,
 	E_CODE_END_WITHOUT_START,
-	E_GRAMMAR_SECTION_ALREADY_ACTIVE,
-	E_GRAMMAR_SECTION_IN_CODE_SECTION,
+	E_SPARE_2,
+	E_GRAMMAR_WHILE_OTHER_ACTIVE,
 	E_GRAMMAR_END_WITHOUT_START,
 	E_COMMENT_TOKEN_NULL,
 	E_INTERNAL_ERROR_ADDING_TO_SET,
@@ -53,6 +53,9 @@ enum {
 	E_BUILDING_ACTION_PROTO,
 	E_INVALID_IDENTIFIER,
 	E_DUPLICATE_KEYWORD_AT_LEVEL,
+	E_HEADER_WHILE_OTHER_ACTIVE,
+	E_HEADER_END_WITHOUT_START,
+
 	LAST_ERROR,
 };
 
@@ -61,12 +64,12 @@ static const EnumStringArray error_strings[LAST_ERROR] = {
 		"Unknown error",
 		"Unknown directive encountered",
 		"Line starting will a Null token passed to lexer",
-		"%code-start encountered again within existing code section",
-		"%code-start encountered inside grammar section",
+		"%code-start encountered while other %code %header or %grammar section already active",
+		"Spare1 ",
 		"%code-end encountered before %code-start",
-		"%grammar-start encountered again within existing grammar section",
-		"%grammar-start encountered inside code section",
-		"%grammar-end encountered before %grammar-start start",
+		"%Spare 2",
+		"%grammar-start encountered while other %code %header or %grammar section already active",
+		"%grammar-end encountered before %grammar-start",
 		"Expected token following %comment, got NULL",
 		"Internal error adding to set. Out of memory?",
 		"Expected token following %sub-section-close, got NULL",
@@ -99,6 +102,8 @@ static const EnumStringArray error_strings[LAST_ERROR] = {
 		"Error building action prototype",
 		"Identifier did not match ANSI C identifier regular expression",
 		"Duplication of keyword at this term level detected",
+		"%header-start encountered while other %code %header or %grammar section already active",
+		"%header-end encountered before %header-start",
 
 };
 

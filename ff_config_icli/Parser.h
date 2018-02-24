@@ -21,7 +21,7 @@
 
 typedef struct PARSER_FLAGS {
 	uint8_t error_on_line;
-	uint8_t unique_match;
+//	uint8_t unique_match;
 	uint8_t parse_result;
 	uint8_t delim_reached;
 	uint8_t string_litteral;

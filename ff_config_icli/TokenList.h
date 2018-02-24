@@ -49,8 +49,11 @@ public:
 	TokenNode* Next();
 	uint16_t GetSize();
 	uint8_t IsEmpty();
+	void DeleteByType(int8_t dtype);
+	uint16_t CountByType(uint8_t type);
 
 protected:
+	void DelFromList(TokenNode** head, int8_t dtype);
 
 };
 

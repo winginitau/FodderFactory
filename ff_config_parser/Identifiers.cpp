@@ -14,10 +14,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#ifdef DEBUG
+//#ifdef DEBUG
 #include "Debug.h"
 Debug debug;
-#endif
+//#endif
 
 Identifiers::Identifiers() {
 	count = 0;

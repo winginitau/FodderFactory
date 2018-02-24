@@ -62,8 +62,11 @@ enum {
 	D_TERM_9,
 	D_ACTION_DEFINE,
 	D_ACTION,
-	D_INCLUDE,
+	D_INCLUDE_HEADER,
+	D_INCLUDE_CODE,
 	D_LOOKUP_LIST,
+	D_HEADER_START,
+	D_HEADER_END,
 	LAST_DIRECTIVE,
 };
 
@@ -108,8 +111,18 @@ static const EnumStringArray grammar_directives[LAST_DIRECTIVE] = {
 		"%9",
 		"%action-define",
 		"%action",
-		"%include",
+		"%include-header",
+		"%include-code",
 		"%lookup-list",
+		"%header-start",
+		"%header-end",
+};
+
+enum {
+	Q_USER,
+	Q_HEADER,
+	Q_CODE,
+	LAST_Q_TYPE,
 };
 
 
@@ -130,6 +143,7 @@ private:
     // persist while result = R_UNFINISHED
     bool code_section;
     bool enum_section;
+    bool header_section;
     char enum_array_type[MAX_BUFFER_WORD_LENGTH];
     char enum_array_instance[MAX_BUFFER_WORD_LENGTH];
     char enum_identifier[MAX_BUFFER_WORD_LENGTH];
@@ -146,15 +160,20 @@ private:
     bool enum_plus_list_array;
     char enum_start_value[MAX_BUFFER_WORD_LENGTH];
     char enum_array_member_label[MAX_BUFFER_WORD_LENGTH];
+
     bool enum_array_reserve_words;
-    bool output_available;
+    bool header_output_available;
+    bool user_output_available;
+    bool code_output_available;
     char output_string[MAX_BUFFER_LENGTH];
-    StringList output_queue;
+    StringList header_output_queue;
+    StringList user_output_queue;
+    StringList code_output_queue;
+
     int term_level;
     ASTNode* ast_node_temp;
     int previous_directive;
     bool action_since_last_term;
-
 
     // global structures and variables (that generally persist into the parser)
     Identifier ids[MAX_IDENTIFIERS];
@@ -168,8 +187,8 @@ public:
     virtual ~Lexer();
     void Init();
     int ProcessLine(LineBuffer& line);
-    bool OutputAvailable();
-    char* GetOutputAsString(char* output_str);
+    bool Header_OutputAvailable();
+    char* GetOutputAsString(int queue, char* output_str);
     int MatchToken(char* token_str);
     char* GetErrorString(char* error_str);
     AST ast;
@@ -204,8 +223,11 @@ protected:
     void Process_D_ACTION_DEFINE(void);
     void Process_D_ACTION(void);
     void Process_D_GRAMMAR_END(void);
-	void Process_D_INCLUDE(void);
+	void Process_D_INCLUDE_HEADER(void);
+	void Process_D_INCLUDE_CODE(void);
 	void Process_D_LOOKUP_LIST(void);
+	void Process_D_HEADER_START(void);
+	void Process_D_HEADER_END(void);
 };
 
 #endif /* LEXER_H_ */

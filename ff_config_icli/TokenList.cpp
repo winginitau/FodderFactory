@@ -180,3 +180,55 @@ TokenNode* TokenList::NewTokenNode(void) {
 	}
 }
 
+void TokenList::DeleteByType(int8_t dtype) {
+	DelFromList(&head, dtype);
+	walker = head;
+
+	// re-locate the tail (in case it was deleted)
+	if (head ==NULL) {
+		tail = NULL;
+		size = 0;
+	} else {
+		size = 1;
+		TokenNode* temp;
+		temp = head;
+		while(temp->next != NULL) {
+			temp = temp->next;
+			size++;
+		}
+		tail = temp;
+	}
+}
+
+void TokenList::DelFromList(TokenNode** head, int8_t type) {
+
+	TokenNode* temp = *head;
+	TokenNode* prev = NULL;
+	TokenNode* next = NULL;
+
+	while (temp != NULL) {
+		next = temp->next;
+		if (temp->type == type) {
+			free(temp);
+			if (prev != NULL) {
+				prev->next = next;
+			} else {
+				*head = next;
+			}
+		} else {
+			prev = temp;
+		}
+		temp = next;
+	}
+}
+
+uint16_t TokenList::CountByType(uint8_t type) {
+	uint16_t count = 0;
+	TokenNode* temp = head;
+
+	while (temp != NULL) {
+		if (temp->type == type) { count ++; }
+		temp = temp->next;
+	}
+	return count;
+}

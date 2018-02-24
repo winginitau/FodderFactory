@@ -13,49 +13,19 @@
 %#  "%#" used as comments to noblofly to allow #compiler directives
 %#  to be included in code and still be able to make noblofly comments.
 
-%code-start
+%header-start
 
 #ifndef PROCESSOR_OUT_H_
 #define PROCESSOR_OUT_H_
 
-%code-end
+%header-end
 
-%include ff_sys_config.h
+%# %include ff_sys_config.h
 
 %code-start
 
 #include <stdint.h>
 
-/**************************************************************
- * Languages Enum - Must Precede typedefs that use it
- **************************************************************/
-// We don't have an "error language" to start the enum here
-// as it would bloat every multi language StringArrayType
-// with an extra useless dimension.
-
-typedef enum LANG_TYPE {
-    ENGLISH = 0, GERMAN, LAST_LANGUAGE
-} LanguageType;
-
-/**************************************************************
- * String array typedefs
- **************************************************************/
-#ifdef USE_PROGMEM
-typedef struct STRING_ARRAY_TYPE {
-    // Longest length of this string in all languages
-    int max_len;
-    // Array of pointers to each language-specific string of type
-    char text[LAST_LANGUAGE][MAX_MESSAGE_STRING_LENGTH];
-} StringArray;
-
-#else
-typedef struct STRING_ARRAY_TYPE {
-    // Longest length of this string in all languages
-    const int max_len;
-    // Array of pointers to each language-specific string of type
-    const char* const text[LAST_LANGUAGE];
-} StringArray;
-#endif
 
 #ifdef USE_PROGMEM
 typedef struct SIMPLE_STRING_ARRAY_TYPE {
@@ -71,39 +41,20 @@ typedef struct SIMPLE_STRING_ARRAY_TYPE {
 } SimpleStringArray;
 #endif
 
-typedef struct BLOCK_CATS {
-    const uint8_t cat_id;
-    const char conf_section_label[MAX_LABEL_LENGTH];
-    const char conf_section_key_base[MAX_LABEL_LENGTH];
-    const char* const conf_keys[MAX_CONF_KEYS_PER_BLOCK];
-} BlockCatArray;
+
+typedef struct 
 
 typedef struct AST_ARRAY {
     uint16_t id;
     int type;
     char label[MAX_LABEL_LENGTH];
-//    char unique[MAX_LABEL_LENGTH];
-//    char help[MAX_DESCR_LENGTH];
-//    int term_level;
     bool action;
-//    bool finish;
     uint16_t parent;
     uint16_t first_child;
     uint16_t next_sibling;
     char action_identifier[MAX_LABEL_LENGTH];
 } ASTA;
 
-/**************************************************************
- * Language Strings - Must Follow the typedef that defines it
- **************************************************************/
-#ifdef USE_PROGMEM
-static const SimpleStringArray language_strings[LAST_LANGUAGE] PROGMEM = {
-#else
-static const SimpleStringArray language_strings[LAST_LANGUAGE] = {
-#endif
-    "English",
-    "Deutsch",
-};
 
 %code-end
 
@@ -240,7 +191,7 @@ LAST_COMMAND
 %action-define SHOW_BLOCKS ShowBlocks
 %action-define SHOW_SYSTEM ShowSystem
 %action-define SHOW_BLOCK_LABEL ShowBlockByLabel
-%action-define SHOW_BLOCK_CATEGORY ShowBlocksInCategory
+%action-define SHOW_BLOCK_CATEGORY ShowBlockByCategory
 %action-define SHOW_BLOCK_ID ShowBlockByID
 
 %# SHOW BLOCKS                   // List all blocks on device with their label and integer ID 

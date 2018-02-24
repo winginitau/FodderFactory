@@ -30,7 +30,7 @@ void Parser::ResetLine(void) {
 	in_idx = 0;
 
 	pf.error_on_line = 0;
-	pf.unique_match = 0;
+	//pf.unique_match = 0;
 	pf.parse_result = R_NONE;
 	pf.delim_reached = 0;
 	pf.string_litteral = 0;
@@ -44,31 +44,63 @@ void Parser::ResetLine(void) {
 	//line_complete = 0;
 
 	map.Reset();
+	possible_list->Reset();
+
 }
 
 uint8_t Parser::P_EOL() {
+	// Processed when EOL reached
+
 	if (pf.help_active) {
 		pf.help_active = 0;
+
 		map.Reset();
+		possible_list->Reset();
 		return R_HELP;
 	}
 	if (pf.error_on_line == 0) {
-		//line_complete = 1;  // not yet used
-		if (pf.match_result == MR_ACTION_POSSIBLE) {
-			char action_ident[MAX_LABEL_LENGTH];
-			map.GetAction(map.GetLastMatchedID(), action_ident);
-			printf("DEBUG Action matched and to be called: %s\n", action_ident);
-			map.Reset();
-			return R_COMPLETE;
-		} else {
-			pf.last_error = PE_LINE_INCOMPLETE;
-			map.Reset();
-			return R_ERROR;
+		switch (pf.match_result) {
+			case MR_ACTION_POSSIBLE:
+				char action_ident[MAX_LABEL_LENGTH];
+				map.GetAction(map.GetLastMatchedID(), action_ident);
+				printf("!!!!!!!*********!!!!!!!!**** Action matched and to be called: %s\n", action_ident);
+				map.Reset();
+				possible_list->Reset();
+				return R_COMPLETE;
+				break;
+			case MR_MULTI:
+				pf.last_error = PE_MULTI_NOT_PARSED;
+				map.Reset();
+				possible_list->Reset();
+				return R_ERROR;
+				break;
+			default:
+				pf.last_error = PE_LINE_INCOMPLETE;
+				map.Reset();
+				possible_list->Reset();
+				return R_ERROR;
+				break;
 		}
-	} else {
-		map.Reset();
-		return R_ERROR;
 	}
+	if (pf.error_on_line == 1) {
+		switch(pf.match_result) {
+			case MR_NO_MATCH:
+				pf.last_error = PE_EOL_WITH_NO_MATCH;
+				map.Reset();
+				possible_list->Reset();
+				return R_ERROR;
+				break;
+			default:
+				pf.last_error = PE_EOL_WITH_UKNOWN_MR;
+				map.Reset();
+				possible_list->Reset();
+				return R_ERROR;
+				break;
+		}
+	}
+	map.Reset();
+	possible_list->Reset();
+	return R_ERROR;
 }
 
 uint8_t Parser::P_DOUBLE_QUOTE() {
@@ -122,7 +154,9 @@ uint8_t Parser::Parse(char ch) {
 	// Process incoming char in context of parse flags
 	// set from processing the previous char and match
 	// results from the node map (if called on previous).
+	#ifdef DEBUG
 	printf("DEBUG PARSE: Processing: \"%c\"\n", ch);
+	#endif
 
 	switch (ch) {
 
@@ -148,7 +182,9 @@ uint8_t Parser::Parse(char ch) {
 		// Error already flagged but need to discard buffered chars still coming before finishing
 		// so just ignore until EOL. Next iteration will return Error or Complete accordingly
 		// once EOL encountered
+		#ifdef DEBUG
 		printf("DEBUG: Discard: \"%c\"\n", ch);
+		#endif
 		return R_IGNORE;
 	}
 
@@ -165,7 +201,7 @@ uint8_t Parser::ParseMatch(void) {
 
 	// If last match result was unique and input char parsing detected a delimiter,
 	// advance the buffer index so that the matcher is looking at the next token.
-	if (pf.delim_reached && (pf.match_result == MR_UNIQUE_KEYWORD)) {
+	if (pf.delim_reached && (pf.match_result == MR_UNIQUE)) {
 		map.Advance(in_idx);
 		pf.delim_reached = 0;
 	}
@@ -183,40 +219,105 @@ uint8_t Parser::MatchEvaluate(void) {
 
 	switch (pf.match_result) {
 		case MR_NO_MATCH:
-			printf("DEBUG PARSE: No possible match\n\n");
+
+			#ifdef DEBUG
+			printf("DEBUG PARSE: MR_NO_MATCH\n");
+			#endif
+
 			pf.error_on_line = 1;
 			pf.parse_result = R_IGNORE; // still need to clean out incoming buffer
 			break;
-		case MR_UNIQUE_KEYWORD: {
-			// single unique match
-			pf.unique_match = 1;
+		case MR_UNIQUE: {
+
+			#ifdef DEBUG
+			// single unique match - will still need EOL to finsih
+			printf("DEBUG PARSE: MR_UNIQUE\n");
+			//pf.unique_match = 1;
 			char temp[MAX_LABEL_LENGTH];
 			possible_list->GetCurrentLabel(temp);
-			printf("DEBUG PARSE: Uniquely matched:\n\t%s\n\n", temp);
+			printf("DEBUG PARSE: Uniquely matched: %s\n\n", temp);
+			#endif
+
 			pf.parse_result = R_UNFINISHED;
 		}
 			break;
+		case MR_ACTION_POSSIBLE:
+
+			#ifdef DEBUG
+			// single unique matched with is actionalable - (if EOL is next)
+			printf("DEBUG PARSE: MR_ACTION_POSSIBLE\n");
+			#endif
+
+			pf.parse_result = R_UNFINISHED;
+			break;
 		case MR_MULTI: {
-			printf("DEBUG PARSE: Multiple matches - Queuing:\n");
+
+			#ifdef DEBUG
+			printf("DEBUG PARSE: MR_MULTI:\n");
 			possible_list->ToTop();
 			for (int i = 0; i < possible_list->GetSize(); i++) {
 				possible_list->GetCurrentLabel(temp);
 				sprintf(out, "\t%s\n", temp);
 				printf("DEBUG: %s", out);
+				possible_list->Next();
+			}
+			#endif
+
+			pf.parse_result = R_UNFINISHED;
+		}
+			break;
+
+		case MR_DELIM_SKIP:
+
+			#ifdef DEBUG
+			printf("DEBUG PARSE: MR_DELIM_SKIP\n");
+			#endif
+
+			pf.parse_result = R_UNFINISHED;
+			break;
+
+		case MR_HELP_ACTIVE: {
+
+			#ifdef DEBUG
+			printf("DEBUG PARSE: MR_HELP_ACTIVE\n");
+			#endif
+
+			possible_list->ToTop();
+			for (int i = 0; i < possible_list->GetSize(); i++) {
+				possible_list->GetCurrentLabel(temp);
+				sprintf(out, "\t%s\n", temp);
+
+				#ifdef DEBUG
+				printf("DEBUG: %s", out);
+				#endif
+
 				output.EnQueue(out);
 				possible_list->Next();
 			}
 			pf.parse_result = R_UNFINISHED;
 		}
 			break;
-		case MR_DELIM_SKIP:
-			pf.parse_result = R_UNFINISHED;
+
+		case MR_ERROR:
+
+			#ifdef DEBUG
+			printf("DEBUG PARSE: MR_ERROR\n");
+			#endif
+
+			pf.last_error = map.GetErrorCode();
+			map.Reset();
+			pf.parse_result = R_ERROR;
 			break;
-		case MR_ACTION_POSSIBLE:
-			pf.parse_result = R_UNFINISHED;
-			break;
+
 		default:
-			pf.parse_result = R_NONE;
+
+			#ifdef DEBUG
+			printf("DEBUG PARSE: NO MR Caught - default case\n");
+			#endif
+
+			pf.last_error = PE_NODEMAP_RESULT_NOT_CAUGHT;
+			map.Reset();
+			pf.parse_result = R_ERROR;
 			break;
 	}
 	return pf.parse_result;

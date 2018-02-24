@@ -86,7 +86,7 @@ void ICLI::Poll(void) {
 					sprintf(output_line, "\n>>> Error:\n>>> ");
 					fputs(output_line, osp);
 					parser.GetErrorString(output_line);
-					strcat(output_line, "\nTry \"?\" or <command>? for help.\n");
+					strcat(output_line, "\nTry \"?\" or <command> ? for help.\n");
 					fputs(output_line, osp);
 					fputs(prompt, osp);
 					parser.ResetLine();

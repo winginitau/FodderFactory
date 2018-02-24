@@ -47,13 +47,14 @@ void Lexer::Init() {
     directive = D_NONE;
     process_result = R_NONE;
     last_directive = 0;
-    output_available = false;
+    header_output_available = false;
     output_string[0] = '\0';
     error_type = E_NO_ERROR;
     // sectionally persistent directives
     // persist only while line result = R_UNFINISHED
     code_section = false;
     enum_section = false;
+    header_section = false;
 
 
 
@@ -122,21 +123,32 @@ int Lexer::ProcessLine(LineBuffer& line_buf) {
         case D_ACTION_DEFINE: 				Process_D_ACTION_DEFINE(); 					break;
         case D_ACTION: 						Process_D_ACTION(); 						break;
         case D_GRAMMAR_END: 				Process_D_GRAMMAR_END(); 					break;
-        case D_INCLUDE: 					Process_D_INCLUDE(); 						break;
+        case D_INCLUDE_HEADER: 				Process_D_INCLUDE_HEADER();					break;
+        case D_INCLUDE_CODE: 				Process_D_INCLUDE_CODE();					break;
         case D_LOOKUP_LIST:					Process_D_LOOKUP_LIST();					break;
+        case D_HEADER_START:				Process_D_HEADER_START();					break;
+        case D_HEADER_END:					Process_D_HEADER_END();						break;
     }
     previous_directive = directive;
     return process_result;
 }
 
 void Lexer::Process_D_UNKNOWN(void) {
-	if (code_section) {
+	if (header_section) {
 		line.GetRawBuffer(output_string);
 		strcat(output_string, "\n");
-		output_queue.EnQueue(output_string);
-		output_available = true;
+		header_output_queue.EnQueue(output_string);
+		header_output_available = true;
 		process_result = R_UNFINISHED;
 	} else {
+		if(code_section) {
+			line.GetRawBuffer(output_string);
+			strcat(output_string, "\n");
+			code_output_queue.EnQueue(output_string);
+			code_output_available = true;
+			process_result = R_UNFINISHED;
+
+		} else {
 		if (enum_section) {
 			line.GetTokenStr(tokens[0], 0);
 			line.GetTokenStr(tokens[1], 1);
@@ -148,6 +160,7 @@ void Lexer::Process_D_UNKNOWN(void) {
 			process_result = R_ERROR;
 			error_type = E_UNKNOWN_DIRECTIVE;
 		}
+		}
 	}
 }
 
@@ -157,31 +170,34 @@ void Lexer::Process_D_GRAMMAR_COMMENT(void) {
 }
 
 void Lexer::Process_D_NULL(void) {
-	if (code_section) {  // handle blank lines in the code section
+	if (header_section) {  // handle blank lines in the code and header section
 		line.GetRawBuffer(output_string);
 		strcat(output_string, "\n");
-		output_queue.EnQueue(output_string);
-		output_available = true;
+		header_output_queue.EnQueue(output_string);
+		header_output_available = true;
 		process_result = R_UNFINISHED;
 	} else {
+		if (code_section) {  // handle blank lines in the code and header section
+			line.GetRawBuffer(output_string);
+			strcat(output_string, "\n");
+			code_output_queue.EnQueue(output_string);
+			code_output_available = true;
+			process_result = R_UNFINISHED;
+		} else {
 		// ignore NULL token
 		process_result = R_COMPLETE;
 		//error_type = E_NULL_TOKEN_TO_LEXER;
+		}
 	}
 }
 
 void Lexer::Process_D_CODE_START(void) {
-	if (code_section) {
+	if (code_section || header_section || grammar_section) {
 		process_result = R_ERROR;
-		error_type = E_CODE_SECTION_ALREADY_ACTIVE;
+		error_type = E_CODE_WHILE_OTHER_ACTIVE;
 	} else {
-		if (grammar_section) {
-			process_result = R_ERROR;
-			error_type = E_CODE_SECTION_IN_GRAMMAR_SECTION;
-		} else {
-			code_section = true;
-			process_result = R_UNFINISHED;
-		}
+		code_section = true;
+		process_result = R_UNFINISHED;
 	}
 }
 
@@ -196,19 +212,15 @@ void Lexer::Process_D_CODE_END(void) {
 }
 
 void Lexer::Process_D_GRAMMAR_START(void) {
-	if (grammar_section) {
+	if (code_section || header_section || grammar_section) {
 		process_result = R_ERROR;
-		error_type = E_GRAMMAR_SECTION_ALREADY_ACTIVE;
+		error_type = E_GRAMMAR_WHILE_OTHER_ACTIVE;
 	} else {
-		if (code_section) {
-			process_result = R_ERROR;
-			error_type = E_GRAMMAR_SECTION_IN_CODE_SECTION;
-		} else {
-			grammar_section = true;
-			process_result = R_COMPLETE;
-		}
+		grammar_section = true;
+		process_result = R_COMPLETE;
 	}
 }
+
 
 void Lexer::Process_D_COMMENT(void) {
 	if (line.GetTokenStr(token_str, 1) == NULL) {
@@ -386,7 +398,7 @@ void Lexer::Process_D_ENUM_START(void) {
 
 void Lexer::Process_D_ENUM_END(void) {
 	strcpy(output_string, "enum {\n");
-	output_queue.EnQueue(output_string);
+	header_output_queue.EnQueue(output_string);
 	for (uint16_t i = 0; i < idents.GetSize(enum_identifier); i++) {
 		if (enum_plus_list_array) {
 			idents.GetEntryAtLocation(enum_identifier,tokens[0], tokens[1], i);
@@ -400,10 +412,10 @@ void Lexer::Process_D_ENUM_END(void) {
             strcat(output_string, enum_start_value);
 		}
 		strcat(output_string, ",\n");
-		output_queue.EnQueue(output_string);
+		header_output_queue.EnQueue(output_string);
 	}
 	strcpy(output_string, "};\n\n");
-	output_queue.EnQueue(output_string);
+	header_output_queue.EnQueue(output_string);
 
 	if (enum_plus_list_array) {
 		uint16_t size = idents.GetSize(enum_identifier);		// # entries in the enum
@@ -422,7 +434,7 @@ void Lexer::Process_D_ENUM_END(void) {
 		}
 
 		strcpy(output_string, "#ifdef USE_PROGMEM\n");
-    	output_queue.EnQueue(output_string);
+    	header_output_queue.EnQueue(output_string);
 
     	strcpy(output_string, "static const ");
 		strcat(output_string, enum_array_type);
@@ -431,10 +443,10 @@ void Lexer::Process_D_ENUM_END(void) {
 		strcat(output_string, " [");
 		strcat(output_string, tokens[0]);
 		strcat(output_string, "] PROGMEM = {\n");
-    	output_queue.EnQueue(output_string);
+    	header_output_queue.EnQueue(output_string);
 
 		strcpy(output_string, "#else\n");
-    	output_queue.EnQueue(output_string);
+    	header_output_queue.EnQueue(output_string);
 
     	strcpy(output_string, "static const ");
 		strcat(output_string, enum_array_type);
@@ -443,26 +455,26 @@ void Lexer::Process_D_ENUM_END(void) {
 		strcat(output_string, " [");
 		strcat(output_string, tokens[0]);
 		strcat(output_string, "] = {\n");
-    	output_queue.EnQueue(output_string);
+    	header_output_queue.EnQueue(output_string);
 
 		strcpy(output_string, "#endif\n");
-    	output_queue.EnQueue(output_string);
+    	header_output_queue.EnQueue(output_string);
 
     	for (uint16_t i = 0; i < size - 1; i++) {
 			idents.GetEntryAtLocation(enum_identifier,tokens[0], tokens[1], i);
     		strcpy(output_string, "\t\"");
     		strcat(output_string, tokens[1]);
     		strcat(output_string, "\",\n");
-        	output_queue.EnQueue(output_string);
+        	header_output_queue.EnQueue(output_string);
     	}
     	strcpy(output_string, "};\n\n");
-    	output_queue.EnQueue(output_string);
+    	header_output_queue.EnQueue(output_string);
     }
 
 	/*
     %enum-array-member-label text
     */
-    output_available = true;
+    header_output_available = true;
     enum_section = false;
     process_result = R_COMPLETE;
 
@@ -592,8 +604,8 @@ void Lexer::Process_D_ACTION(void) {
     		ast.BuildActionPrototype(idents);
     		while (ast.output.OutputAvailable()) {
     			ast.output.GetOutputAsString(output_string);
-    			output_queue.EnQueue(output_string);
-        		output_available = true;
+    			header_output_queue.EnQueue(output_string);
+        		header_output_available = true;
     		}
     		process_result = R_COMPLETE;
     		action_since_last_term = true;
@@ -607,38 +619,39 @@ void Lexer::Process_D_GRAMMAR_END(void) {
 		// XXX
 		//
 		strcpy(output_string, "//TODO: Command Line Options Processing\n");
-		output_queue.EnQueue(output_string);
+		code_output_queue.EnQueue(output_string);
 		strcpy(output_string, "//TODO: AST Validation Walk - \n");
-		output_queue.EnQueue(output_string);
+		code_output_queue.EnQueue(output_string);
 		strcpy(output_string, "//TODO: AST Flag end points\n");
-		output_queue.EnQueue(output_string);
+		code_output_queue.EnQueue(output_string);
 		strcpy(output_string, "//TODO: AST Order Ambiguity Report\n");
-		output_queue.EnQueue(output_string);
+		code_output_queue.EnQueue(output_string);
 		strcpy(output_string, "//TODO: AST Determine Partial Keyword Uniqueness\n");
-		output_queue.EnQueue(output_string);
+		code_output_queue.EnQueue(output_string);
 		strcpy(output_string, "//TODO: AST Warn unused IDs, lookups, params\n");
-		output_queue.EnQueue(output_string);
+		code_output_queue.EnQueue(output_string);
 		strcpy(output_string, "//TODO: Parser/AST output Action prototypes\n");
-		output_queue.EnQueue(output_string);
+		code_output_queue.EnQueue(output_string);
 		strcpy(output_string, "//TODO: Configuration Grammar with %section directive\n");
-		output_queue.EnQueue(output_string);
+		code_output_queue.EnQueue(output_string);
 		strcpy(output_string, "//TODO: Context change on <identifier> value\n\n");
-		output_queue.EnQueue(output_string);
+		code_output_queue.EnQueue(output_string);
 
 		ast.WriteASTArray(&idents);
 		//idents.DumpIdentifiers();
 
 		while (ast.output.OutputAvailable()) {
 			ast.output.GetOutputAsString(output_string);
-			output_queue.EnQueue(output_string);
+			header_output_queue.EnQueue(output_string);
 		}
 
 		while (idents.output.OutputAvailable()) {
 			idents.output.GetOutputAsString(output_string);
-			output_queue.EnQueue(output_string);
+			header_output_queue.EnQueue(output_string);
 		}
 
-		output_available = true;
+		header_output_available = true;
+		code_output_available = true;
 		grammar_section = false;
 		process_result = R_COMPLETE;
 	} else {
@@ -647,7 +660,7 @@ void Lexer::Process_D_GRAMMAR_END(void) {
 	}
 }
 
-void Lexer::Process_D_INCLUDE(void) {
+void Lexer::Process_D_INCLUDE_HEADER(void) {
 	if (line.GetTokenStr(tokens[1], 1) == NULL) {
 		process_result = R_ERROR;
 		error_type = E_INCLUDE_WITHOUT_FILENAME;
@@ -660,8 +673,36 @@ void Lexer::Process_D_INCLUDE(void) {
 			while (!feof(f)) {
 				res = fgets(in_buf, MAX_BUFFER_LENGTH, f);
 				if (res != NULL) {
-					output_queue.EnQueue(in_buf);
-					output_available = true;
+					header_output_queue.EnQueue(in_buf);
+					header_output_available = true;
+				} else {
+					process_result = R_ERROR;
+					error_type = E_READING_INCLUDE_FILE;
+				}
+			}
+			process_result = R_COMPLETE;
+		} else {
+			process_result = R_ERROR;
+			error_type = E_READING_INCLUDE_FILE;
+		}
+	}
+}
+
+void Lexer::Process_D_INCLUDE_CODE(void) {
+	if (line.GetTokenStr(tokens[1], 1) == NULL) {
+		process_result = R_ERROR;
+		error_type = E_INCLUDE_WITHOUT_FILENAME;
+	} else {
+		FILE* f;
+		char* res;
+		char in_buf[MAX_BUFFER_LENGTH];
+		f = fopen(tokens[1], "r");
+		if (f != NULL) {
+			while (!feof(f)) {
+				res = fgets(in_buf, MAX_BUFFER_LENGTH, f);
+				if (res != NULL) {
+					code_output_queue.EnQueue(in_buf);
+					code_output_available = true;
 				} else {
 					process_result = R_ERROR;
 					error_type = E_READING_INCLUDE_FILE;
@@ -709,17 +750,58 @@ void Lexer::Process_D_LOOKUP_LIST(void) {
 	}
 }
 
-bool Lexer::OutputAvailable() {
-    return output_available;
+void Lexer::Process_D_HEADER_START(void) {
+	if (code_section || header_section || grammar_section) {
+		process_result = R_ERROR;
+		error_type = E_HEADER_WHILE_OTHER_ACTIVE;
+	} else {
+		header_section = true;
+		process_result = R_UNFINISHED;
+	}
 }
 
-char* Lexer::GetOutputAsString(char* output_str) {
+void Lexer::Process_D_HEADER_END(void) {
+	if (header_section) {
+		header_section = false;
+		process_result = R_COMPLETE;
+	} else {
+		process_result = R_ERROR;
+		error_type = E_HEADER_END_WITHOUT_START;
+	}
+}
 
-    output_queue.DeQueue(output_string);
-    if (output_queue.GetSize() == 0) {
-        output_available = false;
-    }
-    return strcpy(output_str, output_string);
+bool Lexer::Header_OutputAvailable() {
+    return header_output_available;
+}
+
+char* Lexer::GetOutputAsString(int queue, char* output_str) {
+
+	switch (queue) {
+		case Q_USER:
+			user_output_queue.DeQueue(output_string);
+			if (user_output_queue.GetSize() == 0) {
+				user_output_available = false;
+			}
+			return strcpy(output_str, output_string);
+			break;
+		case Q_HEADER:
+			header_output_queue.DeQueue(output_string);
+			if (header_output_queue.GetSize() == 0) {
+				header_output_available = false;
+			}
+			return strcpy(output_str, output_string);
+			break;
+		case Q_CODE:
+			code_output_queue.DeQueue(output_string);
+			if (code_output_queue.GetSize() == 0) {
+				code_output_available = false;
+			}
+			return strcpy(output_str, output_string);
+			break;
+		default:
+			printf("FATAL Error, Nonexistent output queue referenced in Lexer::GetOutputAsString()\n");
+			exit(-1);
+	}
 }
 
 

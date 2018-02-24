@@ -1,5 +1,5 @@
 /*****************************************************************
- defines.h
+ common_config.h
 
  Copyright (C) 2018 Brendan McLearie 
 
@@ -10,7 +10,7 @@
 #ifndef COMMON_CONFIG_H_
 #define COMMON_CONFIG_H_
 
-#define DEBUG
+//#define DEBUG
 
 
 #define MAX_BUFFER_LENGTH 150
