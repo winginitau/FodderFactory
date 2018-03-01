@@ -33,7 +33,11 @@ public:
 	AST();
 	virtual ~AST();
 
-	OutputBuffer output;
+	OutputBuffer header_output_queue;
+	OutputBuffer code_output_queue;
+	OutputBuffer user_output_queue;
+	OutputBuffer user_code_output_queue;
+
 
 	int AddSiblingToCurrent(ASTNode* node);
 	int AddChildToCurrent(ASTNode* node);
@@ -42,6 +46,8 @@ public:
 	int AddNode(int term_level, const char* term_type);
 	int AddNode(int term_level, const char* term_type, const char* term);
 	void WriteASTArray(Identifiers* idents); // needs idents as well as AST to write the AST Array
+
+	int GetASTTypeString(char* return_string, int type);
 
 	void AttachActionToCurrent(char* action_identifier);
 	int BuildActionPrototype(Identifiers& idents);

@@ -1,5 +1,5 @@
 /*****************************************************************
- SetList.h
+ StringList.h
 
  Copyright (C) 2018 Brendan McLearie 
 

@@ -16,6 +16,29 @@
 #include <stdlib.h>
 #include <ctype.h>
 
+#ifndef FF_ARDUINO
+char* strlwr(char* s)
+{
+    char* tmp = s;
+    for (;*tmp;++tmp) {
+        *tmp = tolower((unsigned char) *tmp);
+    }
+    return s;
+}
+
+char* strupr(char* s)
+{
+    char* tmp = s;
+    for (;*tmp;++tmp) {
+        *tmp = toupper((unsigned char) *tmp);
+    }
+    return s;
+}
+#endif
+
+
+
+
 NodeMap::NodeMap() {
 	Reset();
 }
@@ -56,7 +79,7 @@ uint16_t NodeMap::GetASTAByID(uint16_t ASTA_ID, ASTA* result) {
 		}
 		arr_idx++;
 	}
-	printf("ASTA ID Not Found - Array index going out of bounds - Serious error\n");
+	printf("ASTA ID Not Found - Array index going out of bounds - Serious error\n\r");
 	// XXX report serious error rather than crash on embedded
 	return 0;
 }
@@ -68,7 +91,7 @@ uint8_t NodeMap::DetermineTarget(uint8_t* target_size, char* target, char* line)
 		// past the space delimiter at the end of the line.
 		// Don't process
 		#ifdef DEBUG
-		printf("DEBUG NodeMap: DELIM_SKIP\n");
+		printf("DEBUG NodeMap: DELIM_SKIP\n\r");
 		#endif
 
 		return MR_DELIM_SKIP;
@@ -138,49 +161,77 @@ uint8_t NodeMap::Compare_N_PARAM_INTEGER(char* target, ASTA* temp_node) {
 }
 
 uint8_t NodeMap::Compare_N_PARAM_STRING(char* target, ASTA* temp_node) {
-	//if (mf.keyword_match) {
-	//	return 0;
-	//}
+
+	if (isdigit(target[0])) {
+		// can't be keyword or ident or lookup
+		// XXX any string, unless in "" would also likely be subject to
+		// identifier regex..... eg filename.....
+		return 0;
+	}
 	// input is a string by definition
-	// we're looking for a string, so add it regardless
+	// we're looking for a string, so add it otherwise
 	sprintf(temp_node->label, "<param-string>");
 	return 1;
 }
 
 uint8_t NodeMap::Compare_N_LOOKUP(char* target, ASTA* temp_node) {
-	//if (mf.keyword_match) {
-	//	return 0;
-	//}
+
+	if (isdigit(target[0])) {
+		// can't be keyword or ident or lookup
+		return 0;
+	}
+
 	// input is a string by definition
 	// if we're looking for a lookup value, then we're looking for a string
 	return 1;
 }
 
 uint8_t NodeMap::Compare_N_IDENTIFIER(char* target, ASTA* temp_node) {
-	//if (mf.keyword_match) {
-	//	return 0;
-	//}
-	// if we're looking for an ident then this could be it
-	// XXX need identifier lookup mapping code to be produced by processor
-	// before proceeding with this bit.
+	uint16_t xlat;
+	uint8_t member_id;
+	//char target_upr[MAX_LABEL_LENGTH];
+
+	if (isdigit(target[0])) {
+		// can't be keyword or ident or lookup
+		return 0;
+	}
+
+	xlat = LookupIdentMap(temp_node->label);
+	member_id = LookupIdentifierMembers(xlat, target);
+
+#ifdef DEBUG
+	printf("\n\rDEBUG LOOKUP IDENTIFIER: Target: %s  ASTALabel: %s  xlatVal: %d  block_cat_id: %d\n\n\r", target, temp_node->label, xlat, member_id);
+#endif
+
+	if (member_id > 0) {
+		return member_id;
+	} else {
+		return 0;
+	}
 	return 1;
 }
 
 uint8_t NodeMap::Compare_N_KEYWORD(char* target, ASTA* temp_node) {
-	// if help activated include it regardless of match
-	// and without dominating the other nodes
-	//if (mf.help_active) {
-	//	return 1;
-	//} else {
-		// even as partial unique, it overrides all other types
-		// check if its matching the input string
-		char* sub_string_start;
-		sub_string_start = strstr(temp_node->label, target);
-		if (sub_string_start == temp_node->label) {
-			mf.keyword_match = 1;
-			return 1;
+	char target_upr[MAX_LABEL_LENGTH];
+	char label_upr[MAX_LABEL_LENGTH];
 
-		}
+	// even as partial unique, it overrides all other types
+	// check if its matching the input string
+	if (isdigit(target[0])) {
+		// can't be keyword or ident or lookup
+		return 0;
+	}
+	strcpy(target_upr, target);
+	strcpy(label_upr, temp_node->label);
+	strupr(target_upr);
+	strupr(label_upr);
+
+	char* sub_string_start;
+	sub_string_start = strstr(label_upr, target_upr);
+	if (sub_string_start == label_upr) {
+		mf.keyword_match = 1;
+		return 1;
+	}
 	return 0;
 }
 
@@ -196,15 +247,21 @@ uint8_t NodeMap::Match(char* line, TokenList* matched_list) {
 
 	id_walker = id_current;
 
+
+	// Size up the target
 	mf.match_result = DetermineTarget(&target_size, target, line);
+	// If size == 0 assume advanced past a delim, return
 	if (mf.match_result == MR_DELIM_SKIP) { return MR_DELIM_SKIP; }
+
+	// save the target to be turned into an action call parameter later (once delim reached)
+	strcpy(last_target, target);
 
 	// by default help is off
 	mf.help_active = 0;
 	// except
 	if (target[(target_size-1)] == '?') {
 		// add sibling nodes to list based match so far
-		// - if advanced past delimiter ("xxx ?") then it will be
+		// - if advanced past delimiter using space " " then it will be
 		//	 siblings of the first child of the previously matched node
 		mf.help_active = 1;
 	}
@@ -239,9 +296,10 @@ void NodeMap::SelectMatchingNodes(char* target, TokenList* matched_list) {
 			case AST_KEYWORD:		cr = Compare_N_KEYWORD(target, &temp_node);			break;
 		};
 
-		if ((cr == 1) || (mf.help_active == 1)) {
+		if ((cr > 0) || (mf.help_active == 1)) {
 			// the node is a possible match to be included
 			matched_list->AddASTAToTokenList(temp_node);
+			printf("DEBUG Selecting Matching: ID:%d  Label:%s  Action:%s \n\r", temp_node.id, temp_node.label, temp_node.action_identifier);
 		}
 
 		//set up for the siblings (if any)
@@ -286,6 +344,8 @@ uint8_t NodeMap::EvaluateMatchedList(TokenList* matched_list) {
 		// matched without further input
 		// XXX unless its a potential Look-Ahaed case......
 
+		// Call MatchReduce and deal with the result - which is the number of
+		// matching nodes left after the reduce
 		switch (MatchReduce(matched_list)) {
 			case 0: return MR_ERROR; break;
 			case 1:
@@ -346,10 +406,10 @@ uint16_t NodeMap::MatchReduce(TokenList* list) {
 				if (count == 1) {
 					return 1;
 				} else {
-					//XXX
+					// reduce did not achieve a unique match
 
 					#ifdef DEBUG
-					printf("XXX Fatal in MatchReduce: size != 1 after iterative delete to unique node");
+					printf("DEBUG Fatal in MatchReduce: size != 1 after iterative delete to unique node\n\r");
 					#endif
 
 					mf.error_code = PE_MATCHREDUCE_EXPECTED_1;
@@ -369,7 +429,7 @@ uint16_t NodeMap::MatchReduce(TokenList* list) {
 			if (list->GetSize() == 1) {
 
 				#ifdef DEBUG
-				printf("XXX Fatal Error in MatchReduce: unique lookup node passed to reducer");
+				printf("XXX Fatal Error in MatchReduce: unique lookup node passed to reducer\n\r");
 				#endif
 
 				mf.error_code = PE_LOOKUP_PASSED_TO_REDUCER;
@@ -380,7 +440,7 @@ uint16_t NodeMap::MatchReduce(TokenList* list) {
 	}
 
 	#ifdef DEBUG
-	printf("XXX Serious Error - Next parse step dependent on multiple user-param nodes which can't be distinguished");
+	printf("XXX Serious Error - Next parse step dependent on multiple user-param nodes which can't be distinguished\n\r");
 	#endif
 
 	mf.error_code = PE_MULTIPLE_PARAM_LOOKAHEAD;
@@ -389,10 +449,14 @@ uint16_t NodeMap::MatchReduce(TokenList* list) {
 	return 0;
 }
 
+char* NodeMap::GetLastTargetString(char* return_string) {
+	return strcpy(return_string, last_target);
+}
 
 uint16_t NodeMap::Advance(uint8_t in_buf_idx) {
-	// last_matched_id is the uniquely matched node
-	// move to first child so that subsequent matching
+	// Last_matched_id is the uniquely matched node
+	//
+	// Move to first child so that subsequent matching
 	// will occur against the child and its siblings
 
 	ASTA temp;
@@ -407,7 +471,7 @@ uint16_t NodeMap::Advance(uint8_t in_buf_idx) {
 	line_pos = in_buf_idx;
 
 	#ifdef DEBUG
-	printf("DEBUG NodeMap::Advance\n");
+	printf("DEBUG NodeMap::Advance\n\r");
 	#endif
 
 	return id_current;
@@ -430,4 +494,118 @@ uint16_t NodeMap::GetLastMatchedID() {
 uint16_t NodeMap::GetErrorCode() {
 	return mf.error_code;
 }
+
+/*
+int NodeMap::BuildFunctionParamList(Identifiers& idents) {
+	// While on the AST node that is action-able - "current", walk via
+	// parent pointers up the tree, building the function parameter
+	// list that will be included in the function prototype for this action.
+
+	KeyValuePairList params;
+	ASTNode* walker;
+	int param_count = 0;
+	int param_index = 0;
+	char param_name[MAX_BUFFER_WORD_LENGTH];
+	char param_type[MAX_BUFFER_WORD_LENGTH];
+	char func_name[MAX_BUFFER_WORD_LENGTH];
+	char temp[MAX_BUFFER_WORD_LENGTH];
+
+	walker = current;
+	while (walker != NULL ) {
+		// count the num of params that need to be included in the function
+		if (walker->type > AST_KEYWORD) {
+			param_count++;
+		}
+
+		// count the ones that needs to be numerically labelled
+		if (walker->type >= AST_LOOKUP) {
+			param_index++;
+		}
+		walker = walker->parent;
+	}
+
+	walker = current;
+	while (walker != NULL) {
+		switch (walker->type) {
+			case AST_UNDEFINED:
+				return E_AST_NODE_UNDEFINED_TYPE;
+				break;
+			case AST_KEYWORD:
+				// ignore - it got us to here anyway
+				break;
+			case AST_IDENTIFIER:
+				if (idents.Exists(walker->label)) {
+					sprintf(param_type, "int");
+					params.Add(walker->label, param_type);
+				} else
+					return E_BUILDING_ACTION_PROTO;
+				break;
+			case AST_LOOKUP:
+				if (idents.Exists(walker->label)) {
+					sprintf(param_type, "char*");
+					params.Add(walker->label, param_type);
+				} else
+					return E_BUILDING_ACTION_PROTO;
+				break;
+			case AST_PARAM_STRING:
+				sprintf(param_type, "char*");
+				sprintf(param_name, "param%u_string", param_index);
+				params.Add(param_name, param_type);
+				param_index--;
+				break;
+			case AST_PARAM_INTEGER:
+				sprintf(param_type, "int");
+				sprintf(param_name, "param%u_int", param_index);
+				params.Add(param_name, param_type);
+				param_index--;
+				break;
+			case AST_PARAM_FLOAT:
+				sprintf(param_type, "float");
+				sprintf(param_name, "param%u_float", param_index);
+				params.Add(param_name, param_type);
+				param_index--;
+				break;
+			case AST_PARAM_TIME:
+				sprintf(param_type, "char*");
+				sprintf(param_name, "param%u_time", param_index);
+				params.Add(param_name, param_type);
+				param_index--;
+				break;
+			case AST_PARAM_DATE:
+				sprintf(param_type, "char*");
+				sprintf(param_name, "param%u_date", param_index);
+				params.Add(param_name, param_type);
+				param_index--;
+				break;
+		}
+		walker = walker->parent;
+	}
+
+	// write the function
+	strcpy(output_string, "char** ");
+	if (idents.GetInstanceName(current->action_identifier, func_name) != E_NO_ERROR) {
+		return E_BUILDING_ACTION_PROTO;
+	}
+
+	sprintf(temp, "%s(", func_name);
+	strcat(output_string, temp);
+
+	if (param_count == 0) {
+		strcat(output_string, "void);\n\n");
+		output.EnQueue(output_string);
+	} else {
+		for (int i = param_count - 1; i > 0; i--) {
+			params.GetPairAtLocation(param_name, param_type, i);
+			sprintf(temp, "%s %s, ", param_type, param_name);
+			strcat(output_string, temp);
+		}
+		params.GetPairAtLocation(param_name, param_type, 0);
+		sprintf(temp, "%s %s);\n\n", param_type, param_name);
+		strcat(output_string, temp);
+		output.EnQueue(output_string);
+	}
+	return E_NO_ERROR;
+}
+*/
+
 

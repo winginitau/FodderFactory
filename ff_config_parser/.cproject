@@ -45,13 +45,13 @@
 					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.591242930.885886826" name="bucket" rcbsApplicability="disable" resourcePath="bucket" toolsToInvoke=""/>
 					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.591242930.45432942" name="ff_sys_config.h" rcbsApplicability="disable" resourcePath="ff_sys_config.h" toolsToInvoke=""/>
 					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.591242930.2082700135" name="ICLI.h" rcbsApplicability="disable" resourcePath="ICLI.h" toolsToInvoke=""/>
-					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.591242930.637441276" name="processor_out.h" rcbsApplicability="disable" resourcePath="processor_out.h" toolsToInvoke=""/>
 					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.591242930.1373193506" name="NodeMap.h" rcbsApplicability="disable" resourcePath="NodeMap.h" toolsToInvoke=""/>
+					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.591242930.1181350560" name="out.h" rcbsApplicability="disable" resourcePath="out.h" toolsToInvoke=""/>
 					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.591242930.440820977" name="ff_string_consts.h" rcbsApplicability="disable" resourcePath="ff_string_consts.h" toolsToInvoke=""/>
 					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.591242930.499483551" name="Parser.h" rcbsApplicability="disable" resourcePath="Parser.h" toolsToInvoke=""/>
 					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.591242930.1753549864" name="MapNode.h" rcbsApplicability="disable" resourcePath="MapNode.h" toolsToInvoke=""/>
 					<sourceEntries>
-						<entry excluding="MapNode.cpp|MapNode.h|NodeMap.cpp|NodeMap.h|Parser.cpp|Parser.h|ICLI.h|ICLI.cpp|processor_out.h|icli_test.cpp|ff_sys_config.h|icli.cpp|ff_string_consts.h|ff_string_consts.cpp|bucket" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="out.h|out.cpp|processor_out.cpp|processor_out.c|MapNode.cpp|MapNode.h|NodeMap.cpp|NodeMap.h|Parser.cpp|Parser.h|ICLI.h|ICLI.cpp|processor_out.h|icli_test.cpp|ff_sys_config.h|icli.cpp|ff_string_consts.h|ff_string_consts.cpp|bucket" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -107,12 +107,12 @@
 							<outputType id="org.eclipse.cdt.managedbuilder.ui.rcbs.outputtype.1663533311" name="Resource Custom Build Step Output Type"/>
 						</tool>
 					</fileInfo>
-					<fileInfo id="cdt.managedbuild.config.gnu.exe.release.119920026.949598359" name="processor_out.h" rcbsApplicability="disable" resourcePath="processor_out.h" toolsToInvoke=""/>
 					<fileInfo id="cdt.managedbuild.config.gnu.exe.release.119920026.2060157832" name="NodeMap.h" rcbsApplicability="disable" resourcePath="NodeMap.h" toolsToInvoke=""/>
+					<fileInfo id="cdt.managedbuild.config.gnu.exe.release.119920026.598966135" name="out.h" rcbsApplicability="disable" resourcePath="out.h" toolsToInvoke=""/>
 					<fileInfo id="cdt.managedbuild.config.gnu.exe.release.119920026.120349926" name="Parser.h" rcbsApplicability="disable" resourcePath="Parser.h" toolsToInvoke=""/>
 					<fileInfo id="cdt.managedbuild.config.gnu.exe.release.119920026.2118580409" name="MapNode.h" rcbsApplicability="disable" resourcePath="MapNode.h" toolsToInvoke=""/>
 					<sourceEntries>
-						<entry excluding="MapNode.cpp|MapNode.h|NodeMap.cpp|NodeMap.h|Parser.h|ICLI.h|ICLI.cpp|processor_out.h|icli_test.cpp|ff_sys_config.h|icli.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="out.h|out.cpp|processor_out.cpp|processor_out.c|MapNode.cpp|MapNode.h|NodeMap.cpp|NodeMap.h|Parser.h|ICLI.h|ICLI.cpp|processor_out.h|icli_test.cpp|ff_sys_config.h|icli.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -124,6 +124,8 @@
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
 	<storageModule moduleId="refreshScope" versionNumber="2">
+		<configuration configurationName="Processor_Release"/>
+		<configuration configurationName="Processor_Debug"/>
 		<configuration configurationName="Debug">
 			<resource resourceType="PROJECT" workspacePath="/ff_config_parser"/>
 		</configuration>

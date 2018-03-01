@@ -13,7 +13,7 @@
 #include "MapNode.h"
 #include "TokenList.h"
 #include "common_config.h"
-#include "processor_out.h"
+#include "out.h"
 #include <stdint.h>
 
 // Possible Match Results
@@ -54,10 +54,13 @@ public:
 	NodeMap();
 	virtual ~NodeMap();
 
+	char last_target[MAX_BUFFER_LENGTH];
+
 	void Reset(void);
 	uint16_t GetASTAByID(uint16_t ASTA_ID, ASTA* result);
 	uint16_t GetLastMatchedID();
 	uint8_t Match(char* target, TokenList* match_list);
+	char* GetLastTargetString(char* return_string);
 	uint16_t Advance(uint8_t in_buf_idx);
 	uint8_t GetAction(uint16_t asta_id, char* action_str);
 	uint16_t MatchReduce(TokenList* list);

@@ -1,48 +1,12 @@
-/*****************************************************************
- icli.cpp
-
- Copyright (C) 2018 Brendan McLearie 
-
- Created on: 17 Feb. 2018
-
-******************************************************************/
-//#include "LineBuffer.h"
 
 
-#define LINUX
-//or ARDUINO
-
-#define INTERACTIVE
-// or FILE
-
-#define DISPLAY_STRING
-
-
-#include "ICLI.h"
+include <errno.h>
+#include <fcntl.h> 
 #include <stdio.h>
 #include <stdlib.h>
-//#include "processor_out.h"
-
-#ifdef LINUX
-#include <errno.h>
-#include <fcntl.h>
 #include <string.h>
 #include <termios.h>
 #include <unistd.h>
-#endif
-
-#define PORT "/dev/ttyV1"
-
-ICLI icli;
-
-//OutputBuffer callback_output;
-
-extern void ICLIWriteLine(char *str) {
-	char cb_str[MAX_BUFFER_LENGTH];
-	strcpy(cb_str, str);
-	icli.WriteLine(cb_str);
-}
-
 
 int set_interface_attribs(int fd, int speed)
 {
@@ -96,16 +60,15 @@ void set_mincount(int fd, int mcount)
 }
 
 
-
-int serial_tty()
+int main()
 {
-    //char *portname = "/dev/ttyUSB0";
+    char *portname = "/dev/ttyUSB0";
     int fd;
     int wlen;
 
-    fd = open(PORT, O_RDWR | O_NOCTTY | O_SYNC);
+    fd = open(portname, O_RDWR | O_NOCTTY | O_SYNC);
     if (fd < 0) {
-        printf("Error opening %s: %s\n", PORT, strerror(errno));
+        printf("Error opening %s: %s\n", portname, strerror(errno));
         return -1;
     }
     /*baudrate 115200, 8 bits, no parity, 1 stop bit */
@@ -143,45 +106,4 @@ int serial_tty()
         /* repeat read to get full message */
     } while (1);
 }
-
-
-
-
-
-/****************************************************************************
-   Main Calling Routine
-****************************************************************************/
-int main(void) {
-
-//extern static ICLI icli;
-
-	//FILE* isp;
-	//FILE* osp;
-
-#ifdef LINUX
-#ifdef INTERACTIVE
-	//isp = fopen(PORT, "rw");
-
-	//if (isp) {
-	//	icli.Begin(isp, stdout, ICLI_FILE);
-	//} else {
-	icli.Begin(stdin, stdout, ICLI_INTERACTIVE);
-	//}
-
-
-	//icli.Begin(isp, isp, ICLI_INTERACTIVE);
-
-#endif
-#endif
-
-
-	while (true) {
-		icli.Poll();
-	}
-
-	return 0;
-}
-
-
-
 

@@ -10,8 +10,10 @@
 #ifndef TOKENLIST_H_
 #define TOKENLIST_H_
 
+//struct ASTA_ARRAY;
+
 #include "common_config.h"
-#include "processor_out.h"
+#include "out.h"
 #include <stdint.h>
 
 typedef struct TOKEN_NODE {
@@ -20,7 +22,6 @@ typedef struct TOKEN_NODE {
 	uint16_t id;
 	struct TOKEN_NODE* next;
 } TokenNode;
-
 
 class TokenList {
 private:

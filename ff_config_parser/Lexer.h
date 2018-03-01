@@ -122,6 +122,7 @@ enum {
 	Q_USER,
 	Q_HEADER,
 	Q_CODE,
+	Q_USER_CODE,
 	LAST_Q_TYPE,
 };
 
@@ -165,10 +166,13 @@ private:
     bool header_output_available;
     bool user_output_available;
     bool code_output_available;
+    bool user_code_output_available;
     char output_string[MAX_BUFFER_LENGTH];
     StringList header_output_queue;
     StringList user_output_queue;
     StringList code_output_queue;
+    StringList user_code_output_queue;
+
 
     int term_level;
     ASTNode* ast_node_temp;
@@ -188,6 +192,8 @@ public:
     void Init();
     int ProcessLine(LineBuffer& line);
     bool Header_OutputAvailable();
+    bool User_OutputAvailable();
+    bool Code_OutputAvailable();
     char* GetOutputAsString(int queue, char* output_str);
     int MatchToken(char* token_str);
     char* GetErrorString(char* error_str);

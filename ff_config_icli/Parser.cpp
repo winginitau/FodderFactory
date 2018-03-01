@@ -9,13 +9,18 @@
 
 #include "Parser.h"
 #include "parser_errors.h"
+#include "out.h"				// file written by lexer
+								// XXX need proxy that gets written by lexer
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <malloc.h>
+
 
 
 Parser::Parser() {
 	possible_list = new(TokenList);
+	param_list = new(TokenList);
 	// XXX context level to go here
 	ResetLine();
 }
@@ -26,6 +31,10 @@ Parser::~Parser() {
 }
 
 void Parser::ResetLine(void) {
+	//printf("DEBUG PARSE: ResetLine() Before copy. in_buf:%s     replay_buf:%s\n\r", in_buf, replay_buf);
+	//strcpy(replay_buf, in_buf);
+	//printf("DEBUG PARSE: ResetLine() After copy. in_buf:%s     replay_buf:%s\n\r", in_buf, replay_buf);
+
 	in_buf[0] = '\0';
 	in_idx = 0;
 
@@ -37,6 +46,7 @@ void Parser::ResetLine(void) {
 	pf.match_result = MR_NO_RESULT;
 	pf.last_error = PE_NO_ERROR;
 	pf.help_active = 0;
+	pf.escape = 0;
 
 	//parse_level = 0;
 	//possible_count = 0;
@@ -45,11 +55,141 @@ void Parser::ResetLine(void) {
 
 	map.Reset();
 	possible_list->Reset();
+	param_list->Reset();
+}
 
+
+
+typedef union {
+	uint16_t param_int16;
+	float param_float;
+	char* param_string;
+} ParamUnion;
+
+#include <stdarg.h>
+
+char** CallFunction(uint8_t func_xlat, ParamUnion params[]) {
+
+/*
+	//va_list param_list;
+	//va_start(param_list, param_count);
+	ParamUnion p1;
+	p1 = va_arg(param_list, ParamUnion);
+	ParamUnion p2;
+	p2 = va_arg(param_list, ParamUnion);
+	//param list passed in
+*/
+	char** return_ptr;
+	switch (func_xlat) {
+		case 3:
+//			char** ShowBlockByCategory(int block_category);
+			return_ptr = ShowBlockByCategory(params[0].param_int16);
+			break;
+		case 4:
+//			char** ShowBlockCatN(int block_category, int param1_int);
+			return_ptr = ShowBlockCatN(params[0].param_int16, params[1].param_int16);
+			break;
+		default:
+			// XXX
+			printf("ERROR, No matched func_xlat in CallFunction - not matching function?\n\r");
+			exit(-1);
+	}
+	//va_end(param_list);
+	return return_ptr;
+}
+
+
+
+void Parser::ActionDispatcher(uint16_t action_asta_id) {
+	// Lookup the function to call (using functions from output of lexer)
+	// Call the caller with an assembled param list.
+	// Assumes that public member param_list is properly populated
+	// with the required params to go with the call.
+
+	char action_ident[MAX_LABEL_LENGTH];
+	uint16_t xlat_call_id;
+	ParamUnion params[MAX_PARAM_COUNT];
+	uint8_t param_count;
+	uint8_t param_index = 0;
+	//TokenNode* param_token;
+	char temp_str[MAX_BUFFER_LENGTH];
+	uint8_t param_type;
+
+	// get the static xlat ID from the lexer output header
+	map.GetAction(action_asta_id, action_ident);
+	xlat_call_id = LookupFuncMap(action_ident);
+
+	// set up for assembling the params
+	param_count = param_list->GetSize();
+	param_list->ToTop();
+
+	// assemble the params array (of type ParamUnion)
+	while (param_index < param_count) {
+		param_list->GetCurrentLabel(temp_str);
+		param_type = param_list->GetCurrentType();
+		switch (param_type) {
+			case AST_IDENTIFIER:
+				uint16_t ident_xlat;
+				uint16_t ident_asta_id;
+				uint8_t member_id;
+				ASTA temp_asta;
+
+				// get the related asta node for its label-instance name
+				ident_asta_id = param_list->GetCurrentID();
+				map.GetASTAByID(ident_asta_id, &temp_asta);
+
+				ident_xlat = LookupIdentMap(temp_asta.label);
+				member_id = LookupIdentifierMembers(ident_xlat, temp_str);
+				params[param_index].param_int16 = member_id;
+				break;
+			case AST_LOOKUP:
+			case AST_PARAM_DATE:
+			case AST_PARAM_TIME:
+			case AST_PARAM_STRING:
+				params[param_index].param_string = temp_str;
+				break;
+			case AST_PARAM_INTEGER:
+				params[param_index].param_int16 = atoi(temp_str);
+				break;
+			case AST_PARAM_FLOAT:
+				params[param_index].param_float = atof(temp_str);
+				break;
+			default:
+				//XXX - do proper error reporting
+				printf("ERROR: Incorrect parameter found in param_list - keyword?\n\r");
+				exit(-1);
+		}
+		param_index++;
+		param_list->Next();
+	}
+
+	// call the caller with the right function id and params
+	// XXX still to sort return processing
+	CallFunction(xlat_call_id, params);
+
+}
+
+
+void Parser::BufferInject(char* inject_str) {
+	strcpy(in_buf, inject_str);
+	in_idx = strlen(in_buf);
+}
+
+void Parser::P_ESCAPE(char ch) {
+	if ( (ch == 0x1B) && (pf.escape == 0) ) {
+		pf.escape = 1;
+	}
+	if ( (ch == '[') && (pf.escape == 1) ) {
+		pf.escape = 2;
+	}
+	printf("DEBUG pf.escape %d\n\r", pf.escape);
 }
 
 uint8_t Parser::P_EOL() {
 	// Processed when EOL reached
+
+	// Save the last token as a parameter for action calling;
+	SaveTokenAsParameter();
 
 	if (pf.help_active) {
 		pf.help_active = 0;
@@ -63,7 +203,8 @@ uint8_t Parser::P_EOL() {
 			case MR_ACTION_POSSIBLE:
 				char action_ident[MAX_LABEL_LENGTH];
 				map.GetAction(map.GetLastMatchedID(), action_ident);
-				printf("!!!!!!!*********!!!!!!!!**** Action matched and to be called: %s\n", action_ident);
+				printf("DEBUG **** Action matched and to be called: %s\n\r", action_ident);
+				ActionDispatcher(map.GetLastMatchedID());
 				map.Reset();
 				possible_list->Reset();
 				return R_COMPLETE;
@@ -75,6 +216,11 @@ uint8_t Parser::P_EOL() {
 				return R_ERROR;
 				break;
 			default:
+				if (in_idx == 0) { // blank line - do nothing
+					map.Reset();
+					possible_list->Reset();
+					return R_COMPLETE;
+				}
 				pf.last_error = PE_LINE_INCOMPLETE;
 				map.Reset();
 				possible_list->Reset();
@@ -155,13 +301,31 @@ uint8_t Parser::Parse(char ch) {
 	// set from processing the previous char and match
 	// results from the node map (if called on previous).
 	#ifdef DEBUG
-	printf("DEBUG PARSE: Processing: \"%c\"\n", ch);
+	printf("DEBUG PARSE: Processing: \"%c\"\n\r", ch);
 	#endif
 
 	switch (ch) {
-
+		case 0x1B:
+			P_ESCAPE(ch);
+			return R_IGNORE;
+			break;
+		case '[':
+			if(pf.escape == 1) {
+				P_ESCAPE(ch);
+				return R_IGNORE;
+			}
+			break;
+		case 'A':
+		case 'D':
+			if(pf.escape == 2) {
+				pf.escape = 0;
+				printf("DEBUG PARSE Returning R_REPLAY\n\r");
+				return R_REPLAY;
+			}
+			break;
 		case '\r':   // deal with noise - ignore
-			return R_IGNORE;			break;
+			//return R_IGNORE;			break;
+			return	P_EOL();			break;
 		case '\n':	// handle EOL ***** doing stuff triggered from here *****
 			return	P_EOL();			break;
 		case '\"':	// Toggle string_litteral flag, discard the char
@@ -183,7 +347,7 @@ uint8_t Parser::Parse(char ch) {
 		// so just ignore until EOL. Next iteration will return Error or Complete accordingly
 		// once EOL encountered
 		#ifdef DEBUG
-		printf("DEBUG: Discard: \"%c\"\n", ch);
+		printf("DEBUG: Discard: \"%c\"\n\r", ch);
 		#endif
 		return R_IGNORE;
 	}
@@ -200,15 +364,24 @@ uint8_t Parser::ParseMatch(void) {
 	// Setup and call the nodemap token matching process
 
 	// If last match result was unique and input char parsing detected a delimiter,
-	// advance the buffer index so that the matcher is looking at the next token.
-	if (pf.delim_reached && (pf.match_result == MR_UNIQUE)) {
+	// save the token for later action calling and advance the buffer index so that
+	// the matcher is looking at the next token. (which will trigger a match dummy iteration
+	// with the result being to go back to the calling routing unfinished to get the next ch)
+
+	if (pf.delim_reached && ((pf.match_result == MR_UNIQUE) || (pf.match_result == MR_ACTION_POSSIBLE))) {
+		SaveTokenAsParameter();
+		// advance the nodemap past the delimiter
 		map.Advance(in_idx);
 		pf.delim_reached = 0;
 	}
 
 	// clear out previous matching possibilities
 	possible_list->Reset();
-	// run the match process and return the result
+
+	// preserve the in_buf for possible replay
+	strcpy(replay_buf, in_buf);
+
+	// run the next match process and return the result
 	return map.Match(in_buf, possible_list);
 }
 
@@ -221,7 +394,7 @@ uint8_t Parser::MatchEvaluate(void) {
 		case MR_NO_MATCH:
 
 			#ifdef DEBUG
-			printf("DEBUG PARSE: MR_NO_MATCH\n");
+			printf("DEBUG PARSE: MR_NO_MATCH\n\r");
 			#endif
 
 			pf.error_on_line = 1;
@@ -231,11 +404,11 @@ uint8_t Parser::MatchEvaluate(void) {
 
 			#ifdef DEBUG
 			// single unique match - will still need EOL to finsih
-			printf("DEBUG PARSE: MR_UNIQUE\n");
+			printf("DEBUG PARSE: MR_UNIQUE\n\r");
 			//pf.unique_match = 1;
 			char temp[MAX_LABEL_LENGTH];
 			possible_list->GetCurrentLabel(temp);
-			printf("DEBUG PARSE: Uniquely matched: %s\n\n", temp);
+			printf("DEBUG PARSE: Uniquely matched: %s\n\n\r", temp);
 			#endif
 
 			pf.parse_result = R_UNFINISHED;
@@ -245,7 +418,7 @@ uint8_t Parser::MatchEvaluate(void) {
 
 			#ifdef DEBUG
 			// single unique matched with is actionalable - (if EOL is next)
-			printf("DEBUG PARSE: MR_ACTION_POSSIBLE\n");
+			printf("DEBUG PARSE: MR_ACTION_POSSIBLE\n\r");
 			#endif
 
 			pf.parse_result = R_UNFINISHED;
@@ -253,11 +426,11 @@ uint8_t Parser::MatchEvaluate(void) {
 		case MR_MULTI: {
 
 			#ifdef DEBUG
-			printf("DEBUG PARSE: MR_MULTI:\n");
+			printf("DEBUG PARSE: MR_MULTI:\n\r");
 			possible_list->ToTop();
 			for (int i = 0; i < possible_list->GetSize(); i++) {
 				possible_list->GetCurrentLabel(temp);
-				sprintf(out, "\t%s\n", temp);
+				sprintf(out, "\t%s\n\r", temp);
 				printf("DEBUG: %s", out);
 				possible_list->Next();
 			}
@@ -270,7 +443,7 @@ uint8_t Parser::MatchEvaluate(void) {
 		case MR_DELIM_SKIP:
 
 			#ifdef DEBUG
-			printf("DEBUG PARSE: MR_DELIM_SKIP\n");
+			printf("DEBUG PARSE: MR_DELIM_SKIP\n\r");
 			#endif
 
 			pf.parse_result = R_UNFINISHED;
@@ -279,13 +452,13 @@ uint8_t Parser::MatchEvaluate(void) {
 		case MR_HELP_ACTIVE: {
 
 			#ifdef DEBUG
-			printf("DEBUG PARSE: MR_HELP_ACTIVE\n");
+			printf("DEBUG PARSE: MR_HELP_ACTIVE\n\r");
 			#endif
 
 			possible_list->ToTop();
 			for (int i = 0; i < possible_list->GetSize(); i++) {
 				possible_list->GetCurrentLabel(temp);
-				sprintf(out, "\t%s\n", temp);
+				sprintf(out, "\t%s\n\r", temp);
 
 				#ifdef DEBUG
 				printf("DEBUG: %s", out);
@@ -301,7 +474,7 @@ uint8_t Parser::MatchEvaluate(void) {
 		case MR_ERROR:
 
 			#ifdef DEBUG
-			printf("DEBUG PARSE: MR_ERROR\n");
+			printf("DEBUG PARSE: MR_ERROR\n\r");
 			#endif
 
 			pf.last_error = map.GetErrorCode();
@@ -312,7 +485,7 @@ uint8_t Parser::MatchEvaluate(void) {
 		default:
 
 			#ifdef DEBUG
-			printf("DEBUG PARSE: NO MR Caught - default case\n");
+			printf("DEBUG PARSE: NO MR Caught - default case\n\r");
 			#endif
 
 			pf.last_error = PE_NODEMAP_RESULT_NOT_CAUGHT;
@@ -321,6 +494,33 @@ uint8_t Parser::MatchEvaluate(void) {
 			break;
 	}
 	return pf.parse_result;
+}
+
+void Parser::SaveTokenAsParameter(void) {
+	TokenNode* new_param;
+	char temp_param[MAX_LABEL_LENGTH];
+	ASTA temp_asta_node;
+	uint16_t temp_asta_id;
+
+	// get the id of the last matched node
+	temp_asta_id = map.GetLastMatchedID();
+
+	// get the matched node from the asta
+	map.GetASTAByID(temp_asta_id, &temp_asta_node);
+
+	// Add to the param list for action calling (but exclude keywords)
+	if (temp_asta_node.type > AST_KEYWORD) {
+
+		// get the last matched param as a string
+		map.GetLastTargetString(temp_param);
+
+		// get a new param node and write its details
+		new_param = param_list->NewTokenNode();
+		strcpy(new_param->label, temp_param);
+		new_param->id = temp_asta_id;
+		new_param->type = temp_asta_node.type;
+		param_list->Add(new_param);
+	}
 }
 
 void Parser::GetErrorString(char* error) {

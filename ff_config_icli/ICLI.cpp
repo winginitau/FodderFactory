@@ -9,8 +9,12 @@
 
 #include "ICLI.h"
 
-#include "processor_out.h"
+#include "out.h"
 #include <stdlib.h>
+
+
+//ICLI icli;
+
 
 ICLI::ICLI() {
 	mode = 0;
@@ -30,6 +34,7 @@ void ICLI::Begin(FILE* input_stream, FILE* output_stream, int icli_mode) {
 
 
 void ICLI::Poll(void) {
+	char temp[MAX_BUFFER_LENGTH];
 
 	// XXX this needs to become non-blocking portable
 	// for arduino Serial.available should work but more
@@ -42,12 +47,13 @@ void ICLI::Poll(void) {
 
 	char output_line[MAX_BUFFER_LENGTH];
 
-	sprintf(prompt, "\n$ ");
+	sprintf(prompt_base, "\n\r$ ");
 	if (mode == ICLI_INTERACTIVE) {
-		fputs(prompt, osp);
+		fputs(prompt_base, osp);
 	};
 
 	ch = fgetc(isp);
+//	ch = getchar();
 
 	while (ch != EOF) {
 
@@ -59,6 +65,7 @@ void ICLI::Poll(void) {
 					fputs(output_line, osp);
 					while (parser.output.OutputAvailable()) {
 						parser.output.GetOutputAsString(output_line);
+						strcat(output_line, "\r");
 						fputs(output_line, osp);
 					}
 					parser.ResetLine();
@@ -79,21 +86,22 @@ void ICLI::Poll(void) {
 					// 	or the rest of the input buffer after error detected
 					while (parser.output.OutputAvailable()) {
 						parser.output.GetOutputAsString(output_line);
+						strcat(output_line, "\r");
 						fputs(output_line, osp);
 					}
 					break; //continue
 				case R_ERROR:
-					sprintf(output_line, "\n>>> Error:\n>>> ");
+					sprintf(output_line, "\n\r>>> Error:\n\r>>> ");
 					fputs(output_line, osp);
 					parser.GetErrorString(output_line);
-					strcat(output_line, "\nTry \"?\" or <command> ? for help.\n");
+					strcat(output_line, "\n\rTry \"?\" or <command> ? for help.\n\r");
 					fputs(output_line, osp);
 					fputs(prompt, osp);
 					parser.ResetLine();
 					break;
 				case R_NONE:
 					// parser should always return a meaningful result
-					sprintf(output_line, ">>> Error: Parser did not return a result at all. Error in Parser?\n>> ");
+					sprintf(output_line, ">>> Error: Parser did not return a result at all. Error in Parser?\n\r>> ");
 					fputs(output_line, osp);
 					exit(-1);
 					break; //continue
@@ -106,6 +114,7 @@ void ICLI::Poll(void) {
 				case R_COMPLETE: {
 					while (parser.output.OutputAvailable()) {
 						parser.output.GetOutputAsString(output_line);
+						strcat(output_line, "\r");
 						fputs(output_line, osp);
 					}
 					// XXX parser.get / resolve action to call
@@ -113,18 +122,40 @@ void ICLI::Poll(void) {
 					// stream the result
 					while (parser.output.OutputAvailable()) {
 						parser.output.GetOutputAsString(output_line);
+						strcat(output_line, "\r");
 						fputs(output_line, osp);
 					}
 					parser.ResetLine();
-					fputs(prompt, osp);
+					fputs(prompt_base, osp);
 					break;
 				}
+				case R_REPLAY:
+					while (parser.output.OutputAvailable()) {
+						parser.output.GetOutputAsString(output_line);
+						strcat(output_line, "\r");
+						fputs(output_line, osp);
+					}
+
+					parser.ResetLine();
+					strcpy(temp, parser.replay_buf);
+					printf("DEBUG ICLI: case R_REPLAY. replay_buf: %s\n\r", temp);
+					parser.BufferInject(temp);
+					// XXX unfinshied as to how to restuff the buffer
+					// without using a buffer!
+					strcpy(prompt, prompt_base);
+					strcat(prompt, parser.replay_buf);
+					fputs(prompt, osp);
+					break;
 
 		}
 		ch = fgetc(isp);
+		//ch = getchar();
 	}
 }
 
+void ICLI::WriteLine(char* string) {
+	parser.output.AddString(string);
+}
 
 			//
 			// get first token

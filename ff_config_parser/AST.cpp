@@ -164,6 +164,11 @@ int AST::AddNode(int term_level, const char* term_type, const char* term) {
 	if (term_level > current_level + 1) {
 		return E_TERM_LEVEL_NOT_INCRMENTAL;
 	}
+
+	// Perform some naming rule checks
+	// - dont need to here - regex checked when adding to identifier lists
+
+	// Add as a sibling or child as appropriate to level
 	if (term_level == current_level +1) {
 		current_level = term_level;
 		return AddChildToCurrent(n);
@@ -185,56 +190,72 @@ void AST::WriteASTArray(Identifiers* idents) {
 	DT(root, idents, false);  // to count the output lines
 
 	sprintf(output_string, "#ifdef USE_PROGMEM\n");
-	output.EnQueue(output_string);
+	header_output_queue.EnQueue(output_string);
 	sprintf(output_string, "static const ASTA asta [%d] PROGMEM = {\n", grammar_def_count);
-	output.EnQueue(output_string);
+	header_output_queue.EnQueue(output_string);
 	sprintf(output_string, "#else\n");
-	output.EnQueue(output_string);
+	header_output_queue.EnQueue(output_string);
 	sprintf(output_string, "static const ASTA asta [%d] = {\n", grammar_def_count);
-	output.EnQueue(output_string);
+	header_output_queue.EnQueue(output_string);
 	sprintf(output_string, "#endif\n");
-	output.EnQueue(output_string);
+	header_output_queue.EnQueue(output_string);
 
 	DT(root, idents, true);
 
-	sprintf(output_string, "};\n");
-	output.EnQueue(output_string);
+	sprintf(output_string, "};\n\n");
+	header_output_queue.EnQueue(output_string);
 
-	output.SetOutputAvailable();
+	header_output_queue.SetOutputAvailable();
 }
 
 void AST::DT(ASTNode* w, Identifiers* idents, bool print) {
 	char temp[MAX_BUFFER_LENGTH];
+	char instance_name[MAX_BUFFER_LENGTH];
+	char type_string[MAX_BUFFER_LENGTH];
 
-	if(w != NULL) {
+	if (w != NULL) {
 //		sprintf(output_string, "\t%u, \"%s\", \"%s\", \"%s\", %u, %u, %d, %d, ", w->id, w->label, w->unique, w->help, w->term_level, w->type, w->action, w->finish);
 		sprintf(output_string, "\t%u, %u, ", w->id, w->type);
-		if (w->type == AST_IDENTIFIER) {
-			// output instance name rather than label
-			char instance_name[MAX_BUFFER_LENGTH];
-			idents->GetInstanceName(w->label, instance_name);
-			sprintf(temp, "\"%s\", ", instance_name);
-		} else {
-			sprintf(temp, "\"%s\", ", w->label);
+		switch (w->type) {
+			case AST_KEYWORD:
+			case AST_LOOKUP:
+				sprintf(temp, "\"%s\", ", w->label);
+				break;
+			case AST_IDENTIFIER:
+
+				// output instance name rather than label
+				idents->GetInstanceName(w->label, instance_name);
+				sprintf(temp, "\"%s\", ", instance_name);
+				break;
+			case AST_PARAM_DATE:
+			case AST_PARAM_TIME:
+			case AST_PARAM_INTEGER:
+			case AST_PARAM_FLOAT:
+			case AST_PARAM_STRING:
+				GetASTTypeString(type_string, w->type);
+				sprintf(temp, "\"%s\", ", type_string);
+				break;
+			default:
+				break;
 		}
 		strcat(output_string, temp);
 		sprintf(temp, "%u, ", w->action);
 		strcat(output_string, temp);
-		if(w->parent != NULL) {
+		if (w->parent != NULL) {
 			sprintf(temp, "%u, ", w->parent->id);
 		} else {
 			sprintf(temp, "0, ");
 		}
 		strcat(output_string, temp);
 
-		if(w->first_child != NULL) {
+		if (w->first_child != NULL) {
 			sprintf(temp, "%u, ", w->first_child->id);
 		} else {
 			sprintf(temp, "0, ");
 		}
 		strcat(output_string, temp);
 
-		if(w->next_sibling != NULL) {
+		if (w->next_sibling != NULL) {
 			sprintf(temp, "%u, ", w->next_sibling->id);
 		} else {
 			sprintf(temp, "0, ");
@@ -246,7 +267,7 @@ void AST::DT(ASTNode* w, Identifiers* idents, bool print) {
 
 		grammar_def_count++;
 
-		if(print) output.EnQueue(output_string);
+		if (print) header_output_queue.EnQueue(output_string);
 
 		DT(w->first_child, idents, print);
 		DT(w->next_sibling, idents, print);
@@ -254,12 +275,29 @@ void AST::DT(ASTNode* w, Identifiers* idents, bool print) {
 }
 
 
+int AST::GetASTTypeString(char* return_string, int type) {
+	// check for valid term type and return it
+	int i;
+	for (i = LAST_AST_TYPE; i != 0; i--) {
+		if(i == type) {
+			strcpy(return_string, ast_type_strings[i].text);
+			return i;
+		}
+	}
+	return i;
+}
+
 void AST::AttachActionToCurrent(char* action_identifier) {
 	current->action = true;
 	strcpy(current->action_identifier, action_identifier);
 }
 
+
 int AST::BuildActionPrototype(Identifiers& idents) {
+	// While on the AST node that is action-able - "current", walk via
+	// parent pointers up the tree, building the function parameter
+	// list that will be included in the function prototype for this action.
+
 	KeyValuePairList params;
 	ASTNode* walker;
 	int param_count = 0;
@@ -268,6 +306,21 @@ int AST::BuildActionPrototype(Identifiers& idents) {
 	char param_type[MAX_BUFFER_WORD_LENGTH];
 	char func_name[MAX_BUFFER_WORD_LENGTH];
 	char temp[MAX_BUFFER_WORD_LENGTH];
+	char temp2[MAX_BUFFER_WORD_LENGTH];
+
+	walker = current;
+	while (walker != NULL ) {
+		// count the num of params that need to be included in the function
+		if (walker->type > AST_KEYWORD) {
+			param_count++;
+		}
+
+		// count the ones that needs to be numerically labelled
+		if (walker->type >= AST_LOOKUP) {
+			param_index++;
+		}
+		walker = walker->parent;
+	}
 
 	walker = current;
 	while (walker != NULL) {
@@ -282,7 +335,6 @@ int AST::BuildActionPrototype(Identifiers& idents) {
 				if (idents.Exists(walker->label)) {
 					sprintf(param_type, "int");
 					params.Add(walker->label, param_type);
-					param_count++;
 				} else
 					return E_BUILDING_ACTION_PROTO;
 				break;
@@ -290,7 +342,6 @@ int AST::BuildActionPrototype(Identifiers& idents) {
 				if (idents.Exists(walker->label)) {
 					sprintf(param_type, "char*");
 					params.Add(walker->label, param_type);
-					param_count++;
 				} else
 					return E_BUILDING_ACTION_PROTO;
 				break;
@@ -298,61 +349,122 @@ int AST::BuildActionPrototype(Identifiers& idents) {
 				sprintf(param_type, "char*");
 				sprintf(param_name, "param%u_string", param_index);
 				params.Add(param_name, param_type);
-				param_count++;
-				param_index++;
+				param_index--;
 				break;
 			case AST_PARAM_INTEGER:
 				sprintf(param_type, "int");
 				sprintf(param_name, "param%u_int", param_index);
 				params.Add(param_name, param_type);
-				param_count++;
-				param_index++;
+				param_index--;
 				break;
 			case AST_PARAM_FLOAT:
 				sprintf(param_type, "float");
 				sprintf(param_name, "param%u_float", param_index);
 				params.Add(param_name, param_type);
-				param_count++;
-				param_index++;
+				param_index--;
 				break;
 			case AST_PARAM_TIME:
 				sprintf(param_type, "char*");
 				sprintf(param_name, "param%u_time", param_index);
 				params.Add(param_name, param_type);
-				param_count++;
-				param_index++;
+				param_index--;
 				break;
 			case AST_PARAM_DATE:
 				sprintf(param_type, "char*");
 				sprintf(param_name, "param%u_date", param_index);
 				params.Add(param_name, param_type);
-				param_count++;
-				param_index++;
+				param_index--;
 				break;
 		}
 		walker = walker->parent;
 	}
-	strcpy(output_string, "char** ");
+
+	// write the function
+	strcpy(output_string, "void ");
 	if (idents.GetInstanceName(current->action_identifier, func_name) != E_NO_ERROR) {
 		return E_BUILDING_ACTION_PROTO;
 	}
 
+	// header and user code function declaration
 	sprintf(temp, "%s(", func_name);
 	strcat(output_string, temp);
 
+	// if no params close them as void
 	if (param_count == 0) {
 		strcat(output_string, "void);\n\n");
+		header_output_queue.EnQueue(output_string);
+
+		sprintf(temp, "void) {\n");
+		strcat(output_string, temp);
+		user_code_output_queue.EnQueue(output_string);
+
 	} else {
-		for (int i = param_count -1; i > 0; i--) {
+		// iterate the params
+		for (int i = param_count - 1; i > 0; i--) {
 			params.GetPairAtLocation(param_name, param_type, i);
 			sprintf(temp, "%s %s, ", param_type, param_name);
 			strcat(output_string, temp);
 		}
+		// save slightly different version for user code (rather than header proto)
+		strcpy(temp2, output_string);
+
+		// close the proto declaration
 		params.GetPairAtLocation(param_name, param_type, 0);
 		sprintf(temp, "%s %s);\n\n", param_type, param_name);
 		strcat(output_string, temp);
-		output.EnQueue(output_string);
+		header_output_queue.EnQueue(output_string);
+
+		//get the saved copy back and close the user code declaration, opening the code body
+		strcpy(output_string, temp2);
+		sprintf(temp, "%s %s) {\n", param_type, param_name);
+		strcat(output_string, temp);
+		user_code_output_queue.EnQueue(output_string);
 	}
+
+	// continue with the user_code function body
+	sprintf(output_string, "\t// >>>");
+	user_code_output_queue.EnQueue(output_string);
+	sprintf(output_string, "\t// >>> INSERT CODE HERE TO CARRY OUT THE DESIRED ACTION");
+	user_code_output_queue.EnQueue(output_string);
+	sprintf(output_string, "\t// >>>");
+	user_code_output_queue.EnQueue(output_string);
+	sprintf(output_string, "\tchar temp[MAX_BUFFER_LENGTH];");
+
+	// have the example code print debug info (func and param types / value)
+	user_code_output_queue.EnQueue(output_string);
+	sprintf(output_string, "\tsprintf(temp, \"%s(...) with param list (", func_name);
+
+	if (param_count == 0) {
+		sprintf(temp, "void)\n\n\r\");\n");
+		strcat(output_string, temp);
+		user_code_output_queue.EnQueue(output_string);
+
+	} else {
+		for (int i = param_count - 1; i > 0; i--) {
+			params.GetPairAtLocation(param_name, param_type, i);
+			sprintf(temp, "%s:%s, ", param_type, param_name);
+			strcat(output_string, temp);
+		}
+		params.GetPairAtLocation(param_name, param_type, 0);
+		sprintf(temp, "%s:%s)\n\n\r\");\n", param_type, param_name);
+		strcat(output_string, temp);
+		user_code_output_queue.EnQueue(output_string);
+	}
+
+	sprintf(temp, "\t// >>>");
+	user_code_output_queue.EnQueue(output_string);
+	sprintf(temp, "\t// >>> AND SEND THE RESULTS OUT VIA CALLS TO ICLIWriteLine");
+	user_code_output_queue.EnQueue(output_string);
+	sprintf(temp, "\t// >>>");
+	user_code_output_queue.EnQueue(output_string);
+	sprintf(temp, "\tICLIWriteLine(temp);");
+	user_code_output_queue.EnQueue(output_string);
+	sprintf(temp, "}\n\n");
+	user_code_output_queue.EnQueue(output_string);
+
+	header_output_queue.SetOutputAvailable();
+	user_code_output_queue.SetOutputAvailable();
+
 	return E_NO_ERROR;
 }
 

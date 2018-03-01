@@ -18,11 +18,11 @@ static const EnumStringArray ast_type_strings[LAST_AST_TYPE] = {
 		"keyword",
 		"identifier",
 		"lookup",
-		"param-string",
+		"param-date",
+		"param-time",
 		"param-integer",
 		"param-float",
-		"param-time",
-		"param-date",
+		"param-string",
 
 };
 

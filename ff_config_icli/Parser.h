@@ -32,6 +32,7 @@ typedef struct PARSER_FLAGS {
 //	uint8_t parse_level; 			// 0-nothing yet, n-current focus, n-1 matched so far
 //	uint16_t last_matched_node;
 //	uint16_t possible_count;
+	uint8_t escape;
 } P_FLAGS;
 
 class Parser {
@@ -39,27 +40,37 @@ private:
 	NodeMap map;
 	TokenList* possible_list;
 	char in_buf[MAX_BUFFER_LENGTH];
+
 	uint8_t in_idx;
 
 	P_FLAGS pf;
 
 	uint8_t ParseMatch(void);
 	uint8_t MatchEvaluate(void);
+	void SaveTokenAsParameter(void);
+
+	TokenList* param_list;
+
 
 public:
 	Parser();
 	virtual ~Parser();
 
+	char replay_buf[MAX_BUFFER_LENGTH];
 	OutputBuffer output;
+
 
 	void Init();
 	uint8_t Parse(char ch);
 	void ResetPossibleList(void);
 	void GetErrorString(char* error);
 	void ResetLine(void);
+	void BufferInject(char* inject_str);
+	void ActionDispatcher(uint16_t asta_id);
 
 
 protected:
+	void P_ESCAPE(char ch);
 	uint8_t P_EOL();
 	uint8_t P_DOUBLE_QUOTE();
 	uint8_t P_SPACE_TAB();

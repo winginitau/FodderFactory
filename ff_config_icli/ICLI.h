@@ -7,6 +7,27 @@
 
  ******************************************************************/
 
+/*
+
+http://acronymcreator.net/ace.py
+
+
+Grammar
+Lexer
+Parser
+Compiler
+Interactive
+Terminal
+Configuration
+Command
+Protocol
+Environment
+
+ */
+
+
+
+
 #ifndef ICLI_H_
 #define ICLI_H_
 
@@ -31,6 +52,8 @@ private:
 	FILE* osp;	// output stream pointer
 	int mode;
 	char prompt[MAX_BUFFER_LENGTH];
+	char prompt_replay[MAX_BUFFER_LENGTH];
+	char prompt_base[MAX_BUFFER_LENGTH];
 	Parser parser;
 
 public:
@@ -40,6 +63,11 @@ public:
 
 	void Begin(FILE* input_stream, FILE* output_stream, int icli_mode);
 	void Poll();
+	void WriteLine(char* string);
 };
 
+//extern ICLI icli;
+
+
 #endif /* ICLI_H_ */
+

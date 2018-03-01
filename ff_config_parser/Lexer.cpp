@@ -602,11 +602,17 @@ void Lexer::Process_D_ACTION(void) {
     	} else {
     		ast.AttachActionToCurrent(tokens[1]);
     		ast.BuildActionPrototype(idents);
-    		while (ast.output.OutputAvailable()) {
-    			ast.output.GetOutputAsString(output_string);
+    		while (ast.header_output_queue.OutputAvailable()) {
+    			ast.header_output_queue.GetOutputAsString(output_string);
     			header_output_queue.EnQueue(output_string);
         		header_output_available = true;
     		}
+    		while (ast.user_code_output_queue.OutputAvailable()) {
+    			ast.user_code_output_queue.GetOutputAsString(output_string);
+    			user_code_output_queue.EnQueue(output_string);
+    			user_code_output_available = true;
+    		}
+
     		process_result = R_COMPLETE;
     		action_since_last_term = true;
     	}
@@ -614,9 +620,10 @@ void Lexer::Process_D_ACTION(void) {
 }
 
 void Lexer::Process_D_GRAMMAR_END(void) {
+
 	if (grammar_section) {
 		//
-		// XXX
+		// To Do List
 		//
 		strcpy(output_string, "//TODO: Command Line Options Processing\n");
 		code_output_queue.EnQueue(output_string);
@@ -637,17 +644,52 @@ void Lexer::Process_D_GRAMMAR_END(void) {
 		strcpy(output_string, "//TODO: Context change on <identifier> value\n\n");
 		code_output_queue.EnQueue(output_string);
 
+		// Write out the main ASTA Array
 		ast.WriteASTArray(&idents);
-		//idents.DumpIdentifiers();
-
-		while (ast.output.OutputAvailable()) {
-			ast.output.GetOutputAsString(output_string);
+		// and send it to the header file
+		while (ast.header_output_queue.OutputAvailable()) {
+			ast.header_output_queue.GetOutputAsString(output_string);
 			header_output_queue.EnQueue(output_string);
 		}
 
+		// write out the identifier XLAT array
+		idents.WriteIdentifierMaps();
+		// and send it to the header file
 		while (idents.output.OutputAvailable()) {
 			idents.output.GetOutputAsString(output_string);
 			header_output_queue.EnQueue(output_string);
+		}
+
+		// write out the XLAT map lookup function prototypes
+		idents.WriteIdentMapFunctions(WRITE_HEADER);
+		// and send it to the header file
+		while (idents.output.OutputAvailable()) {
+			idents.output.GetOutputAsString(output_string);
+			header_output_queue.EnQueue(output_string);
+		}
+
+		// write out the XLAT map lookup functions
+		idents.WriteIdentMapFunctions(WRITE_CODE);
+		// and send it to the code file
+		while (idents.output.OutputAvailable()) {
+			idents.output.GetOutputAsString(output_string);
+			code_output_queue.EnQueue(output_string);
+		}
+
+		// write out the XLAT map lookup functions prototypes
+		idents.WriteIdentMemberLookupFunction(WRITE_HEADER);
+		// and send it to the header file
+		while (idents.output.OutputAvailable()) {
+			idents.output.GetOutputAsString(output_string);
+			header_output_queue.EnQueue(output_string);
+		}
+
+		// write out the XLAT map lookup functions
+		idents.WriteIdentMemberLookupFunction(WRITE_CODE);
+		// and send it to the code file
+		while (idents.output.OutputAvailable()) {
+			idents.output.GetOutputAsString(output_string);
+			code_output_queue.EnQueue(output_string);
 		}
 
 		header_output_available = true;
@@ -738,7 +780,7 @@ void Lexer::Process_D_LOOKUP_LIST(void) {
 				error_type = E_IDENTIFIER_ALREADY_EXISTS;
 				process_result = R_ERROR;
 			} else {
-				error_type = idents.NewIdent(tokens[1], ID_ACTION_PAIR);
+				error_type = idents.NewIdent(tokens[1], ID_LOOKUP_LIST);
 				if (error_type == E_NO_ERROR) {
 					idents.SetInstanceName(tokens[1], tokens[2]);
 					process_result = R_COMPLETE;
@@ -773,6 +815,16 @@ void Lexer::Process_D_HEADER_END(void) {
 bool Lexer::Header_OutputAvailable() {
     return header_output_available;
 }
+
+bool Lexer::User_OutputAvailable() {
+    return user_output_available;
+}
+
+bool Lexer::Code_OutputAvailable() {
+    return code_output_available;
+}
+
+
 
 char* Lexer::GetOutputAsString(int queue, char* output_str) {
 
