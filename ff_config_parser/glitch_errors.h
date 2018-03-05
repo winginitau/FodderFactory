@@ -7,8 +7,8 @@
 
 ******************************************************************/
 
-#ifndef PROCESSOR_ERRORS_H_
-#define PROCESSOR_ERRORS_H_
+#ifndef GLITCH_ERRORS_H_
+#define GLITCH_ERRORS_H_
 
 enum {
 	E_ERROR_ERROR = 0,
@@ -107,4 +107,4 @@ static const EnumStringArray error_strings[LAST_ERROR] = {
 };
 
 
-#endif /* PROCESSOR_ERRORS_H_ */
+#endif /* GLITCH_ERRORS_H_ */

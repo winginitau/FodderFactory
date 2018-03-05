@@ -1,3 +1,23 @@
+void CallFunction(uint8_t func_xlat, ParamUnion params[]) {
+
+	switch (func_xlat) {
+		case 3:
+//			char** ShowBlockByCategory(int block_category);
+			ShowBlockByCategory(params[0].param_int16);
+			break;
+		case 4:
+//			char** ShowBlockCatN(int block_category, int param1_int);
+			ShowBlockCatN(params[0].param_int16, params[1].param_int16);
+			break;
+		default:
+			// XXX
+			printf("ERROR, No matched func_xlat in CallFunction - not matching function?\n\r");
+			exit(-1);
+	}
+}
+
+
+
 // Lookup template for idents in an XLAT array
 
 uint16_t LookupIdentMap (char* key) {

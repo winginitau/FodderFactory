@@ -191,9 +191,12 @@ public:
     virtual ~Lexer();
     void Init();
     int ProcessLine(LineBuffer& line);
+
     bool Header_OutputAvailable();
     bool User_OutputAvailable();
     bool Code_OutputAvailable();
+    bool User_Code_OutputAvailable();
+
     char* GetOutputAsString(int queue, char* output_str);
     int MatchToken(char* token_str);
     char* GetErrorString(char* error_str);

@@ -6,8 +6,8 @@
 // WHENEVER THE LEXER / PROCESSOR IS INVOKED.
 //
 
-#ifndef PROCESSOR_OUT_H_
-#define PROCESSOR_OUT_H_
+#ifndef OUT_H_
+#define OUT_H_
 
 
 #include "common_config.h"
@@ -15,9 +15,8 @@
 #include <stdint.h>
 #include <string.h>
 
-
 //
-// Struct typedefs used by the parser 
+// Structs used by the parser 
 // 
 
 typedef struct SIMPLE_STRING_ARRAY_TYPE {
@@ -43,6 +42,14 @@ typedef struct XLAT_MAP {
 	char label[MAX_LABEL_LENGTH];
 	uint16_t xlat_id;
 } XLATMap;
+
+typedef union {
+	int16_t param_int16_t;
+	uint16_t param_uint16_t;
+	float param_float;
+	char* param_char_star;
+} ParamUnion;
+
 
 enum {
 	FF_ERROR_CAT = 0,
@@ -93,101 +100,53 @@ static const SimpleStringArray command_strings [LAST_COMMAND] = {
 };
 
 void ShowBlocks(void);
-
 void ShowSystem(void);
-
-void ShowBlockByCategory(int block_category);
-
-void ShowBlockCatN(int block_category, int param1_int);
-
+void ShowBlockByCategory(uint16_t block_category);
+void ShowBlockCatN(uint16_t block_category, int16_t param1_int);
 void ShowBlockByLabel(char* block_label);
-
-void ShowBlockByID(int param1_int);
-
+void ShowBlockByID(int16_t param1_int);
 void MessagesMute(void);
-
 void MessagesUnmute(void);
-
 void MonitorStart(void);
-
 void MonitorStop(void);
-
 void MonitorRemoveByLabel(char* block_label);
-
-void MonitorRemoveByBlockCatN(int block_category, int param1_int);
-
+void MonitorRemoveByBlockCatN(uint16_t block_category, int16_t param1_int);
 void MonitorByLabel(char* block_label);
-
-void MonitorByBlockCatN(int block_category, int param1_int);
-
+void MonitorByBlockCatN(uint16_t block_category, int16_t param1_int);
 void ClearBlockByLabel(char* block_label);
-
-void ClearBlockByBlockCatN(int block_category, int param1_int);
-
-void SendCommandToBlockCatN(int block_category, int param1_int, int command);
-
-void SendCommandToBlockLabel(char* block_label, int command);
-
-void SimIntDataMessageFromBCatN(int block_category, int param1_int, int param2_int);
-
-void SimFloatDataMessageFromBCatN(int block_category, int param1_int, float param2_float);
-
-void SimIntDataMessageFromBlockLabel(char* block_label, int param2_int);
-
+void ClearBlockByBlockCatN(uint16_t block_category, int16_t param1_int);
+void SendCommandToBlockCatN(uint16_t block_category, int16_t param1_int, uint16_t command);
+void SendCommandToBlockLabel(char* block_label, uint16_t command);
+void SimIntDataMessageFromBCatN(uint16_t block_category, int16_t param1_int, int16_t param2_int);
+void SimFloatDataMessageFromBCatN(uint16_t block_category, int16_t param1_int, float param2_float);
+void SimIntDataMessageFromBlockLabel(char* block_label, int16_t param2_int);
 void SimFloatDataMessageFromBlockLabel(char* block_label, float param2_float);
-
 void DebugOn(void);
-
 void DebugOff(void);
-
 void DebugTermOn(void);
-
 void DebugTermOff(void);
-
-void DebugSetLevel(int param1_int);
-
+void DebugSetLevel(int16_t param1_int);
 void ShowTime(void);
-
 void SetTime(char* param1_time);
-
 void ShowDate(void);
-
 void SetDate(char* param1_date);
-
 void ConfClearBlocks(void);
-
 void ConfClearAll(void);
-
 void ConfReadDefaultFile(void);
-
 void ConfReadFilename(char* param1_string);
-
 void WriteToDefaultConfigFile(void);
-
 void WriteEmptyDefaultConfigFile(void);
-
 void WriteToFilenameConfigFile(char* param1_string);
-
 void CopyConfigFileToFile(char* param1_string, char* param2_string);
-
-void BlockDisableByBlockCatN(int block_category, int param1_int);
-
+void BlockDisableByBlockCatN(uint16_t block_category, int16_t param1_int);
 void BlockDisableByLabel(char* param1_string);
-
-void BlockEnableByBlockCatN(int block_category, int param1_int);
-
+void BlockEnableByBlockCatN(uint16_t block_category, int16_t param1_int);
 void BlockEnableByLabel(char* block_label);
-
-void BlockDeleteByBlockCatN(int block_category, int param1_int);
-
+void BlockDeleteByBlockCatN(uint16_t block_category, int16_t param1_int);
 void BlockDeleteByLabel(char* param1_string);
-
 void BlockRename(char* param1_string, char* param2_string);
-
 void TerminalExit(void);
-
 void TerminalLogout(void);
-
 void SystemReboot(void);
 
 #ifdef USE_PROGMEM
@@ -362,6 +321,7 @@ uint16_t LookupIdentMap (char* key);
 uint16_t LookupLookupMap (char* key);
 uint16_t LookupFuncMap (char* key);
 uint16_t LookupIdentifierMembers(uint16_t ident_xlat, char* lookup_string);
+void CallFunction(uint8_t func_xlat, ParamUnion params[]);
 
-#endif /* PROCESSOR_OUT_H_ */
+#endif // OUT_H_
 

@@ -9,7 +9,7 @@
 #define PROG_NAME "Grammar Processor / noblofly / blowfly / icli_builder"
 
 #include "common_config.h"
-#include "processor_errors.h"
+#include "glitch_errors.h"
 
 #ifdef DEBUG
 #include "Debug.h"
@@ -20,22 +20,34 @@
 #include "LineBuffer.h"
 #include "StringList.h"
 #include "Lexer.h"
+#include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
+#include <ctype.h>
+
 
 
 #define GRAMMAR_FILE_DEFAULT "grammar.gf"
 #define OUTPUT_FILE_BASE_DEFAULT "out"
 
 
-
+/*************************************
+ * GLOBALS
+************************************/
 
 FILE* hf;	// output header file - global, so can be seen within other modules.
 FILE* cf;	// output code file - global, so can be seen within other modules.
 FILE* uf;	// user code file - templates written if not exist
 FILE* gf;	// grammar file - doesn't need to be global but put here with the other two anyway
 
-int verbose = 0;
+char gf_name[MAX_BUFFER_LENGTH];
+char hf_name[MAX_BUFFER_LENGTH];
+char cf_name[MAX_BUFFER_LENGTH];
+char uf_name[MAX_BUFFER_LENGTH];
 
+int verbose = 0;
+bool overwrite_user_file = false;
+Lexer lex;
 
 void SendToOutput(int out_q, char* out) {
 	// output directing
@@ -55,13 +67,19 @@ void SendToOutput(int out_q, char* out) {
 			printf("DEBUG CODE \t%s", out);
 			#endif
 			break;
+		case Q_USER_CODE:
+			fprintf(uf, "%s", out);
+			#ifdef PROC_DEBUG
+			printf("DEBUG USER_CODE \t%s", out);
+			#endif
+			break;
 		default:
-			printf("FATAL Error, Nonexistent output detination referenced in Processor::SendToOutput()\n");
+			printf("FATAL Error, Nonexistent output destination referenced in Processor::SendToOutput()\n");
 			exit(-1);
 	}
 }
 
-void ProcessGrammarFile(Lexer lex, FILE* gf) {
+void ProcessGrammarFile() {
 
 	int line_count = 0;
 	LineBuffer line;
@@ -125,7 +143,12 @@ void ProcessGrammarFile(Lexer lex, FILE* gf) {
 						lex.GetOutputAsString(Q_CODE, output_line);
 						SendToOutput(Q_CODE, output_line);
 					}
-
+					if (overwrite_user_file) {
+						while (lex.User_Code_OutputAvailable()) {
+							lex.GetOutputAsString(Q_USER_CODE, output_line);
+							SendToOutput(Q_USER_CODE, output_line);
+						}
+					}
 					lex.Init();
 					break;
 				}
@@ -138,45 +161,55 @@ void ProcessGrammarFile(Lexer lex, FILE* gf) {
 }
 
 int ArgsAndFiles(int argc, char* argv[]) {
-	char gf_name[MAX_BUFFER_LENGTH];
-	char hf_name[MAX_BUFFER_LENGTH];
-	char cf_name[MAX_BUFFER_LENGTH];
+
 
 	bool use_cpp = true;
-	char* clo_error = NULL;
+
+	char* clo_result = NULL;
 
 	strcpy(gf_name, GRAMMAR_FILE_DEFAULT);
 	strcpy(hf_name, OUTPUT_FILE_BASE_DEFAULT);
 	strcpy(cf_name, OUTPUT_FILE_BASE_DEFAULT);
+	strcpy(uf_name, OUTPUT_FILE_BASE_DEFAULT);
+	strcat(uf_name, "_user_code");
 
 	//handle command line arguments
-	// - g <grammar_file>
-	// - o <header_and C/CPP files_out>
-	// - c Produce ANSI C file (otherwise its CPP)
+	// -g <grammar_file>
+	// -o <header_and C/CPP files_out>
+	// -c Produce ANSI C file (otherwise its CPP)
+	// -f Force overwriting of the user_code file
 
 	if (argc != 1) { // some arguments
 
+		// Iterate over all options
 		for (int i = 1; i < argc; i++) {
 			if (strcmp(argv[i], "-c") == 0) {
 				use_cpp = false;
 			}
 			if (strcmp(argv[i], "-o") == 0) {
+				// check that the next option is not another option specifier
+				// Option i + 1 should be a filename
 				if (argv[(i + 1)][0] != '-') {
-					clo_error = (strcpy(hf_name, argv[(i + 1)]));
-					if (clo_error != NULL) {
-						clo_error = strcpy(cf_name, hf_name);
+					// copy the filename to the header filename variable
+					clo_result = (strcpy(hf_name, argv[(i + 1)]));
+					// if the first copy worked, set up the other filenames
+					if (clo_result != NULL) {
+						clo_result = strcpy(cf_name, hf_name);
+						clo_result = strcpy(uf_name, hf_name);
+						// add the "_user_code" bit for the uf
+						strcat(uf_name, "_user_code");
 					}
 				}
-				if (clo_error == NULL) {
+				if (clo_result == NULL) {
 					printf(">> Command error - got -o but valid outputs filename base did not follow.\n");
 					return 1;
 				}
 			}
 			if (strcmp(argv[i], "-g") == 0) {
 				if (argv[(i + 1)][0] != '-') {
-					clo_error = (strcpy(gf_name, argv[(i + 1)]));
+					clo_result = (strcpy(gf_name, argv[(i + 1)]));
 				}
-				if (clo_error == NULL) {
+				if (clo_result == NULL) {
 					printf(">> Command error - got -g but valid grammar filename did not follow.\n");
 					return 1;
 				}
@@ -189,6 +222,9 @@ int ArgsAndFiles(int argc, char* argv[]) {
 			}
 			if (strcmp(argv[i], "-d") == 0) {
 				verbose = 2;
+			}
+			if (strcmp(argv[i], "-f") == 0) {
+				overwrite_user_file = true;
 			}
 		}
 	}
@@ -207,13 +243,16 @@ int ArgsAndFiles(int argc, char* argv[]) {
 	strcat(hf_name, ".h");
 	if (use_cpp) {
 		strcat(cf_name, ".cpp");
+		strcat(uf_name, ".cpp");
 	} else {
 		strcat(cf_name, ".c");
+		strcat(uf_name, ".c");
 	}
 	if (verbose) {
 		printf("Grammar file: \t%s\n", gf_name);
 		printf("Header file: \t%s\n", hf_name);
 		printf("Code file: \t%s\n", cf_name);
+		printf("User Code file: %s\n", uf_name);
 	}
 
 	//open grammar file
@@ -237,6 +276,43 @@ int ArgsAndFiles(int argc, char* argv[]) {
 		return 1;
 	}
 
+	// open the user code file
+	if (overwrite_user_file) {
+		printf("-f option given - overwriting user_code file\n");
+		uf = fopen(uf_name, "w");
+		if (uf == 0) {
+			printf(">> Error opening usert code file for writing: %s\n", uf_name);
+			return 1;
+		}
+
+	} else {
+		uf = fopen(uf_name, "r");
+		if (uf) {
+			char ans;
+			printf("\nWARNING: %s already exists and may contain user generated code!\n", uf_name);
+			printf("Do you want to overwrite user file %s ? (All changes will be lost)\n\n", uf_name);
+			printf("Confirm: (Y/y)es (N/n)o ? ");
+			ans = getchar();
+			if (toupper(ans) == 'Y') {
+				fclose(uf);
+				uf = fopen(uf_name, "w");
+				overwrite_user_file = true;
+				if (uf == 0) {
+					printf(">> Error opening usert code file for writing: %s\n", uf_name);
+					return 1;
+				}
+			} else { // no
+				fclose(uf);
+			}
+		} else { // uf did not exist
+			uf = fopen(uf_name, "w");
+			overwrite_user_file = true;
+			if (uf == 0) {
+				printf(">> Error opening usert code file for writing: %s\n", uf_name);
+				return 1;
+			}
+		}
+	}
 	return 0;
 }
 
@@ -244,19 +320,84 @@ int ArgsAndFiles(int argc, char* argv[]) {
    Main Calling Routine
 ****************************************************************************/
 int main(int argc, char* argv[]) {
+	char out[MAX_BUFFER_LENGTH];
+	char include_guard[MAX_BUFFER_LENGTH];
+	char* temp;
 
 	if(ArgsAndFiles(argc, argv)) {
 		printf(">> Can't Continue. Exit.\n");
 		exit(-1);
 	}
 
-	Lexer lex;
+	// Write output file preambles and filename dependent pre-proc directives
+	for (int i = Q_HEADER; i <= Q_CODE; i++) {
+		sprintf(out, "//\n");
+		SendToOutput(i, out);
+		sprintf(out, "// DO NOT MODIFY THIS FILE\n");
+		SendToOutput(i, out);
+		sprintf(out, "//\n");
+		SendToOutput(i, out);
+		sprintf(out, "// THIS FILE IS AUTOMATICALLY GENERATED IN ITS ENTIRETY\n");
+		SendToOutput(i, out);
+		sprintf(out, "// ANY CHANGES MADE IN THIS FILE WILL BE OVERWRITTEN WITHOUT WARNING\n");
+		SendToOutput(i, out);
+		sprintf(out, "// WHENEVER THE LEXER / PROCESSOR IS INVOKED.\n");
+		SendToOutput(i, out);
+		sprintf(out, "//\n\n");
+		SendToOutput(i, out);
+	}
 
-	ProcessGrammarFile(lex, gf);
+	// write include guards to the output header file
+	temp = strrchr(hf_name, '.');
+	int dot_idx = (int)(temp - hf_name);
+	memcpy(include_guard, hf_name, dot_idx);
+	include_guard[dot_idx+1] = '\0';
+	temp = include_guard;
+	while (*temp) {
+		*temp = toupper(*temp);
+		temp++;
+	}
+
+	strcat(include_guard, "_H_");
+
+	sprintf(out, "#ifndef %s\n", include_guard);
+	SendToOutput(Q_HEADER, out);
+	sprintf(out, "#define %s\n\n", include_guard);
+	SendToOutput(Q_HEADER, out);
+
+	// Write header includes into the code and user_code files
+	sprintf(out, "#include \"%s\"\n\n", hf_name);
+	SendToOutput(Q_CODE, out);
+	SendToOutput(Q_USER_CODE, out);
+
+	// includes for the code and user_code files
+	sprintf(out, "#include <stdint.h>\n");
+	SendToOutput(Q_CODE, out);
+	SendToOutput(Q_USER_CODE, out);
+	sprintf(out, "#include <stdio.h>\n");
+	SendToOutput(Q_CODE, out);
+	SendToOutput(Q_USER_CODE, out);
+	sprintf(out, "#include <stdlib.h>\n\n");
+	SendToOutput(Q_CODE, out);
+	SendToOutput(Q_USER_CODE, out);
+
+	sprintf(out, "extern void ICLIWriteLine(char *str);\n\n");
+	SendToOutput(Q_USER_CODE, out);
+
+
+	// Do all the hard word
+	ProcessGrammarFile();
+
+	// Write include guard ends to header
+
+	sprintf(out, "\n#endif // %s\n\n", include_guard);
+	SendToOutput(Q_HEADER, out);
+
 
 	fclose(gf);
 	fclose(hf);
 	fclose(cf);
+	fclose(uf);
 
 
 	return 0;

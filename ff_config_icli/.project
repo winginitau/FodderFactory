@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>config_icli</name>
+	<name>itch</name>
 	<comment></comment>
 	<projects>
 	</projects>
@@ -26,7 +26,7 @@
 	</natures>
 	<linkedResources>
 		<link>
-			<name>ff_config_parser</name>
+			<name>glitch</name>
 			<type>2</type>
 			<location>/home/brendan/git/FodderFactory/ff_config_parser</location>
 		</link>

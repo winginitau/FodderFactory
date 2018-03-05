@@ -24,6 +24,7 @@ class Identifiers {
 private:
 	 Identifier ids[MAX_IDENTIFIERS];
 	 int idents_count;
+	 int idents_func_idx;
 
 	 int GetIdxByLabel(char* label);
 
@@ -44,6 +45,8 @@ public:
 
 	int SetInstanceName(char* identifier_name, char* instance_name);
 	int GetInstanceName(char* identifier_name, char* instance_name);
+
+	int GetXlatID(char* identifier_name);
 
 	int GetEntryAtLocation(char* identifier_name, char* key_result, char* value_result, int location);
 	int GetEntryAtLocation(char* identifier_name, char* string_result, int location);

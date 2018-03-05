@@ -8,12 +8,12 @@
  ******************************************************************/
 
 #include "common_config.h"
-#include "processor_errors.h"
 #include "AST.h"
 #include "KeyValuePairList.h"
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "glitch_errors.h"
 
 
 AST::AST() {
@@ -25,6 +25,9 @@ AST::AST() {
     output_string[0] = '\0';
 
 	grammar_def_count = 0;
+
+	caller_func_preamble_done = false;
+
 }
 
 AST::~AST() {
@@ -189,7 +192,7 @@ void AST::WriteASTArray(Identifiers* idents) {
 
 	DT(root, idents, false);  // to count the output lines
 
-	sprintf(output_string, "#ifdef USE_PROGMEM\n");
+	sprintf(output_string, "\n#ifdef USE_PROGMEM\n");
 	header_output_queue.EnQueue(output_string);
 	sprintf(output_string, "static const ASTA asta [%d] PROGMEM = {\n", grammar_def_count);
 	header_output_queue.EnQueue(output_string);
@@ -293,7 +296,7 @@ void AST::AttachActionToCurrent(char* action_identifier) {
 }
 
 
-int AST::BuildActionPrototype(Identifiers& idents) {
+int AST::BuildActionCode(Identifiers& idents) {
 	// While on the AST node that is action-able - "current", walk via
 	// parent pointers up the tree, building the function parameter
 	// list that will be included in the function prototype for this action.
@@ -302,12 +305,15 @@ int AST::BuildActionPrototype(Identifiers& idents) {
 	ASTNode* walker;
 	int param_count = 0;
 	int param_index = 0;
-	char param_name[MAX_BUFFER_WORD_LENGTH];
-	char param_type[MAX_BUFFER_WORD_LENGTH];
-	char func_name[MAX_BUFFER_WORD_LENGTH];
-	char temp[MAX_BUFFER_WORD_LENGTH];
-	char temp2[MAX_BUFFER_WORD_LENGTH];
+	char param_name[MAX_BUFFER_LENGTH];
+	char param_type[MAX_BUFFER_LENGTH];
+	char func_name[MAX_BUFFER_LENGTH];
+	int func_xlat_id;
+	char temp[MAX_BUFFER_LENGTH];
+	char temp2[MAX_BUFFER_LENGTH];
 
+
+	// ***************************** Count the Params for the Function Definition and Prototype
 	walker = current;
 	while (walker != NULL ) {
 		// count the num of params that need to be included in the function
@@ -322,6 +328,8 @@ int AST::BuildActionPrototype(Identifiers& idents) {
 		walker = walker->parent;
 	}
 
+	// ***************************** Assemble param names and types walking up tree
+
 	walker = current;
 	while (walker != NULL) {
 		switch (walker->type) {
@@ -333,7 +341,7 @@ int AST::BuildActionPrototype(Identifiers& idents) {
 				break;
 			case AST_IDENTIFIER:
 				if (idents.Exists(walker->label)) {
-					sprintf(param_type, "int");
+					sprintf(param_type, "uint16_t");
 					params.Add(walker->label, param_type);
 				} else
 					return E_BUILDING_ACTION_PROTO;
@@ -352,7 +360,7 @@ int AST::BuildActionPrototype(Identifiers& idents) {
 				param_index--;
 				break;
 			case AST_PARAM_INTEGER:
-				sprintf(param_type, "int");
+				sprintf(param_type, "int16_t");
 				sprintf(param_name, "param%u_int", param_index);
 				params.Add(param_name, param_type);
 				param_index--;
@@ -379,91 +387,210 @@ int AST::BuildActionPrototype(Identifiers& idents) {
 		walker = walker->parent;
 	}
 
-	// write the function
-	strcpy(output_string, "void ");
+	// ****************************** Get the function name
+	// stored in instance_name of the idents headers
 	if (idents.GetInstanceName(current->action_identifier, func_name) != E_NO_ERROR) {
 		return E_BUILDING_ACTION_PROTO;
 	}
 
-	// header and user code function declaration
+	// ****************************** Get the function's xlat ID
+	func_xlat_id = idents.GetXlatID(current->action_identifier);
+
+	// *******************************   Function Caller Preamble - ONCE!
+	// write the preamble for the function caller into the code file - Once!
+	if(caller_func_preamble_done == false) {
+		sprintf(output_string, "void CallFunction(uint8_t func_xlat, ParamUnion params[]) {\n");
+		code_output_queue.EnQueue(output_string);
+		sprintf(output_string, "\tswitch (func_xlat) {\n");
+		code_output_queue.EnQueue(output_string);
+		caller_func_preamble_done = true;
+	}
+
+	// ********************************* Header and User_Code function 1st line
+	strcpy(output_string, "void ");
 	sprintf(temp, "%s(", func_name);
 	strcat(output_string, temp);
 
-	// if no params close them as void
+	// ***************************no params - (void)
 	if (param_count == 0) {
-		strcat(output_string, "void);\n\n");
+		// preserve the line so far
+		strcpy(temp2, output_string);
+
+		// Header Proto
+		strcat(output_string, "void);\n");
 		header_output_queue.EnQueue(output_string);
 
+		// Restore the line preserved earlier
+		strcpy(output_string, temp2);
+
+		// User_Code function 1st line
 		sprintf(temp, "void) {\n");
 		strcat(output_string, temp);
 		user_code_output_queue.EnQueue(output_string);
 
 	} else {
-		// iterate the params
+		// *************************** param list
 		for (int i = param_count - 1; i > 0; i--) {
 			params.GetPairAtLocation(param_name, param_type, i);
 			sprintf(temp, "%s %s, ", param_type, param_name);
 			strcat(output_string, temp);
 		}
-		// save slightly different version for user code (rather than header proto)
+
+		// Preserve to far
 		strcpy(temp2, output_string);
 
-		// close the proto declaration
+		// *************************************** last param and close - Prototype
 		params.GetPairAtLocation(param_name, param_type, 0);
-		sprintf(temp, "%s %s);\n\n", param_type, param_name);
+		sprintf(temp, "%s %s);\n", param_type, param_name);
 		strcat(output_string, temp);
 		header_output_queue.EnQueue(output_string);
 
-		//get the saved copy back and close the user code declaration, opening the code body
+		// Restore the line preserved earlier
 		strcpy(output_string, temp2);
+
+		// *************************************** last param and func open - User_Code
 		sprintf(temp, "%s %s) {\n", param_type, param_name);
 		strcat(output_string, temp);
 		user_code_output_queue.EnQueue(output_string);
 	}
 
-	// continue with the user_code function body
-	sprintf(output_string, "\t// >>>");
+	// ******************************************* Function caller Case:
+	// No params - () call and close case
+	if (param_count == 0) {
+		sprintf(output_string, "\t\tcase %d:\n", func_xlat_id);
+		code_output_queue.EnQueue(output_string);
+		sprintf(output_string, "\t\t\t%s();\n", func_name);
+		code_output_queue.EnQueue(output_string);
+		sprintf(output_string, "\t\t\tbreak;\n");
+		code_output_queue.EnQueue(output_string);
+	} else {
+		// Params to enumerate
+		sprintf(output_string, "\t\tcase %d:\n", func_xlat_id);
+		code_output_queue.EnQueue(output_string);
+		sprintf(output_string, "\t\t\t%s(", func_name);
+
+		// Iterate and enumerate the params
+		int e = 0;
+		for (int i = param_count - 1; i > 0; i--) {
+			params.GetPairAtLocation(param_name, param_type, i);
+
+			//remove the *
+			char* star;
+			star = strrchr(param_type, '*');
+			if (star) {
+				*star = '\0';
+				strcat(param_type, "_star");
+			}
+
+			sprintf(temp, "params[%d].param_%s, ", e, param_type);
+			strcat(output_string, temp);
+			e++;
+		}
+
+		// Last param and close the call and case
+		params.GetPairAtLocation(param_name, param_type, 0);
+
+		//remove the *
+		char* star;
+		star = strrchr(param_type, '*');
+		if (star) {
+			*star = '\0';
+			strcat(param_type, "_star");
+		}
+
+		// form the last param and write the close and case break;
+		sprintf(temp, "params[%d].param_%s);\n", param_count -1 , param_type);
+		strcat(output_string, temp);
+		code_output_queue.EnQueue(output_string);
+		sprintf(output_string, "\t\t\tbreak;\n");
+		code_output_queue.EnQueue(output_string);
+	}
+
+
+	//ShowBlockByCategory(params[0].param_int16);
+	//char** ShowBlockCatN(int block_category, int param1_int);
+	//ShowBlockCatN(params[0].param_int16, params[1].param_int16);
+
+	// *************************************** User_Code function body
+	sprintf(output_string, "\t// >>>\n");
 	user_code_output_queue.EnQueue(output_string);
-	sprintf(output_string, "\t// >>> INSERT CODE HERE TO CARRY OUT THE DESIRED ACTION");
+	sprintf(output_string, "\t// >>> INSERT CODE HERE TO CARRY OUT THE DESIRED ACTION\n");
 	user_code_output_queue.EnQueue(output_string);
-	sprintf(output_string, "\t// >>>");
+	sprintf(output_string, "\t// >>>\n");
 	user_code_output_queue.EnQueue(output_string);
-	sprintf(output_string, "\tchar temp[MAX_BUFFER_LENGTH];");
+	sprintf(output_string, "\tchar temp[MAX_BUFFER_LENGTH];\n");
+	user_code_output_queue.EnQueue(output_string);
 
 	// have the example code print debug info (func and param types / value)
-	user_code_output_queue.EnQueue(output_string);
 	sprintf(output_string, "\tsprintf(temp, \"%s(...) with param list (", func_name);
 
 	if (param_count == 0) {
-		sprintf(temp, "void)\n\n\r\");\n");
+		sprintf(temp, "void)\\n\\n\\r\");\n");
 		strcat(output_string, temp);
 		user_code_output_queue.EnQueue(output_string);
-
 	} else {
 		for (int i = param_count - 1; i > 0; i--) {
 			params.GetPairAtLocation(param_name, param_type, i);
-			sprintf(temp, "%s:%s, ", param_type, param_name);
+			if ( (strcmp(param_type, "uint16_t") == 0) || (strcmp(param_type, "int16_t") == 0) ) {
+				sprintf(temp, "%s:%s:%%d, ", param_type, param_name);
+			} else {
+				if (strcmp(param_type, "char*") == 0) {
+					sprintf(temp, "%s:%s:%%s, ", param_type, param_name);
+				} else {
+					if (strcmp(param_type, "float") == 0) {
+						sprintf(temp, "%s:%s:%%f, ", param_type, param_name);
+					} else {
+						printf("ERROR Param Type not recognised building User Function code example\n\n");
+						exit(-1);
+					}
+				}
+			}
+			strcat(output_string, temp);
+		}
+
+		params.GetPairAtLocation(param_name, param_type, 0);
+		if ( (strcmp(param_type, "uint16_t") == 0) || (strcmp(param_type, "int16_t") == 0) ) {
+			sprintf(temp, "%s:%s:%%d)\\n\\n\\r\", ", param_type, param_name);
+		} else {
+			if (strcmp(param_type, "char*") == 0) {
+				sprintf(temp, "%s:%s:%%s)\\n\\n\\r\", ", param_type, param_name);
+			} else {
+				if (strcmp(param_type, "float") == 0) {
+					sprintf(temp, "%s:%s:%%f)\\n\\n\\r\", ", param_type, param_name);
+				} else {
+					printf("ERROR Param Type not recognised building User Function code example\n\n");
+					exit(-1);
+				}
+			}
+		}
+		strcat(output_string, temp);
+
+		for (int i = param_count - 1; i > 0; i--) {
+			params.GetPairAtLocation(param_name, param_type, i);
+			sprintf(temp, "%s, ", param_name);
 			strcat(output_string, temp);
 		}
 		params.GetPairAtLocation(param_name, param_type, 0);
-		sprintf(temp, "%s:%s)\n\n\r\");\n", param_type, param_name);
+		sprintf(temp, "%s);\n", param_name);
 		strcat(output_string, temp);
 		user_code_output_queue.EnQueue(output_string);
 	}
 
-	sprintf(temp, "\t// >>>");
+	// rest of the user_code function body and closures
+	sprintf(output_string, "\t// >>>\n");
 	user_code_output_queue.EnQueue(output_string);
-	sprintf(temp, "\t// >>> AND SEND THE RESULTS OUT VIA CALLS TO ICLIWriteLine");
+	sprintf(output_string, "\t// >>> AND SEND THE RESULTS OUT VIA CALLS TO ICLIWriteLine\n");
 	user_code_output_queue.EnQueue(output_string);
-	sprintf(temp, "\t// >>>");
+	sprintf(output_string, "\t// >>>\n");
 	user_code_output_queue.EnQueue(output_string);
-	sprintf(temp, "\tICLIWriteLine(temp);");
+	sprintf(output_string, "\tICLIWriteLine(temp);\n");
 	user_code_output_queue.EnQueue(output_string);
-	sprintf(temp, "}\n\n");
+	sprintf(output_string, "}\n\n");
 	user_code_output_queue.EnQueue(output_string);
 
 	header_output_queue.SetOutputAvailable();
 	user_code_output_queue.SetOutputAvailable();
+	code_output_queue.SetOutputAvailable();
 
 	return E_NO_ERROR;
 }

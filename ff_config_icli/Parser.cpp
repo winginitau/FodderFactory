@@ -59,47 +59,6 @@ void Parser::ResetLine(void) {
 }
 
 
-
-typedef union {
-	uint16_t param_int16;
-	float param_float;
-	char* param_string;
-} ParamUnion;
-
-#include <stdarg.h>
-
-char** CallFunction(uint8_t func_xlat, ParamUnion params[]) {
-
-/*
-	//va_list param_list;
-	//va_start(param_list, param_count);
-	ParamUnion p1;
-	p1 = va_arg(param_list, ParamUnion);
-	ParamUnion p2;
-	p2 = va_arg(param_list, ParamUnion);
-	//param list passed in
-*/
-	char** return_ptr;
-	switch (func_xlat) {
-		case 3:
-//			char** ShowBlockByCategory(int block_category);
-			return_ptr = ShowBlockByCategory(params[0].param_int16);
-			break;
-		case 4:
-//			char** ShowBlockCatN(int block_category, int param1_int);
-			return_ptr = ShowBlockCatN(params[0].param_int16, params[1].param_int16);
-			break;
-		default:
-			// XXX
-			printf("ERROR, No matched func_xlat in CallFunction - not matching function?\n\r");
-			exit(-1);
-	}
-	//va_end(param_list);
-	return return_ptr;
-}
-
-
-
 void Parser::ActionDispatcher(uint16_t action_asta_id) {
 	// Lookup the function to call (using functions from output of lexer)
 	// Call the caller with an assembled param list.
@@ -140,16 +99,16 @@ void Parser::ActionDispatcher(uint16_t action_asta_id) {
 
 				ident_xlat = LookupIdentMap(temp_asta.label);
 				member_id = LookupIdentifierMembers(ident_xlat, temp_str);
-				params[param_index].param_int16 = member_id;
+				params[param_index].param_uint16_t = member_id;
 				break;
 			case AST_LOOKUP:
 			case AST_PARAM_DATE:
 			case AST_PARAM_TIME:
 			case AST_PARAM_STRING:
-				params[param_index].param_string = temp_str;
+				params[param_index].param_char_star = temp_str;
 				break;
 			case AST_PARAM_INTEGER:
-				params[param_index].param_int16 = atoi(temp_str);
+				params[param_index].param_int16_t = atoi(temp_str);
 				break;
 			case AST_PARAM_FLOAT:
 				params[param_index].param_float = atof(temp_str);

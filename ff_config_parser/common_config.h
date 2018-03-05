@@ -13,12 +13,21 @@
 //#define DEBUG
 
 
-#define MAX_BUFFER_LENGTH 150
-#define MAX_BUFFER_WORD_LENGTH 150
-#define MAX_BUFFER_WORDS_PER_LINE 30
+#ifndef MAX_BUFFER_LENGTH
+#define MAX_BUFFER_LENGTH 200
+#endif
+
+#ifndef MAX_BUFFER_WORD_LENGTH
+#define MAX_BUFFER_WORD_LENGTH 200
+#endif
+
+#ifndef MAX_BUFFER_WORDS_PER_LINE
+#define MAX_BUFFER_WORDS_PER_LINE 50
+#endif
+
 #define MAX_IDENTIFIERS 200
 
-#define MAX_PARAM_COUNT 5   // possible have lexer push this value in based on proto build
+#define MAX_PARAM_COUNT 8   // possible have lexer push this value in based on proto build
 
 #ifndef MAX_LABEL_LENGTH
 #define MAX_LABEL_LENGTH 48

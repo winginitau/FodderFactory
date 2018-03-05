@@ -101,15 +101,13 @@ void ICLI::Poll(void) {
 					break;
 				case R_NONE:
 					// parser should always return a meaningful result
-					sprintf(output_line, ">>> Error: Parser did not return a result at all. Error in Parser?\n\r>> ");
+					sprintf(output_line, ">>> ERROR: Parser did not return a result at all. Error in Parser?\n\r>> ");
 					fputs(output_line, osp);
-					exit(-1);
+					fputs(prompt, osp);
+					parser.ResetLine();
+					//exit(-1);
 					break; //continue
 				case R_UNFINISHED:
-//					while (parser.output.OutputAvailable()) {
-//						parser.output.GetOutputAsString(output_line);
-//						fputs(output_line, osp);
-//					}
 					break; //continue
 				case R_COMPLETE: {
 					while (parser.output.OutputAvailable()) {
@@ -155,6 +153,7 @@ void ICLI::Poll(void) {
 
 void ICLI::WriteLine(char* string) {
 	parser.output.AddString(string);
+	parser.output.SetOutputAvailable();
 }
 
 			//

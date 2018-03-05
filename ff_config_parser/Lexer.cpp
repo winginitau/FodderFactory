@@ -8,11 +8,11 @@
  ******************************************************************/
 
 #include "Lexer.h"
-#include "processor_errors.h"
 #include "AST.h"
 #include "ASTNode.h"
 #include <string.h>
 #include <stdlib.h>
+#include "glitch_errors.h"
 
 Lexer::Lexer() {
     // Initialise globally persistent directives
@@ -561,7 +561,7 @@ void Lexer::Process_D_ACTION_DEFINE(void) {
 	//	ACTION_IDENTIFIER as IdentifierName
 	//	FunctionName as InstanceName
 	//
-	//	Then later populate through grammar parsing for
+	//	XXX Then later populate through grammar parsing for
 	//		parameter types and names in order.
 	line.GetTokenStr(tokens[0], 0);
 
@@ -601,7 +601,7 @@ void Lexer::Process_D_ACTION(void) {
     		process_result = R_ERROR;
     	} else {
     		ast.AttachActionToCurrent(tokens[1]);
-    		ast.BuildActionPrototype(idents);
+    		ast.BuildActionCode(idents);
     		while (ast.header_output_queue.OutputAvailable()) {
     			ast.header_output_queue.GetOutputAsString(output_string);
     			header_output_queue.EnQueue(output_string);
@@ -611,6 +611,11 @@ void Lexer::Process_D_ACTION(void) {
     			ast.user_code_output_queue.GetOutputAsString(output_string);
     			user_code_output_queue.EnQueue(output_string);
     			user_code_output_available = true;
+    		}
+    		while (ast.code_output_queue.OutputAvailable()) {
+    			ast.code_output_queue.GetOutputAsString(output_string);
+    			code_output_queue.EnQueue(output_string);
+    			code_output_available = true;
     		}
 
     		process_result = R_COMPLETE;
@@ -622,6 +627,22 @@ void Lexer::Process_D_ACTION(void) {
 void Lexer::Process_D_GRAMMAR_END(void) {
 
 	if (grammar_section) {
+
+		// write the default case and closures for the function caller
+		// Before writing anything else to the code file
+		sprintf(output_string, "\t\tdefault:\n");
+		code_output_queue.EnQueue(output_string);
+		sprintf(output_string, "\t\t\t// XXX\n");
+		code_output_queue.EnQueue(output_string);
+		sprintf(output_string, "\t\t\tprintf(\"ERROR, No matched func_xlat in CallFunction - not matching function?\\n\\r\");\n");
+		code_output_queue.EnQueue(output_string);
+		sprintf(output_string, "\t\t\texit(-1);\n");
+		code_output_queue.EnQueue(output_string);
+		sprintf(output_string, "\t}\n");
+		code_output_queue.EnQueue(output_string);
+		sprintf(output_string, "}\n\n");
+		code_output_queue.EnQueue(output_string);
+
 		//
 		// To Do List
 		//
@@ -652,7 +673,7 @@ void Lexer::Process_D_GRAMMAR_END(void) {
 			header_output_queue.EnQueue(output_string);
 		}
 
-		// write out the identifier XLAT array
+		// write out the identifiers XLAT map arrays (idents, lookups, actions)
 		idents.WriteIdentifierMaps();
 		// and send it to the header file
 		while (idents.output.OutputAvailable()) {
@@ -691,6 +712,10 @@ void Lexer::Process_D_GRAMMAR_END(void) {
 			idents.output.GetOutputAsString(output_string);
 			code_output_queue.EnQueue(output_string);
 		}
+
+		// Add the Caller function prototype to the header
+		sprintf(output_string, "void CallFunction(uint8_t func_xlat, ParamUnion params[]);\n");
+		header_output_queue.EnQueue(output_string);
 
 		header_output_available = true;
 		code_output_available = true;
@@ -824,6 +849,9 @@ bool Lexer::Code_OutputAvailable() {
     return code_output_available;
 }
 
+bool Lexer::User_Code_OutputAvailable() {
+    return user_code_output_available;
+}
 
 
 char* Lexer::GetOutputAsString(int queue, char* output_str) {
@@ -847,6 +875,13 @@ char* Lexer::GetOutputAsString(int queue, char* output_str) {
 			code_output_queue.DeQueue(output_string);
 			if (code_output_queue.GetSize() == 0) {
 				code_output_available = false;
+			}
+			return strcpy(output_str, output_string);
+			break;
+		case Q_USER_CODE:
+			user_code_output_queue.DeQueue(output_string);
+			if (user_code_output_queue.GetSize() == 0) {
+				user_code_output_available = false;
 			}
 			return strcpy(output_str, output_string);
 			break;

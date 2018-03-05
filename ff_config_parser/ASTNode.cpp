@@ -22,6 +22,8 @@ ASTNode::ASTNode() {
 	parent = NULL;
 	first_child = NULL;
 	next_sibling = NULL;
+
+	action_identifier[0] = '\0';
 }
 
 ASTNode::~ASTNode() {

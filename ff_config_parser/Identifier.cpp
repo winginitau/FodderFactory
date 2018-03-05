@@ -13,6 +13,7 @@
 Identifier::Identifier() {
 	IdentifierName[0] = '\0';
 	Type = ID_TYPE_UNDEFINED;
+	func_xlat = 0;
 }
 
 Identifier::~Identifier() {

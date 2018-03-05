@@ -8,7 +8,6 @@
  ******************************************************************/
 
 #include "Identifiers.h"
-#include "processor_errors.h"
 #include <regex.h>
 #include <string.h>
 #include <stdio.h>
@@ -16,11 +15,13 @@
 
 //#ifdef DEBUG
 #include "Debug.h"
+#include "glitch_errors.h"
 Debug debug;
 //#endif
 
 Identifiers::Identifiers() {
 	idents_count = 0;
+	idents_func_idx = 0;
 
 }
 
@@ -37,6 +38,10 @@ int Identifiers::NewIdent(char* reserved_name, int id_type) {
 		strcpy(ids[idx].IdentifierName, reserved_name);
 		ids[idx].Type = id_type;
 		idents_count++;
+		if (id_type == ID_ACTION_PAIR) {
+			ids[idx].func_xlat = idents_func_idx;
+			idents_func_idx++;
+		}
 		return E_NO_ERROR;
 	} else
 		return E_INVALID_IDENTIFIER;
@@ -118,6 +123,18 @@ int Identifiers::GetInstanceName(char* identifier_name, char* instance_name) {
 		return E_IDENTIFER_NAME_NOT_FOUND;
 }
 
+int Identifiers::GetXlatID(char* identifier_name) {
+int idx = 0;
+	while (idx < idents_count) {
+		if (strcmp(ids[idx].IdentifierName, identifier_name) == 0) { //found
+			return ids[idx].func_xlat;
+		}
+		idx++;
+	}
+	return E_IDENTIFER_NAME_NOT_FOUND;
+}
+
+
 int Identifiers::GetEntryAtLocation(char* identifier_name, char* key_result, char* value_result, int location) {
 	int idx = 0;
 		while (idx < idents_count) {
@@ -160,7 +177,6 @@ void Identifiers::WriteIdentMap(int type, char* instance_name) {
 	int count;
 	char out[MAX_BUFFER_LENGTH];
 
-
 	// count number of enum idents - ID_ENUM_ARRAY_PAIR
 	idx = 0;
 	count = 0;
@@ -170,6 +186,7 @@ void Identifiers::WriteIdentMap(int type, char* instance_name) {
 		}
 		idx++;
 	}
+
 	// write out the enum indentifers xlat array
 	// header
 	sprintf(out, "#ifdef USE_PROGMEM\n");
@@ -188,7 +205,7 @@ void Identifiers::WriteIdentMap(int type, char* instance_name) {
 	while (idx < idents_count) {
 		if (ids[idx].Type == type) {
 			if (type == ID_ACTION_PAIR) {
-				sprintf(out, "\t\"%s\", %d,\n", ids[idx].IdentifierName, xlat_idx);
+				sprintf(out, "\t\"%s\", %d,\n", ids[idx].IdentifierName, ids[idx].func_xlat);
 			} else {
 				sprintf(out, "\t\"%s\", %d,\n", ids[idx].InstanceName, xlat_idx);
 			}
@@ -401,22 +418,25 @@ bool Identifiers::IdentifierValid(char* ident) {
 	result = regcomp(&regex, IDENTIFIER_REGEX, REG_EXTENDED);
 	if (result) {
 	    fprintf(stdout, "Could not compile IDENTIFIER_REGEX\n");
+	    regfree(&regex);
 	    exit(1);
 	}
 
 	// execute
 	result = regexec(&regex, ident, 0, NULL, 0);
 	if (!result) {
+		regfree(&regex);
 	    return true;
 	}
 	else if (result == REG_NOMATCH) {
+		regfree(&regex);
 	    return false;
 	}
 	else {
 	    regerror(result, &regex, error_buf, sizeof(error_buf));
 	    fprintf(stdout, "Regex matching failed: %s\n", error_buf);
+	    regfree(&regex);
 	    exit(-1);
 	}
-	regfree(&regex);
 
 }

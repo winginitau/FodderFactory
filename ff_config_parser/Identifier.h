@@ -41,6 +41,7 @@ public:
 	char InstanceName[MAX_BUFFER_LENGTH];
 
 	int Type;
+	int func_xlat;
 
 	KeyValuePairList KeyValueList;
 	StringList SimpleList;

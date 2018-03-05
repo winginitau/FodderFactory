@@ -28,6 +28,9 @@ private:
 
     int grammar_def_count;
 
+    bool caller_func_preamble_done;
+
+
 
 public:
 	AST();
@@ -50,7 +53,7 @@ public:
 	int GetASTTypeString(char* return_string, int type);
 
 	void AttachActionToCurrent(char* action_identifier);
-	int BuildActionPrototype(Identifiers& idents);
+	int BuildActionCode(Identifiers& idents);
 	int DetermineUnique(void);
 };
 

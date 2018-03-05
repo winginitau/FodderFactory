@@ -24,7 +24,7 @@
 								<option id="gnu.cpp.compiler.exe.debug.option.optimization.level.1128573470" name="Optimization Level" superClass="gnu.cpp.compiler.exe.debug.option.optimization.level" useByScannerDiscovery="false" value="gnu.cpp.compiler.optimization.level.none" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.exe.debug.option.debugging.level.1399667442" name="Debug Level" superClass="gnu.cpp.compiler.exe.debug.option.debugging.level" useByScannerDiscovery="false" value="gnu.cpp.compiler.debugging.level.max" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.option.include.paths.1793451014" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/config_icli/ff_config_parser}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/glitch}&quot;"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1042082428" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
@@ -32,14 +32,14 @@
 								<option defaultValue="gnu.c.optimization.level.none" id="gnu.c.compiler.exe.debug.option.optimization.level.1467538967" name="Optimization Level" superClass="gnu.c.compiler.exe.debug.option.optimization.level" useByScannerDiscovery="false" valueType="enumerated"/>
 								<option id="gnu.c.compiler.exe.debug.option.debugging.level.1732306093" name="Debug Level" superClass="gnu.c.compiler.exe.debug.option.debugging.level" useByScannerDiscovery="false" value="gnu.c.debugging.level.max" valueType="enumerated"/>
 								<option id="gnu.c.compiler.option.include.paths.1827260806" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/config_icli/ff_config_parser}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/glitch}&quot;"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1614163588" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.exe.debug.1083024807" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.exe.debug"/>
 							<tool id="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug.200063951" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug">
-								<option id="gnu.cpp.link.option.paths.632661832" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/config_icli/ff_config_parser}&quot;"/>
+								<option id="gnu.cpp.link.option.paths.632661832" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" useByScannerDiscovery="false" valueType="libPaths">
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/glitch}&quot;"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.1075997977" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
@@ -47,27 +47,27 @@
 								</inputType>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.assembler.exe.debug.1920615742" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.exe.debug">
-								<option id="gnu.both.asm.option.include.paths.651929319" name="Include paths (-I)" superClass="gnu.both.asm.option.include.paths" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/config_icli/ff_config_parser}&quot;"/>
+								<option id="gnu.both.asm.option.include.paths.651929319" name="Include paths (-I)" superClass="gnu.both.asm.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/glitch}&quot;"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.44261102" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
 							</tool>
 						</toolChain>
 					</folderInfo>
-					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.1154591455.552733825" name="Debug.h" rcbsApplicability="disable" resourcePath="ff_config_parser/Debug.h" toolsToInvoke=""/>
-					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.1154591455.1789923560" name="Identifiers.h" rcbsApplicability="disable" resourcePath="ff_config_parser/Identifiers.h" toolsToInvoke=""/>
-					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.1154591455.23672195" name="ff_sys_config.h" rcbsApplicability="disable" resourcePath="ff_config_parser/ff_sys_config.h" toolsToInvoke=""/>
-					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.1154591455.805680102" name="Identifier.cpp" rcbsApplicability="disable" resourcePath="ff_config_parser/Identifier.cpp" toolsToInvoke="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1546792958.995882444">
-						<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1546792958.995882444" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1546792958"/>
+					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.1154591455.1789923560" name="Identifiers.h" rcbsApplicability="disable" resourcePath="glitch/Identifiers.h" toolsToInvoke=""/>
+					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.1154591455.552733825" name="Debug.h" rcbsApplicability="disable" resourcePath="glitch/Debug.h" toolsToInvoke=""/>
+					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.1154591455.23672195" name="ff_sys_config.h" rcbsApplicability="disable" resourcePath="glitch/ff_sys_config.h" toolsToInvoke=""/>
+					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.1154591455.1200671075" name="glitch.cpp" rcbsApplicability="disable" resourcePath="glitch/glitch.cpp" toolsToInvoke="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1546792958.312489098">
+						<tool command="g++" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1546792958.312489098" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1546792958"/>
 					</fileInfo>
-					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.1154591455.1290271989" name="AST.h" rcbsApplicability="disable" resourcePath="ff_config_parser/AST.h" toolsToInvoke=""/>
-					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.1154591455.1827801583" name="Identifier.h" rcbsApplicability="disable" resourcePath="ff_config_parser/Identifier.h" toolsToInvoke=""/>
-					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.1154591455.1587236149" name="Lexer.h" rcbsApplicability="disable" resourcePath="ff_config_parser/Lexer.h" toolsToInvoke=""/>
-					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.1154591455.1782207193" name="ASTNode.h" rcbsApplicability="disable" resourcePath="ff_config_parser/ASTNode.h" toolsToInvoke=""/>
-					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.1154591455.1934248610" name="ff_string_consts.h" rcbsApplicability="disable" resourcePath="ff_config_parser/ff_string_consts.h" toolsToInvoke=""/>
+					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.1154591455.1290271989" name="AST.h" rcbsApplicability="disable" resourcePath="glitch/AST.h" toolsToInvoke=""/>
+					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.1154591455.1827801583" name="Identifier.h" rcbsApplicability="disable" resourcePath="glitch/Identifier.h" toolsToInvoke=""/>
+					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.1154591455.1587236149" name="Lexer.h" rcbsApplicability="disable" resourcePath="glitch/Lexer.h" toolsToInvoke=""/>
+					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.1154591455.1782207193" name="ASTNode.h" rcbsApplicability="disable" resourcePath="glitch/ASTNode.h" toolsToInvoke=""/>
+					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.1154591455.1934248610" name="ff_string_consts.h" rcbsApplicability="disable" resourcePath="glitch/ff_string_consts.h" toolsToInvoke=""/>
 					<sourceEntries>
-						<entry excluding="ff_config_parser" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
-						<entry excluding="Identifier.cpp|Identifier.h|Identifiers.cpp|Identifiers.h|Lexer.cpp|Lexer.h|Debug.h|Debug.cpp|ASTNode.h|ASTNode.cpp|AST.h|AST.cpp|ff_string_consts.cpp|ff_string_consts.h|ff_sys_config.h|processor_config.h|processor.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="ff_config_parser"/>
+						<entry excluding="glitch" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="glitch.cpp|Identifier.cpp|Identifier.h|Identifiers.cpp|Identifiers.h|Lexer.cpp|Lexer.h|Debug.h|Debug.cpp|ASTNode.h|ASTNode.cpp|AST.h|AST.cpp|ff_string_consts.cpp|ff_string_consts.h|ff_sys_config.h|processor_config.h|processor.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="glitch"/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -114,19 +114,19 @@
 							</tool>
 						</toolChain>
 					</folderInfo>
-					<fileInfo id="cdt.managedbuild.config.gnu.exe.release.342175032.1368635901" name="Debug.h" rcbsApplicability="disable" resourcePath="ff_config_parser/Debug.h" toolsToInvoke=""/>
-					<fileInfo id="cdt.managedbuild.config.gnu.exe.release.342175032.2134738391" name="Identifiers.h" rcbsApplicability="disable" resourcePath="ff_config_parser/Identifiers.h" toolsToInvoke=""/>
-					<fileInfo id="cdt.managedbuild.config.gnu.exe.release.342175032.1753268684" name="ff_sys_config.h" rcbsApplicability="disable" resourcePath="ff_config_parser/ff_sys_config.h" toolsToInvoke=""/>
-					<fileInfo id="cdt.managedbuild.config.gnu.exe.release.342175032.1175608097" name="Identifier.cpp" rcbsApplicability="disable" resourcePath="ff_config_parser/Identifier.cpp" toolsToInvoke="cdt.managedbuild.tool.gnu.cpp.compiler.exe.release.290398966.557754353">
-						<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.release.290398966.557754353" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.release.290398966"/>
+					<fileInfo id="cdt.managedbuild.config.gnu.exe.release.342175032.2134738391" name="Identifiers.h" rcbsApplicability="disable" resourcePath="glitch/Identifiers.h" toolsToInvoke=""/>
+					<fileInfo id="cdt.managedbuild.config.gnu.exe.release.342175032.1368635901" name="Debug.h" rcbsApplicability="disable" resourcePath="glitch/Debug.h" toolsToInvoke=""/>
+					<fileInfo id="cdt.managedbuild.config.gnu.exe.release.342175032.1753268684" name="ff_sys_config.h" rcbsApplicability="disable" resourcePath="glitch/ff_sys_config.h" toolsToInvoke=""/>
+					<fileInfo id="cdt.managedbuild.config.gnu.exe.release.342175032.1759575348" name="glitch.cpp" rcbsApplicability="disable" resourcePath="glitch/glitch.cpp" toolsToInvoke="cdt.managedbuild.tool.gnu.cpp.compiler.exe.release.290398966.787353050">
+						<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.release.290398966.787353050" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.release.290398966"/>
 					</fileInfo>
-					<fileInfo id="cdt.managedbuild.config.gnu.exe.release.342175032.1419967286" name="AST.h" rcbsApplicability="disable" resourcePath="ff_config_parser/AST.h" toolsToInvoke=""/>
-					<fileInfo id="cdt.managedbuild.config.gnu.exe.release.342175032.1038280648" name="Identifier.h" rcbsApplicability="disable" resourcePath="ff_config_parser/Identifier.h" toolsToInvoke=""/>
-					<fileInfo id="cdt.managedbuild.config.gnu.exe.release.342175032.620320076" name="Lexer.h" rcbsApplicability="disable" resourcePath="ff_config_parser/Lexer.h" toolsToInvoke=""/>
-					<fileInfo id="cdt.managedbuild.config.gnu.exe.release.342175032.119293921" name="ASTNode.h" rcbsApplicability="disable" resourcePath="ff_config_parser/ASTNode.h" toolsToInvoke=""/>
-					<fileInfo id="cdt.managedbuild.config.gnu.exe.release.342175032.2105934426" name="ff_string_consts.h" rcbsApplicability="disable" resourcePath="ff_config_parser/ff_string_consts.h" toolsToInvoke=""/>
+					<fileInfo id="cdt.managedbuild.config.gnu.exe.release.342175032.1419967286" name="AST.h" rcbsApplicability="disable" resourcePath="glitch/AST.h" toolsToInvoke=""/>
+					<fileInfo id="cdt.managedbuild.config.gnu.exe.release.342175032.1038280648" name="Identifier.h" rcbsApplicability="disable" resourcePath="glitch/Identifier.h" toolsToInvoke=""/>
+					<fileInfo id="cdt.managedbuild.config.gnu.exe.release.342175032.620320076" name="Lexer.h" rcbsApplicability="disable" resourcePath="glitch/Lexer.h" toolsToInvoke=""/>
+					<fileInfo id="cdt.managedbuild.config.gnu.exe.release.342175032.119293921" name="ASTNode.h" rcbsApplicability="disable" resourcePath="glitch/ASTNode.h" toolsToInvoke=""/>
+					<fileInfo id="cdt.managedbuild.config.gnu.exe.release.342175032.2105934426" name="ff_string_consts.h" rcbsApplicability="disable" resourcePath="glitch/ff_string_consts.h" toolsToInvoke=""/>
 					<sourceEntries>
-						<entry excluding="ff_config_parser/Identifier.cpp|ff_config_parser/Identifier.h|ff_config_parser/Identifiers.cpp|ff_config_parser/Identifiers.h|ff_config_parser/Lexer.cpp|ff_config_parser/Lexer.h|ff_config_parser/Debug.h|ff_config_parser/Debug.cpp|ff_config_parser/ASTNode.h|ff_config_parser/ASTNode.cpp|ff_config_parser/AST.h|ff_config_parser/AST.cpp|ff_config_parser/ff_string_consts.cpp|ff_config_parser/ff_string_consts.h|ff_config_parser/ff_sys_config.h|ff_config_parser/processor_config.h|ff_config_parser/processor.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="glitch/glitch.cpp|glitch/AST.cpp|ff_config_parser/Identifiers.cpp|ff_config_parser/processor_config.h|ff_config_parser/Lexer.cpp|ff_config_parser/AST.h|ff_config_parser/ff_string_consts.h|ff_config_parser/Identifier.cpp|ff_config_parser/Identifiers.h|ff_config_parser/ff_sys_config.h|ff_config_parser/Lexer.h|ff_config_parser/Debug.cpp|ff_config_parser/Debug.h|ff_config_parser/ff_string_consts.cpp|ff_config_parser/processor.cpp|ff_config_parser/ASTNode.cpp|ff_config_parser/ASTNode.h|ff_config_parser/AST.cpp|ff_config_parser/Identifier.h" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
