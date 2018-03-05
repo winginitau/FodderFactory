@@ -79,7 +79,7 @@ uint16_t NodeMap::GetASTAByID(uint16_t ASTA_ID, ASTA* result) {
 		}
 		arr_idx++;
 	}
-	printf("ASTA ID Not Found - Array index going out of bounds - Serious error\n\r");
+	printf("\n\rERROR: ASTA ID Not Found - Array index going out of bounds\n\r");
 	// XXX report serious error rather than crash on embedded
 	return 0;
 }
@@ -299,7 +299,9 @@ void NodeMap::SelectMatchingNodes(char* target, TokenList* matched_list) {
 		if ((cr > 0) || (mf.help_active == 1)) {
 			// the node is a possible match to be included
 			matched_list->AddASTAToTokenList(temp_node);
+			#ifdef DEBUG
 			printf("DEBUG Selecting Matching: ID:%d  Label:%s  Action:%s \n\r", temp_node.id, temp_node.label, temp_node.action_identifier);
+			#endif
 		}
 
 		//set up for the siblings (if any)

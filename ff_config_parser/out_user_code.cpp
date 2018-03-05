@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-extern void ICLIWriteLine(char *str);
+extern void ITCHWriteLine(char *str);
 
 void ShowBlocks(void) {
 	// >>>
@@ -15,7 +15,7 @@ void ShowBlocks(void) {
 	// >>>
 	// >>> AND SEND THE RESULTS OUT VIA CALLS TO ICLIWriteLine
 	// >>>
-	ICLIWriteLine(temp);
+	ITCHWriteLine(temp);
 }
 
 void ShowSystem(void) {
@@ -27,7 +27,7 @@ void ShowSystem(void) {
 	// >>>
 	// >>> AND SEND THE RESULTS OUT VIA CALLS TO ICLIWriteLine
 	// >>>
-	ICLIWriteLine(temp);
+	ITCHWriteLine(temp);
 }
 
 void ShowBlockByCategory(uint16_t block_category) {
@@ -39,7 +39,7 @@ void ShowBlockByCategory(uint16_t block_category) {
 	// >>>
 	// >>> AND SEND THE RESULTS OUT VIA CALLS TO ICLIWriteLine
 	// >>>
-	ICLIWriteLine(temp);
+	ITCHWriteLine(temp);
 }
 
 void ShowBlockCatN(uint16_t block_category, int16_t param1_int) {
@@ -51,7 +51,7 @@ void ShowBlockCatN(uint16_t block_category, int16_t param1_int) {
 	// >>>
 	// >>> AND SEND THE RESULTS OUT VIA CALLS TO ICLIWriteLine
 	// >>>
-	ICLIWriteLine(temp);
+	ITCHWriteLine(temp);
 }
 
 void ShowBlockByLabel(char* block_label) {
@@ -63,7 +63,7 @@ void ShowBlockByLabel(char* block_label) {
 	// >>>
 	// >>> AND SEND THE RESULTS OUT VIA CALLS TO ICLIWriteLine
 	// >>>
-	ICLIWriteLine(temp);
+	ITCHWriteLine(temp);
 }
 
 void ShowBlockByID(int16_t param1_int) {
@@ -75,7 +75,7 @@ void ShowBlockByID(int16_t param1_int) {
 	// >>>
 	// >>> AND SEND THE RESULTS OUT VIA CALLS TO ICLIWriteLine
 	// >>>
-	ICLIWriteLine(temp);
+	ITCHWriteLine(temp);
 }
 
 void MessagesMute(void) {
@@ -87,7 +87,7 @@ void MessagesMute(void) {
 	// >>>
 	// >>> AND SEND THE RESULTS OUT VIA CALLS TO ICLIWriteLine
 	// >>>
-	ICLIWriteLine(temp);
+	ITCHWriteLine(temp);
 }
 
 void MessagesUnmute(void) {
@@ -99,7 +99,7 @@ void MessagesUnmute(void) {
 	// >>>
 	// >>> AND SEND THE RESULTS OUT VIA CALLS TO ICLIWriteLine
 	// >>>
-	ICLIWriteLine(temp);
+	ITCHWriteLine(temp);
 }
 
 void MonitorStart(void) {
@@ -111,7 +111,7 @@ void MonitorStart(void) {
 	// >>>
 	// >>> AND SEND THE RESULTS OUT VIA CALLS TO ICLIWriteLine
 	// >>>
-	ICLIWriteLine(temp);
+	ITCHWriteLine(temp);
 }
 
 void MonitorStop(void) {
@@ -123,7 +123,7 @@ void MonitorStop(void) {
 	// >>>
 	// >>> AND SEND THE RESULTS OUT VIA CALLS TO ICLIWriteLine
 	// >>>
-	ICLIWriteLine(temp);
+	ITCHWriteLine(temp);
 }
 
 void MonitorRemoveByLabel(char* block_label) {
@@ -135,7 +135,7 @@ void MonitorRemoveByLabel(char* block_label) {
 	// >>>
 	// >>> AND SEND THE RESULTS OUT VIA CALLS TO ICLIWriteLine
 	// >>>
-	ICLIWriteLine(temp);
+	ITCHWriteLine(temp);
 }
 
 void MonitorRemoveByBlockCatN(uint16_t block_category, int16_t param1_int) {
@@ -147,7 +147,7 @@ void MonitorRemoveByBlockCatN(uint16_t block_category, int16_t param1_int) {
 	// >>>
 	// >>> AND SEND THE RESULTS OUT VIA CALLS TO ICLIWriteLine
 	// >>>
-	ICLIWriteLine(temp);
+	ITCHWriteLine(temp);
 }
 
 void MonitorByLabel(char* block_label) {
@@ -159,7 +159,7 @@ void MonitorByLabel(char* block_label) {
 	// >>>
 	// >>> AND SEND THE RESULTS OUT VIA CALLS TO ICLIWriteLine
 	// >>>
-	ICLIWriteLine(temp);
+	ITCHWriteLine(temp);
 }
 
 void MonitorByBlockCatN(uint16_t block_category, int16_t param1_int) {
@@ -171,7 +171,7 @@ void MonitorByBlockCatN(uint16_t block_category, int16_t param1_int) {
 	// >>>
 	// >>> AND SEND THE RESULTS OUT VIA CALLS TO ICLIWriteLine
 	// >>>
-	ICLIWriteLine(temp);
+	ITCHWriteLine(temp);
 }
 
 void ClearBlockByLabel(char* block_label) {
@@ -183,7 +183,7 @@ void ClearBlockByLabel(char* block_label) {
 	// >>>
 	// >>> AND SEND THE RESULTS OUT VIA CALLS TO ICLIWriteLine
 	// >>>
-	ICLIWriteLine(temp);
+	ITCHWriteLine(temp);
 }
 
 void ClearBlockByBlockCatN(uint16_t block_category, int16_t param1_int) {
@@ -195,7 +195,7 @@ void ClearBlockByBlockCatN(uint16_t block_category, int16_t param1_int) {
 	// >>>
 	// >>> AND SEND THE RESULTS OUT VIA CALLS TO ICLIWriteLine
 	// >>>
-	ICLIWriteLine(temp);
+	ITCHWriteLine(temp);
 }
 
 void SendCommandToBlockCatN(uint16_t block_category, int16_t param1_int, uint16_t command) {
@@ -207,7 +207,7 @@ void SendCommandToBlockCatN(uint16_t block_category, int16_t param1_int, uint16_
 	// >>>
 	// >>> AND SEND THE RESULTS OUT VIA CALLS TO ICLIWriteLine
 	// >>>
-	ICLIWriteLine(temp);
+	ITCHWriteLine(temp);
 }
 
 void SendCommandToBlockLabel(char* block_label, uint16_t command) {
@@ -219,7 +219,7 @@ void SendCommandToBlockLabel(char* block_label, uint16_t command) {
 	// >>>
 	// >>> AND SEND THE RESULTS OUT VIA CALLS TO ICLIWriteLine
 	// >>>
-	ICLIWriteLine(temp);
+	ITCHWriteLine(temp);
 }
 
 void SimIntDataMessageFromBCatN(uint16_t block_category, int16_t param1_int, int16_t param2_int) {
@@ -231,7 +231,7 @@ void SimIntDataMessageFromBCatN(uint16_t block_category, int16_t param1_int, int
 	// >>>
 	// >>> AND SEND THE RESULTS OUT VIA CALLS TO ICLIWriteLine
 	// >>>
-	ICLIWriteLine(temp);
+	ITCHWriteLine(temp);
 }
 
 void SimFloatDataMessageFromBCatN(uint16_t block_category, int16_t param1_int, float param2_float) {
@@ -243,7 +243,7 @@ void SimFloatDataMessageFromBCatN(uint16_t block_category, int16_t param1_int, f
 	// >>>
 	// >>> AND SEND THE RESULTS OUT VIA CALLS TO ICLIWriteLine
 	// >>>
-	ICLIWriteLine(temp);
+	ITCHWriteLine(temp);
 }
 
 void SimIntDataMessageFromBlockLabel(char* block_label, int16_t param2_int) {
@@ -255,7 +255,7 @@ void SimIntDataMessageFromBlockLabel(char* block_label, int16_t param2_int) {
 	// >>>
 	// >>> AND SEND THE RESULTS OUT VIA CALLS TO ICLIWriteLine
 	// >>>
-	ICLIWriteLine(temp);
+	ITCHWriteLine(temp);
 }
 
 void SimFloatDataMessageFromBlockLabel(char* block_label, float param2_float) {
@@ -267,7 +267,7 @@ void SimFloatDataMessageFromBlockLabel(char* block_label, float param2_float) {
 	// >>>
 	// >>> AND SEND THE RESULTS OUT VIA CALLS TO ICLIWriteLine
 	// >>>
-	ICLIWriteLine(temp);
+	ITCHWriteLine(temp);
 }
 
 void DebugOn(void) {
@@ -279,7 +279,7 @@ void DebugOn(void) {
 	// >>>
 	// >>> AND SEND THE RESULTS OUT VIA CALLS TO ICLIWriteLine
 	// >>>
-	ICLIWriteLine(temp);
+	ITCHWriteLine(temp);
 }
 
 void DebugOff(void) {
@@ -291,7 +291,7 @@ void DebugOff(void) {
 	// >>>
 	// >>> AND SEND THE RESULTS OUT VIA CALLS TO ICLIWriteLine
 	// >>>
-	ICLIWriteLine(temp);
+	ITCHWriteLine(temp);
 }
 
 void DebugTermOn(void) {
@@ -303,7 +303,7 @@ void DebugTermOn(void) {
 	// >>>
 	// >>> AND SEND THE RESULTS OUT VIA CALLS TO ICLIWriteLine
 	// >>>
-	ICLIWriteLine(temp);
+	ITCHWriteLine(temp);
 }
 
 void DebugTermOff(void) {
@@ -315,7 +315,7 @@ void DebugTermOff(void) {
 	// >>>
 	// >>> AND SEND THE RESULTS OUT VIA CALLS TO ICLIWriteLine
 	// >>>
-	ICLIWriteLine(temp);
+	ITCHWriteLine(temp);
 }
 
 void DebugSetLevel(int16_t param1_int) {
@@ -327,7 +327,7 @@ void DebugSetLevel(int16_t param1_int) {
 	// >>>
 	// >>> AND SEND THE RESULTS OUT VIA CALLS TO ICLIWriteLine
 	// >>>
-	ICLIWriteLine(temp);
+	ITCHWriteLine(temp);
 }
 
 void ShowTime(void) {
@@ -339,7 +339,7 @@ void ShowTime(void) {
 	// >>>
 	// >>> AND SEND THE RESULTS OUT VIA CALLS TO ICLIWriteLine
 	// >>>
-	ICLIWriteLine(temp);
+	ITCHWriteLine(temp);
 }
 
 void SetTime(char* param1_time) {
@@ -351,7 +351,7 @@ void SetTime(char* param1_time) {
 	// >>>
 	// >>> AND SEND THE RESULTS OUT VIA CALLS TO ICLIWriteLine
 	// >>>
-	ICLIWriteLine(temp);
+	ITCHWriteLine(temp);
 }
 
 void ShowDate(void) {
@@ -363,7 +363,7 @@ void ShowDate(void) {
 	// >>>
 	// >>> AND SEND THE RESULTS OUT VIA CALLS TO ICLIWriteLine
 	// >>>
-	ICLIWriteLine(temp);
+	ITCHWriteLine(temp);
 }
 
 void SetDate(char* param1_date) {
@@ -375,7 +375,7 @@ void SetDate(char* param1_date) {
 	// >>>
 	// >>> AND SEND THE RESULTS OUT VIA CALLS TO ICLIWriteLine
 	// >>>
-	ICLIWriteLine(temp);
+	ITCHWriteLine(temp);
 }
 
 void ConfClearBlocks(void) {
@@ -387,7 +387,7 @@ void ConfClearBlocks(void) {
 	// >>>
 	// >>> AND SEND THE RESULTS OUT VIA CALLS TO ICLIWriteLine
 	// >>>
-	ICLIWriteLine(temp);
+	ITCHWriteLine(temp);
 }
 
 void ConfClearAll(void) {
@@ -399,7 +399,7 @@ void ConfClearAll(void) {
 	// >>>
 	// >>> AND SEND THE RESULTS OUT VIA CALLS TO ICLIWriteLine
 	// >>>
-	ICLIWriteLine(temp);
+	ITCHWriteLine(temp);
 }
 
 void ConfReadDefaultFile(void) {
@@ -411,7 +411,7 @@ void ConfReadDefaultFile(void) {
 	// >>>
 	// >>> AND SEND THE RESULTS OUT VIA CALLS TO ICLIWriteLine
 	// >>>
-	ICLIWriteLine(temp);
+	ITCHWriteLine(temp);
 }
 
 void ConfReadFilename(char* param1_string) {
@@ -423,7 +423,7 @@ void ConfReadFilename(char* param1_string) {
 	// >>>
 	// >>> AND SEND THE RESULTS OUT VIA CALLS TO ICLIWriteLine
 	// >>>
-	ICLIWriteLine(temp);
+	ITCHWriteLine(temp);
 }
 
 void WriteToDefaultConfigFile(void) {
@@ -435,7 +435,7 @@ void WriteToDefaultConfigFile(void) {
 	// >>>
 	// >>> AND SEND THE RESULTS OUT VIA CALLS TO ICLIWriteLine
 	// >>>
-	ICLIWriteLine(temp);
+	ITCHWriteLine(temp);
 }
 
 void WriteEmptyDefaultConfigFile(void) {
@@ -447,7 +447,7 @@ void WriteEmptyDefaultConfigFile(void) {
 	// >>>
 	// >>> AND SEND THE RESULTS OUT VIA CALLS TO ICLIWriteLine
 	// >>>
-	ICLIWriteLine(temp);
+	ITCHWriteLine(temp);
 }
 
 void WriteToFilenameConfigFile(char* param1_string) {
@@ -459,7 +459,7 @@ void WriteToFilenameConfigFile(char* param1_string) {
 	// >>>
 	// >>> AND SEND THE RESULTS OUT VIA CALLS TO ICLIWriteLine
 	// >>>
-	ICLIWriteLine(temp);
+	ITCHWriteLine(temp);
 }
 
 void CopyConfigFileToFile(char* param1_string, char* param2_string) {
@@ -471,7 +471,7 @@ void CopyConfigFileToFile(char* param1_string, char* param2_string) {
 	// >>>
 	// >>> AND SEND THE RESULTS OUT VIA CALLS TO ICLIWriteLine
 	// >>>
-	ICLIWriteLine(temp);
+	ITCHWriteLine(temp);
 }
 
 void BlockDisableByBlockCatN(uint16_t block_category, int16_t param1_int) {
@@ -483,7 +483,7 @@ void BlockDisableByBlockCatN(uint16_t block_category, int16_t param1_int) {
 	// >>>
 	// >>> AND SEND THE RESULTS OUT VIA CALLS TO ICLIWriteLine
 	// >>>
-	ICLIWriteLine(temp);
+	ITCHWriteLine(temp);
 }
 
 void BlockDisableByLabel(char* param1_string) {
@@ -495,7 +495,7 @@ void BlockDisableByLabel(char* param1_string) {
 	// >>>
 	// >>> AND SEND THE RESULTS OUT VIA CALLS TO ICLIWriteLine
 	// >>>
-	ICLIWriteLine(temp);
+	ITCHWriteLine(temp);
 }
 
 void BlockEnableByBlockCatN(uint16_t block_category, int16_t param1_int) {
@@ -507,7 +507,7 @@ void BlockEnableByBlockCatN(uint16_t block_category, int16_t param1_int) {
 	// >>>
 	// >>> AND SEND THE RESULTS OUT VIA CALLS TO ICLIWriteLine
 	// >>>
-	ICLIWriteLine(temp);
+	ITCHWriteLine(temp);
 }
 
 void BlockEnableByLabel(char* block_label) {
@@ -519,7 +519,7 @@ void BlockEnableByLabel(char* block_label) {
 	// >>>
 	// >>> AND SEND THE RESULTS OUT VIA CALLS TO ICLIWriteLine
 	// >>>
-	ICLIWriteLine(temp);
+	ITCHWriteLine(temp);
 }
 
 void BlockDeleteByBlockCatN(uint16_t block_category, int16_t param1_int) {
@@ -531,7 +531,7 @@ void BlockDeleteByBlockCatN(uint16_t block_category, int16_t param1_int) {
 	// >>>
 	// >>> AND SEND THE RESULTS OUT VIA CALLS TO ICLIWriteLine
 	// >>>
-	ICLIWriteLine(temp);
+	ITCHWriteLine(temp);
 }
 
 void BlockDeleteByLabel(char* param1_string) {
@@ -543,7 +543,7 @@ void BlockDeleteByLabel(char* param1_string) {
 	// >>>
 	// >>> AND SEND THE RESULTS OUT VIA CALLS TO ICLIWriteLine
 	// >>>
-	ICLIWriteLine(temp);
+	ITCHWriteLine(temp);
 }
 
 void BlockRename(char* param1_string, char* param2_string) {
@@ -555,7 +555,7 @@ void BlockRename(char* param1_string, char* param2_string) {
 	// >>>
 	// >>> AND SEND THE RESULTS OUT VIA CALLS TO ICLIWriteLine
 	// >>>
-	ICLIWriteLine(temp);
+	ITCHWriteLine(temp);
 }
 
 void TerminalExit(void) {
@@ -567,7 +567,7 @@ void TerminalExit(void) {
 	// >>>
 	// >>> AND SEND THE RESULTS OUT VIA CALLS TO ICLIWriteLine
 	// >>>
-	ICLIWriteLine(temp);
+	ITCHWriteLine(temp);
 }
 
 void TerminalLogout(void) {
@@ -579,7 +579,7 @@ void TerminalLogout(void) {
 	// >>>
 	// >>> AND SEND THE RESULTS OUT VIA CALLS TO ICLIWriteLine
 	// >>>
-	ICLIWriteLine(temp);
+	ITCHWriteLine(temp);
 }
 
 void SystemReboot(void) {
@@ -591,6 +591,6 @@ void SystemReboot(void) {
 	// >>>
 	// >>> AND SEND THE RESULTS OUT VIA CALLS TO ICLIWriteLine
 	// >>>
-	ICLIWriteLine(temp);
+	ITCHWriteLine(temp);
 }
 

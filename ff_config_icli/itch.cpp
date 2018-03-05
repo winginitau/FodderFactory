@@ -1,5 +1,5 @@
 /*****************************************************************
- ICLI.cpp
+ ITCH.cpp
 
  Copyright (C) 2018 Brendan McLearie 
 
@@ -7,33 +7,30 @@
 
  ******************************************************************/
 
-#include "ICLI.h"
-
 #include "out.h"
 #include <stdlib.h>
+#include "itch.h"
 
 
-//ICLI icli;
 
-
-ICLI::ICLI() {
+ITCH::ITCH() {
 	mode = 0;
 	isp = NULL;
 	osp= NULL;
 }
 
-ICLI::~ICLI() {
+ITCH::~ITCH() {
 	// Auto-generated destructor stub
 }
 
-void ICLI::Begin(FILE* input_stream, FILE* output_stream, int icli_mode) {
+void ITCH::Begin(FILE* input_stream, FILE* output_stream, int icli_mode) {
 	isp = input_stream;
 	osp = output_stream;
 	mode = icli_mode;
 }
 
 
-void ICLI::Poll(void) {
+void ITCH::Poll(void) {
 	char temp[MAX_BUFFER_LENGTH];
 
 	// XXX this needs to become non-blocking portable
@@ -48,12 +45,11 @@ void ICLI::Poll(void) {
 	char output_line[MAX_BUFFER_LENGTH];
 
 	sprintf(prompt_base, "\n\r$ ");
-	if (mode == ICLI_INTERACTIVE) {
+	if (mode == ITCH_INTERACTIVE) {
 		fputs(prompt_base, osp);
 	};
 
 	ch = fgetc(isp);
-//	ch = getchar();
 
 	while (ch != EOF) {
 
@@ -151,47 +147,10 @@ void ICLI::Poll(void) {
 	}
 }
 
-void ICLI::WriteLine(char* string) {
+void ITCH::WriteLine(char* string) {
 	parser.output.AddString(string);
 	parser.output.SetOutputAvailable();
 }
-
-			//
-			// get first token
-
-			// Get first char
-
-			// Call the parser with first char
-
-
-				// parser has array
-				// parser has "level" - token cardinal (from context cardinal base)
-				// parser knows how far down the match chain it is
-
-				// parser grabs all sibling nodes of the matched parent
-
-				// compares the char to the first char of the siblings
-				// filters out non-matches, reducing the set
-					// keywords - straight compare match
-					// identifiers "remain open" but for performance are not iterated
-					// lookups remain open
-					// user entry params remain open
-
-			// at end of token chars (either by \0 or \n)
-				// set reduce based on
-					// match to key words
-					// iterate idents
-					// look up external lists
-					// if possible in parse path then fall through of user param
-			// if last char (on token or line) is ?
-				// return all possible sibling matches fir display
-				// display raw buffer entered so far as prompt
-
-			// continue in loop until action is reached with \n
-				// node number with action - how best to relate function call
-				//	and parent param list? - Build simple map reduced dynamic tree / parent
-				//	structure in memory - just the pointers and the ref to node#
-				// 	- pull node detail from the array.
 
 
 

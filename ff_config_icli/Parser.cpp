@@ -7,6 +7,10 @@
 
  ******************************************************************/
 
+#ifdef ARDUINO
+#include <Arduino.h>
+#endif
+
 #include "Parser.h"
 #include "parser_errors.h"
 #include "out.h"				// file written by lexer
@@ -14,8 +18,10 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <malloc.h>
 
+#ifdef LINUX
+#include <malloc.h>
+#endif
 
 
 Parser::Parser() {
@@ -31,9 +37,6 @@ Parser::~Parser() {
 }
 
 void Parser::ResetLine(void) {
-	//printf("DEBUG PARSE: ResetLine() Before copy. in_buf:%s     replay_buf:%s\n\r", in_buf, replay_buf);
-	//strcpy(replay_buf, in_buf);
-	//printf("DEBUG PARSE: ResetLine() After copy. in_buf:%s     replay_buf:%s\n\r", in_buf, replay_buf);
 
 	in_buf[0] = '\0';
 	in_idx = 0;
@@ -47,11 +50,6 @@ void Parser::ResetLine(void) {
 	pf.last_error = PE_NO_ERROR;
 	pf.help_active = 0;
 	pf.escape = 0;
-
-	//parse_level = 0;
-	//possible_count = 0;
-	//last_matched_node = 0;
-	//line_complete = 0;
 
 	map.Reset();
 	possible_list->Reset();
@@ -148,8 +146,11 @@ uint8_t Parser::P_EOL() {
 	// Processed when EOL reached
 
 	// Save the last token as a parameter for action calling;
-	SaveTokenAsParameter();
+	//if (pf.help_active == 0) {
+	//	SaveTokenAsParameter();
+	//}
 
+	// If help active, tuen it off, reset the map and return R_HELP so results will be displayed
 	if (pf.help_active) {
 		pf.help_active = 0;
 
@@ -161,8 +162,13 @@ uint8_t Parser::P_EOL() {
 		switch (pf.match_result) {
 			case MR_ACTION_POSSIBLE:
 				char action_ident[MAX_LABEL_LENGTH];
+				// Save the last token to the param list - becuase its EOL rather then DELIM
+				// 	the ParseMatch will not have been triggered to save it
+				SaveTokenAsParameter();
 				map.GetAction(map.GetLastMatchedID(), action_ident);
-				printf("DEBUG **** Action matched and to be called: %s\n\r", action_ident);
+				#ifdef DEBUG
+					printf("\n\rDEBUG **** Action matched and to be called: %s\n\r", action_ident);
+				#endif
 				ActionDispatcher(map.GetLastMatchedID());
 				map.Reset();
 				possible_list->Reset();
@@ -456,6 +462,16 @@ uint8_t Parser::MatchEvaluate(void) {
 }
 
 void Parser::SaveTokenAsParameter(void) {
+	// Save the last matched node/token details into the param list
+	//
+	// Called by ParseMatch when a delimiter is reached and there is
+	//	a unique match or an action match.
+	//
+	// Also called by P_EOL to capture the last token on the line before
+	// 	action processing, as this token will not have been isolated in
+	// 	the match loop - because the EOL has been reached rather than a
+	// 	delimiter.
+
 	TokenNode* new_param;
 	char temp_param[MAX_LABEL_LENGTH];
 	ASTA temp_asta_node;

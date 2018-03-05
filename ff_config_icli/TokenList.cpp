@@ -7,10 +7,17 @@
 
  ******************************************************************/
 
+#ifdef ARDUINO
+#include <Arduino.h>
+#endif
+
+
 #include "TokenList.h"
 
-#include "TokenNode.h"
+#ifdef LINUX
 #include <malloc.h>
+#endif
+
 #include <string.h>
 #include <stdlib.h>
 

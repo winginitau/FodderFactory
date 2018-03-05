@@ -1,12 +1,12 @@
 /*****************************************************************
- icli.cpp
+itch_test.cpp
 
  Copyright (C) 2018 Brendan McLearie 
 
  Created on: 17 Feb. 2018
 
 ******************************************************************/
-//#include "LineBuffer.h"
+
 
 
 #define LINUX
@@ -18,10 +18,10 @@
 #define DISPLAY_STRING
 
 
-#include "ICLI.h"
+#include "itch.h"
 #include <stdio.h>
 #include <stdlib.h>
-//#include "processor_out.h"
+
 
 #ifdef LINUX
 #include <errno.h>
@@ -33,14 +33,13 @@
 
 #define PORT "/dev/ttyV1"
 
-ICLI icli;
+ITCH itch;
 
-//OutputBuffer callback_output;
 
-extern void ICLIWriteLine(char *str) {
+extern void ITCHWriteLine(char *str) {
 	char cb_str[MAX_BUFFER_LENGTH];
 	strcpy(cb_str, str);
-	icli.WriteLine(cb_str);
+	itch.WriteLine(cb_str);
 }
 
 
@@ -153,7 +152,6 @@ int serial_tty()
 ****************************************************************************/
 int main(void) {
 
-//extern static ICLI icli;
 
 	//FILE* isp;
 	//FILE* osp;
@@ -165,7 +163,7 @@ int main(void) {
 	//if (isp) {
 	//	icli.Begin(isp, stdout, ICLI_FILE);
 	//} else {
-	icli.Begin(stdin, stdout, ICLI_INTERACTIVE);
+	itch.Begin(stdin, stdout, ITCH_INTERACTIVE);
 	//}
 
 
@@ -176,7 +174,7 @@ int main(void) {
 
 
 	while (true) {
-		icli.Poll();
+		itch.Poll();
 	}
 
 	return 0;

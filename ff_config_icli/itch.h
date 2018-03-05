@@ -1,5 +1,5 @@
 /*****************************************************************
- ICLI.h
+ ITCH.h
 
  Copyright (C) 2018 Brendan McLearie 
 
@@ -7,45 +7,24 @@
 
  ******************************************************************/
 
-/*
+#ifndef ITCH_H_
+#define ITCH_H_
 
-http://acronymcreator.net/ace.py
-
-
-Grammar
-Lexer
-Parser
-Compiler
-Interactive
-Terminal
-Configuration
-Command
-Protocol
-Environment
-
- */
-
-
-
-
-#ifndef ICLI_H_
-#define ICLI_H_
-
-
+#include "common_config.h"
 #include "LineBuffer.h"
 #include "OutputBuffer.h"
 #include "Parser.h"
 
 #include <stdio.h>
 
-enum ICLI_MODES {
-	ICLI_INIT,
-	ICLI_INTERACTIVE,
-	ICLI_FILE,
+enum ITCH_MODES {
+	ITCH_INIT,
+	ITCH_INTERACTIVE,
+	ITCH_FILE,
 };
 
 
-class ICLI {
+class ITCH {
 
 private:
 	FILE* isp;	// input stream pointer
@@ -57,8 +36,8 @@ private:
 	Parser parser;
 
 public:
-	ICLI();
-	virtual ~ICLI();
+	ITCH();
+	virtual ~ITCH();
 
 
 	void Begin(FILE* input_stream, FILE* output_stream, int icli_mode);
@@ -66,8 +45,6 @@ public:
 	void WriteLine(char* string);
 };
 
-//extern ICLI icli;
 
-
-#endif /* ICLI_H_ */
+#endif /* ITCH_H_ */
 
