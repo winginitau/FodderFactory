@@ -26,4 +26,5 @@ public:
 	void SetOutputAvailable();
 };
 
+
 #endif /* OUTPUTBUFFER_H_ */

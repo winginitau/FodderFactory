@@ -35,11 +35,14 @@ typedef struct PARSER_FLAGS {
 	uint8_t escape;
 } P_FLAGS;
 
+
+extern void M(char * strn);
+
 class Parser {
 private:
-	NodeMap map;
+
 	TokenList* possible_list;
-	char in_buf[MAX_BUFFER_LENGTH];
+	char in_buf[MAX_INPUT_LINE_SIZE];
 
 	uint8_t in_idx;
 
@@ -56,17 +59,17 @@ public:
 	Parser();
 	virtual ~Parser();
 
-	char replay_buf[MAX_BUFFER_LENGTH];
+	char replay_buf[MAX_OUTPUT_LINE_SIZE];
 	OutputBuffer output;
-
 
 	void Init();
 	uint8_t Parse(char ch);
 	void ResetPossibleList(void);
 	void GetErrorString(char* error);
+	void SetError(uint16_t err);
 	void ResetLine(void);
 	void BufferInject(char* inject_str);
-	void ActionDispatcher(uint16_t asta_id);
+	uint16_t ActionDispatcher(uint16_t asta_id);
 
 
 protected:

@@ -189,8 +189,19 @@ private:
 public:
     Lexer();
     virtual ~Lexer();
+
+    // Max size and counters for various items to constrain memory use in the parser
+    int max_enum_string_array_string_size;
+    int max_identifier_label_size;
+    int max_ast_label_size;
+    int max_ast_action_size;
+    int max_identifier_count;
+    int max_param_count;
+
     void Init();
     int ProcessLine(LineBuffer& line);
+
+    void SizeCheck(int* max, char* str);
 
     bool Header_OutputAvailable();
     bool User_OutputAvailable();
@@ -200,6 +211,7 @@ public:
     char* GetOutputAsString(int queue, char* output_str);
     int MatchToken(char* token_str);
     char* GetErrorString(char* error_str);
+
     AST ast;
 
 

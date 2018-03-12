@@ -22,71 +22,73 @@
 #include <stdlib.h>
 
 
-TokenList::TokenList() {
-	head = NULL;
-	walker = NULL;
-	tail = NULL;
-	size = 0;
+TokenList* TLNewTokenList(void) {
+	TokenList* tl;
+	tl = (TokenList*)malloc(sizeof(TokenList));
+	tl->head = NULL;
+	tl->walker = NULL;
+	tl->tail = NULL;
+	tl->size = 0;
+	return tl;
 }
 
-TokenList::~TokenList() {
-	Reset();
+void TLDeleteTokenList(TokenList* tl) {
+	TLReset(tl);
+	free(tl);
 }
 
-
-
-uint16_t TokenList::GetSize() {
-	return size;
+uint16_t TLGetSize(TokenList* tl) {
+	return tl->size;
 }
 
-char* TokenList::GetHeadLabel(char *result) {
-	if (head != NULL) {
-		return strcpy(result, head->label);
+char* TLGetHeadLabel(TokenList* tl, char *result) {
+	if (tl->head != NULL) {
+		return strcpy(result, tl->head->label);
 	} else {
 		return NULL;
 	}
 }
 
-char* TokenList::GetCurrentLabel(char* result) {
-	if (walker != NULL) {
-		return strcpy(result, walker->label);
+char* TLGetCurrentLabel(TokenList* tl, char* result) {
+	if (tl->walker != NULL) {
+		return strcpy(result, tl->walker->label);
 	} else {
 		return NULL;
 	}
 }
 
-uint8_t TokenList::GetCurrentType() {
-	if (walker != NULL) {
-		return walker->type;
+uint8_t TLGetCurrentType(TokenList* tl) {
+	if (tl->walker != NULL) {
+		return tl->walker->type;
 	} else {
 		return 0;
 	}
 }
 
-uint16_t TokenList::GetCurrentID() {
-	if (walker != NULL) {
-		return walker->id;
+uint16_t TLGetCurrentID(TokenList* tl) {
+	if (tl->walker != NULL) {
+		return tl->walker->id;
 	} else {
 		return 0;
 	}
 }
 
-void TokenList::ToTop() {
-	walker = head;
+void TLToTop(TokenList* tl) {
+	tl->walker = tl->head;
 }
 
-TokenNode* TokenList::Next() {
+TokenNode* TLNext(TokenList* tl) {
 	// catch empty list condition
-	if (walker == NULL) {
+	if (tl->walker == NULL) {
 		// return NULL to indicate no more nodes
 		return NULL;
 	} else {
 		// at tail, walker should point to last member, not NULL
-		if (walker->next != NULL) {
+		if (tl->walker->next != NULL) {
 			// there's at least one more in the list
 			// point walker at it
-			walker = walker->next;
-			return walker;
+			tl->walker = tl->walker->next;
+			return tl->walker;
 		} else { // walker not NULL but ->next is!
 			// return NULL to signal end of list
 			// but leave walker pointing to tail
@@ -95,15 +97,15 @@ TokenNode* TokenList::Next() {
 	}
 }
 
-void TokenList::Reset() {
-	ResetFromHead(head);
-	head = NULL;
-	walker = NULL;
-	tail = NULL;
-	size = 0;
+void TLReset(TokenList* tl) {
+	TLResetFromHead(tl->head);
+	tl->head = NULL;
+	tl->walker = NULL;
+	tl->tail = NULL;
+	tl->size = 0;
 }
 
-void TokenList::ResetFromHead(TokenNode* n) {
+void TLResetFromHead(TokenNode* n) {
 	TokenNode* child;
 	if (n == NULL) {
 		//do nothing
@@ -113,65 +115,65 @@ void TokenList::ResetFromHead(TokenNode* n) {
 			//Reserve a pointer to the child
 			child = n->next;
 			//recursively delete the child (and its children)
-			ResetFromHead(child);
+			TLResetFromHead(child);
 		}
 		// now that the child and its children are gone, free up the node memory
 		free(n);
 	}
 }
 
-uint8_t TokenList::IsEmpty() {
-	if (size == 0) {
+uint8_t TLIsEmpty(TokenList* tl) {
+	if (tl->size == 0) {
 		return 1;
 	} else return 0;
 }
 
-TokenNode* TokenList::AddASTAToTokenList(ASTA node) {
+TokenNode* TLAddASTAToTokenList(TokenList* tl, ASTA node) {
 	// malloc new node
 	TokenNode* tn;
-	tn = NewTokenNode();
+	tn = TLNewTokenNode();
 	// fill in the data
 	strcpy(tn->label, node.label);
 	tn->id = node.id;
 	tn->type = node.type;
-	return Add(tn);
+	return TLAdd(tl, tn);
 }
 
-TokenNode* TokenList::Add(TokenNode* tn) {
+TokenNode* TLAdd(TokenList* tl, TokenNode* tn) {
 	// add already malloc'd node to the end of the list
 	TokenNode* temp_walker;
 
 	// make sure the new node has next set to NULL;
 	tn->next = NULL;
 
-	if (head == NULL) { // empty list
+	if (tl->head == NULL) { // empty list
 		// incoming node becomes head
-		head = tn;
-		size = 1;
-		tail = tn;
-		walker = tn;
-		return head;
+		tl->head = tn;
+		tl->size = 1;
+		tl->tail = tn;
+		tl->walker = tn;
+		return tl->head;
 	} else {
-		temp_walker = head;
+		temp_walker = tl->head;
 		// walk list until ->next is NULL, ie at end
 		while (temp_walker->next != NULL) {
 			temp_walker = temp_walker->next;
 		}
 		// now on last node
 		temp_walker->next = tn;
-		size++;
-		tail = tn;
+		tl->size++;
+		tl->tail = tn;
 		return tn;
 	}
 }
 
-uint8_t TokenList::AtEnd() {
-	if (walker == tail) {
+uint8_t TLAtEnd(TokenList* tl) {
+	if (tl->walker == tl->tail) {
 		return 1;
 	} else return 0;
 }
 
-TokenNode* TokenList::NewTokenNode(void) {
+TokenNode* TLNewTokenNode(void) {
 	// just malloc a new node - don't add it to the list yet
 	TokenNode* tn;
 	tn = (TokenNode* )malloc(sizeof(TokenNode));
@@ -187,27 +189,27 @@ TokenNode* TokenList::NewTokenNode(void) {
 	}
 }
 
-void TokenList::DeleteByType(int8_t dtype) {
-	DelFromList(&head, dtype);
-	walker = head;
+void TLDeleteByType(TokenList* tl, int8_t dtype) {
+	TLDelFromList(&(tl->head), dtype);
+	tl->walker = tl->head;
 
 	// re-locate the tail (in case it was deleted)
-	if (head ==NULL) {
-		tail = NULL;
-		size = 0;
+	if (tl->head ==NULL) {
+		tl->tail = NULL;
+		tl->size = 0;
 	} else {
-		size = 1;
+		tl->size = 1;
 		TokenNode* temp;
-		temp = head;
+		temp = tl->head;
 		while(temp->next != NULL) {
 			temp = temp->next;
-			size++;
+			tl->size++;
 		}
-		tail = temp;
+		tl->tail = temp;
 	}
 }
 
-void TokenList::DelFromList(TokenNode** head, int8_t type) {
+void TLDelFromList(TokenNode** head, int8_t type) {
 
 	TokenNode* temp = *head;
 	TokenNode* prev = NULL;
@@ -229,9 +231,9 @@ void TokenList::DelFromList(TokenNode** head, int8_t type) {
 	}
 }
 
-uint16_t TokenList::CountByType(uint8_t type) {
+uint16_t TLCountByType(TokenList* tl, uint8_t type) {
 	uint16_t count = 0;
-	TokenNode* temp = head;
+	TokenNode* temp = tl->head;
 
 	while (temp != NULL) {
 		if (temp->type == type) { count ++; }

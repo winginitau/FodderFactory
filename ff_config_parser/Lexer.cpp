@@ -33,6 +33,14 @@ Lexer::Lexer() {
     previous_directive = D_NONE;
     action_since_last_term = false;
 
+    max_enum_string_array_string_size = 0;
+    max_identifier_label_size = 0;
+    max_ast_label_size = 0;
+    max_ast_action_size = 0;
+    max_identifier_count = 0;
+    max_param_count = 0;
+
+
     // Then call Init for the line-by-line transients
     Init();
 }
@@ -77,6 +85,11 @@ int Lexer::MatchToken(char* token_str) {
 char* Lexer::GetErrorString(char* error_str) {
     strcpy(error_str, error_strings[error_type].text);
     return error_str;
+}
+
+void Lexer::SizeCheck(int* max, char* str) {
+	int sz = strlen(str);
+	if (sz > *max) *max = sz;
 }
 
 int Lexer::ProcessLine(LineBuffer& line_buf) {
@@ -153,6 +166,7 @@ void Lexer::Process_D_UNKNOWN(void) {
 			line.GetTokenStr(tokens[0], 0);
 			line.GetTokenStr(tokens[1], 1);
 			idents.Add(enum_identifier, tokens[0], tokens[1]);
+			SizeCheck(&max_enum_string_array_string_size, tokens[1]);
 			// TODO possibly add code to process lines as enum-only entries
 			// if token[1] fails
 			process_result = R_UNFINISHED;
@@ -309,6 +323,7 @@ void Lexer::Process_D_ENUM_ARRAY_TYPE(void) {
         process_result = R_ERROR;
         error_type = E_ENUM_ARRAY_TYPE_NULL;
     } else {
+    	SizeCheck(&max_identifier_label_size, token_str);
         strcpy(enum_array_type, token_str);
         process_result = R_COMPLETE;
     }
@@ -319,6 +334,7 @@ void Lexer::Process_D_ENUM_ARRAY_INSTANCE(void) {
         process_result = R_ERROR;
         error_type = E_ENUM_ARRAY_INSTANCE_NULL;
     } else {
+    	SizeCheck(&max_identifier_label_size, token_str);
         strcpy(enum_array_instance, token_str);
         process_result = R_COMPLETE;
     }
@@ -329,6 +345,7 @@ void Lexer::Process_D_ENUM_ARRAY_MEMBER_LABEL(void) {
         process_result = R_ERROR;
         error_type = E_ENUM_ARRAY_MEMBER_LABEL_NULL;
     } else {
+    	SizeCheck(&max_identifier_label_size, token_str);
         strcpy(enum_array_member_label, token_str);
         process_result = R_COMPLETE;
     }
@@ -349,6 +366,7 @@ void Lexer::Process_D_ENUM_IDENTIFIFER(void) {
         process_result = R_ERROR;
         error_type = E_ENUM_IDENTFIFER_NULL;
     } else {
+    	SizeCheck(&max_identifier_label_size, token_str);
         strcpy(enum_identifier, token_str);
         process_result = R_COMPLETE;
     }
@@ -523,8 +541,9 @@ void Lexer::Process_D_TERM(void) {
 
 			// see if this is a 2 or 3 token form
 			if (line.GetTokenStr(tokens[2], 2) == NULL) {
-				// Must be a param type - AST will check for valid types when added
+				// 2 - Must be a param type - AST will check for valid types when added
 				error_type = ast.AddNode(term_level, tokens[1]);
+		    	SizeCheck(&max_ast_label_size, tokens[1]);
 			} else {
 				// is 3 token form (keyword, ident or lookup)
 				if (   (strcmp(tokens[1], "identifier") == 0)
@@ -532,14 +551,19 @@ void Lexer::Process_D_TERM(void) {
 					// check that it has not already been defined
 					if (idents.Exists(tokens[2])) {
 						error_type = ast.AddNode(term_level, tokens[1], tokens[2]);
+				    	SizeCheck(&max_identifier_label_size, tokens[2]);
+				    	SizeCheck(&max_ast_label_size, tokens[2]);
 					} else {
 						error_type = E_UNKNOWN_IDENT_OR_LOOKUP;
 					}
 				} else {
 					// it should be a keyword - check
 					if (strcmp(tokens[1], "keyword") == 0) {
-						// duplicate check needs to be done in AST - its the only place the keywords persist
+						// XXX duplicate check needs to be done in AST - its the only place the keywords persist
 						error_type = ast.AddNode(term_level, tokens[1], tokens[2]);
+				    	SizeCheck(&max_ast_label_size, tokens[1]);
+						SizeCheck(&max_identifier_label_size, tokens[2]);
+				    	SizeCheck(&max_ast_label_size, tokens[2]);
 					} else {
 						error_type = E_UNKNOWN_TERM_OR_MALFORMED_DIRECTIVE;
 					}
@@ -560,9 +584,7 @@ void Lexer::Process_D_ACTION_DEFINE(void) {
 	// Set up an identifier list of key val pairs
 	//	ACTION_IDENTIFIER as IdentifierName
 	//	FunctionName as InstanceName
-	//
-	//	XXX Then later populate through grammar parsing for
-	//		parameter types and names in order.
+
 	line.GetTokenStr(tokens[0], 0);
 
 	if (line.GetTokenStr(tokens[1], 1) == NULL) {
@@ -580,6 +602,9 @@ void Lexer::Process_D_ACTION_DEFINE(void) {
 			} else {
 				if ((error_type = idents.NewIdent(tokens[1], ID_ACTION_PAIR)) == E_NO_ERROR) {
 					idents.SetInstanceName(tokens[1], tokens[2]);
+			    	SizeCheck(&max_identifier_label_size, tokens[1]);
+			    	SizeCheck(&max_identifier_label_size, tokens[2]);
+			    	SizeCheck(&max_ast_action_size, tokens[2]);
 					process_result = R_COMPLETE;
 				} else {
 					process_result = R_ERROR;
@@ -592,6 +617,7 @@ void Lexer::Process_D_ACTION_DEFINE(void) {
 void Lexer::Process_D_ACTION(void) {
 	// Attach the action to the last added AST node
 	// check first that the action identifier has been defined
+
     if (line.GetTokenStr(tokens[1], 1) == NULL) {
         process_result = R_ERROR;
         error_type = E_ACTON_WITHOUT_IDENTIFIFER;
@@ -632,13 +658,13 @@ void Lexer::Process_D_GRAMMAR_END(void) {
 		// Before writing anything else to the code file
 		sprintf(output_string, "\t\tdefault:\n");
 		code_output_queue.EnQueue(output_string);
-		sprintf(output_string, "\t\t\t// XXX\n");
+		sprintf(output_string, "\t\t\treturn PE_FUNC_XLAT_NOT_MATCHED_IN_CALLFUNCTION;\n");
 		code_output_queue.EnQueue(output_string);
-		sprintf(output_string, "\t\t\tprintf(\"ERROR, No matched func_xlat in CallFunction - not matching function?\\n\\r\");\n");
-		code_output_queue.EnQueue(output_string);
-		sprintf(output_string, "\t\t\texit(-1);\n");
+		sprintf(output_string, "\t\t\tbreak;\n");
 		code_output_queue.EnQueue(output_string);
 		sprintf(output_string, "\t}\n");
+		code_output_queue.EnQueue(output_string);
+		sprintf(output_string, "\treturn PE_NO_ERROR;\n");
 		code_output_queue.EnQueue(output_string);
 		sprintf(output_string, "}\n\n");
 		code_output_queue.EnQueue(output_string);
@@ -714,7 +740,7 @@ void Lexer::Process_D_GRAMMAR_END(void) {
 		}
 
 		// Add the Caller function prototype to the header
-		sprintf(output_string, "void CallFunction(uint8_t func_xlat, ParamUnion params[]);\n");
+		sprintf(output_string, "uint16_t CallFunction(uint8_t func_xlat, ParamUnion params[]);\n");
 		header_output_queue.EnQueue(output_string);
 
 		header_output_available = true;
@@ -808,6 +834,7 @@ void Lexer::Process_D_LOOKUP_LIST(void) {
 				error_type = idents.NewIdent(tokens[1], ID_LOOKUP_LIST);
 				if (error_type == E_NO_ERROR) {
 					idents.SetInstanceName(tokens[1], tokens[2]);
+			    	SizeCheck(&max_identifier_label_size, tokens[2]);
 					process_result = R_COMPLETE;
 				} else {
 					process_result = R_ERROR;

@@ -71,12 +71,12 @@ bool LineBuffer::IsEmptyLine(void) {
     return empty_line;
 }
 
-void LineBuffer::PrintTokens() {
-    for (int i=0; i < word_idx; i++) {
-        printf("%s ", word_list[i]);
-    }
-    printf("\n");
-}
+//void LineBuffer::PrintTokens() {
+//    for (uint16_t i=0; i < word_idx; i++) {
+//        printf("%s ", word_list[i]);
+//    }
+//    printf("\n");
+//}
 
 char* LineBuffer::GetTokenStr(char* token, uint16_t idx) {
     if (empty_line) {
@@ -88,11 +88,11 @@ char* LineBuffer::GetTokenStr(char* token, uint16_t idx) {
     } else return NULL;
 }
 
-void LineBuffer::PrintRawBuffer() {
-    for (int i=0; i < char_idx; i++) {
-        printf("%c", buf_preserve[i]);
-    }
-}
+//void LineBuffer::PrintRawBuffer() {
+//    for (uint16_t i=0; i < char_idx; i++) {
+//        printf("%c", buf_preserve[i]);
+//    }
+//}
 
 char* LineBuffer::GetRawBuffer(char* ret_buf) {
     return strcpy(ret_buf, buf_preserve);

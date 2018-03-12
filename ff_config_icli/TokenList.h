@@ -17,45 +17,40 @@
 #include <stdint.h>
 
 typedef struct TOKEN_NODE {
-	char label[MAX_BUFFER_WORD_LENGTH];
+	char label[MAX_IDENTIFIER_LABEL_SIZE];
 	uint8_t type;
 	uint16_t id;
 	struct TOKEN_NODE* next;
 } TokenNode;
 
-class TokenList {
-private:
+typedef struct TOKEN_LIST {
 	TokenNode* head;
 	TokenNode* walker;
 	TokenNode* tail;
-
 	uint16_t size;
+} TokenList;
 
-	void ResetFromHead(TokenNode* n);
+TokenList* TLNewTokenList(void);
+void TLDeleteTokenList(TokenList* tl);
 
-public:
-	TokenList();
-	virtual ~TokenList();
+TokenNode* TLAddASTAToTokenList(TokenList* tl, ASTA node);
+TokenNode* TLAdd(TokenList* tl, TokenNode* n);
+TokenNode* TLNewTokenNode(void);
+void TLReset(TokenList* tl);
+void TLResetFromHead(TokenNode* n);
+char* TLGetHeadLabel(TokenList* tl, char* result);
+char* TLGetCurrentLabel(TokenList* tl, char* result);
+uint8_t TLGetCurrentType(TokenList* tl);
+uint16_t TLGetCurrentID(TokenList* tl);
+uint8_t TLAtEnd(TokenList* tl);
+void TLToTop(TokenList* tl);
+TokenNode* TLNext(TokenList* tl);
+uint16_t TLGetSize(TokenList* tl);
+uint8_t TLIsEmpty(TokenList* tl);
+void TLDeleteByType(TokenList* tl, int8_t dtype);
+uint16_t TLCountByType(TokenList* tl, uint8_t type);
 
-	TokenNode* AddASTAToTokenList(ASTA node);
-	TokenNode* Add(TokenNode* n);
-	TokenNode* NewTokenNode(void);
-	void Reset();
-	char* GetHeadLabel(char* result);
-	char* GetCurrentLabel(char* result);
-	uint8_t GetCurrentType();
-	uint16_t GetCurrentID();
-	uint8_t AtEnd();
-	void ToTop();
-	TokenNode* Next();
-	uint16_t GetSize();
-	uint8_t IsEmpty();
-	void DeleteByType(int8_t dtype);
-	uint16_t CountByType(uint8_t type);
+void TLDelFromList(TokenNode** head, int8_t dtype);
 
-protected:
-	void DelFromList(TokenNode** head, int8_t dtype);
-
-};
 
 #endif /* TOKENLIST_H_ */

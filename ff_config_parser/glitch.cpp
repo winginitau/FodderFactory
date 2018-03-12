@@ -83,7 +83,7 @@ void ProcessGrammarFile() {
 
 	int line_count = 0;
 	LineBuffer line;
-	//Lexer lex;
+
 	char ch;
 
 	char output_line[MAX_BUFFER_LENGTH];
@@ -351,7 +351,7 @@ int main(int argc, char* argv[]) {
 	temp = strrchr(hf_name, '.');
 	int dot_idx = (int)(temp - hf_name);
 	memcpy(include_guard, hf_name, dot_idx);
-	include_guard[dot_idx+1] = '\0';
+	include_guard[dot_idx] = '\0';
 	temp = include_guard;
 	while (*temp) {
 		*temp = toupper(*temp);
@@ -365,7 +365,13 @@ int main(int argc, char* argv[]) {
 	sprintf(out, "#define %s\n\n", include_guard);
 	SendToOutput(Q_HEADER, out);
 
+	// Preprocessor defines placeholder
+	sprintf(out, "DEFINES_PLACEHOLDER\n");
+	SendToOutput(Q_HEADER, out);
+
 	// Write header includes into the code and user_code files
+	sprintf(out, "#include \"parser_errors.h\"\n\n");
+	SendToOutput(Q_CODE, out);
 	sprintf(out, "#include \"%s\"\n\n", hf_name);
 	SendToOutput(Q_CODE, out);
 	SendToOutput(Q_USER_CODE, out);
@@ -381,7 +387,8 @@ int main(int argc, char* argv[]) {
 	SendToOutput(Q_CODE, out);
 	SendToOutput(Q_USER_CODE, out);
 
-	sprintf(out, "extern void ICLIWriteLine(char *str);\n\n");
+	// Callback function
+	sprintf(out, "extern void ITCHWriteLine(char *str);\n\n");
 	SendToOutput(Q_USER_CODE, out);
 
 
@@ -393,9 +400,46 @@ int main(int argc, char* argv[]) {
 	sprintf(out, "\n#endif // %s\n\n", include_guard);
 	SendToOutput(Q_HEADER, out);
 
+	// Preprocessor defines
+	fclose(hf);
+
+	FILE* tf;
+	char temp_buf[MAX_BUFFER_LENGTH];
+
+	tf = fopen("hf_temp", "w");
+	hf = fopen(hf_name, "r");
+
+	while (fgets(temp_buf, MAX_BUFFER_LENGTH, hf) != NULL) {
+		if (strcmp(temp_buf, "DEFINES_PLACEHOLDER\n") == 0) {
+			sprintf(out, "#define MAX_ENUM_STRING_ARRAY_STRING_SIZE %d\n", lex.max_enum_string_array_string_size);
+			fputs(out, tf);
+			sprintf(out, "#define MAX_IDENTIFIER_LABEL_SIZE %d\n", lex.max_identifier_label_size);
+			fputs(out, tf);
+			sprintf(out, "#define MAX_AST_LABEL_SIZE %d\n", lex.max_ast_label_size);
+			fputs(out, tf);
+			sprintf(out, "#define MAX_AST_ACTION_SIZE %d\n", lex.max_ast_action_size);
+			fputs(out, tf);
+			sprintf(out, "#define MAX_IDENTIFIER_COUNT %d\n", lex.ast.grammar_def_count/2); //XXX cludge
+			fputs(out, tf);
+			sprintf(out, "#define MAX_PARAM_COUNT %d\n", lex.ast.max_param_count);
+			fputs(out, tf);
+		} else {
+			fputs(temp_buf, tf);
+		}
+	}
+	fclose(tf);
+	fclose(hf);
+
+	tf = fopen("hf_temp", "r");
+	hf = fopen(hf_name, "w");
+
+	while (fgets(temp_buf, MAX_BUFFER_LENGTH, tf) != NULL) {
+		fputs(temp_buf, hf);
+	}
+	fclose(tf);
+	fclose(hf);
 
 	fclose(gf);
-	fclose(hf);
 	fclose(cf);
 	fclose(uf);
 

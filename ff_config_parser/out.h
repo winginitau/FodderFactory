@@ -9,6 +9,28 @@
 #ifndef OUT_H_
 #define OUT_H_
 
+#define MAX_ENUM_STRING_ARRAY_STRING_SIZE 18
+#define MAX_IDENTIFIER_LABEL_SIZE 36
+#define MAX_AST_LABEL_SIZE 16
+#define MAX_AST_ACTION_SIZE 36
+#define MAX_IDENTIFIER_COUNT 88
+#define MAX_PARAM_COUNT 3
+
+#define MAX_INPUT_LINE_SIZE 80
+#define MAX_OUTPUT_LINE_SIZE 150
+
+#define MAX_BUFFER_SIZE MAX_OUTPUT_LINE_SIZE
+#define MAX_BUFFER_LENGTH MAX_OUTPUT_LINE_SIZE
+
+#ifdef ARDUINO
+#define USE_PROGMEM
+#endif
+
+#define DEBUG
+
+#ifdef ARDUINO
+#include <Arduino.h>
+#endif
 
 #include "common_config.h"
 //#include "ff_sys_config.h"
@@ -29,17 +51,17 @@ typedef struct SIMPLE_STRING_ARRAY_TYPE {
 typedef struct AST_ARRAY {
     uint16_t id;
     int type;
-    char label[MAX_LABEL_LENGTH];
+    char label[MAX_AST_LABEL_SIZE];
     bool action;
     uint16_t parent;
     uint16_t first_child;
     uint16_t next_sibling;
-    char action_identifier[MAX_LABEL_LENGTH];
+    char action_identifier[MAX_AST_ACTION_SIZE];
 } ASTA;
 
 
 typedef struct XLAT_MAP {
-	char label[MAX_LABEL_LENGTH];
+	char label[MAX_IDENTIFIER_LABEL_SIZE];
 	uint16_t xlat_id;
 } XLATMap;
 
@@ -321,7 +343,7 @@ uint16_t LookupIdentMap (char* key);
 uint16_t LookupLookupMap (char* key);
 uint16_t LookupFuncMap (char* key);
 uint16_t LookupIdentifierMembers(uint16_t ident_xlat, char* lookup_string);
-void CallFunction(uint8_t func_xlat, ParamUnion params[]);
+uint16_t CallFunction(uint8_t func_xlat, ParamUnion params[]);
 
 #endif // OUT_H_
 

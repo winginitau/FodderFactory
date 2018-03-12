@@ -50,9 +50,9 @@ public:
     int AddChar(char ch);
     int GetLine(char* line);
     int Tokenise();
-    void PrintTokens();
+    //void PrintTokens();
     char* GetTokenStr(char* token, uint16_t idx);
-    void PrintRawBuffer();
+    //void PrintRawBuffer();
     char* GetRawBuffer(char* ret_buf);
     bool Available();
     bool IsEmptyLine();

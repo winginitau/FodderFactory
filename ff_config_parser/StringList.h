@@ -27,6 +27,7 @@ private:
 public:
 	StringList();
 	virtual ~StringList();
+
 	bool AddString(const char * str);
 	bool IsIn(const char * str);
 	void WalkList(bool (*CallBack)(const char *));

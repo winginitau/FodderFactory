@@ -6,13 +6,15 @@
 // WHENEVER THE LEXER / PROCESSOR IS INVOKED.
 //
 
+#include "parser_errors.h"
+
 #include "out.h"
 
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-void CallFunction(uint8_t func_xlat, ParamUnion params[]) {
+uint16_t CallFunction(uint8_t func_xlat, ParamUnion params[]) {
 	switch (func_xlat) {
 		case 0:
 			ShowBlocks();
@@ -162,10 +164,10 @@ void CallFunction(uint8_t func_xlat, ParamUnion params[]) {
 			SystemReboot();
 			break;
 		default:
-			// XXX
-			printf("ERROR, No matched func_xlat in CallFunction - not matching function?\n\r");
-			exit(-1);
+			return PE_FUNC_XLAT_NOT_MATCHED_IN_CALLFUNCTION;
+			break;
 	}
+	return PEME_NO_ERROR;
 }
 
 //TODO: Command Line Options Processing

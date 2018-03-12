@@ -26,7 +26,7 @@ private:
 
     char output_string[MAX_BUFFER_LENGTH];
 
-    int grammar_def_count;
+
 
     bool caller_func_preamble_done;
 
@@ -35,6 +35,9 @@ private:
 public:
 	AST();
 	virtual ~AST();
+
+	int grammar_def_count;
+	int max_param_count;
 
 	OutputBuffer header_output_queue;
 	OutputBuffer code_output_queue;

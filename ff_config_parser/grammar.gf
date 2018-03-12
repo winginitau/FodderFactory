@@ -18,6 +18,13 @@
 
 %header-start
 
+#define MAX_INPUT_LINE_SIZE 80
+#define MAX_OUTPUT_LINE_SIZE 150
+
+#ifdef ARDUINO
+#include <Arduino.h>
+#endif
+
 #include "common_config.h"
 //#include "ff_sys_config.h"
 #include <stdint.h>
@@ -37,17 +44,17 @@ typedef struct SIMPLE_STRING_ARRAY_TYPE {
 typedef struct AST_ARRAY {
     uint16_t id;
     int type;
-    char label[MAX_LABEL_LENGTH];
+    char label[MAX_AST_LABEL_SIZE];
     bool action;
     uint16_t parent;
     uint16_t first_child;
     uint16_t next_sibling;
-    char action_identifier[MAX_LABEL_LENGTH];
+    char action_identifier[MAX_AST_ACTION_SIZE];
 } ASTA;
 
 
 typedef struct XLAT_MAP {
-	char label[MAX_LABEL_LENGTH];
+	char label[MAX_IDENTIFIER_LABEL_SIZE];
 	uint16_t xlat_id;
 } XLATMap;
 

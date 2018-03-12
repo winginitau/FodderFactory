@@ -25,6 +25,7 @@ AST::AST() {
     output_string[0] = '\0';
 
 	grammar_def_count = 0;
+	max_param_count = 0;
 
 	caller_func_preamble_done = false;
 
@@ -328,6 +329,9 @@ int AST::BuildActionCode(Identifiers& idents) {
 		walker = walker->parent;
 	}
 
+	// remember the max count for define config in the parser
+	if (param_count > max_param_count) max_param_count = param_count;
+
 	// ***************************** Assemble param names and types walking up tree
 
 	walker = current;
@@ -399,7 +403,7 @@ int AST::BuildActionCode(Identifiers& idents) {
 	// *******************************   Function Caller Preamble - ONCE!
 	// write the preamble for the function caller into the code file - Once!
 	if(caller_func_preamble_done == false) {
-		sprintf(output_string, "void CallFunction(uint8_t func_xlat, ParamUnion params[]) {\n");
+		sprintf(output_string, "uint16_t CallFunction(uint8_t func_xlat, ParamUnion params[]) {\n");
 		code_output_queue.EnQueue(output_string);
 		sprintf(output_string, "\tswitch (func_xlat) {\n");
 		code_output_queue.EnQueue(output_string);
@@ -514,7 +518,7 @@ int AST::BuildActionCode(Identifiers& idents) {
 	// *************************************** User_Code function body
 	sprintf(output_string, "\t// >>>\n");
 	user_code_output_queue.EnQueue(output_string);
-	sprintf(output_string, "\t// >>> INSERT CODE HERE TO CARRY OUT THE DESIRED ACTION\n");
+	sprintf(output_string, "\t// >>> INSERT ACTION CODE HERE\n");
 	user_code_output_queue.EnQueue(output_string);
 	sprintf(output_string, "\t// >>>\n");
 	user_code_output_queue.EnQueue(output_string);
@@ -579,11 +583,11 @@ int AST::BuildActionCode(Identifiers& idents) {
 	// rest of the user_code function body and closures
 	sprintf(output_string, "\t// >>>\n");
 	user_code_output_queue.EnQueue(output_string);
-	sprintf(output_string, "\t// >>> AND SEND THE RESULTS OUT VIA CALLS TO ICLIWriteLine\n");
+	sprintf(output_string, "\t// >>> Results Callback via ITCHriteLine\n");
 	user_code_output_queue.EnQueue(output_string);
 	sprintf(output_string, "\t// >>>\n");
 	user_code_output_queue.EnQueue(output_string);
-	sprintf(output_string, "\tICLIWriteLine(temp);\n");
+	sprintf(output_string, "\tITCHWriteLine(temp);\n");
 	user_code_output_queue.EnQueue(output_string);
 	sprintf(output_string, "}\n\n");
 	user_code_output_queue.EnQueue(output_string);
