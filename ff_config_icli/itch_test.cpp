@@ -35,6 +35,13 @@ itch_test.cpp
 
 ITCH itch;
 
+extern void M(char strn[]) {
+	char str[MAX_OUTPUT_LINE_SIZE];
+	strncpy(str, strn, MAX_OUTPUT_LINE_SIZE);
+	printf("%s", str);
+
+}
+
 
 extern void ITCHWriteLine(char *str) {
 	char cb_str[MAX_BUFFER_LENGTH];
@@ -43,7 +50,47 @@ extern void ITCHWriteLine(char *str) {
 }
 
 
-int set_interface_attribs(int fd, int speed)
+/****************************************************************************
+   Main Calling Routine
+****************************************************************************/
+int main(void) {
+
+
+	//FILE* isp;
+	//FILE* osp;
+
+#ifdef LINUX
+#ifdef INTERACTIVE
+	//isp = fopen(PORT, "rw");
+
+	//if (isp) {
+	//	icli.Begin(isp, stdout, ICLI_FILE);
+	//} else {
+	itch.Begin(stdin, stdout, ITCH_INTERACTIVE);
+	//}
+
+
+	//icli.Begin(isp, isp, ICLI_INTERACTIVE);
+
+#endif
+#endif
+
+
+	while (true) {
+		itch.Poll();
+	}
+
+	return 0;
+}
+
+
+
+/******************************************************************************
+ * Bucket
+ */
+
+
+ int set_interface_attribs(int fd, int speed)
 {
     struct termios tty;
 
@@ -141,43 +188,6 @@ int serial_tty()
         }
         /* repeat read to get full message */
     } while (1);
-}
-
-
-
-
-
-/****************************************************************************
-   Main Calling Routine
-****************************************************************************/
-int main(void) {
-
-
-	//FILE* isp;
-	//FILE* osp;
-
-#ifdef LINUX
-#ifdef INTERACTIVE
-	//isp = fopen(PORT, "rw");
-
-	//if (isp) {
-	//	icli.Begin(isp, stdout, ICLI_FILE);
-	//} else {
-	itch.Begin(stdin, stdout, ITCH_INTERACTIVE);
-	//}
-
-
-	//icli.Begin(isp, isp, ICLI_INTERACTIVE);
-
-#endif
-#endif
-
-
-	while (true) {
-		itch.Poll();
-	}
-
-	return 0;
 }
 
 

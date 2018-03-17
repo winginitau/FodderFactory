@@ -118,6 +118,7 @@ void TLResetFromHead(TokenNode* n) {
 			TLResetFromHead(child);
 		}
 		// now that the child and its children are gone, free up the node memory
+		free(n->label);
 		free(n);
 	}
 }
@@ -132,6 +133,8 @@ TokenNode* TLAddASTAToTokenList(TokenList* tl, ASTA node) {
 	// malloc new node
 	TokenNode* tn;
 	tn = TLNewTokenNode();
+	// malloc enough for the label
+	tn->label = (char *)malloc((strlen(node.label) + 1) * sizeof(char));
 	// fill in the data
 	strcpy(tn->label, node.label);
 	tn->id = node.id;
@@ -178,7 +181,8 @@ TokenNode* TLNewTokenNode(void) {
 	TokenNode* tn;
 	tn = (TokenNode* )malloc(sizeof(TokenNode));
 	if (tn) {
-		tn->label[0] = '\0';
+		//tn->label[0] = '\0';
+		tn->label = NULL;
 		tn->type = AST_UNDEFINED;
 		tn->id = 0;
 		tn->next = NULL;
@@ -218,6 +222,7 @@ void TLDelFromList(TokenNode** head, int8_t type) {
 	while (temp != NULL) {
 		next = temp->next;
 		if (temp->type == type) {
+			free(temp->label);
 			free(temp);
 			if (prev != NULL) {
 				prev->next = next;

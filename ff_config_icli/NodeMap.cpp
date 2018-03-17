@@ -16,7 +16,6 @@
 #include <stdlib.h>
 #include <ctype.h>
 
-#ifndef FF_ARDUINO
 
 
 /********************************************************************
@@ -31,11 +30,9 @@ uint16_t map_id_walker;		// to walk through the asta array nodes by id
 char map_last_target[MAX_IDENTIFIER_LABEL_SIZE];
 
 
-#ifdef ARDUINO
 #ifdef DEBUG
-extern char* M(char strn[]);
+extern void M(char strn[]);
 char n_debug_message[MAX_OUTPUT_LINE_SIZE];
-#endif
 #endif
 
 /********************************************************************
@@ -60,7 +57,7 @@ char* strupr(char* s)
     }
     return s;
 }
-#endif
+
 
 void MapReset(void) {
 	map_mf.last_matched_id = 0;
@@ -119,7 +116,7 @@ uint8_t MapDetermineTarget(uint8_t* target_size, char* target, char* line) {
 		// past the space delimiter at the end of the line.
 		// Don't process
 		#ifdef DEBUG
-		sprintf(n_debug_message, "DEBUG NodeMap: DELIM_SKIP\n\r");
+		sprintf(n_debug_message, "DEBUG (MapDetermineTarget): DELIM_SKIP\n\r");
 		M(n_debug_message);
 		#endif
 
@@ -229,8 +226,8 @@ uint8_t Compare_N_IDENTIFIER(char* target, ASTA* temp_node) {
 	member_id = LookupIdentifierMembers(xlat, target);
 
 #ifdef DEBUG
-	sprintf(n_debug_message, "\n\rDEBUG LOOKUP IDENTIFIER: Target: %s  ASTALabel: %s  xlatVal: %d  block_cat_id: %d\n\n\r", target, temp_node->label, xlat, member_id);
-	M(n_debug_message);
+	//sprintf(n_debug_message, "DEBUG (Compare_N_IDENTIFIER): Target: %s  ASTALabel: %s  xlatVal: %d  block_cat_id: %d\n\n\r", target, temp_node->label, xlat, member_id);
+	//M(n_debug_message);
 #endif
 
 	if (member_id > 0) {
@@ -276,7 +273,6 @@ uint8_t MapMatch(char* line, TokenList* matched_list) {
 	if (map_id_current == 0) { map_id_current = 1; }
 
 	map_id_walker = map_id_current;
-
 
 	// Size up the target
 	map_mf.match_result = MapDetermineTarget(&target_size, target, line);
@@ -330,7 +326,7 @@ void MapSelectMatchingNodes(char* target, TokenList* matched_list) {
 			// the node is a possible match to be included
 			TLAddASTAToTokenList(matched_list, temp_node);
 			#ifdef DEBUG
-			sprintf(n_debug_message, "DEBUG Selecting Matching: ID:%d  Label:%s  Action:%s \n\r", temp_node.id, temp_node.label, temp_node.action_identifier);
+			sprintf(n_debug_message, "DEBUG (MapSelectMatchingNodes) Adding Possible Match: ID:%d  Label:%s  which has Action:%s \n\r", temp_node.id, temp_node.label, temp_node.action_identifier);
 			M(n_debug_message);
 			#endif
 		}
@@ -442,7 +438,7 @@ uint16_t MapMatchReduce(TokenList* list) {
 					// reduce did not achieve a unique match
 
 					#ifdef DEBUG
-					sprintf(n_debug_message, "DEBUG Fatal in MatchReduce: size != 1 after iterative delete to unique node\n\r");
+					sprintf(n_debug_message, "DEBUG Fatal in (MatchReduce): size != 1 after iterative delete to unique node\n\r");
 					M(n_debug_message);
 					#endif
 
@@ -463,7 +459,7 @@ uint16_t MapMatchReduce(TokenList* list) {
 			if (TLGetSize(list) == 1) {
 
 				#ifdef DEBUG
-				sprintf(n_debug_message, "XXX Fatal Error in MatchReduce: unique lookup node passed to reducer\n\r");
+				sprintf(n_debug_message, "XXX Fatal Error in (MatchReduce): unique lookup node passed to reducer\n\r");
 				M(n_debug_message);
 				#endif
 
@@ -475,12 +471,12 @@ uint16_t MapMatchReduce(TokenList* list) {
 	}
 
 	#ifdef DEBUG
-	sprintf(n_debug_message, "XXX Serious Error - Next parse step dependent on multiple user-param nodes which can't be distinguished\n\r");
+	sprintf(n_debug_message, "(MatchReduce) Serious Error - Next parse step dependent on multiple user-param nodes which can't be distinguished\n\r");
 	M(n_debug_message);
 	#endif
 
 	map_mf.error_code = PE_MULTIPLE_PARAM_LOOKAHEAD;
-	// TODO This should really best detected in the lexer....
+	//TODO This should really best detected in the lexer....
 
 	return 0;
 }
@@ -507,7 +503,7 @@ uint16_t MapAdvance(uint8_t in_buf_idx) {
 	map_line_pos = in_buf_idx;
 
 	#ifdef DEBUG
-	sprintf(n_debug_message, "DEBUG NodeMap::Advance\n\r");
+	sprintf(n_debug_message, "DEBUG (MapAdvance)\n\r");
 	M(n_debug_message);
 	#endif
 

@@ -36,48 +36,37 @@ typedef struct PARSER_FLAGS {
 } P_FLAGS;
 
 
-extern void M(char * strn);
-
-class Parser {
-private:
-
-	TokenList* possible_list;
-	char in_buf[MAX_INPUT_LINE_SIZE];
-
-	uint8_t in_idx;
-
-	P_FLAGS pf;
-
-	uint8_t ParseMatch(void);
-	uint8_t MatchEvaluate(void);
-	void SaveTokenAsParameter(void);
-
-	TokenList* param_list;
+/******************************************************************************
+ * Globals
+ ******************************************************************************/
 
 
-public:
-	Parser();
-	virtual ~Parser();
 
-	char replay_buf[MAX_OUTPUT_LINE_SIZE];
-	OutputBuffer output;
+/******************************************************************************
+ * Function Prototypes
+ ******************************************************************************/
 
-	void Init();
+	void ParserInit();
+	void ParserFinish();
+
 	uint8_t Parse(char ch);
+
+	uint8_t ParserMatch(void);
+	uint8_t ParserMatchEvaluate(void);
+	void ParserSaveTokenAsParameter(void);
+
 	void ResetPossibleList(void);
-	void GetErrorString(char* error);
-	void SetError(uint16_t err);
-	void ResetLine(void);
-	void BufferInject(char* inject_str);
-	uint16_t ActionDispatcher(uint16_t asta_id);
+	void ParserGetErrorString(char* error);
+	void ParserSetError(uint16_t err);
+	void ParserResetLine(void);
+	void ParserBufferInject(char* inject_str);
+	uint16_t ParserActionDispatcher(uint16_t asta_id);
 
-
-protected:
 	void P_ESCAPE(char ch);
 	uint8_t P_EOL();
 	uint8_t P_DOUBLE_QUOTE();
 	uint8_t P_SPACE_TAB();
 	void P_ADD_TO_BUFFER(char ch);
-};
+
 
 #endif /* PARSER_H_ */

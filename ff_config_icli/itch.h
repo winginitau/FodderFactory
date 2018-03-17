@@ -30,16 +30,25 @@ enum ITCH_MODES {
 	ITCH_FILE,
 };
 
+typedef struct ITCH_FLAGS {
+	uint8_t mode;
+	uint8_t replay;
+} I_FLAGS;
+
 class ITCH {
 
 private:
+
+	#ifndef ARDUINO
 	FILE* isp;	// input stream pointer
 	FILE* osp;	// output stream pointer
-	int mode;
+	#endif
+
+	I_FLAGS iflags;
+
 	char prompt[MAX_OUTPUT_LINE_SIZE];
-	char prompt_replay[MAX_OUTPUT_LINE_SIZE];
-	char prompt_base[MAX_OUTPUT_LINE_SIZE];
-	Parser parser;
+	//char prompt_replay[MAX_OUTPUT_LINE_SIZE];
+	char prompt_base[5];
 
 
 public:
@@ -48,9 +57,9 @@ public:
 
 
 	#ifdef ARDUINO
-	void Begin(int icli_mode);
+	void Begin(int mode);
 	#else
-	void Begin(FILE* input_stream, FILE* output_stream, int itch_mode);
+	void Begin(FILE* input_stream, FILE* output_stream, int mode);
 	#endif
 
 	void Poll();

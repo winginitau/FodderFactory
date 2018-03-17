@@ -10,6 +10,7 @@
 #include "out.h"
 #include "itch.h"
 #include "parser_errors.h"
+#include "parser_config.h"
 #include <stdlib.h>
 
 
@@ -17,16 +18,29 @@
 #define D(x) Serial.write(x)
 #endif
 
-#ifdef ARDUINO
+
+
+/******************************************************************************
+ * Globals
+ ******************************************************************************/
+
 #ifdef DEBUG
-extern void M(char strn[]);
-char i_debug_message[MAX_OUTPUT_LINE_SIZE];
-#endif
+	extern void M(char strn[]);
+	char i_debug_message[MAX_OUTPUT_LINE_SIZE];
 #endif
 
+OutputBuffer global_output;
+char parser_replay_buff[MAX_INPUT_LINE_SIZE] = "\0";
+char* parser_replay_buff_ptr = (char *)parser_replay_buff;
+
+
+/******************************************************************************
+ * Class Methods
+ ******************************************************************************/
 
 ITCH::ITCH() {
-	mode = 0;
+	iflags.mode = 0;
+	iflags.replay = 0;
 	isp = NULL;
 	osp= NULL;
 }
@@ -37,10 +51,10 @@ ITCH::~ITCH() {
 
 
 #ifdef ARDUINO
-void ITCH::Begin(int icli_mode) {
-	mode = icli_mode;
+void ITCH::Begin(int mode) {
+	itch_mode = mode;
 
-	if (mode == ITCH_INTERACTIVE) {
+	if (itch_mode == ITCH_INTERACTIVE) {
 		sprintf(prompt_base, "\n\r$ ");
 		delay(100);
 		Serial.write(prompt_base);
@@ -50,80 +64,86 @@ void ITCH::Begin(int icli_mode) {
 
 #else
 
-void ITCH::Begin(FILE* input_stream, FILE* output_stream, int icli_mode) {
+void ITCH::Begin(FILE* input_stream, FILE* output_stream, int mode) {
 	isp = input_stream;
 	osp = output_stream;
-	mode = icli_mode;
+	iflags.mode = mode;
+	ParserInit();
+
+	if (iflags.mode == ITCH_INTERACTIVE) {
+		sprintf(prompt_base, "\n\r$ ");
+		fputs(prompt_base, osp);
+	};
 }
 
 #endif
 
 
 void ITCH::Poll(void) {
-	char temp[MAX_OUTPUT_LINE_SIZE];
-
-	char ch;
-	uint8_t result = R_NONE;
 	char output_line[MAX_OUTPUT_LINE_SIZE];
 
-#ifndef ARDUINO
-	sprintf(prompt_base, "\n\r$ ");
-	if (mode == ITCH_INTERACTIVE) {
-		fputs(prompt_base, osp);
-	};
-	ch = fgetc(isp);
-#endif
+	char ch;
 
-#ifdef ARDUINO
-	if (Serial.available()) {
-		//delay(100);
-		ch = Serial.read();
-		//delay(100);
-		Serial.write(ch);
+	uint8_t result = R_NONE;
+
+	// if no replay editing is active then get the next ch from the input stream
+	if (iflags.replay == 0) {
+		#ifndef ARDUINO
+			ch = fgetc(isp);
+		#endif
+
+		#ifdef ARDUINO
+			if (Serial.available()) {
+				//delay(100);
+				ch = Serial.read();
+				//delay(100);
+				Serial.write(ch);
+			} else {
+				return;
+			}
+		#endif
 	} else {
-		return;
+		// re-stuff the replay buffer into the stream
+		ch = *parser_replay_buff_ptr;
+		parser_replay_buff_ptr++;
+		// If finished re-stuffing, reset the replay flag and buffer
+		if (*parser_replay_buff_ptr == '\0') {
+			iflags.replay = 0;
+			parser_replay_buff_ptr = (char *)parser_replay_buff;
+		}
 	}
-#endif
 
-#ifdef ARDUINO
+
+
+	#ifdef ARDUINO
 	//delay(1000);
 	//D("Got ch, about to check EOF\n\r");
-#endif
+	#endif
 
 	if (ch != EOF) {
 
-#ifdef DEBUG
-		strcpy(i_debug_message, "Pre Parse");
-		M(i_debug_message);
-#endif
-
-		result = parser.Parse(ch);
-
-#ifdef DEBUG
-		sprintf(i_debug_message, "Parse Result: %d\t", result);
-		M(i_debug_message);
-#endif
+		result = Parse(ch);
 
 		switch (result) {
 			case R_HELP:
-				sprintf(output_line, "\nCommand Help:\n");
+				strcpy(output_line, misc_strings[MISC_HELP_HEADING].text);
 				fputs(output_line, osp);
-				while (parser.output.OutputAvailable()) {
-					parser.output.GetOutputAsString(output_line);
+				while (global_output.OutputAvailable()) {
+					global_output.GetOutputAsString(output_line);
 					strcat(output_line, "\r");
 
-#ifdef ARDUINO
+					#ifdef ARDUINO
 					Serial.write(output_line);
-#else
+					#else
 					fputs(output_line, osp);
-#endif
+					#endif
 				}
-				parser.ResetLine();
-#ifdef ARDUINO
+				ParserResetLine();
+				#ifdef ARDUINO
 				Serial.write(prompt);
-#else
+				#else
 				fputs(prompt, osp);
-#endif
+				#endif
 				// logic to repost up to
 				// but not including the ? that triggered help
 				// parser.RePost????();
@@ -138,139 +158,109 @@ void ITCH::Poll(void) {
 			case R_IGNORE:
 				// parser discarding something irrelevant (eg extra whitespace)
 				// 	or the rest of the input buffer after error detected
-				while (parser.output.OutputAvailable()) {
-					parser.output.GetOutputAsString(output_line);
+				while (global_output.OutputAvailable()) {
+					global_output.GetOutputAsString(output_line);
 					strcat(output_line, "\r");
-
-#ifdef ARDUINO
+					#ifdef ARDUINO
 					Serial.write(output_line);
-#else
+					#else
 					fputs(output_line, osp);
-#endif
+					#endif
 				}
 				break; //continue
 			case R_ERROR:
-				sprintf(output_line, "\n\r>>> Error:\n\r>>> ");
+				strcpy(output_line, misc_strings[MISC_ERROR_HEADER].text);
 				fputs(output_line, osp);
-				parser.GetErrorString(output_line);
-				strcat(output_line, "\n\rTry \"?\" or <command> ? for help.\n\r");
-
-#ifdef ARDUINO
+				ParserGetErrorString(output_line);
+				strcat(output_line, misc_strings[MISC_ERROR_PROMPT].text);
+				#ifdef ARDUINO
 				Serial.write(output_line);
-#else
+				#else
 				fputs(output_line, osp);
-#endif
-
-#ifdef ARDUINO
+				#endif
+				#ifdef ARDUINO
 				Serial.write(prompt);
-#else
+				#else
 				fputs(prompt, osp);
-#endif
-
-				parser.ResetLine();
+				#endif
+				ParserResetLine();
 				break;
 			case R_NONE:
 				// parser should always return a meaningful result
-				parser.SetError(PE_NO_PARSE_RESULT);
-				parser.GetErrorString(output_line);
+				ParserSetError(PE_NO_PARSE_RESULT);
+				ParserGetErrorString(output_line);
 				strcat(output_line, "\n\r");
-
-#ifdef ARDUINO
+				#ifdef ARDUINO
 				Serial.write(output_line);
-#else
+				#else
 				fputs(output_line, osp);
-#endif
-
-#ifdef ARDUINO
+				#endif
+				#ifdef ARDUINO
 				Serial.write(prompt);
-#else
+				#else
 				fputs(prompt, osp);
-#endif
-
-				parser.ResetLine();
-				//exit(-1);
+				#endif
+				ParserResetLine();
 				break; //continue
 			case R_UNFINISHED:
 				break; //continue
 			case R_COMPLETE: {
-
+				#ifdef DEBUG
 				strcpy(i_debug_message, "R_COMPLETE Case");
 				M(i_debug_message);
-
-				while (parser.output.OutputAvailable()) {
-					parser.output.GetOutputAsString(output_line);
+				#endif
+				while (global_output.OutputAvailable()) {
+					global_output.GetOutputAsString(output_line);
 					strcat(output_line, "\r");
-
-#ifdef ARDUINO
+					#ifdef ARDUINO
 					Serial.write(output_line);
-#else
+					#else
 					fputs(output_line, osp);
-#endif
-
+					#endif
 				}
-				while (parser.output.OutputAvailable()) {
-					parser.output.GetOutputAsString(output_line);
-					strcat(output_line, "\r");
-
-#ifdef ARDUINO
-					Serial.write(output_line);
-#else
-					fputs(output_line, osp);
-#endif
-
-				}
-				parser.ResetLine();
-
-#ifdef ARDUINO
+				ParserResetLine();
+				#ifdef ARDUINO
 				Serial.write(prompt);
-#else
+				#else
 				fputs(prompt, osp);
-#endif
-
+				#endif
 				break;
 			}
 			case R_REPLAY:
-				while (parser.output.OutputAvailable()) {
-					parser.output.GetOutputAsString(output_line);
+				while (global_output.OutputAvailable()) {
+					global_output.GetOutputAsString(output_line);
 					strcat(output_line, "\r");
-
-#ifdef ARDUINO
+					#ifdef ARDUINO
 					Serial.write(prompt);
-#else
+					#else
 					fputs(output_line, osp);
-#endif
-
+					#endif
 				}
-
-				parser.ResetLine();
-				strcpy(temp, parser.replay_buf);
-#ifdef DEBUG
-				sprintf(i_debug_message, "DEBUG ICLI: case R_REPLAY. replay_buf: %s\n\r", temp);
+				ParserResetLine();
+				#ifdef DEBUG
+				sprintf(i_debug_message, "DEBUG (Poll) case R_REPLAY. replay_buf: %s\n\r", parser_replay_buff_ptr);
 				M(i_debug_message);
-#endif
-				parser.BufferInject(temp);
-				// XXX unfinshied as to how to restuff the buffer
-				// without using a buffer!
-				strcpy(prompt, prompt_base);
-				strcat(prompt, parser.replay_buf);
-
-#ifdef ARDUINO
+				#endif
+				// Set the replay flag on
+				iflags.replay = 1;
+				//ParserBufferInject(parser_replay_buff);
+				// Write out the prompt and the replay buffer to indicate to the user
+				// recall success
+				#ifdef ARDUINO
 				Serial.write(prompt);
-#else
+				Serial.write(parser_replay_buff);
+				#else
 				fputs(prompt, osp);
-#endif
-
+				fputs(parser_replay_buff, osp);
+				#endif
 				break;
-
 		}
-		//ch = fgetc(isp);
-		//ch = getchar();
 	}
 }
 
 void ITCH::WriteLine(char* string) {
-	parser.output.AddString(string);
-	parser.output.SetOutputAvailable();
+	global_output.AddString(string);
+	global_output.SetOutputAvailable();
 }
 
 

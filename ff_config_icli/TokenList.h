@@ -10,14 +10,14 @@
 #ifndef TOKENLIST_H_
 #define TOKENLIST_H_
 
-//struct ASTA_ARRAY;
 
 #include "common_config.h"
 #include "out.h"
 #include <stdint.h>
 
 typedef struct TOKEN_NODE {
-	char label[MAX_IDENTIFIER_LABEL_SIZE];
+	//char label[MAX_IDENTIFIER_LABEL_SIZE];
+	char* label;
 	uint8_t type;
 	uint16_t id;
 	struct TOKEN_NODE* next;
@@ -29,6 +29,7 @@ typedef struct TOKEN_LIST {
 	TokenNode* tail;
 	uint16_t size;
 } TokenList;
+
 
 TokenList* TLNewTokenList(void);
 void TLDeleteTokenList(TokenList* tl);
