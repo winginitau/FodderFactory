@@ -10,8 +10,8 @@
 /************************************************
  Includes
 ************************************************/
+#include <ff_sys_config.h>
 #include "ff_registry.h"
-#include "ff_sys_config.h"
 #include "ff_string_consts.h"
 #include "ff_debug.h"
 #include "ff_utils.h"
@@ -507,8 +507,8 @@ void InitStateRegister(void) {
 	sr.ui_data.water_max_dt = TimeNow();
 
 	//TODO these will go
-	sr.ui_data.light_flag = 0;
-	sr.ui_data.water_heater_flag = 0;
+	//sr.ui_data.light_flag = 0;
+	//sr.ui_data.water_heater_flag = 0;
 
 
 }

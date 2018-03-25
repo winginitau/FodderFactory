@@ -13,7 +13,7 @@
 /************************************************
  Includes
 ************************************************/
-#include "ff_sys_config.h"
+#include <ff_sys_config.h>
 
 #ifdef FF_ARDUINO
 #include <Arduino.h>

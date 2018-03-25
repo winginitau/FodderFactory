@@ -51,18 +51,24 @@
 						</toolChain>
 					</folderInfo>
 					<fileInfo id="io.sloeber.core.toolChain.release.938647682.469889819" name="NodeMap.h" rcbsApplicability="disable" resourcePath="itch/NodeMap.h" toolsToInvoke=""/>
-					<fileInfo id="io.sloeber.core.toolChain.release.938647682.1933008075" name="Identifiers.h" rcbsApplicability="disable" resourcePath="glitch/Identifiers.h" toolsToInvoke=""/>
-					<fileInfo id="io.sloeber.core.toolChain.release.938647682.2114397667" name="Debug.h" rcbsApplicability="disable" resourcePath="glitch/Debug.h" toolsToInvoke=""/>
-					<fileInfo id="io.sloeber.core.toolChain.release.938647682.1592781221" name="ff_sys_config.h" rcbsApplicability="disable" resourcePath="glitch/ff_sys_config.h" toolsToInvoke=""/>
+					<fileInfo id="io.sloeber.core.toolChain.release.938647682.2005188809" name="out_bak.h" rcbsApplicability="disable" resourcePath="glitch/out_bak.h" toolsToInvoke=""/>
 					<fileInfo id="io.sloeber.core.toolChain.release.938647682.2025332852" name="AST.h" rcbsApplicability="disable" resourcePath="glitch/AST.h" toolsToInvoke=""/>
-					<fileInfo id="io.sloeber.core.toolChain.release.938647682.678977702" name="glitch_errors.h" rcbsApplicability="disable" resourcePath="glitch/glitch_errors.h" toolsToInvoke=""/>
-					<fileInfo id="io.sloeber.core.toolChain.release.938647682.1271377638" name="Identifier.h" rcbsApplicability="disable" resourcePath="glitch/Identifier.h" toolsToInvoke=""/>
-					<fileInfo id="io.sloeber.core.toolChain.release.938647682.1169904800" name="Lexer.h" rcbsApplicability="disable" resourcePath="glitch/Lexer.h" toolsToInvoke=""/>
+					<fileInfo id="io.sloeber.core.toolChain.release.938647682.232250059" name="glitch_config.h" rcbsApplicability="disable" resourcePath="glitch/glitch_config.h" toolsToInvoke=""/>
 					<fileInfo id="io.sloeber.core.toolChain.release.938647682.918868702" name="ASTNode.h" rcbsApplicability="disable" resourcePath="glitch/ASTNode.h" toolsToInvoke=""/>
 					<fileInfo id="io.sloeber.core.toolChain.release.938647682.1552513513" name="ff_string_consts.h" rcbsApplicability="disable" resourcePath="glitch/ff_string_consts.h" toolsToInvoke=""/>
+					<fileInfo id="io.sloeber.core.toolChain.release.938647682.1933008075" name="Identifiers.h" rcbsApplicability="disable" resourcePath="glitch/Identifiers.h" toolsToInvoke=""/>
+					<fileInfo id="io.sloeber.core.toolChain.release.938647682.2114397667" name="Debug.h" rcbsApplicability="disable" resourcePath="glitch/Debug.h" toolsToInvoke=""/>
+					<fileInfo id="io.sloeber.core.toolChain.release.938647682.1035292108" name="KeyValuePairList.h" rcbsApplicability="disable" resourcePath="glitch/KeyValuePairList.h" toolsToInvoke=""/>
+					<fileInfo id="io.sloeber.core.toolChain.release.938647682.1592781221" name="ff_sys_config.h" rcbsApplicability="disable" resourcePath="glitch/ff_sys_config.h" toolsToInvoke=""/>
+					<fileInfo id="io.sloeber.core.toolChain.release.938647682.224561179" name="LineBuffer.h" rcbsApplicability="disable" resourcePath="glitch/LineBuffer.h" toolsToInvoke=""/>
+					<fileInfo id="io.sloeber.core.toolChain.release.938647682.678977702" name="glitch_errors.h" rcbsApplicability="disable" resourcePath="glitch/glitch_errors.h" toolsToInvoke=""/>
+					<fileInfo id="io.sloeber.core.toolChain.release.938647682.1932755752" name="config.h" rcbsApplicability="disable" resourcePath="glitch/config.h" toolsToInvoke=""/>
+					<fileInfo id="io.sloeber.core.toolChain.release.938647682.1271377638" name="Identifier.h" rcbsApplicability="disable" resourcePath="glitch/Identifier.h" toolsToInvoke=""/>
+					<fileInfo id="io.sloeber.core.toolChain.release.938647682.1169904800" name="Lexer.h" rcbsApplicability="disable" resourcePath="glitch/Lexer.h" toolsToInvoke=""/>
+					<fileInfo id="io.sloeber.core.toolChain.release.938647682.54550829" name="string_consts.h" rcbsApplicability="disable" resourcePath="glitch/string_consts.h" toolsToInvoke=""/>
 					<sourceEntries>
 						<entry excluding="glitch|itch|libraries/?*/**/?xamples/**|libraries/?*/**/?xtras/**|libraries/?*/**/test*/**|libraries/?*/**/third-party/**|libraries/**/._*|libraries/?*/utility/*/*" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
-						<entry excluding="glitch_errors.h|Debug.cpp|Debug.h|Lexer.h|Lexer.cpp|Identifiers.h|Identifiers.cpp|Identifier.h|Identifier.cpp|glitch.cpp|ff_sys_config.h|ff_string_consts.h|ff_string_consts.cpp|ASTNode.h|ASTNode.cpp|AST.h|AST.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="glitch"/>
+						<entry excluding="string_consts.h|out_user_code_bak.cpp|out_bak.h|out_bak.cpp|glitch_config.h|config.h|LineBuffer.h|LineBuffer.cpp|KeyValuePairList.h|KeyValuePairList.cpp|glitch_errors.h|Debug.cpp|Debug.h|Lexer.h|Lexer.cpp|Identifiers.h|Identifiers.cpp|Identifier.h|Identifier.cpp|glitch.cpp|ff_sys_config.h|ff_string_consts.h|ff_string_consts.cpp|ASTNode.h|ASTNode.cpp|AST.h|AST.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="glitch"/>
 						<entry excluding="MapNode.cpp|MapNode.h|itch_test.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="itch"/>
 					</sourceEntries>
 				</configuration>

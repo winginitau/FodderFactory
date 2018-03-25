@@ -8,7 +8,7 @@
  ******************************************************************/
 
 #include "OutputBuffer.h"
-#include <string.h>
+
 
 OutputBuffer::OutputBuffer() {
     output_available = false;;
@@ -25,11 +25,11 @@ bool OutputBuffer::OutputAvailable() {
 
 char* OutputBuffer::GetOutputAsString(char* output_str) {
 
-    DeQueue(output_string);
+    DeQueue(output_str);
     if (GetSize() == 0) {
         output_available = false;
     }
-    return strcpy(output_str, output_string);
+    return output_str;
 }
 
 void OutputBuffer::SetOutputAvailable(void) {

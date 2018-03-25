@@ -8,7 +8,6 @@
  ******************************************************************/
 
 #include "ASTNode.h"
-#include <stdlib.h>
 
 ASTNode::ASTNode() {
 	id = 0;

@@ -10,7 +10,8 @@
 #ifndef ASTNODE_H_
 #define ASTNODE_H_
 
-#include "common_config.h"
+#include "config.h"
+#include <stdlib.h>
 #include <stdint.h>
 
 static const EnumStringArray ast_type_strings[LAST_AST_TYPE] = {

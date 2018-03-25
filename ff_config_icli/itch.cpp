@@ -7,10 +7,10 @@
 
  ******************************************************************/
 
-#include "out.h"
+//#include "config.h"
+//#include "out.h"
 #include "itch.h"
 #include "parser_errors.h"
-#include "parser_config.h"
 #include <stdlib.h>
 
 
@@ -19,20 +19,32 @@
 #endif
 
 
-
 /******************************************************************************
  * Globals
  ******************************************************************************/
 
 #ifdef DEBUG
-	extern void M(char strn[]);
-	char i_debug_message[MAX_OUTPUT_LINE_SIZE];
+
+extern void M(char strn[]);
+char i_debug_message[MAX_OUTPUT_LINE_SIZE];
+
 #endif
 
-OutputBuffer global_output;
-char parser_replay_buff[MAX_INPUT_LINE_SIZE] = "\0";
-char* parser_replay_buff_ptr = (char *)parser_replay_buff;
+// Lots of routines dealing with input and output buffers
+// strings, param lists, tokens etc.... although ugly coding
+// practice, for cleaner memory management on embedded systems
+// with limited ram, better to have some preallocated variables
+// that can be have their space measured at compile / link time
+// and allocated at the start rather than dynamically creating them
+// on the stack inside functions, potentially bumping into the heap.
 
+char g_itch_replay_buff[MAX_INPUT_LINE_SIZE] = "\0";
+char* g_itch_replay_buff_ptr = (char *)g_itch_replay_buff;
+
+OutputBuffer g_itch_output_buff;		// General output buffer
+char g_out_str[MAX_OUTPUT_LINE_SIZE];	// Strings being assembled for output
+char g_temp_str[MAX_OUTPUT_LINE_SIZE];	// Generl string temp
+ASTA g_temp_asta;						// Temp asta node (and for the Progmem working copy)
 
 /******************************************************************************
  * Class Methods
@@ -41,8 +53,10 @@ char* parser_replay_buff_ptr = (char *)parser_replay_buff;
 ITCH::ITCH() {
 	iflags.mode = 0;
 	iflags.replay = 0;
+	#ifndef ARDUINO
 	isp = NULL;
 	osp= NULL;
+	#endif
 }
 
 ITCH::~ITCH() {
@@ -52,11 +66,14 @@ ITCH::~ITCH() {
 
 #ifdef ARDUINO
 void ITCH::Begin(int mode) {
-	itch_mode = mode;
+	iflags.mode = mode;
 
-	if (itch_mode == ITCH_INTERACTIVE) {
-		sprintf(prompt_base, "\n\r$ ");
-		delay(100);
+	ParserInit();
+
+	if (iflags.mode == ITCH_INTERACTIVE) {
+		//sprintf(prompt_base, "\n\r$ ");
+		strcpy_P(prompt_base, misc_strings[MISC_PROMPT_BASE].text);
+		strcpy(prompt, prompt_base);
 		Serial.write(prompt_base);
 	};
 
@@ -80,7 +97,7 @@ void ITCH::Begin(FILE* input_stream, FILE* output_stream, int mode) {
 
 
 void ITCH::Poll(void) {
-	char output_line[MAX_OUTPUT_LINE_SIZE];
+	//char output_line[MAX_OUTPUT_LINE_SIZE];
 
 	char ch;
 
@@ -94,9 +111,7 @@ void ITCH::Poll(void) {
 
 		#ifdef ARDUINO
 			if (Serial.available()) {
-				//delay(100);
 				ch = Serial.read();
-				//delay(100);
 				Serial.write(ch);
 			} else {
 				return;
@@ -104,21 +119,14 @@ void ITCH::Poll(void) {
 		#endif
 	} else {
 		// re-stuff the replay buffer into the stream
-		ch = *parser_replay_buff_ptr;
-		parser_replay_buff_ptr++;
+		ch = *g_itch_replay_buff_ptr;
+		g_itch_replay_buff_ptr++;
 		// If finished re-stuffing, reset the replay flag and buffer
-		if (*parser_replay_buff_ptr == '\0') {
+		if (*g_itch_replay_buff_ptr == '\0') {
 			iflags.replay = 0;
-			parser_replay_buff_ptr = (char *)parser_replay_buff;
+			g_itch_replay_buff_ptr = (char *)g_itch_replay_buff;
 		}
 	}
-
-
-
-	#ifdef ARDUINO
-	//delay(1000);
-	//D("Got ch, about to check EOF\n\r");
-	#endif
 
 	if (ch != EOF) {
 
@@ -126,16 +134,21 @@ void ITCH::Poll(void) {
 
 		switch (result) {
 			case R_HELP:
-				strcpy(output_line, misc_strings[MISC_HELP_HEADING].text);
-				fputs(output_line, osp);
-				while (global_output.OutputAvailable()) {
-					global_output.GetOutputAsString(output_line);
-					strcat(output_line, "\r");
+				#ifdef ARDUINO
+				strcpy_P(g_out_str, misc_strings[MISC_HELP_HEADING].text);
+				Serial.write(g_out_str);
+				#else
+				strcpy(g_out_str, misc_strings[MISC_HELP_HEADING].text);
+				fputs(g_out_str, osp);
+				#endif
+				while (g_itch_output_buff.OutputAvailable()) {
+					g_itch_output_buff.GetOutputAsString(g_out_str);
+					strcat(g_out_str, "\r");
 
 					#ifdef ARDUINO
-					Serial.write(output_line);
+					Serial.write(g_out_str);
 					#else
-					fputs(output_line, osp);
+					fputs(g_out_str, osp);
 					#endif
 				}
 				ParserResetLine();
@@ -158,25 +171,36 @@ void ITCH::Poll(void) {
 			case R_IGNORE:
 				// parser discarding something irrelevant (eg extra whitespace)
 				// 	or the rest of the input buffer after error detected
-				while (global_output.OutputAvailable()) {
-					global_output.GetOutputAsString(output_line);
-					strcat(output_line, "\r");
+				while (g_itch_output_buff.OutputAvailable()) {
+					g_itch_output_buff.GetOutputAsString(g_out_str);
+					strcat(g_out_str, "\r");
 					#ifdef ARDUINO
-					Serial.write(output_line);
+					Serial.write(g_out_str);
 					#else
-					fputs(output_line, osp);
+					fputs(g_out_str, osp);
 					#endif
 				}
 				break; //continue
 			case R_ERROR:
-				strcpy(output_line, misc_strings[MISC_ERROR_HEADER].text);
-				fputs(output_line, osp);
-				ParserGetErrorString(output_line);
-				strcat(output_line, misc_strings[MISC_ERROR_PROMPT].text);
 				#ifdef ARDUINO
-				Serial.write(output_line);
+				strcpy_P(g_out_str, misc_strings[MISC_ERROR_HEADER].text);
+				Serial.write(g_out_str);
 				#else
-				fputs(output_line, osp);
+				strcpy(g_out_str, misc_strings[MISC_ERROR_HEADER].text);
+				fputs(g_out_str, osp);
+				#endif
+
+				//Serial.write("Error caught back to ITCH R_ERROR - now after Error Header Write\n\r");
+				//char temp[MAX_OUTPUT_LINE_SIZE];
+				//sprintf(temp, "result: %d \n\r", result);
+				//Serial.write(temp);
+
+				ParserGetErrorString(g_out_str);
+				strcat(g_out_str, misc_strings[MISC_ERROR_PROMPT].text);
+				#ifdef ARDUINO
+				Serial.write(g_out_str);
+				#else
+				fputs(g_out_str, osp);
 				#endif
 				#ifdef ARDUINO
 				Serial.write(prompt);
@@ -188,10 +212,10 @@ void ITCH::Poll(void) {
 			case R_NONE:
 				// parser should always return a meaningful result
 				ParserSetError(PE_NO_PARSE_RESULT);
-				ParserGetErrorString(output_line);
-				strcat(output_line, "\n\r");
+				ParserGetErrorString(g_out_str);
+				strcat_P(g_out_str, misc_strings[MISC_CRNL].text);
 				#ifdef ARDUINO
-				Serial.write(output_line);
+				Serial.write(g_out_str);
 				#else
 				fputs(output_line, osp);
 				#endif
@@ -206,14 +230,14 @@ void ITCH::Poll(void) {
 				break; //continue
 			case R_COMPLETE: {
 				#ifdef DEBUG
-				strcpy(i_debug_message, "R_COMPLETE Case");
+				strcpy(i_debug_message, "R_COMPLETE\n");
 				M(i_debug_message);
 				#endif
-				while (global_output.OutputAvailable()) {
-					global_output.GetOutputAsString(output_line);
-					strcat(output_line, "\r");
+				while (g_itch_output_buff.OutputAvailable()) {
+					g_itch_output_buff.GetOutputAsString(g_out_str);
+					strcat(g_out_str, "\r");
 					#ifdef ARDUINO
-					Serial.write(output_line);
+					Serial.write(g_out_str);
 					#else
 					fputs(output_line, osp);
 					#endif
@@ -227,18 +251,18 @@ void ITCH::Poll(void) {
 				break;
 			}
 			case R_REPLAY:
-				while (global_output.OutputAvailable()) {
-					global_output.GetOutputAsString(output_line);
-					strcat(output_line, "\r");
+				while (g_itch_output_buff.OutputAvailable()) {
+					g_itch_output_buff.GetOutputAsString(g_out_str);
+					strcat(g_out_str, "\r");
 					#ifdef ARDUINO
 					Serial.write(prompt);
 					#else
-					fputs(output_line, osp);
+					fputs(g_out_str, osp);
 					#endif
 				}
 				ParserResetLine();
 				#ifdef DEBUG
-				sprintf(i_debug_message, "DEBUG (Poll) case R_REPLAY. replay_buf: %s\n\r", parser_replay_buff_ptr);
+				sprintf(i_debug_message, "DEBUG (Poll) case R_REPLAY. replay_buf: %s\n\r", g_itch_replay_buff_ptr);
 				M(i_debug_message);
 				#endif
 				// Set the replay flag on
@@ -248,10 +272,10 @@ void ITCH::Poll(void) {
 				// recall success
 				#ifdef ARDUINO
 				Serial.write(prompt);
-				Serial.write(parser_replay_buff);
+				Serial.write(g_itch_replay_buff);
 				#else
 				fputs(prompt, osp);
-				fputs(parser_replay_buff, osp);
+				fputs(g_itch_replay_buff, osp);
 				#endif
 				break;
 		}
@@ -259,8 +283,8 @@ void ITCH::Poll(void) {
 }
 
 void ITCH::WriteLine(char* string) {
-	global_output.AddString(string);
-	global_output.SetOutputAvailable();
+	g_itch_output_buff.AddString(string);
+	g_itch_output_buff.SetOutputAvailable();
 }
 
 

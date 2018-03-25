@@ -10,38 +10,7 @@
 #ifndef COMMON_CONFIG_H_
 #define COMMON_CONFIG_H_
 
-//#define DEBUG
-
-#include "out.h"
-
-#ifndef MAX_BUFFER_LENGTH
-//#define MAX_BUFFER_LENGTH 200
-#endif
-
-#ifndef MAX_BUFFER_WORD_LENGTH
-//#define MAX_BUFFER_WORD_LENGTH 200
-#endif
-
-#ifndef MAX_BUFFER_WORDS_PER_LINE
-//#define MAX_BUFFER_WORDS_PER_LINE 50
-#endif
-
-//#define MAX_IDENTIFIERS 200
-
-
-#ifndef MAX_LABEL_LENGTH
-//#define MAX_LABEL_LENGTH 48
-#endif
-
-#ifdef ARDUINO
-#define USE_PROGMEM
-#endif
-
-typedef struct ENUM_STRING_ARRAY_TYPE {
-	// Array of strings relating to enums
-	// Inside this struct, extended intitaliser lists are ok
-	char text[MAX_BUFFER_LENGTH];
-} EnumStringArray;
+//#include "config.h"
 
 
 // Visitor pattern result codes

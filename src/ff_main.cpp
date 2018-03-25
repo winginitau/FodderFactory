@@ -10,9 +10,9 @@
 /************************************************
   Includes
 ************************************************/
+#include <ff_sys_config.h>
 #include "ff_main.h"
 #include "ff_registry.h"  //first include for C global dec and init of main block list (bll) and dec of state register (sr)
-#include "ff_sys_config.h"
 #include "ff_string_consts.h"
 #include <stdio.h>
 #include <stdlib.h>

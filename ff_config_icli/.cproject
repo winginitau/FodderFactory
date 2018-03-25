@@ -27,7 +27,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/glitch}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/itch}&quot;"/>
 								</option>
-								<option id="gnu.cpp.compiler.option.dialect.std.2140364764" superClass="gnu.cpp.compiler.option.dialect.std" useByScannerDiscovery="true" value="gnu.cpp.compiler.dialect.default" valueType="enumerated"/>
+								<option id="gnu.cpp.compiler.option.dialect.std.2140364764" name="Language standard" superClass="gnu.cpp.compiler.option.dialect.std" useByScannerDiscovery="true" value="gnu.cpp.compiler.dialect.default" valueType="enumerated"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1042082428" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.compiler.exe.debug.1850954241" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.exe.debug">
@@ -59,17 +59,22 @@
 							</tool>
 						</toolChain>
 					</folderInfo>
+					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.1154591455.671511396" name="out_bak.h" rcbsApplicability="disable" resourcePath="glitch/out_bak.h" toolsToInvoke=""/>
+					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.1154591455.1290271989" name="AST.h" rcbsApplicability="disable" resourcePath="glitch/AST.h" toolsToInvoke=""/>
+					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.1154591455.1172383769" name="glitch_config.h" rcbsApplicability="disable" resourcePath="glitch/glitch_config.h" toolsToInvoke=""/>
+					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.1154591455.1782207193" name="ASTNode.h" rcbsApplicability="disable" resourcePath="glitch/ASTNode.h" toolsToInvoke=""/>
 					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.1154591455.1789923560" name="Identifiers.h" rcbsApplicability="disable" resourcePath="glitch/Identifiers.h" toolsToInvoke=""/>
 					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.1154591455.552733825" name="Debug.h" rcbsApplicability="disable" resourcePath="glitch/Debug.h" toolsToInvoke=""/>
-					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.1154591455.23672195" name="ff_sys_config.h" rcbsApplicability="disable" resourcePath="glitch/ff_sys_config.h" toolsToInvoke=""/>
-					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.1154591455.1290271989" name="AST.h" rcbsApplicability="disable" resourcePath="glitch/AST.h" toolsToInvoke=""/>
+					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.1154591455.681148466" name="KeyValuePairList.h" rcbsApplicability="disable" resourcePath="glitch/KeyValuePairList.h" toolsToInvoke=""/>
+					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.1154591455.1309748361" name="LineBuffer.h" rcbsApplicability="disable" resourcePath="glitch/LineBuffer.h" toolsToInvoke=""/>
+					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.1154591455.2024417587" name="glitch_errors.h" rcbsApplicability="disable" resourcePath="glitch/glitch_errors.h" toolsToInvoke=""/>
+					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.1154591455.2102317055" name="config.h" rcbsApplicability="disable" resourcePath="glitch/config.h" toolsToInvoke=""/>
 					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.1154591455.1827801583" name="Identifier.h" rcbsApplicability="disable" resourcePath="glitch/Identifier.h" toolsToInvoke=""/>
 					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.1154591455.1587236149" name="Lexer.h" rcbsApplicability="disable" resourcePath="glitch/Lexer.h" toolsToInvoke=""/>
-					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.1154591455.1782207193" name="ASTNode.h" rcbsApplicability="disable" resourcePath="glitch/ASTNode.h" toolsToInvoke=""/>
-					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.1154591455.1934248610" name="ff_string_consts.h" rcbsApplicability="disable" resourcePath="glitch/ff_string_consts.h" toolsToInvoke=""/>
+					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.1154591455.2087666060" name="string_consts.h" rcbsApplicability="disable" resourcePath="glitch/string_consts.h" toolsToInvoke=""/>
 					<sourceEntries>
 						<entry excluding="glitch" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
-						<entry excluding="glitch.cpp|Identifier.cpp|Identifier.h|Identifiers.cpp|Identifiers.h|Lexer.cpp|Lexer.h|Debug.h|Debug.cpp|ASTNode.h|ASTNode.cpp|AST.h|AST.cpp|ff_string_consts.cpp|ff_string_consts.h|ff_sys_config.h|processor_config.h|processor.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="glitch"/>
+						<entry excluding="string_consts.h|config.h|glitch_config.h|out_user_code_bak.cpp|out_bak.h|out_bak.cpp|KeyValuePairList.cpp|KeyValuePairList.h|glitch_errors.h|LineBuffer.cpp|LineBuffer.h|glitch.cpp|Identifier.cpp|Identifier.h|Identifiers.cpp|Identifiers.h|Lexer.cpp|Lexer.h|Debug.h|Debug.cpp|ASTNode.h|ASTNode.cpp|AST.h|AST.cpp|ff_string_consts.cpp|ff_string_consts.h|ff_sys_config.h|processor_config.h|processor.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="glitch"/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -116,16 +121,21 @@
 							</tool>
 						</toolChain>
 					</folderInfo>
+					<fileInfo id="cdt.managedbuild.config.gnu.exe.release.342175032.1189158270" name="out_bak.h" rcbsApplicability="disable" resourcePath="glitch/out_bak.h" toolsToInvoke=""/>
+					<fileInfo id="cdt.managedbuild.config.gnu.exe.release.342175032.1419967286" name="AST.h" rcbsApplicability="disable" resourcePath="glitch/AST.h" toolsToInvoke=""/>
+					<fileInfo id="cdt.managedbuild.config.gnu.exe.release.342175032.1294347741" name="glitch_config.h" rcbsApplicability="disable" resourcePath="glitch/glitch_config.h" toolsToInvoke=""/>
+					<fileInfo id="cdt.managedbuild.config.gnu.exe.release.342175032.119293921" name="ASTNode.h" rcbsApplicability="disable" resourcePath="glitch/ASTNode.h" toolsToInvoke=""/>
 					<fileInfo id="cdt.managedbuild.config.gnu.exe.release.342175032.2134738391" name="Identifiers.h" rcbsApplicability="disable" resourcePath="glitch/Identifiers.h" toolsToInvoke=""/>
 					<fileInfo id="cdt.managedbuild.config.gnu.exe.release.342175032.1368635901" name="Debug.h" rcbsApplicability="disable" resourcePath="glitch/Debug.h" toolsToInvoke=""/>
-					<fileInfo id="cdt.managedbuild.config.gnu.exe.release.342175032.1753268684" name="ff_sys_config.h" rcbsApplicability="disable" resourcePath="glitch/ff_sys_config.h" toolsToInvoke=""/>
-					<fileInfo id="cdt.managedbuild.config.gnu.exe.release.342175032.1419967286" name="AST.h" rcbsApplicability="disable" resourcePath="glitch/AST.h" toolsToInvoke=""/>
+					<fileInfo id="cdt.managedbuild.config.gnu.exe.release.342175032.1987375592" name="KeyValuePairList.h" rcbsApplicability="disable" resourcePath="glitch/KeyValuePairList.h" toolsToInvoke=""/>
+					<fileInfo id="cdt.managedbuild.config.gnu.exe.release.342175032.1558322366" name="LineBuffer.h" rcbsApplicability="disable" resourcePath="glitch/LineBuffer.h" toolsToInvoke=""/>
+					<fileInfo id="cdt.managedbuild.config.gnu.exe.release.342175032.1980538689" name="glitch_errors.h" rcbsApplicability="disable" resourcePath="glitch/glitch_errors.h" toolsToInvoke=""/>
+					<fileInfo id="cdt.managedbuild.config.gnu.exe.release.342175032.1659210979" name="config.h" rcbsApplicability="disable" resourcePath="glitch/config.h" toolsToInvoke=""/>
 					<fileInfo id="cdt.managedbuild.config.gnu.exe.release.342175032.1038280648" name="Identifier.h" rcbsApplicability="disable" resourcePath="glitch/Identifier.h" toolsToInvoke=""/>
 					<fileInfo id="cdt.managedbuild.config.gnu.exe.release.342175032.620320076" name="Lexer.h" rcbsApplicability="disable" resourcePath="glitch/Lexer.h" toolsToInvoke=""/>
-					<fileInfo id="cdt.managedbuild.config.gnu.exe.release.342175032.119293921" name="ASTNode.h" rcbsApplicability="disable" resourcePath="glitch/ASTNode.h" toolsToInvoke=""/>
-					<fileInfo id="cdt.managedbuild.config.gnu.exe.release.342175032.2105934426" name="ff_string_consts.h" rcbsApplicability="disable" resourcePath="glitch/ff_string_consts.h" toolsToInvoke=""/>
+					<fileInfo id="cdt.managedbuild.config.gnu.exe.release.342175032.1908944366" name="string_consts.h" rcbsApplicability="disable" resourcePath="glitch/string_consts.h" toolsToInvoke=""/>
 					<sourceEntries>
-						<entry excluding="glitch/glitch.cpp|glitch/AST.cpp|ff_config_parser/Identifiers.cpp|ff_config_parser/processor_config.h|ff_config_parser/Lexer.cpp|ff_config_parser/AST.h|ff_config_parser/ff_string_consts.h|ff_config_parser/Identifier.cpp|ff_config_parser/Identifiers.h|ff_config_parser/ff_sys_config.h|ff_config_parser/Lexer.h|ff_config_parser/Debug.cpp|ff_config_parser/Debug.h|ff_config_parser/ff_string_consts.cpp|ff_config_parser/processor.cpp|ff_config_parser/ASTNode.cpp|ff_config_parser/ASTNode.h|ff_config_parser/AST.cpp|ff_config_parser/Identifier.h" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="glitch/string_consts.h|glitch/config.h|glitch/glitch_config.h|glitch/out_user_code_bak.cpp|glitch/out_bak.h|glitch/out_bak.cpp|glitch/KeyValuePairList.cpp|glitch/KeyValuePairList.h|glitch/glitch_errors.h|glitch/LineBuffer.cpp|glitch/LineBuffer.h|glitch/glitch.cpp|glitch/AST.cpp|ff_config_parser/Identifiers.cpp|ff_config_parser/processor_config.h|ff_config_parser/Lexer.cpp|ff_config_parser/AST.h|ff_config_parser/ff_string_consts.h|ff_config_parser/Identifier.cpp|ff_config_parser/Identifiers.h|ff_config_parser/ff_sys_config.h|ff_config_parser/Lexer.h|ff_config_parser/Debug.cpp|ff_config_parser/Debug.h|ff_config_parser/ff_string_consts.cpp|ff_config_parser/processor.cpp|ff_config_parser/ASTNode.cpp|ff_config_parser/ASTNode.h|ff_config_parser/AST.cpp|ff_config_parser/Identifier.h" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>

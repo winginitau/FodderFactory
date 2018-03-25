@@ -10,6 +10,8 @@
 #ifndef GLITCH_ERRORS_H_
 #define GLITCH_ERRORS_H_
 
+#include "glitch_config.h"
+
 enum {
 	E_ERROR_ERROR = 0,
 	E_NO_ERROR,

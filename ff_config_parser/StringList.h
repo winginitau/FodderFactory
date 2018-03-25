@@ -10,11 +10,14 @@
 #ifndef STRINGLIST_H_
 #define STRINGLIST_H_
 
-#include "common_config.h"
+#include "config.h"
 #include <stdint.h>
+#include <string.h>
+#include <stdlib.h>
 
 typedef struct STRING_NODE {
-	char str[MAX_BUFFER_LENGTH];
+	//char str[MAX_BUFFER_LENGTH];
+	char* str;
 	struct STRING_NODE* next;
 } StringNode;
 

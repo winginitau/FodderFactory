@@ -10,13 +10,18 @@
 #ifndef LEXER_H_
 #define LEXER_H_
 
+#include "config.h"
+
 #include "StringList.h"
 #include "LineBuffer.h"
 #include "Identifier.h"
 #include "Identifiers.h"
+#include "ASTNode.h"
 #include "AST.h"
-#include <regex.h>
 
+#include <regex.h>
+#include <string.h>
+#include <stdlib.h>
 
 #define TOKEN_DELIM " "
 
@@ -182,7 +187,6 @@ private:
     // global structures and variables (that generally persist into the parser)
     Identifier ids[MAX_IDENTIFIERS];
     uint16_t id_idx;
-    Identifiers idents;
 
 
 
@@ -197,6 +201,8 @@ public:
     int max_ast_action_size;
     int max_identifier_count;
     int max_param_count;
+
+    Identifiers idents; // made public so that counts can be accessed later
 
     void Init();
     int ProcessLine(LineBuffer& line);

@@ -2,18 +2,12 @@
 #include "out.h"
 #include "itch.h"
 
-
-
 ITCH itch;
-
-
 
 #ifdef ARDUINO
 #ifdef DEBUG
 
-//char debug_message[MAX_OUTPUT_LINE_SIZE];
-
-extern void M(char strn[]) {
+void M(char strn[]) {
 	char str[MAX_OUTPUT_LINE_SIZE];
 /* This function places the current value of the heap and stack pointers in the
  * variables. You can call it from any place in your code and save the data for
@@ -40,20 +34,18 @@ extern void M(char strn[]) {
 #endif
 
 
-extern void ITCHWriteLine(char *str) {
-	char cb_str[MAX_BUFFER_LENGTH];
-	strcpy(cb_str, str);
-	itch.WriteLine(cb_str);
-}
-
+//void ITCHWriteLine(char *str) {
+//	char cb_str[MAX_OUTPUT_LINE_SIZE];
+//	strcpy(cb_str, str);
+//	itch.WriteLine(cb_str);
+//}
 
 void setup()
 {
 	 Serial.begin(9600);
+
 	 itch.Begin(ITCH_INTERACTIVE);
-
 }
-
 
 void loop()
 {

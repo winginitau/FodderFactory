@@ -10,11 +10,18 @@
 #ifndef AST_H_
 #define AST_H_
 
+#include "config.h"
+#include "string_consts.h"
 #include "ASTNode.h"
-//#include "common_config.h"
 #include "StringList.h"
 #include "OutputBuffer.h"
 #include "Identifiers.h"
+#include "KeyValuePairList.h"
+
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+
 
 class AST {
 private:
@@ -26,16 +33,13 @@ private:
 
     char output_string[MAX_BUFFER_LENGTH];
 
-
-
     bool caller_func_preamble_done;
-
-
 
 public:
 	AST();
 	virtual ~AST();
 
+	int ast_node_count;
 	int grammar_def_count;
 	int max_param_count;
 
@@ -49,8 +53,8 @@ public:
 	int AddChildToCurrent(ASTNode* node);
 	int ValidateTermTypeStr(const char * type_str);
 	bool CheckForExistingSiblingKeywords(ASTNode* start_node, const char* keyword);
-	int AddNode(int term_level, const char* term_type);
-	int AddNode(int term_level, const char* term_type, const char* term);
+	int NewNode(int term_level, const char* term_type);
+	int NewNode(int term_level, const char* term_type, const char* term);
 	void WriteASTArray(Identifiers* idents); // needs idents as well as AST to write the AST Array
 
 	int GetASTTypeString(char* return_string, int type);

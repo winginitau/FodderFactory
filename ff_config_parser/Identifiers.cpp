@@ -8,21 +8,17 @@
  ******************************************************************/
 
 #include "Identifiers.h"
-#include <regex.h>
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
 
-//#ifdef DEBUG
-#include "Debug.h"
-#include "glitch_errors.h"
 Debug debug;
-//#endif
 
 Identifiers::Identifiers() {
 	idents_count = 0;
 	idents_func_idx = 0;
 
+	DEFINE_ident_map_count = 0;
+	DEFINE_lookup_map_count = 0;
+	DEFINE_func_map_count = 0;
+	DEFINE_ident_member_count_temp = 0;
 }
 
 Identifiers::~Identifiers() {
@@ -38,16 +34,28 @@ int Identifiers::NewIdent(char* reserved_name, int id_type) {
 		strcpy(ids[idx].IdentifierName, reserved_name);
 		ids[idx].Type = id_type;
 		idents_count++;
-		if (id_type == ID_ACTION_PAIR) {
-			ids[idx].func_xlat = idents_func_idx;
-			idents_func_idx++;
+		switch (id_type) {
+			case ID_ENUM_ARRAY_PAIR:
+				DEFINE_ident_map_count++;
+				break;
+			case ID_ENUM_LIST:
+
+				break;
+			case ID_LOOKUP_LIST:
+				DEFINE_lookup_map_count++;
+				break;
+			case ID_ACTION_PAIR:
+				ids[idx].func_xlat = idents_func_idx;
+				idents_func_idx++;
+				DEFINE_func_map_count++;
+				break;
 		}
 		return E_NO_ERROR;
 	} else
 		return E_INVALID_IDENTIFIER;
 }
 
-int Identifiers::Add(char* identifier_name, char* key, char* value) {
+int Identifiers::AddMember(char* identifier_name, char* key, char* value) {
 	int result = E_NO_ERROR;
 	int idx = GetIdxByLabel(identifier_name);
 	if (idx < idents_count) {
@@ -68,24 +76,44 @@ int Identifiers::Add(char* identifier_name, char* key, char* value) {
 	return result;
 }
 
-int Identifiers::Add(char* identifier_name, char* item) {
-	return Add(identifier_name, item, NULL);
+int Identifiers::AddMember(char* identifier_name, char* item) {
+	return AddMember(identifier_name, item, NULL);
 }
 
-int Identifiers::GetSize(char* identifier_name) {
+int Identifiers::GetSizeByIdentifierName(char* identifier_name) {
 	int idx = GetIdxByLabel(identifier_name);
 	switch (ids[idx].Type) {
 		case ID_ENUM_ARRAY_PAIR:
+			return ids[idx].KeyValueList.GetSize();
 		case ID_ACTION_PAIR:
 			return ids[idx].KeyValueList.GetSize();
 			break;
 		case ID_ENUM_LIST:
+			// XXX Plain enum lists - implemented? drop?
 		case ID_LOOKUP_LIST:
 			return ids[idx].SimpleList.GetSize();
 			break;
 	}
 	return -1;
 }
+
+int Identifiers::GetSizeByInstanceName(char* instance_name) {
+	int idx = GetIdxByInstance(instance_name);
+	switch (ids[idx].Type) {
+		case ID_ENUM_ARRAY_PAIR:
+			return ids[idx].KeyValueList.GetSize();
+		case ID_ACTION_PAIR:
+			return ids[idx].KeyValueList.GetSize();
+			break;
+		case ID_ENUM_LIST:
+			// XXX Plain enum lists - implemented? drop?
+		case ID_LOOKUP_LIST:
+			return ids[idx].SimpleList.GetSize();
+			break;
+	}
+	return -1;
+}
+
 
 int Identifiers::GetIdxByLabel(char* label) {
 	int idx = 0;
@@ -98,6 +126,19 @@ int Identifiers::GetIdxByLabel(char* label) {
 	}
 	return idx;
 }
+
+int Identifiers::GetIdxByInstance(char* instance_name) {
+	int idx = 0;
+
+	while (idx < idents_count) {
+		if (strcmp(ids[idx].InstanceName, instance_name) == 0) { //found
+			return idx;
+		}
+		idx++;
+	}
+	return idx;
+}
+
 
 int Identifiers::SetInstanceName(char* identifier_name, char* instance_name) {
 	int idx = 0;
@@ -170,14 +211,44 @@ bool Identifiers::Exists(char* identifier_name) {
 		return false;
 }
 
+/***********************************************************************************************
+ * Code Writing Functions - to create header, code and user code sections
+ **********************************************************************************************/
 
-void Identifiers::WriteIdentMap(int type, char* instance_name) {
+// XXX Term "Identifier" used generically for any reserved word in the lexer stored in memory
+// as an Identifier class which is bound by CRUD functions in the Identifiers class.
+// However in the parser (and therefore this code generator) the ident map refers only to
+// those type of identifiers which are ENUM ARRAY PAIRS - which are an array instance which
+// has member strings that relate to the associated enum.
+
+void Identifiers::WriteIdentifierMaps(void) {
+	// Write each of the XLAT map arrays into the output header
+
+	char temp[MAX_BUFFER_LENGTH];
+
+	strcpy(temp, "ident_map");
+	WriteIdentMap(ID_ENUM_ARRAY_PAIR, temp);
+	strcpy(temp, "lookup_map");
+	WriteIdentMap(ID_LOOKUP_LIST, temp);
+	strcpy(temp, "func_map");
+	WriteIdentMap(ID_ACTION_PAIR, temp);
+
+	output.SetOutputAvailable();
+}
+
+void Identifiers::WriteIdentMap(int type, char* array_instance_name) {
+	// Write the XLAT array
 	int idx;
 	int xlat_idx;
 	int count;
 	char out[MAX_BUFFER_LENGTH];
 
-	// count number of enum idents - ID_ENUM_ARRAY_PAIR
+	// count number of idents of the type being written out
+	// TODO this is redundant to the DEFINE_ public members used to
+	// write the DEFINES into the header file. But this function
+	// was genericised before then so leave for now.... but the
+	// count should be the same as the DEFINE!
+
 	idx = 0;
 	count = 0;
 	while (idx < idents_count) {
@@ -187,23 +258,29 @@ void Identifiers::WriteIdentMap(int type, char* instance_name) {
 		idx++;
 	}
 
-	// write out the enum indentifers xlat array
-	// header
+	// Write out the xlat array header
 	sprintf(out, "#ifdef USE_PROGMEM\n");
 	output.EnQueue(out);
-	sprintf(out, "static const XLATMap %s [%d] PROGMEM = {\n", instance_name, count);
+	sprintf(out, "static const XLATMap %s [%d] PROGMEM = {\n", array_instance_name, count);
 	output.EnQueue(out);
 	sprintf(out, "#else\n");
 	output.EnQueue(out);
-	sprintf(out, "static const XLATMap %s [%d] = {\n", instance_name, count);
+	sprintf(out, "static const XLATMap %s [%d] = {\n", array_instance_name, count);
 	output.EnQueue(out);
 	sprintf(out, "#endif\n");
 	output.EnQueue(out);
 	// entries
 	xlat_idx = 0;
 	idx = 0;
+
+	// Iterate over all the idents
 	while (idx < idents_count) {
+
+		// Select only those that are of specified type for this array
 		if (ids[idx].Type == type) {
+
+			// For the func map the link to the ASTA is the action string which is
+			// IdentifierName rather than InstanceName
 			if (type == ID_ACTION_PAIR) {
 				sprintf(out, "\t\"%s\", %d,\n", ids[idx].IdentifierName, ids[idx].func_xlat);
 			} else {
@@ -219,42 +296,74 @@ void Identifiers::WriteIdentMap(int type, char* instance_name) {
 	output.EnQueue(out);
 }
 
-void Identifiers::WriteIdentifierMaps(void) {
+void Identifiers::WriteIdentMapFunctions(int header_or_code) {
+	// Write each of the XLAT Lookup functions into the code file
 
-	char temp[MAX_BUFFER_LENGTH];
+	// This function genericised further after the DEFINE members
+	// were added - see TODO note in WriteIdentMap()
 
-	strcpy(temp, "ident_map");
-	WriteIdentMap(ID_ENUM_ARRAY_PAIR, temp);
-	strcpy(temp, "lookup_map");
-	WriteIdentMap(ID_LOOKUP_LIST, temp);
-	strcpy(temp, "func_map");
-	WriteIdentMap(ID_ACTION_PAIR, temp);
+	char func_name[MAX_BUFFER_LENGTH];
+	char array_instance_name[MAX_BUFFER_LENGTH];
+	char member_count_define_name[MAX_BUFFER_LENGTH];
+
+	strcpy(func_name, "LookupIdentMap");
+	strcpy(array_instance_name, "ident_map");
+	strcpy(member_count_define_name, "XLAT_IDENT_MAP_COUNT");
+	WriteIdentMapFunc(func_name, array_instance_name, header_or_code, member_count_define_name);
+
+	strcpy(func_name, "LookupLookupMap");
+	strcpy(array_instance_name, "lookup_map");
+	strcpy(member_count_define_name, "XLAT_LOOKUP_MAP_COUNT");
+	WriteIdentMapFunc(func_name, array_instance_name, header_or_code, member_count_define_name);
+
+	strcpy(func_name, "LookupFuncMap");
+	strcpy(array_instance_name, "func_map");
+	strcpy(member_count_define_name, "XLAT_FUNC_MAP_COUNT");
+	WriteIdentMapFunc(func_name, array_instance_name, header_or_code, member_count_define_name);
 
 	output.SetOutputAvailable();
 }
 
-void Identifiers::WriteIdentMapFunc(char* func_name, char* map_instance, int header_or_code) {
+
+void Identifiers::WriteIdentMapFunc(char* func_name, char* map_instance, int header_or_code, char* member_count_define) {
+	// Write the specified XLAT Lookup function into the header
+	// or code file (as specified by header_or_code)
+
 	char out[MAX_BUFFER_LENGTH];
 
+	// If writing the header, then do it an return
 	if (header_or_code == WRITE_HEADER) {
 		sprintf(out, "uint16_t %s (char* key);\n", func_name);
 		output.EnQueue(out);
 		return;
 	}
 
+	// Else writing the code file function
 	sprintf(out, "uint16_t %s (char* key) {\n", func_name);
 	output.EnQueue(out);
-	sprintf(out, "\tuint16_t count;\n");
+	sprintf(out, "\tXLATMap temp;\n");
 	output.EnQueue(out);
 	sprintf(out, "\tuint16_t idx = 0;\n");
 	output.EnQueue(out);
-	sprintf(out, "\tcount = sizeof(%s) / sizeof(XLATMap);\n", map_instance);
+	//sprintf(out, "\tcount = sizeof(%s) / sizeof(XLATMap);\n", map_instance);
+	//output.EnQueue(out);
+	sprintf(out, "\twhile (idx < %s) {\n", member_count_define);
 	output.EnQueue(out);
-	sprintf(out, "\twhile (idx < count) {\n");
+
+	sprintf(out, "\t\t#ifdef ARDUINO\n");
 	output.EnQueue(out);
-	sprintf(out, "\t\tif(strcasecmp(%s[idx].label, key) == 0) {\n", map_instance);
+	sprintf(out, "\t\t\tmemcpy_P(&temp, &%s[idx], sizeof(XLATMap));\n", map_instance);
 	output.EnQueue(out);
-	sprintf(out, "\t\t\treturn %s[idx].xlat_id;\n", map_instance);
+	sprintf(out, "\t\t#else\n");
+	output.EnQueue(out);
+	sprintf(out, "\t\t\tmemcpy(&temp, &%s[idx], sizeof(XLATMap));\n", map_instance);
+	output.EnQueue(out);
+	sprintf(out, "\t\t#endif\n");
+	output.EnQueue(out);
+
+	sprintf(out, "\t\tif(strcasecmp(temp.label, key) == 0) {\n");
+	output.EnQueue(out);
+	sprintf(out, "\t\t\treturn temp.xlat_id;\n");
 	output.EnQueue(out);
 	sprintf(out, "\t\t}\n");
 	output.EnQueue(out);
@@ -268,36 +377,90 @@ void Identifiers::WriteIdentMapFunc(char* func_name, char* map_instance, int hea
 	output.EnQueue(out);
 }
 
-void Identifiers::WriteIdentMapFunctions(int header_or_code) {
+void Identifiers::WriteIdentMemberLookupFunction(int header_or_code) {
+	// Write the "LookupIdetifierMembers" function to header / code file
+	// "cases" are the per ident_map lookup xlat case
 
-	char func_name[MAX_BUFFER_LENGTH];
-	char instance_name[MAX_BUFFER_LENGTH];
+	char out[MAX_BUFFER_LENGTH];
+	int case_idx = 0;
+	int idx = 0;
+	int member_count;
+	char terminating_member_name[MAX_BUFFER_LENGTH];
+	char ignore[MAX_BUFFER_LENGTH];
 
-	strcpy(func_name, "LookupIdentMap");
-	strcpy(instance_name, "ident_map");
-	WriteIdentMapFunc(func_name, instance_name, header_or_code);
+	// If header then write it and return
+	if (header_or_code == WRITE_HEADER) {
+		sprintf(out, "uint16_t LookupIdentifierMembers(uint16_t ident_xlat, char* lookup_string);\n");
+		output.EnQueue(out);
+		output.SetOutputAvailable();
+		return;
+	}
 
-	strcpy(func_name, "LookupLookupMap");
-	strcpy(instance_name, "lookup_map");
-	WriteIdentMapFunc(func_name, instance_name, header_or_code);
+	// Else write the code file function
+	// write definition and preamble
+	sprintf(out, "uint16_t LookupIdentifierMembers(uint16_t ident_xlat, char* lookup_string) {\n");
+	output.EnQueue(out);
+	sprintf(out, "	SimpleStringArray temp;\n");
+	output.EnQueue(out);
+	sprintf(out, "	uint16_t idx = 0;\n");
+	output.EnQueue(out);
+	sprintf(out, "	switch(ident_xlat) {\n");
+	output.EnQueue(out);
 
-	strcpy(func_name, "LookupFuncMap");
-	strcpy(instance_name, "func_map");
-	WriteIdentMapFunc(func_name, instance_name, header_or_code);
+	// Write each case stanza referring only to the ENUM ARRAY PAIR idents
+	while (idx < idents_count) {
+		if (ids[idx].Type == ID_ENUM_ARRAY_PAIR) {
+			// get the count of entries in this enum list
+			member_count = GetSizeByIdentifierName(ids[idx].IdentifierName);
+			// get the last entry - the terminating member name
+			GetEntryAtLocation(ids[idx].IdentifierName, terminating_member_name, ignore, (member_count -1));
+
+			WriteIdentMemberLookupCase(case_idx, ids[idx].InstanceName, terminating_member_name);
+			case_idx++;
+		}
+		idx++;
+	}
+
+	// Write the default case and outro
+	sprintf(out, "		default:\n");
+	output.EnQueue(out);
+	sprintf(out, "		return 0;\n");
+	output.EnQueue(out);
+	sprintf(out, "	}\n");
+	output.EnQueue(out);
+	sprintf(out, "	return 0;\n");
+	output.EnQueue(out);
+	sprintf(out, "}\n\n");
+	output.EnQueue(out);
 
 	output.SetOutputAvailable();
 }
 
-void Identifiers::WriteIdentMemberLookupCase(int case_num, char* string_array_instance) {
+
+void Identifiers::WriteIdentMemberLookupCase(int case_num, char* string_array_instance, char* terminating_member_name) {
 	char out[MAX_BUFFER_LENGTH];
+
 
 	sprintf(out, "		case %d: {\n", case_num);
 	output.EnQueue(out);
-	sprintf(out, "			count = sizeof(%s) / sizeof(SimpleStringArray);\n", string_array_instance);
+	//sprintf(out, "			count = sizeof(%s) / sizeof(SimpleStringArray);\n", string_array_instance);
+	//output.EnQueue(out);
+	sprintf(out, "			while (idx < %s) {\n", terminating_member_name);
 	output.EnQueue(out);
-	sprintf(out, "			while (idx < count) {\n");
+
+	sprintf(out, "				#ifdef ARDUINO\n");
 	output.EnQueue(out);
-	sprintf(out, "				if(strcasecmp(%s[idx].text, lookup_string) == 0) {\n", string_array_instance);
+	sprintf(out, "					memcpy_P(&temp, &%s[idx], sizeof(SimpleStringArray));\n", string_array_instance);
+	output.EnQueue(out);
+	sprintf(out, "				#else\n");
+	output.EnQueue(out);
+	sprintf(out, "					memcpy(&temp, &%s[idx], sizeof(SimpleStringArray));\n", string_array_instance);
+	output.EnQueue(out);
+	sprintf(out, "				#endif\n");
+	output.EnQueue(out);
+
+
+	sprintf(out, "				if(strcasecmp(lookup_string, temp.text) == 0) {\n");
 	output.EnQueue(out);
 	sprintf(out, "					return idx;\n");
 	output.EnQueue(out);
@@ -313,52 +476,6 @@ void Identifiers::WriteIdentMemberLookupCase(int case_num, char* string_array_in
 	output.EnQueue(out);
 }
 
-void Identifiers::WriteIdentMemberLookupFunction(int header_or_code) {
-	char out[MAX_BUFFER_LENGTH];
-	int case_idx = 0;
-	int idx = 0;
-
-	if (header_or_code == WRITE_HEADER) {
-		sprintf(out, "uint16_t LookupIdentifierMembers(uint16_t ident_xlat, char* lookup_string);\n");
-		output.EnQueue(out);
-		output.SetOutputAvailable();
-		return;
-	}
-
-	// write definition and preamble
-	sprintf(out, "uint16_t LookupIdentifierMembers(uint16_t ident_xlat, char* lookup_string) {\n");
-	output.EnQueue(out);
-	sprintf(out, "	uint16_t count;\n");
-	output.EnQueue(out);
-	sprintf(out, "	uint16_t idx = 0;\n");
-	output.EnQueue(out);
-	sprintf(out, "	switch(ident_xlat) {\n");
-	output.EnQueue(out);
-
-	while (idx < idents_count) {
-		if (ids[idx].Type == ID_ENUM_ARRAY_PAIR) {
-			WriteIdentMemberLookupCase(case_idx, ids[idx].InstanceName);
-			case_idx++;
-		}
-		idx++;
-	}
-
-	sprintf(out, "		default:\n");
-	output.EnQueue(out);
-	sprintf(out, "		return 0;\n");
-	output.EnQueue(out);
-	sprintf(out, "	}\n");
-	output.EnQueue(out);
-	sprintf(out, "	return 0;\n");
-	output.EnQueue(out);
-	sprintf(out, "}\n\n");
-	output.EnQueue(out);
-
-	//sprintf(out, "uint16_t LookupLookupMembers(uint16_t ident_xlat, char* lookup_string) {\n");
-	//sprintf(out, "uint16_t LookupFunctionParams? (uint16_t ident_xlat, char* lookup_string) {\n");
-
-	output.SetOutputAvailable();
-}
 
 
 void Identifiers::DEBUGDumpIdentifiers(void) {

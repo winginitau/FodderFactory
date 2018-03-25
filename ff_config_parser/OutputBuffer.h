@@ -11,11 +11,13 @@
 #define OUTPUTBUFFER_H_
 
 #include "StringList.h"
+#include <string.h>
 
 class OutputBuffer: public StringList {
+
 private:
     bool output_available;
-    char output_string[MAX_BUFFER_LENGTH];
+    //char output_string[MAX_BUFFER_LENGTH];
 
 public:
 	OutputBuffer();

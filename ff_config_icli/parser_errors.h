@@ -14,7 +14,7 @@
 #include <Arduino.h>
 #endif
 
-#include "common_config.h"
+#include "config.h"
 
 enum {
 	PE_ERROR = 0,

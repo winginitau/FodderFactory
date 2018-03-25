@@ -7,14 +7,7 @@
 
  ******************************************************************/
 
-#include "common_config.h"
 #include "AST.h"
-#include "KeyValuePairList.h"
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include "glitch_errors.h"
-
 
 AST::AST() {
 	root = NULL;
@@ -24,6 +17,7 @@ AST::AST() {
 
     output_string[0] = '\0';
 
+    ast_node_count = 0;
 	grammar_def_count = 0;
 	max_param_count = 0;
 
@@ -143,11 +137,14 @@ bool AST::CheckForExistingSiblingKeywords(ASTNode* start_node, const char* keywo
 	return false;
 }
 
-int AST::AddNode(int term_level, const char* term_type) {
-	return AddNode(term_level, term_type, NULL);
+int AST::NewNode(int term_level, const char* term_type) {
+	return NewNode(term_level, term_type, NULL);
 }
 
-int AST::AddNode(int term_level, const char* term_type, const char* term) {
+int AST::NewNode(int term_level, const char* term_type, const char* term) {
+
+	// increment the count (for export to the parser)
+	ast_node_count++;
 
 	// create a new AST node
 	ASTNode* n;
@@ -229,6 +226,7 @@ void AST::DT(ASTNode* w, Identifiers* idents, bool print) {
 
 				// output instance name rather than label
 				idents->GetInstanceName(w->label, instance_name);
+
 				sprintf(temp, "\"%s\", ", instance_name);
 				break;
 			case AST_PARAM_DATE:
@@ -522,17 +520,27 @@ int AST::BuildActionCode(Identifiers& idents) {
 	user_code_output_queue.EnQueue(output_string);
 	sprintf(output_string, "\t// >>>\n");
 	user_code_output_queue.EnQueue(output_string);
-	sprintf(output_string, "\tchar temp[MAX_BUFFER_LENGTH];\n");
+	sprintf(output_string, "\tchar temp[MAX_OUTPUT_LINE_SIZE];\n");
 	user_code_output_queue.EnQueue(output_string);
 
-	// have the example code print debug info (func and param types / value)
-	sprintf(output_string, "\tsprintf(temp, \"%s(...) with param list (", func_name);
+
+	// have the example code print debug info (func and param types / value) storing the strings in PROGMEM on Arduino
+	char arduino_output[MAX_BUFFER_LENGTH];
+	char linux_output[MAX_BUFFER_LENGTH];
+	char arduino_temp[MAX_BUFFER_LENGTH];
+	char linux_temp[MAX_BUFFER_LENGTH];
+
+
+	sprintf(linux_output, "\t\tsprintf(temp, \"%s(...) with param list (", func_name);
+	sprintf(arduino_output, "\t\tsprintf_P(temp, PSTR(\"%s(...) with param list (", func_name);
 
 	if (param_count == 0) {
-		sprintf(temp, "void)\\n\\n\\r\");\n");
-		strcat(output_string, temp);
-		user_code_output_queue.EnQueue(output_string);
+		sprintf(linux_temp, "void)\\n\\n\\r\");\n");
+		sprintf(arduino_temp, "void)\\n\\n\\r\"));\n");
+		strcat(linux_output, linux_temp);
+		strcat(arduino_output, arduino_temp);
 	} else {
+		// write the param format specifiers - except the last one
 		for (int i = param_count - 1; i > 0; i--) {
 			params.GetPairAtLocation(param_name, param_type, i);
 			if ( (strcmp(param_type, "uint16_t") == 0) || (strcmp(param_type, "int16_t") == 0) ) {
@@ -549,36 +557,60 @@ int AST::BuildActionCode(Identifiers& idents) {
 					}
 				}
 			}
-			strcat(output_string, temp);
+			strcat(linux_output, temp);
+			strcat(arduino_output, temp);
 		}
-
+		// now the last param format specifier - closing the string to print
 		params.GetPairAtLocation(param_name, param_type, 0);
 		if ( (strcmp(param_type, "uint16_t") == 0) || (strcmp(param_type, "int16_t") == 0) ) {
-			sprintf(temp, "%s:%s:%%d)\\n\\n\\r\", ", param_type, param_name);
+			sprintf(linux_temp, "%s:%s:%%d)\\n\\r\", ", param_type, param_name);
+			sprintf(arduino_temp, "%s:%s:%%d)\\n\\r\"), ", param_type, param_name);
 		} else {
 			if (strcmp(param_type, "char*") == 0) {
-				sprintf(temp, "%s:%s:%%s)\\n\\n\\r\", ", param_type, param_name);
+				sprintf(linux_temp, "%s:%s:%%s)\\n\\r\", ", param_type, param_name);
+				sprintf(arduino_temp, "%s:%s:%%s)\\n\\r\"), ", param_type, param_name);
 			} else {
 				if (strcmp(param_type, "float") == 0) {
-					sprintf(temp, "%s:%s:%%f)\\n\\n\\r\", ", param_type, param_name);
+					sprintf(linux_temp, "%s:%s:%%f)\\n\\r\", ", param_type, param_name);
+					sprintf(arduino_temp, "%s:%s:%%f)\\n\\r\"), ", param_type, param_name);
 				} else {
 					printf("ERROR Param Type not recognised building User Function code example\n\n");
 					exit(-1);
 				}
 			}
 		}
-		strcat(output_string, temp);
+		strcat(linux_output, linux_temp);
+		strcat(arduino_output, arduino_temp);
 
+		// Write variable names that relate the param format specifiers
 		for (int i = param_count - 1; i > 0; i--) {
 			params.GetPairAtLocation(param_name, param_type, i);
 			sprintf(temp, "%s, ", param_name);
-			strcat(output_string, temp);
+			strcat(linux_output, temp);
+			strcat(arduino_output, temp);
 		}
+
+		// And close the call
 		params.GetPairAtLocation(param_name, param_type, 0);
 		sprintf(temp, "%s);\n", param_name);
-		strcat(output_string, temp);
-		user_code_output_queue.EnQueue(output_string);
+		strcat(linux_output, temp);
+		strcat(arduino_output, temp);
 	}
+
+	// write out the arduino and linux versions with the pre-proc logic
+	sprintf(output_string, "\t#ifdef ARDUINO\n");
+	user_code_output_queue.EnQueue(output_string);
+
+	user_code_output_queue.EnQueue(arduino_output);
+
+	sprintf(output_string, "\t#else\n");
+	user_code_output_queue.EnQueue(output_string);
+
+	user_code_output_queue.EnQueue(linux_output);
+
+	sprintf(output_string, "\t#endif\n");
+	user_code_output_queue.EnQueue(output_string);
+
 
 	// rest of the user_code function body and closures
 	sprintf(output_string, "\t// >>>\n");
@@ -587,7 +619,7 @@ int AST::BuildActionCode(Identifiers& idents) {
 	user_code_output_queue.EnQueue(output_string);
 	sprintf(output_string, "\t// >>>\n");
 	user_code_output_queue.EnQueue(output_string);
-	sprintf(output_string, "\tITCHWriteLine(temp);\n");
+	sprintf(output_string, "\titch.WriteLine(temp);\n");
 	user_code_output_queue.EnQueue(output_string);
 	sprintf(output_string, "}\n\n");
 	user_code_output_queue.EnQueue(output_string);

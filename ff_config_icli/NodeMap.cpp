@@ -7,41 +7,37 @@
 
  ******************************************************************/
 
+#include "config.h"
 #include "NodeMap.h"
 #include "TokenList.h"
-#include "common_config.h"
 #include "parser_errors.h"
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
 
-
-
 /********************************************************************
  * Globals
  ********************************************************************/
-
-M_FLAGS map_mf;
-uint8_t map_line_pos;
-uint16_t map_id_current;	// currently matched node
-uint16_t map_id_walker;		// to walk through the asta array nodes by id
-
-char map_last_target[MAX_IDENTIFIER_LABEL_SIZE];
-
 
 #ifdef DEBUG
 extern void M(char strn[]);
 char n_debug_message[MAX_OUTPUT_LINE_SIZE];
 #endif
 
+M_FLAGS g_mflags;
+uint8_t g_map_line_pos;
+uint16_t g_map_id_current;		// currently matched node
+uint16_t g_map_id_walker;		// to walk through the asta array nodes by id
+
+char g_map_last_target_str[MAX_IDENTIFIER_LABEL_SIZE];
+
 /********************************************************************
  * Functions
  ********************************************************************/
 
-
-char* strlwr(char* s)
-{
+char* strlwr(char* s) {
+	// string go lower case
     char* tmp = s;
     for (;*tmp;++tmp) {
         *tmp = tolower((unsigned char) *tmp);
@@ -49,8 +45,8 @@ char* strlwr(char* s)
     return s;
 }
 
-char* strupr(char* s)
-{
+char* strupr(char* s) {
+	// string to upper case
     char* tmp = s;
     for (;*tmp;++tmp) {
         *tmp = toupper((unsigned char) *tmp);
@@ -58,59 +54,48 @@ char* strupr(char* s)
     return s;
 }
 
-
 void MapReset(void) {
-	map_mf.last_matched_id = 0;
-	map_mf.help_active = 0;
-	map_mf.keyword_match = 0;
-	map_mf.error_code = PEME_NO_ERROR;
+	g_mflags.last_matched_id = 0;
+	g_mflags.help_active = 0;
+	g_mflags.keyword_match = 0;
+	g_mflags.error_code = PEME_NO_ERROR;
 
-	map_line_pos = 0;
-	map_id_current = 0;
+	g_map_line_pos = 0;
+	g_map_id_current = 0;
 
 }
 
-uint16_t MapGetASTAByID(uint16_t ASTA_ID, ASTA* result) {
-	uint16_t arr_idx = 0;	// index into the asta array
+uint16_t MapGetASTAByID(uint16_t asta_id, ASTA* result) {
+	uint16_t asta_idx = 0;	// index into the asta array
 
 	// set up to walk the asta array
-	size_t node_count = sizeof(asta)/sizeof(asta[0]);
+	//size_t node_count = sizeof(asta)/sizeof(asta[0]);
 
 	uint16_t test;
 
 	// First, find the id_walker node and copy to temp_node (can't guarantee the array will be in id order)
-	while (arr_idx < node_count) {
+	while (asta_idx < AST_NODE_COUNT) {
 		#ifdef ARDUINO
-			memcpy_P(&test, &(asta[arr_idx].id), sizeof(test));
+			memcpy_P(&test, &(asta[asta_idx].id), sizeof(test));
 		#else
-			test = asta[arr_idx].id;
+			test = asta[asta_idx].id;
 		#endif
-		if (test == ASTA_ID) {
+		if (test == asta_id) {
 			#ifdef ARDUINO
-				memcpy_P(result, &(asta[arr_idx]), sizeof(ASTA));
+				memcpy_P(result, &(asta[asta_idx]), sizeof(ASTA));
 			#else
-				memcpy(result, &(asta[arr_idx]), sizeof(ASTA));
+				memcpy(result, &(asta[asta_idx]), sizeof(ASTA));
 
 			#endif
-			/*
-			result->action = asta[arr_idx].action;
-			strcpy(result->action_identifier, asta[arr_idx].action_identifier);
-			result->first_child = asta[arr_idx].first_child;
-			result->id = asta[arr_idx].id;
-			strcpy(result->label, asta[arr_idx].label);
-			result->next_sibling = asta[arr_idx].next_sibling;
-			result->parent = asta[arr_idx].parent;
-			result->type = asta[arr_idx].type;
-			*/
 			return PEME_NO_ERROR;
 		}
-		arr_idx++;
+		asta_idx++;
 	}
 	return ME_GETASTABYID_FAIL;
 }
 
 uint8_t MapDetermineTarget(uint8_t* target_size, char* target, char* line) {
-	*target_size = strlen(line) - map_line_pos;	// mf.str_pos points to current token in target
+	*target_size = strlen(line) - g_map_line_pos;	// mf.str_pos points to current token in target
 	if (*target_size == 0) {
 		// We've been advanced and line_pos is now pointing
 		// past the space delimiter at the end of the line.
@@ -125,10 +110,10 @@ uint8_t MapDetermineTarget(uint8_t* target_size, char* target, char* line) {
 
 	// line is \0 terminated. Copy the bit we're interested in to the target
 	int i = 0;
-	target[i] = line[map_line_pos+i];
+	target[i] = line[g_map_line_pos+i];
 	while (target[i] != '\0') {
 		i++;
-		target[i] = line[map_line_pos+i];
+		target[i] = line[g_map_line_pos+i];
 	}
 	return MR_CONTINUE;
 }
@@ -256,7 +241,7 @@ uint8_t Compare_N_KEYWORD(char* target, ASTA* temp_node) {
 	char* sub_string_start;
 	sub_string_start = strstr(label_upr, target_upr);
 	if (sub_string_start == label_upr) {
-		map_mf.keyword_match = 1;
+		g_mflags.keyword_match = 1;
 		return 1;
 	}
 	return 0;
@@ -270,29 +255,29 @@ uint8_t MapMatch(char* line, TokenList* matched_list) {
 	TLReset(matched_list);
 
 	// if a new line advance to the first node
-	if (map_id_current == 0) { map_id_current = 1; }
+	if (g_map_id_current == 0) { g_map_id_current = 1; }
 
-	map_id_walker = map_id_current;
+	g_map_id_walker = g_map_id_current;
 
 	// Size up the target
-	map_mf.match_result = MapDetermineTarget(&target_size, target, line);
+	g_mflags.match_result = MapDetermineTarget(&target_size, target, line);
 	// If size == 0 assume advanced past a delim, return
-	if (map_mf.match_result == MR_DELIM_SKIP) { return MR_DELIM_SKIP; }
+	if (g_mflags.match_result == MR_DELIM_SKIP) { return MR_DELIM_SKIP; }
 
 	// save the target to be turned into an action call parameter later (once delim reached)
-	strcpy(map_last_target, target);
+	strcpy(g_map_last_target_str, target);
 
 	// by default help is off
-	map_mf.help_active = 0;
+	g_mflags.help_active = 0;
 	// except
 	if (target[(target_size-1)] == '?') {
 		// add sibling nodes to list based match so far
 		// - if advanced past delimiter using space " " then it will be
 		//	 siblings of the first child of the previously matched node
-		map_mf.help_active = 1;
+		g_mflags.help_active = 1;
 	}
 	// reset keyword match if set previously
-	map_mf.keyword_match = 0 ;
+	g_mflags.keyword_match = 0 ;
 
 	MapSelectMatchingNodes(target, matched_list);
 
@@ -300,7 +285,7 @@ uint8_t MapMatch(char* line, TokenList* matched_list) {
 }
 
 void MapSelectMatchingNodes(char* target, TokenList* matched_list) {
-	ASTA temp_node;
+	//ASTA g_temp_asta;
 	uint8_t cr = 0;		// compare result
 
 	do {
@@ -308,23 +293,23 @@ void MapSelectMatchingNodes(char* target, TokenList* matched_list) {
 		// by comparing the top node at this level and each of its siblings
 		// to what we have in the target
 
-		MapGetASTAByID(map_id_walker, &temp_node);
+		MapGetASTAByID(g_map_id_walker, &g_temp_asta);
 
 		// type will determine how we compare the node
-		switch (temp_node.type) {
-			case AST_PARAM_DATE:	cr = Compare_N_PARAM_DATE(target, &temp_node);		break;
-			case AST_PARAM_TIME:	cr = Compare_N_PARAM_TIME(target, &temp_node);		break;
-			case AST_PARAM_FLOAT: 	cr = Compare_N_PARAM_FLOAT(target, &temp_node);		break;
-			case AST_PARAM_INTEGER:	cr = Compare_N_PARAM_INTEGER(target, &temp_node);	break;
-			case AST_PARAM_STRING:	cr = Compare_N_PARAM_STRING(target, &temp_node);	break;
-			case AST_LOOKUP:		cr = Compare_N_LOOKUP(target, &temp_node);			break;
-			case AST_IDENTIFIER:	cr = Compare_N_IDENTIFIER(target, &temp_node);		break;
-			case AST_KEYWORD:		cr = Compare_N_KEYWORD(target, &temp_node);			break;
+		switch (g_temp_asta.type) {
+			case AST_PARAM_DATE:	cr = Compare_N_PARAM_DATE(target, &g_temp_asta);		break;
+			case AST_PARAM_TIME:	cr = Compare_N_PARAM_TIME(target, &g_temp_asta);		break;
+			case AST_PARAM_FLOAT: 	cr = Compare_N_PARAM_FLOAT(target, &g_temp_asta);		break;
+			case AST_PARAM_INTEGER:	cr = Compare_N_PARAM_INTEGER(target, &g_temp_asta);	break;
+			case AST_PARAM_STRING:	cr = Compare_N_PARAM_STRING(target, &g_temp_asta);	break;
+			case AST_LOOKUP:		cr = Compare_N_LOOKUP(target, &g_temp_asta);			break;
+			case AST_IDENTIFIER:	cr = Compare_N_IDENTIFIER(target, &g_temp_asta);		break;
+			case AST_KEYWORD:		cr = Compare_N_KEYWORD(target, &g_temp_asta);			break;
 		};
 
-		if ((cr > 0) || (map_mf.help_active == 1)) {
+		if ((cr > 0) || (g_mflags.help_active == 1)) {
 			// the node is a possible match to be included
-			TLAddASTAToTokenList(matched_list, temp_node);
+			TLAddASTAToTokenList(matched_list, g_temp_asta);
 			#ifdef DEBUG
 			sprintf(n_debug_message, "DEBUG (MapSelectMatchingNodes) Adding Possible Match: ID:%d  Label:%s  which has Action:%s \n\r", temp_node.id, temp_node.label, temp_node.action_identifier);
 			M(n_debug_message);
@@ -332,12 +317,12 @@ void MapSelectMatchingNodes(char* target, TokenList* matched_list) {
 		}
 
 		//set up for the siblings (if any)
-		map_id_walker = temp_node.next_sibling;
-	} while (map_id_walker != 0); // reached end of sibling list
+		g_map_id_walker = g_temp_asta.next_sibling;
+	} while (g_map_id_walker != 0); // reached end of sibling list
 }
 
 uint8_t MapEvaluateMatchedList(TokenList* matched_list) {
-	ASTA temp_node;
+	//ASTA temp_node;
 
 		// filter results based on matching precedence
 		// If any of these are present together in the matched
@@ -348,7 +333,7 @@ uint8_t MapEvaluateMatchedList(TokenList* matched_list) {
 		//  A look up value in full
 		//	A time or date param - distinguisable by its format
 		//	string, int, float params
-	if (map_mf.help_active == 1) {
+	if (g_mflags.help_active == 1) {
 		// do nothing, don't filter - keep everything for help display
 		return MR_HELP_ACTIVE;
 	} else {
@@ -360,9 +345,9 @@ uint8_t MapEvaluateMatchedList(TokenList* matched_list) {
 			// single entry - no filtering required
 			//  its either uniquely matched and can continue to next token
 			//	or its unique with an action attached (if EOL is next)
-			MapGetASTAByID(TLGetCurrentID(matched_list), &temp_node);
-			map_mf.last_matched_id = temp_node.id; // to advance from when there's a unique match
-			if (temp_node.action) {
+			MapGetASTAByID(TLGetCurrentID(matched_list), &g_temp_asta);
+			g_mflags.last_matched_id = g_temp_asta.id; // to advance from when there's a unique match
+			if (g_temp_asta.action) {
 				return MR_ACTION_POSSIBLE;
 			} else {
 				return MR_UNIQUE;
@@ -378,9 +363,9 @@ uint8_t MapEvaluateMatchedList(TokenList* matched_list) {
 		switch (MapMatchReduce(matched_list)) {
 			case 0: return MR_ERROR; break;
 			case 1:
-				MapGetASTAByID(TLGetCurrentID(matched_list), &temp_node);
-				map_mf.last_matched_id = temp_node.id; // to advance from when there's a unique match
-				if (temp_node.action) {
+				MapGetASTAByID(TLGetCurrentID(matched_list), &g_temp_asta);
+				g_mflags.last_matched_id = g_temp_asta.id; // to advance from when there's a unique match
+				if (g_temp_asta.action) {
 					return MR_ACTION_POSSIBLE;
 				} else {
 					return MR_UNIQUE;
@@ -442,7 +427,7 @@ uint16_t MapMatchReduce(TokenList* list) {
 					M(n_debug_message);
 					#endif
 
-					map_mf.error_code = ME_MATCHREDUCE_EXPECTED_1;
+					g_mflags.error_code = ME_MATCHREDUCE_EXPECTED_1;
 
 					return 0;
 				}
@@ -463,7 +448,7 @@ uint16_t MapMatchReduce(TokenList* list) {
 				M(n_debug_message);
 				#endif
 
-				map_mf.error_code = PE_LOOKUP_PASSED_TO_REDUCER;
+				g_mflags.error_code = PE_LOOKUP_PASSED_TO_REDUCER;
 
 				return 0;
 			}
@@ -475,14 +460,14 @@ uint16_t MapMatchReduce(TokenList* list) {
 	M(n_debug_message);
 	#endif
 
-	map_mf.error_code = PE_MULTIPLE_PARAM_LOOKAHEAD;
+	g_mflags.error_code = PE_MULTIPLE_PARAM_LOOKAHEAD;
 	//TODO This should really best detected in the lexer....
 
 	return 0;
 }
 
 char* MapGetLastTargetString(char* return_string) {
-	return strcpy(return_string, map_last_target);
+	return strcpy(return_string, g_map_last_target_str);
 }
 
 uint16_t MapAdvance(uint8_t in_buf_idx) {
@@ -491,40 +476,40 @@ uint16_t MapAdvance(uint8_t in_buf_idx) {
 	// Move to first child so that subsequent matching
 	// will occur against the child and its siblings
 
-	ASTA temp;
-	MapGetASTAByID(map_mf.last_matched_id, &temp);
+	//ASTA temp;
+	MapGetASTAByID(g_mflags.last_matched_id, &g_temp_asta);
 
 	// set the current_id for the next matching iteration to
 	// the first child of the last matched.
-	map_id_current = temp.first_child;
+	g_map_id_current = g_temp_asta.first_child;
 
 	// advance the start pointer (line_pos) in the match
 	// buffer so that the next match starts on the next token
-	map_line_pos = in_buf_idx;
+	g_map_line_pos = in_buf_idx;
 
 	#ifdef DEBUG
 	sprintf(n_debug_message, "DEBUG (MapAdvance)\n\r");
 	M(n_debug_message);
 	#endif
 
-	return map_id_current;
+	return g_map_id_current;
 }
 
 uint8_t MapGetAction(uint16_t asta_id, char* action_str) {
-	ASTA temp_node;
+	//ASTA temp_node;
 	uint8_t result;
-	result = MapGetASTAByID(asta_id, &temp_node);
+	result = MapGetASTAByID(asta_id, &g_temp_asta);
 	if (result == PEME_NO_ERROR) {
-		strcpy(action_str, temp_node.action_identifier);
+		strcpy(action_str, g_temp_asta.action_identifier);
 	}
 	return result;
 }
 
 uint16_t MapGetLastMatchedID() {
-	return map_mf.last_matched_id;
+	return g_mflags.last_matched_id;
 }
 
 uint16_t MapGetErrorCode() {
-	return map_mf.error_code;
+	return g_mflags.error_code;
 }
 

@@ -10,8 +10,8 @@
 /************************************************
  Includes
  ************************************************/
+#include <ff_sys_config.h>
 #include "ff_controllers.h"
-#include "ff_sys_config.h"
 #include "ff_string_consts.h"
 
 #include "ff_registry.h"

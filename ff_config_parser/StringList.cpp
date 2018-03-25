@@ -8,8 +8,7 @@
  ******************************************************************/
 
 #include "StringList.h"
-#include <string.h>
-#include <stdlib.h>
+
 
 StringList::StringList() {
 	head = NULL;
@@ -25,6 +24,7 @@ bool StringList::AddString(const char * str) {
 	if (head == NULL) { 	// empty list
 		head = (StringNode *)malloc(sizeof(StringNode));
 		if (head != NULL) {
+			head->str = (char *)malloc((strlen(str) + 1) * sizeof(char));
 			strcpy(head->str, str);
 			head->next = NULL;
 			return true;
@@ -39,6 +39,7 @@ bool StringList::AddString(const char * str) {
 
 	walker->next = (StringNode *)malloc(sizeof(StringNode));
 	if (walker->next != NULL) {
+		walker->next->str = (char *)malloc((strlen(str) + 1) * sizeof(char));
 		strcpy(walker->next->str, str);
 		walker->next->next = NULL;
 		return true;
@@ -80,12 +81,14 @@ char* StringList::DeQueue(char* str) {
 		strcpy(str, head->str);
 		if (head->next == NULL) {
 			// head was the only node
+			free(head->str);
 			free(head);
 			head = NULL;
 		} else {
 			// more in list - grab next and make it new head
 			StringNode* temp;
 			temp = head->next;
+			free(head->str);
 			free(head);
 			head = temp;
 		}
@@ -169,6 +172,7 @@ void StringList::ResetFromHead(StringNode* s) {
 			ResetFromHead(child);
 		}
 		// now that the child and its children are gone, free up the node memory
+		free(s->str);
 		free(s);
 	}
 }

@@ -1,8 +1,8 @@
-%# flybln - FLex Yacc Bison Lex Bison Lex - Not!
+%# glitch - Grammar Lexer and Interactive Terminal Command sHell
 %#
-%# Command, Config and Enumerated Identifier Lists and Callback Definition
+%# Command grammar, Config and Enumerated Identifier Lists and Callback Definition
 %#      
-%# Read by noblofy to produce an output header
+%# Read by glitch to produce an output header
 %#  file .h for ANSI C definition of:
 %#  - Anonyous or typed enum lists
 %#  - Keyword definitions
@@ -10,8 +10,8 @@
 %#
 %# Premable code to insert "as is" between %code and %end-code 
 %#  Use to define Class or typedef structs referenced in the grammar
-%#  "%#" used as comments to noblofly to allow #compiler directives
-%#  to be included in code and still be able to make noblofly comments.
+%#  "%#" used as comments to glitch to allow #compiler directives
+%#  to be included in code sections.
 
 
 %# %include ff_sys_config.h
@@ -21,12 +21,17 @@
 #define MAX_INPUT_LINE_SIZE 80
 #define MAX_OUTPUT_LINE_SIZE 150
 
+#define MAX_BUFFER_SIZE MAX_OUTPUT_LINE_SIZE
+#define MAX_BUFFER_LENGTH MAX_OUTPUT_LINE_SIZE
+
 #ifdef ARDUINO
 #include <Arduino.h>
+#define USE_PROGMEM
 #endif
 
+//#define DEBUG
+
 #include "common_config.h"
-//#include "ff_sys_config.h"
 #include <stdint.h>
 #include <string.h>
 
@@ -107,7 +112,7 @@ typedef union {
 
 %enum-identifier block_category
 %enum-array-type SimpleStringArray
-%enum-array-instance block_cat_defs
+%enum-array-instance block_cat_names
 %enum-start
 FF_ERROR_CAT        ERROR_CAT
 FF_GENERIC_BLOCK    GENERIC

@@ -10,11 +10,15 @@
 #define OUT_H_
 
 #define MAX_ENUM_STRING_ARRAY_STRING_SIZE 18
-#define MAX_IDENTIFIER_LABEL_SIZE 36
+#define MAX_IDENTIFIER_LABEL_SIZE 34
 #define MAX_AST_LABEL_SIZE 16
-#define MAX_AST_ACTION_SIZE 36
-#define MAX_IDENTIFIER_COUNT 88
+#define MAX_AST_ACTION_SIZE 34
+#define AST_NODE_COUNT 88
 #define MAX_PARAM_COUNT 3
+
+#define XLAT_IDENT_MAP_COUNT 2
+#define XLAT_LOOKUP_MAP_COUNT 1
+#define XLAT_FUNC_MAP_COUNT 49
 
 #define MAX_INPUT_LINE_SIZE 80
 #define MAX_OUTPUT_LINE_SIZE 150
@@ -23,17 +27,13 @@
 #define MAX_BUFFER_LENGTH MAX_OUTPUT_LINE_SIZE
 
 #ifdef ARDUINO
+#include <Arduino.h>
 #define USE_PROGMEM
 #endif
 
-#define DEBUG
-
-#ifdef ARDUINO
-#include <Arduino.h>
-#endif
+//#define DEBUG
 
 #include "common_config.h"
-//#include "ff_sys_config.h"
 #include <stdint.h>
 #include <string.h>
 
@@ -87,9 +87,9 @@ enum {
 };
 
 #ifdef USE_PROGMEM
-static const SimpleStringArray block_cat_defs [LAST_BLOCK_CAT] PROGMEM = {
+static const SimpleStringArray block_cat_names [LAST_BLOCK_CAT] PROGMEM = {
 #else
-static const SimpleStringArray block_cat_defs [LAST_BLOCK_CAT] = {
+static const SimpleStringArray block_cat_names [LAST_BLOCK_CAT] = {
 #endif
 	"ERROR_CAT",
 	"GENERIC",
@@ -179,7 +179,7 @@ static const ASTA asta [88] = {
 	1, 1, "SHOW", 0, 0, 2, 8, "",
 	2, 1, "BLOCKS", 1, 1, 0, 3, "SHOW_BLOCKS",
 	3, 1, "SYSTEM", 1, 1, 0, 4, "SHOW_SYSTEM",
-	4, 2, "block_cat_defs", 1, 1, 5, 6, "SHOW_BLOCK_CATEGORY",
+	4, 2, "block_cat_names", 1, 1, 5, 6, "SHOW_BLOCK_CATEGORY",
 	5, 6, "param-integer", 1, 4, 0, 0, "SHOW_BLOCK_CAT_N",
 	6, 3, "block_label", 1, 1, 0, 7, "SHOW_BLOCK_LABEL",
 	7, 6, "param-integer", 1, 1, 0, 0, "SHOW_BLOCK_ID",
@@ -192,24 +192,24 @@ static const ASTA asta [88] = {
 	14, 1, "STOP", 0, 12, 15, 19, "",
 	15, 1, "ALL", 1, 14, 0, 16, "MONITOR_STOP_ALL",
 	16, 3, "block_label", 1, 14, 0, 17, "MONITOR_STOP_BLOCK_LABEL",
-	17, 2, "block_cat_defs", 0, 14, 18, 0, "",
+	17, 2, "block_cat_names", 0, 14, 18, 0, "",
 	18, 6, "param-integer", 1, 17, 0, 0, "MONITOR_STOP_BLOCK_CAT_N",
 	19, 3, "block_label", 1, 12, 0, 20, "MONITOR_BLOCK_LABEL",
-	20, 2, "block_cat_defs", 0, 12, 21, 0, "",
+	20, 2, "block_cat_names", 0, 12, 21, 0, "",
 	21, 6, "param-integer", 1, 20, 0, 0, "MONITOR_BLOCK_CAT_N",
 	22, 1, "CLEAR", 0, 0, 23, 26, "",
 	23, 3, "block_label", 1, 22, 0, 24, "CLEAR_BLOCK_LABEL",
-	24, 2, "block_cat_defs", 0, 22, 25, 0, "",
+	24, 2, "block_cat_names", 0, 22, 25, 0, "",
 	25, 6, "param-integer", 1, 24, 0, 0, "CLEAR_BLOCK_CAT_N",
 	26, 1, "MESSAGE", 0, 0, 27, 45, "",
 	27, 1, "COMMAND", 0, 26, 28, 33, "",
-	28, 2, "block_cat_defs", 0, 27, 29, 31, "",
+	28, 2, "block_cat_names", 0, 27, 29, 31, "",
 	29, 6, "param-integer", 0, 28, 30, 0, "",
 	30, 2, "command_strings", 1, 29, 0, 0, "COMMAND_BLOCK_CAT_N",
 	31, 3, "block_label", 0, 27, 32, 0, "",
 	32, 2, "command_strings", 1, 31, 0, 0, "COMMAND_BLOCK_LABEL",
 	33, 1, "DATA", 0, 26, 34, 0, "",
-	34, 2, "block_cat_defs", 0, 33, 35, 40, "",
+	34, 2, "block_cat_names", 0, 33, 35, 40, "",
 	35, 6, "param-integer", 0, 34, 36, 0, "",
 	36, 1, "INT", 0, 35, 37, 38, "",
 	37, 6, "param-integer", 1, 36, 0, 0, "MESSAGE_DATA_BCAT_N_INT",
@@ -247,15 +247,15 @@ static const ASTA asta [88] = {
 	69, 8, "param-string", 0, 68, 70, 0, "",
 	70, 8, "param-string", 1, 69, 0, 0, "COPY_FILE_FILE",
 	71, 1, "DISABLE", 0, 0, 72, 75, "",
-	72, 2, "block_cat_defs", 0, 71, 73, 74, "",
+	72, 2, "block_cat_names", 0, 71, 73, 74, "",
 	73, 6, "param-integer", 1, 72, 0, 0, "DISABLE_BLOCK_CAT_N",
 	74, 8, "param-string", 1, 71, 0, 0, "DISABLE_BLOCK_LABEL",
 	75, 1, "ENABLE", 0, 0, 76, 79, "",
-	76, 2, "block_cat_defs", 0, 75, 77, 78, "",
+	76, 2, "block_cat_names", 0, 75, 77, 78, "",
 	77, 6, "param-integer", 1, 76, 0, 0, "ENABLE_BLOCK_CAT_N",
 	78, 3, "block_label", 1, 75, 0, 0, "ENABLE_BLOCK_LABEL",
 	79, 1, "DELETE", 0, 0, 80, 83, "",
-	80, 2, "block_cat_defs", 0, 79, 81, 82, "",
+	80, 2, "block_cat_names", 0, 79, 81, 82, "",
 	81, 6, "param-integer", 1, 80, 0, 0, "DELETE_BLOCK_CAT_N",
 	82, 8, "param-string", 1, 79, 0, 0, "DELETE_BLOCK_LABEL",
 	83, 1, "RENAME", 0, 0, 84, 86, "",
@@ -271,7 +271,7 @@ static const XLATMap ident_map [2] PROGMEM = {
 #else
 static const XLATMap ident_map [2] = {
 #endif
-	"block_cat_defs", 0,
+	"block_cat_names", 0,
 	"command_strings", 1,
 };
 

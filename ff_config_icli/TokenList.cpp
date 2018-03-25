@@ -41,7 +41,7 @@ uint16_t TLGetSize(TokenList* tl) {
 	return tl->size;
 }
 
-char* TLGetHeadLabel(TokenList* tl, char *result) {
+char* TLCopyHeadLabel(TokenList* tl, char *result) {
 	if (tl->head != NULL) {
 		return strcpy(result, tl->head->label);
 	} else {
@@ -49,9 +49,17 @@ char* TLGetHeadLabel(TokenList* tl, char *result) {
 	}
 }
 
-char* TLGetCurrentLabel(TokenList* tl, char* result) {
+char* TLCopyCurrentLabel(TokenList* tl, char* result) {
 	if (tl->walker != NULL) {
 		return strcpy(result, tl->walker->label);
+	} else {
+		return NULL;
+	}
+}
+
+char* TLGetCurrentLabelPtr(TokenList* tl) {
+	if (tl->walker != NULL) {
+		return tl->walker->label;
 	} else {
 		return NULL;
 	}

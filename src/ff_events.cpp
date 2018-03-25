@@ -11,8 +11,8 @@
 /************************************************
  Includes
 ************************************************/
+#include <ff_sys_config.h>
 #include "ff_events.h"
-#include "ff_sys_config.h"
 #include "ff_string_consts.h"
 
 //#include "ff_datetime.h"

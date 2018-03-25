@@ -11,8 +11,8 @@
 /************************************************
  Includes
 ************************************************/
+#include <ff_sys_config.h>
 #include "ff_debug.h"
-#include "ff_sys_config.h"
 #include "ff_string_consts.h"
 
 #ifdef FF_ARDUINO

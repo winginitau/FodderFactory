@@ -10,7 +10,7 @@
 #ifndef IDENTIFIER_H_
 #define IDENTIFIER_H_
 
-#include "common_config.h"
+#include "config.h"
 #include "KeyValuePairList.h"
 
 enum {

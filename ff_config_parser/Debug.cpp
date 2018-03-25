@@ -8,7 +8,7 @@
  ******************************************************************/
 
 #include "Debug.h"
-#include <string.h>
+
 
 Debug::Debug() {
 	// Auto-generated constructor stub

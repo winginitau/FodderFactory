@@ -170,23 +170,24 @@ uint16_t CallFunction(uint8_t func_xlat, ParamUnion params[]) {
 	return PEME_NO_ERROR;
 }
 
-//TODO: Command Line Options Processing
 //TODO: AST Validation Walk - 
-//TODO: AST Flag end points
 //TODO: AST Order Ambiguity Report
-//TODO: AST Determine Partial Keyword Uniqueness
+//TODO: Parser Match Partial Identifiers 
 //TODO: AST Warn unused IDs, lookups, params
-//TODO: Parser/AST output Action prototypes
 //TODO: Configuration Grammar with %section directive
 //TODO: Context change on <identifier> value
 
 uint16_t LookupIdentMap (char* key) {
-	uint16_t count;
+	XLATMap temp;
 	uint16_t idx = 0;
-	count = sizeof(ident_map) / sizeof(XLATMap);
-	while (idx < count) {
-		if(strcasecmp(ident_map[idx].label, key) == 0) {
-			return ident_map[idx].xlat_id;
+	while (idx < XLAT_IDENT_MAP_COUNT) {
+		#ifdef ARDUINO
+			memcpy_P(&temp, &ident_map[idx], sizeof(XLATMap));
+		#else
+			memcpy(&temp, &ident_map[idx], sizeof(XLATMap));
+		#endif
+		if(strcasecmp(temp.label, key) == 0) {
+			return temp.xlat_id;
 		}
 		idx++;
 	}
@@ -194,12 +195,16 @@ uint16_t LookupIdentMap (char* key) {
 }
 
 uint16_t LookupLookupMap (char* key) {
-	uint16_t count;
+	XLATMap temp;
 	uint16_t idx = 0;
-	count = sizeof(lookup_map) / sizeof(XLATMap);
-	while (idx < count) {
-		if(strcasecmp(lookup_map[idx].label, key) == 0) {
-			return lookup_map[idx].xlat_id;
+	while (idx < XLAT_LOOKUP_MAP_COUNT) {
+		#ifdef ARDUINO
+			memcpy_P(&temp, &lookup_map[idx], sizeof(XLATMap));
+		#else
+			memcpy(&temp, &lookup_map[idx], sizeof(XLATMap));
+		#endif
+		if(strcasecmp(temp.label, key) == 0) {
+			return temp.xlat_id;
 		}
 		idx++;
 	}
@@ -207,12 +212,16 @@ uint16_t LookupLookupMap (char* key) {
 }
 
 uint16_t LookupFuncMap (char* key) {
-	uint16_t count;
+	XLATMap temp;
 	uint16_t idx = 0;
-	count = sizeof(func_map) / sizeof(XLATMap);
-	while (idx < count) {
-		if(strcasecmp(func_map[idx].label, key) == 0) {
-			return func_map[idx].xlat_id;
+	while (idx < XLAT_FUNC_MAP_COUNT) {
+		#ifdef ARDUINO
+			memcpy_P(&temp, &func_map[idx], sizeof(XLATMap));
+		#else
+			memcpy(&temp, &func_map[idx], sizeof(XLATMap));
+		#endif
+		if(strcasecmp(temp.label, key) == 0) {
+			return temp.xlat_id;
 		}
 		idx++;
 	}
@@ -220,13 +229,17 @@ uint16_t LookupFuncMap (char* key) {
 }
 
 uint16_t LookupIdentifierMembers(uint16_t ident_xlat, char* lookup_string) {
-	uint16_t count;
+	SimpleStringArray temp;
 	uint16_t idx = 0;
 	switch(ident_xlat) {
 		case 0: {
-			count = sizeof(block_cat_defs) / sizeof(SimpleStringArray);
-			while (idx < count) {
-				if(strcasecmp(block_cat_defs[idx].text, lookup_string) == 0) {
+			while (idx < LAST_BLOCK_CAT) {
+				#ifdef ARDUINO
+					memcpy_P(&temp, &block_cat_names[idx], sizeof(SimpleStringArray));
+				#else
+					memcpy(&temp, &block_cat_names[idx], sizeof(SimpleStringArray));
+				#endif
+				if(strcasecmp(lookup_string, temp.text) == 0) {
 					return idx;
 				}
 				idx++;
@@ -234,9 +247,13 @@ uint16_t LookupIdentifierMembers(uint16_t ident_xlat, char* lookup_string) {
 		}
 			break;
 		case 1: {
-			count = sizeof(command_strings) / sizeof(SimpleStringArray);
-			while (idx < count) {
-				if(strcasecmp(command_strings[idx].text, lookup_string) == 0) {
+			while (idx < LAST_COMMAND) {
+				#ifdef ARDUINO
+					memcpy_P(&temp, &command_strings[idx], sizeof(SimpleStringArray));
+				#else
+					memcpy(&temp, &command_strings[idx], sizeof(SimpleStringArray));
+				#endif
+				if(strcasecmp(lookup_string, temp.text) == 0) {
 					return idx;
 				}
 				idx++;

@@ -10,7 +10,7 @@
 #ifndef LINEBUFFER_H_
 #define LINEBUFFER_H_
 
-//#include "config.h"
+#include "config.h"
 
 #include <stdint.h>
 #include <stdio.h>

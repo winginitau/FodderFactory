@@ -5,11 +5,8 @@
  *      Author: brendan
  */
 
-#define VERSION "0.1a"
-#define PROG_NAME "Grammar Processor / noblofly / blowfly / icli_builder"
 
-#include "common_config.h"
-#include "glitch_errors.h"
+#include "glitch_config.h"
 
 #ifdef DEBUG
 #include "Debug.h"
@@ -161,10 +158,7 @@ void ProcessGrammarFile() {
 }
 
 int ArgsAndFiles(int argc, char* argv[]) {
-
-
 	bool use_cpp = true;
-
 	char* clo_result = NULL;
 
 	strcpy(gf_name, GRAMMAR_FILE_DEFAULT);
@@ -173,7 +167,7 @@ int ArgsAndFiles(int argc, char* argv[]) {
 	strcpy(uf_name, OUTPUT_FILE_BASE_DEFAULT);
 	strcat(uf_name, "_user_code");
 
-	//handle command line arguments
+	// Handle command line arguments
 	// -g <grammar_file>
 	// -o <header_and C/CPP files_out>
 	// -c Produce ANSI C file (otherwise its CPP)
@@ -347,7 +341,7 @@ int main(int argc, char* argv[]) {
 		SendToOutput(i, out);
 	}
 
-	// write include guards to the output header file
+	// Write include guards to the output header file
 	temp = strrchr(hf_name, '.');
 	int dot_idx = (int)(temp - hf_name);
 	memcpy(include_guard, hf_name, dot_idx);
@@ -376,6 +370,10 @@ int main(int argc, char* argv[]) {
 	SendToOutput(Q_CODE, out);
 	SendToOutput(Q_USER_CODE, out);
 
+	// itch include for the user_code so it can find the call back
+	sprintf(out, "#include \"itch.h\"\n");
+	SendToOutput(Q_USER_CODE, out);
+
 	// includes for the code and user_code files
 	sprintf(out, "#include <stdint.h>\n");
 	SendToOutput(Q_CODE, out);
@@ -387,8 +385,9 @@ int main(int argc, char* argv[]) {
 	SendToOutput(Q_CODE, out);
 	SendToOutput(Q_USER_CODE, out);
 
-	// Callback function
-	sprintf(out, "extern void ITCHWriteLine(char *str);\n\n");
+	// Callback function forward declaration
+	//sprintf(out, "extern void ITCHWriteLine(char *str);\n\n");
+	sprintf(out, "extern ITCH itch;\n\n");
 	SendToOutput(Q_USER_CODE, out);
 
 
@@ -396,11 +395,12 @@ int main(int argc, char* argv[]) {
 	ProcessGrammarFile();
 
 	// Write include guard ends to header
-
 	sprintf(out, "\n#endif // %s\n\n", include_guard);
 	SendToOutput(Q_HEADER, out);
 
-	// Preprocessor defines
+	// Close the header file, reopen for reading. Make a temporary copy,
+	// line by line substituting the now finalised values for various
+	// preprocessor #defines.
 	fclose(hf);
 
 	FILE* tf;
@@ -411,18 +411,25 @@ int main(int argc, char* argv[]) {
 
 	while (fgets(temp_buf, MAX_BUFFER_LENGTH, hf) != NULL) {
 		if (strcmp(temp_buf, "DEFINES_PLACEHOLDER\n") == 0) {
-			sprintf(out, "#define MAX_ENUM_STRING_ARRAY_STRING_SIZE %d\n", lex.max_enum_string_array_string_size);
+			sprintf(out, "#define MAX_ENUM_STRING_ARRAY_STRING_SIZE %d\n", (lex.max_enum_string_array_string_size + 1));
 			fputs(out, tf);
-			sprintf(out, "#define MAX_IDENTIFIER_LABEL_SIZE %d\n", lex.max_identifier_label_size);
+			sprintf(out, "#define MAX_IDENTIFIER_LABEL_SIZE %d\n", (lex.max_identifier_label_size + 1));
 			fputs(out, tf);
-			sprintf(out, "#define MAX_AST_LABEL_SIZE %d\n", lex.max_ast_label_size);
+			sprintf(out, "#define MAX_AST_LABEL_SIZE %d\n", (lex.max_ast_label_size + 1));
 			fputs(out, tf);
-			sprintf(out, "#define MAX_AST_ACTION_SIZE %d\n", lex.max_ast_action_size);
+			sprintf(out, "#define MAX_AST_ACTION_SIZE %d\n", (lex.max_ast_action_size + 1));
 			fputs(out, tf);
-			sprintf(out, "#define MAX_IDENTIFIER_COUNT %d\n", lex.ast.grammar_def_count/2); //XXX cludge
+			sprintf(out, "#define AST_NODE_COUNT %d\n", lex.ast.ast_node_count);
 			fputs(out, tf);
-			sprintf(out, "#define MAX_PARAM_COUNT %d\n", lex.ast.max_param_count);
+			sprintf(out, "#define MAX_PARAM_COUNT %d\n\n", lex.ast.max_param_count);
 			fputs(out, tf);
+			sprintf(out, "#define XLAT_IDENT_MAP_COUNT %d\n", (lex.idents.DEFINE_ident_map_count));
+			fputs(out, tf);
+			sprintf(out, "#define XLAT_LOOKUP_MAP_COUNT %d\n", (lex.idents.DEFINE_lookup_map_count));
+			fputs(out, tf);
+			sprintf(out, "#define XLAT_FUNC_MAP_COUNT %d\n", (lex.idents.DEFINE_func_map_count));
+			fputs(out, tf);
+
 		} else {
 			fputs(temp_buf, tf);
 		}
@@ -430,6 +437,7 @@ int main(int argc, char* argv[]) {
 	fclose(tf);
 	fclose(hf);
 
+	// Copy the now complete temp file back
 	tf = fopen("hf_temp", "r");
 	hf = fopen(hf_name, "w");
 

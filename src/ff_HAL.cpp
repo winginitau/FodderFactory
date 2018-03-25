@@ -11,8 +11,8 @@
 /************************************************
  Includes
 ************************************************/
+#include <ff_sys_config.h>
 #include "ff_HAL.h"
-#include "ff_sys_config.h"
 #include "ff_datetime.h"
 #include "ff_registry.h"
 #include "ff_utils.h"
@@ -32,6 +32,10 @@
 #include "SD.h"
 #include <time.h>
 #include "Wire.h"
+#endif
+
+#ifdef USE_ITCH
+#include "itch.h"
 #endif
 
 #ifdef U8X8_HAVE_HW_SPI
@@ -70,6 +74,10 @@ RTC_DS1307 rtc;
 #endif
 
 uint8_t rtc_status = 0;		// assume dead until we can find it and talk to it
+
+#ifdef USE_ITCH
+ITCH itch;
+#endif
 
 #ifdef FF_ARDUINO
 #endif
@@ -182,6 +190,7 @@ uint8_t HALEventSerialSend(EventNode* e, uint8_t port, uint16_t baudrate) {
 	char e_str[MAX_LOG_LINE_LENGTH];
 	FormatEventMessage(e, e_str);
 
+
 	#ifdef FF_ARDUINO
 	switch (port) {
 		case 0:
@@ -222,15 +231,27 @@ uint8_t HALEventSerialSend(EventNode* e, uint8_t port, uint16_t baudrate) {
     	//ie. connected before timeout
     	switch (port) {
     		case 0:
-    	    	Serial.println(e_str);
+				#ifdef USE_ITCH
+    				itch.WriteLine(e_str);
+				#else
+    				Serial.println(e_str);
+				#endif
     	    	Serial.flush();
     			break;
     		case 1:
-    	    	Serial1.println(e_str);
+				#ifdef USE_ITCH
+    				itch.WriteLine(e_str);
+				#else
+    				Serial1.println(e_str);
+				#endif
     	    	Serial1.flush();
     			break;
     		case 2:
-    	    	Serial2.println(e_str);
+				#ifdef USE_ITCH
+    				itch.WriteLine(e_str);
+				#else
+    				Serial2.println(e_str);
+				#endif
     	    	Serial2.flush();
     			break;
     		default:
@@ -253,7 +274,6 @@ uint8_t HALEventSerialSend(EventNode* e, uint8_t port, uint16_t baudrate) {
 	#endif
 	return 1;
 }
-
 
 #ifdef FF_ARDUINO
 #ifdef DEBUG_LCD

@@ -11,8 +11,8 @@
 #define TOKENLIST_H_
 
 
-#include "common_config.h"
-#include "out.h"
+#include "config.h"
+//#include "out.h"
 #include <stdint.h>
 
 typedef struct TOKEN_NODE {
@@ -39,8 +39,9 @@ TokenNode* TLAdd(TokenList* tl, TokenNode* n);
 TokenNode* TLNewTokenNode(void);
 void TLReset(TokenList* tl);
 void TLResetFromHead(TokenNode* n);
-char* TLGetHeadLabel(TokenList* tl, char* result);
-char* TLGetCurrentLabel(TokenList* tl, char* result);
+char* TLCopyHeadLabel(TokenList* tl, char* result);
+char* TLCopyCurrentLabel(TokenList* tl, char* result);
+char* TLGetCurrentLabelPtr(TokenList* tl);
 uint8_t TLGetCurrentType(TokenList* tl);
 uint16_t TLGetCurrentID(TokenList* tl);
 uint8_t TLAtEnd(TokenList* tl);

@@ -10,15 +10,27 @@
 #ifndef IDENTIFIERS_H_
 #define IDENTIFIERS_H_
 
+
+#include "config.h"
+#include "string_consts.h"
 #include "Identifier.h"
 #include "OutputBuffer.h"
 
-#define IDENTIFIER_REGEX "^[a-zA-Z0-9_]{1,31}$"
+#include <regex.h>
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+#ifdef DEBUG
+#include "Debug.h"
+#endif
 
 enum {
 	WRITE_HEADER = 0,
 	WRITE_CODE,
 };
+
+
 
 class Identifiers {
 private:
@@ -27,7 +39,7 @@ private:
 	 int idents_func_idx;
 
 	 int GetIdxByLabel(char* label);
-
+	 int GetIdxByInstance(char* instance_name);
 
 
 public:
@@ -36,12 +48,18 @@ public:
 
 	OutputBuffer output;
 
+	int DEFINE_ident_map_count;
+	int DEFINE_lookup_map_count;
+	int DEFINE_func_map_count;
+	int DEFINE_ident_member_count_temp;
+
 	int NewIdent(char* identifier_name, int id_type);
 
-	int Add(char* identifier_name, char* key, char* value);
-	int Add(char* identifier_name, char* item);
+	int AddMember(char* identifier_name, char* key, char* value);
+	int AddMember(char* identifier_name, char* item);
 
-	int GetSize(char* identifier_name);
+	int GetSizeByIdentifierName(char* identifier_name);
+	int GetSizeByInstanceName(char* instance_name);
 
 	int SetInstanceName(char* identifier_name, char* instance_name);
 	int GetInstanceName(char* identifier_name, char* instance_name);
@@ -53,14 +71,14 @@ public:
 
 	bool Exists(char* identifier_name);
 
-	void WriteIdentMap(int type, char* instance_name);
 	void WriteIdentifierMaps(void);
+	void WriteIdentMap(int type, char* instance_name);
 
-	void WriteIdentMapFunc(char* func_name, char* map_instance, int header_or_code);
 	void WriteIdentMapFunctions(int header_or_code);
+	void WriteIdentMapFunc(char* func_name, char* map_instance, int header_or_code, char* member_count_define);
 
-	void WriteIdentMemberLookupCase(int case_num, char* string_array_instance);
 	void WriteIdentMemberLookupFunction(int header_or_code);
+	void WriteIdentMemberLookupCase(int case_num, char* string_array_instance, char* terminating_member_name);
 
 	void DEBUGDumpIdentifiers(void);
 

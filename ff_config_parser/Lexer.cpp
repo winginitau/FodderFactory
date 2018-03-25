@@ -8,11 +8,7 @@
  ******************************************************************/
 
 #include "Lexer.h"
-#include "AST.h"
-#include "ASTNode.h"
-#include <string.h>
-#include <stdlib.h>
-#include "glitch_errors.h"
+
 
 Lexer::Lexer() {
     // Initialise globally persistent directives
@@ -165,7 +161,7 @@ void Lexer::Process_D_UNKNOWN(void) {
 		if (enum_section) {
 			line.GetTokenStr(tokens[0], 0);
 			line.GetTokenStr(tokens[1], 1);
-			idents.Add(enum_identifier, tokens[0], tokens[1]);
+			idents.AddMember(enum_identifier, tokens[0], tokens[1]);
 			SizeCheck(&max_enum_string_array_string_size, tokens[1]);
 			// TODO possibly add code to process lines as enum-only entries
 			// if token[1] fails
@@ -335,6 +331,7 @@ void Lexer::Process_D_ENUM_ARRAY_INSTANCE(void) {
         error_type = E_ENUM_ARRAY_INSTANCE_NULL;
     } else {
     	SizeCheck(&max_identifier_label_size, token_str);
+    	SizeCheck(&max_ast_label_size, token_str);
         strcpy(enum_array_instance, token_str);
         process_result = R_COMPLETE;
     }
@@ -417,7 +414,7 @@ void Lexer::Process_D_ENUM_START(void) {
 void Lexer::Process_D_ENUM_END(void) {
 	strcpy(output_string, "enum {\n");
 	header_output_queue.EnQueue(output_string);
-	for (uint16_t i = 0; i < idents.GetSize(enum_identifier); i++) {
+	for (uint16_t i = 0; i < idents.GetSizeByIdentifierName(enum_identifier); i++) {
 		if (enum_plus_list_array) {
 			idents.GetEntryAtLocation(enum_identifier,tokens[0], tokens[1], i);
 		} else {
@@ -436,7 +433,7 @@ void Lexer::Process_D_ENUM_END(void) {
 	header_output_queue.EnQueue(output_string);
 
 	if (enum_plus_list_array) {
-		uint16_t size = idents.GetSize(enum_identifier);		// # entries in the enum
+		uint16_t size = idents.GetSizeByIdentifierName(enum_identifier);		// # entries in the enum
 		if (enum_terminating_member) {
 			// array size cardinal will be the enum value of the last member
 			// less the value of the first entry (if not 0)
@@ -542,7 +539,7 @@ void Lexer::Process_D_TERM(void) {
 			// see if this is a 2 or 3 token form
 			if (line.GetTokenStr(tokens[2], 2) == NULL) {
 				// 2 - Must be a param type - AST will check for valid types when added
-				error_type = ast.AddNode(term_level, tokens[1]);
+				error_type = ast.NewNode(term_level, tokens[1]);
 		    	SizeCheck(&max_ast_label_size, tokens[1]);
 			} else {
 				// is 3 token form (keyword, ident or lookup)
@@ -550,7 +547,7 @@ void Lexer::Process_D_TERM(void) {
 					|| (strcmp(tokens[1], "lookup") == 0) ) {
 					// check that it has not already been defined
 					if (idents.Exists(tokens[2])) {
-						error_type = ast.AddNode(term_level, tokens[1], tokens[2]);
+						error_type = ast.NewNode(term_level, tokens[1], tokens[2]);
 				    	SizeCheck(&max_identifier_label_size, tokens[2]);
 				    	SizeCheck(&max_ast_label_size, tokens[2]);
 					} else {
@@ -560,7 +557,7 @@ void Lexer::Process_D_TERM(void) {
 					// it should be a keyword - check
 					if (strcmp(tokens[1], "keyword") == 0) {
 						// XXX duplicate check needs to be done in AST - its the only place the keywords persist
-						error_type = ast.AddNode(term_level, tokens[1], tokens[2]);
+						error_type = ast.NewNode(term_level, tokens[1], tokens[2]);
 				    	SizeCheck(&max_ast_label_size, tokens[1]);
 						SizeCheck(&max_identifier_label_size, tokens[2]);
 				    	SizeCheck(&max_ast_label_size, tokens[2]);
@@ -664,7 +661,7 @@ void Lexer::Process_D_GRAMMAR_END(void) {
 		code_output_queue.EnQueue(output_string);
 		sprintf(output_string, "\t}\n");
 		code_output_queue.EnQueue(output_string);
-		sprintf(output_string, "\treturn PE_NO_ERROR;\n");
+		sprintf(output_string, "\treturn PEME_NO_ERROR;\n");
 		code_output_queue.EnQueue(output_string);
 		sprintf(output_string, "}\n\n");
 		code_output_queue.EnQueue(output_string);
@@ -672,19 +669,13 @@ void Lexer::Process_D_GRAMMAR_END(void) {
 		//
 		// To Do List
 		//
-		strcpy(output_string, "//TODO: Command Line Options Processing\n");
-		code_output_queue.EnQueue(output_string);
 		strcpy(output_string, "//TODO: AST Validation Walk - \n");
-		code_output_queue.EnQueue(output_string);
-		strcpy(output_string, "//TODO: AST Flag end points\n");
 		code_output_queue.EnQueue(output_string);
 		strcpy(output_string, "//TODO: AST Order Ambiguity Report\n");
 		code_output_queue.EnQueue(output_string);
-		strcpy(output_string, "//TODO: AST Determine Partial Keyword Uniqueness\n");
+		strcpy(output_string, "//TODO: Parser Match Partial Identifiers \n");
 		code_output_queue.EnQueue(output_string);
 		strcpy(output_string, "//TODO: AST Warn unused IDs, lookups, params\n");
-		code_output_queue.EnQueue(output_string);
-		strcpy(output_string, "//TODO: Parser/AST output Action prototypes\n");
 		code_output_queue.EnQueue(output_string);
 		strcpy(output_string, "//TODO: Configuration Grammar with %section directive\n");
 		code_output_queue.EnQueue(output_string);

@@ -37,7 +37,9 @@
 //#include "ff_utils.h"
 
 #include <stdint.h>
-
+#ifdef USE_ITCH
+#include "out.h"
+#endif
 
 /**************************************************************
  * Platform Directives
@@ -77,19 +79,19 @@ typedef struct STRING_ARRAY_TYPE {
 } StringArray;
 #endif
 
-#ifdef USE_PROGMEM
-typedef struct SIMPLE_STRING_ARRAY_TYPE {
-	// Array of strings (usually labels and messages) relating to enums
-	// Inside this struct, extended intitaliser lists are ok
-	char text[MAX_MESSAGE_STRING_LENGTH];
-} SimpleStringArray;
-#else
-typedef struct SIMPLE_STRING_ARRAY_TYPE {
-	// Array of strings (usually labels and messages) relating to enums
-	// Inside this struct, extended intitaliser lists are ok
-	const char* text;
-} SimpleStringArray;
-#endif
+//#ifdef USE_PROGMEM
+//typedef struct SIMPLE_STRING_ARRAY_TYPE {
+//	// Array of strings (usually labels and messages) relating to enums
+//	// Inside this struct, extended intitaliser lists are ok
+//	char text[MAX_MESSAGE_STRING_LENGTH];
+//} SimpleStringArray;
+//#else
+//typedef struct SIMPLE_STRING_ARRAY_TYPE {
+//	// Array of strings (usually labels and messages) relating to enums
+//	// Inside this struct, extended intitaliser lists are ok
+//	const char* text;
+//} SimpleStringArray;
+//#endif
 
 
 
@@ -116,18 +118,18 @@ static const SimpleStringArray language_strings[LAST_LANGUAGE] = {
  * Block Category Definitions
  **************************************************************/
 //typedef
-enum {
-	FF_ERROR_CAT = 0,
-	FF_GENERIC_BLOCK,
-	FF_SYSTEM,
-	FF_INPUT,
-	FF_MONITOR,
-	FF_SCHEDULE,
-	FF_RULE,
-	FF_CONTROLLER,
-	FF_OUTPUT,
-	LAST_BLOCK_CAT,
-};//BlockCatEnum;
+//enum {
+//	FF_ERROR_CAT = 0,
+//	FF_GENERIC_BLOCK,
+//	FF_SYSTEM,
+//	FF_INPUT,
+//	FF_MONITOR,
+//	FF_SCHEDULE,
+//	FF_RULE,
+//	FF_CONTROLLER,
+//	FF_OUTPUT,
+//	LAST_BLOCK_CAT,
+//};//BlockCatEnum;
 
 enum {
 	SYS_ERROR_KEY = 0,
@@ -699,6 +701,7 @@ static const SimpleStringArray day_strings[LAST_DAY] = {
 };
 
 
+/*
 enum OUTPUT_COMMANDS {
 	CMD_ERROR = 0,
 	CMD_OUTPUT_OFF,
@@ -717,6 +720,7 @@ static const SimpleStringArray command_strings[LAST_COMMAND] = {
 	"CMD_OUTPUT_ON",
 	"CMD_RESET_MIN_MAX",
 };
+*/
 
 enum {						// Interface Types
 	IF_ERROR = 0,

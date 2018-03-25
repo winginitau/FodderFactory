@@ -10,7 +10,8 @@
 #ifndef DEBUG_H_
 #define DEBUG_H_
 
-#include "common_config.h"
+#include "config.h"
+#include <string.h>
 
 class Debug {
 public:
