@@ -3,7 +3,7 @@
 // Author      : Brendan McLearie
 // Version     :
 // Copyright   : Your copyright notice
-// Description : Hello World in C++, Ansi-style
+// Description :
 //============================================================================
 
 #include <iostream>
@@ -42,8 +42,8 @@ using namespace std;
 
 void loop() {
 	// Operate each block forever
+	// Same as arduino loop()
 	ProcessDispatcher(Operate);
-
 }
 
 
@@ -55,34 +55,40 @@ void setup() {
 #ifdef FF_SIMULATOR
 int main(void) {
 #endif
-
+	// main() is equivalent to setup() on arduino
 
 	// Read the config file, parse it and create a block list in memory
-	//XXX consider if Block0(SYSTEM) can be the state register?
-
-#ifdef FF_SIM_PARSECONFIG
-	ReadAndParseConfig();	//from INI config file
-#else
-	ReadProcessedConfig();
-#endif
+	#ifdef FF_SIM_PARSECONFIG
+		// from INI source
+		ReadAndParseConfig();	//from INI config file
+	#else
+		// or the pre-processed binary form
+		ReadProcessedConfig();
+	#endif
 
 	// set up the runtime environment
 	InitSystem();
+
 	// run validate over eaach block
 	ProcessDispatcher(Validate);
 	DebugLog(SSS, E_INFO, M_DISP_VALIDATE);
-	// write a binary config file (for consumption by ReadProcessedConfig() in embedded builds
+
+	// Optionally write out a binary config file (for consumption by ReadProcessedConfig() in embedded builds
 	//WriteRunningConfig();
 	//DebugLog("Created Binary Configuration File. Done.");
 
-	if(1) { //0 or 1 to include for testing
+	if(1) { //0 or 1 to include for testing / simulator
 		DebugLog(SSS, E_INFO, M_DISP_SETUP);
-		ProcessDispatcher(Setup);
 
+		// Run setup over the now established block list
+		ProcessDispatcher(Setup);
 		DebugLog(SSS, E_INFO, M_DISP_OPER_1ST);
+
+		// Call Operate once in setup
 		ProcessDispatcher(Operate);
 		DebugLog(SSS, E_INFO, M_DISP_OPER_LOOP);
 
+		// Operate for ever
 		while (1) loop();
 	}
 	return 0;

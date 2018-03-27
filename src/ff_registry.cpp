@@ -32,6 +32,11 @@
 #endif
 
 #include "ff_HAL.h"
+
+#ifdef USE_ITCH
+//#include "itch.h"
+#endif
+
 /************************************************
  Data Structures
 ************************************************/
@@ -62,6 +67,7 @@ static FFStateRegister sr;
 static uint16_t block_count = 0;
 static BlockNode *bll = NULL;		//Block Linked List - variant record block list
 
+//extern ITCH itch;
 
 /************************************************
  Functions
@@ -70,7 +76,7 @@ static BlockNode *bll = NULL;		//Block Linked List - variant record block list
 void Setup(BlockNode *b) {
 	switch (b->block_cat) {
 	case FF_SYSTEM:
-		//TODO
+		//HALInitItch();
 		UpdateUI();
 		break;
 	case FF_INPUT:
@@ -100,7 +106,10 @@ void Setup(BlockNode *b) {
 void Operate(BlockNode *b) {
 	switch (b->block_cat) {
 	case FF_SYSTEM:
-		//TODO
+		#ifdef USE_ITCH
+		//itch.Poll();
+		HALPollItch();
+		#endif
 		UpdateUI();
 		break;
 	case FF_INPUT:

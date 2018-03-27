@@ -28,8 +28,17 @@
  Function Prototypes
 ************************************************/
 uint8_t HALSaveEventBuffer(void);
+
+uint8_t HALInitSerial(uint8_t port, uint16_t baudrate);
+
 uint8_t HALEventSerialSend(EventNode* e, uint8_t port, uint16_t baudrate);
+
+void HALInitItch(void);
+void HALPollItch(void);
+
+
 uint8_t HALDigitalRead(uint8_t if_num);
+
 void HALInitDigitalInput(uint8_t if_num);
 void HALDigitalWrite (uint8_t if_num, uint8_t digital_val);
 void HALInitDigitalOutput (uint8_t if_num);

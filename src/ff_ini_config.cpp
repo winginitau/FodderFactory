@@ -436,6 +436,10 @@ uint8_t ConfigureBlock(uint8_t block_cat, const char *block_label, const char *k
 	return return_value;
 }
 
+
+
+#ifdef FF_CONFIG
+
 int uint8_tWrite(uint8_t data, FILE *f) {
 	return fwrite(&data, sizeof(data), 1, f);
 	//printf("%d\n", data);
@@ -482,12 +486,12 @@ void WriteBlock(BlockNode *b, FILE *f) {
 	uint16_tWrite(b->block_type, f);
 	uint16_tWrite(b->block_id, f);
 	LabelWrite(b->block_label, MAX_LABEL_LENGTH, f);
-#ifndef	EXCLUDE_DISPLAYNAME
+	#ifndef	EXCLUDE_DISPLAYNAME
 	LabelWrite(b->display_name, MAX_LABEL_LENGTH, f);
-#endif
-#ifndef EXCLUDE_DESCRIPTION
+	#endif
+	#ifndef EXCLUDE_DESCRIPTION
 	LabelWrite(b->description, MAX_DESCR_LENGTH, f);
-#endif
+	#endif
 
 	switch (b->block_cat) {
 	case FF_SYSTEM:
@@ -560,6 +564,7 @@ void WriteRunningConfig(void) {
 	fclose(outfile);
 }
 
+#endif //FF_CONFIG
 
 
 #ifdef USE_PROGMEM

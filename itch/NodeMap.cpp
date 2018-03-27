@@ -311,7 +311,7 @@ void MapSelectMatchingNodes(char* target, TokenList* matched_list) {
 			// the node is a possible match to be included
 			TLAddASTAToTokenList(matched_list, g_temp_asta);
 			#ifdef DEBUG
-			sprintf(n_debug_message, "DEBUG (MapSelectMatchingNodes) Adding Possible Match: ID:%d  Label:%s  which has Action:%s \n\r", temp_node.id, temp_node.label, temp_node.action_identifier);
+			sprintf(n_debug_message, "DEBUG (MapSelectMatchingNodes) Adding Possible Match: ID:%d  Label:%s  which has Action:%s \n\r", g_temp_asta.id, g_temp_asta.label, g_temp_asta.action_identifier);
 			M(n_debug_message);
 			#endif
 		}

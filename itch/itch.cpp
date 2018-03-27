@@ -25,7 +25,18 @@
 
 #ifdef DEBUG
 
-extern void M(char strn[]);
+//extern void M(char strn[]);
+
+void M(char strn[]) {
+	char str[MAX_OUTPUT_LINE_SIZE];
+	strncpy(str, strn, MAX_OUTPUT_LINE_SIZE);
+	#ifdef ARDUINO
+		Serial.write(str);
+	#else
+		printf("%s", str);
+	#endif
+}
+
 char i_debug_message[MAX_OUTPUT_LINE_SIZE];
 
 #endif
@@ -106,7 +117,7 @@ void ITCH::Poll(void) {
 	// if no replay editing is active then get the next ch from the input stream
 	if (iflags.replay == 0) {
 		#ifndef ARDUINO
-			ch = fgetc(isp);
+			ch = getc(isp);
 		#endif
 
 		#ifdef ARDUINO
@@ -147,6 +158,7 @@ void ITCH::Poll(void) {
 
 					#ifdef ARDUINO
 					Serial.write(g_out_str);
+					Serial.flush();
 					#else
 					fputs(g_out_str, osp);
 					#endif
@@ -176,6 +188,7 @@ void ITCH::Poll(void) {
 					strcat(g_out_str, "\r");
 					#ifdef ARDUINO
 					Serial.write(g_out_str);
+					Serial.flush();
 					#else
 					fputs(g_out_str, osp);
 					#endif
@@ -217,7 +230,7 @@ void ITCH::Poll(void) {
 				#ifdef ARDUINO
 				Serial.write(g_out_str);
 				#else
-				fputs(output_line, osp);
+				fputs(g_out_str, osp);
 				#endif
 				#ifdef ARDUINO
 				Serial.write(prompt);
@@ -238,8 +251,9 @@ void ITCH::Poll(void) {
 					strcat(g_out_str, "\r");
 					#ifdef ARDUINO
 					Serial.write(g_out_str);
+					Serial.flush();
 					#else
-					fputs(output_line, osp);
+					fputs(g_out_str, osp);
 					#endif
 				}
 				ParserResetLine();
@@ -256,6 +270,7 @@ void ITCH::Poll(void) {
 					strcat(g_out_str, "\r");
 					#ifdef ARDUINO
 					Serial.write(prompt);
+					Serial.flush();
 					#else
 					fputs(g_out_str, osp);
 					#endif
@@ -273,6 +288,7 @@ void ITCH::Poll(void) {
 				#ifdef ARDUINO
 				Serial.write(prompt);
 				Serial.write(g_itch_replay_buff);
+				Serial.flush();
 				#else
 				fputs(prompt, osp);
 				fputs(g_itch_replay_buff, osp);
@@ -287,6 +303,12 @@ void ITCH::WriteLine(char* string) {
 	g_itch_output_buff.SetOutputAvailable();
 }
 
+void ITCH::WriteImmediate(char* string) {
+	#ifdef ARDUINO
+		Serial.write(string);
+		Serial.flush();
+	#endif
+}
 
 
 

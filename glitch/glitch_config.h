@@ -9,7 +9,7 @@
 #define GLITCH_CONFIG_H_
 
 #define VERSION "0.1a"
-#define PROG_NAME "itch - Grammar Lexer and Interactive Terminal Command sHell"
+#define PROG_NAME "glitch - Grammar Lexer and Interactive Terminal Command sHell"
 
 #define IDENTIFIER_REGEX "^[a-zA-Z0-9_]{1,31}$"
 

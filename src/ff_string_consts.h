@@ -79,20 +79,23 @@ typedef struct STRING_ARRAY_TYPE {
 } StringArray;
 #endif
 
-//#ifdef USE_PROGMEM
-//typedef struct SIMPLE_STRING_ARRAY_TYPE {
-//	// Array of strings (usually labels and messages) relating to enums
-//	// Inside this struct, extended intitaliser lists are ok
-//	char text[MAX_MESSAGE_STRING_LENGTH];
-//} SimpleStringArray;
-//#else
-//typedef struct SIMPLE_STRING_ARRAY_TYPE {
-//	// Array of strings (usually labels and messages) relating to enums
-//	// Inside this struct, extended intitaliser lists are ok
-//	const char* text;
-//} SimpleStringArray;
-//#endif
+#ifndef USE_ITCH
 
+#ifdef USE_PROGMEM
+typedef struct SIMPLE_STRING_ARRAY_TYPE {
+	// Array of strings (usually labels and messages) relating to enums
+	// Inside this struct, extended intitaliser lists are ok
+	char text[MAX_MESSAGE_STRING_LENGTH];
+} SimpleStringArray;
+#else
+typedef struct SIMPLE_STRING_ARRAY_TYPE {
+	// Array of strings (usually labels and messages) relating to enums
+	// Inside this struct, extended intitaliser lists are ok
+	const char* text;
+} SimpleStringArray;
+#endif
+
+#endif
 
 
 typedef struct BLOCK_CATS {
@@ -114,22 +117,24 @@ static const SimpleStringArray language_strings[LAST_LANGUAGE] = {
 	"Deutsch",
 };
 
+#ifndef USE_ITCH
 /**************************************************************
  * Block Category Definitions
  **************************************************************/
 //typedef
-//enum {
-//	FF_ERROR_CAT = 0,
-//	FF_GENERIC_BLOCK,
-//	FF_SYSTEM,
-//	FF_INPUT,
-//	FF_MONITOR,
-//	FF_SCHEDULE,
-//	FF_RULE,
-//	FF_CONTROLLER,
-//	FF_OUTPUT,
-//	LAST_BLOCK_CAT,
-//};//BlockCatEnum;
+enum {
+	FF_ERROR_CAT = 0,
+	FF_GENERIC_BLOCK,
+	FF_SYSTEM,
+	FF_INPUT,
+	FF_MONITOR,
+	FF_SCHEDULE,
+	FF_RULE,
+	FF_CONTROLLER,
+	FF_OUTPUT,
+	LAST_BLOCK_CAT,
+};//BlockCatEnum;
+#endif
 
 enum {
 	SYS_ERROR_KEY = 0,
@@ -701,7 +706,8 @@ static const SimpleStringArray day_strings[LAST_DAY] = {
 };
 
 
-/*
+#ifndef USE_ITCH
+
 enum OUTPUT_COMMANDS {
 	CMD_ERROR = 0,
 	CMD_OUTPUT_OFF,
@@ -720,7 +726,8 @@ static const SimpleStringArray command_strings[LAST_COMMAND] = {
 	"CMD_OUTPUT_ON",
 	"CMD_RESET_MIN_MAX",
 };
-*/
+
+#endif //ndef USE_ITCH
 
 enum {						// Interface Types
 	IF_ERROR = 0,

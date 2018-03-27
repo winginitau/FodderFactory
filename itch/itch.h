@@ -33,8 +33,8 @@ typedef struct ITCH_FLAGS {
 } I_FLAGS;
 
 #ifndef ARDUINO
-#define strcpy_P(x) strcpy(x)
-#define strcat_P(x) strcat(x)
+#define strcpy_P(d, s) strcpy(d, s)
+#define strcat_P(d, c) strcat(d, c)
 #endif
 
 
@@ -64,6 +64,7 @@ public:
 
 	void Poll();
 	void WriteLine(char* string);
+	void WriteImmediate(char* string);
 };
 
 

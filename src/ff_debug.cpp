@@ -72,7 +72,7 @@ char* GetMemPointers(char* str) {
 
 #ifdef DEBUG_SERIAL
 void DebugSerial(char *log_entry) {
-    Serial.begin(DEBUG_SERIAL_BAUDRATE);
+    //Serial.begin(DEBUG_SERIAL_BAUDRATE);
     int loop = 2000;
     while (loop > 0) {
       loop--;
@@ -85,7 +85,7 @@ void DebugSerial(char *log_entry) {
       Serial.println(log_entry);
       Serial.flush();
     };
-    Serial.end();
+    //Serial.end();
 
 }
 #endif // DEBUG_SERIAL

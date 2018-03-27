@@ -29,6 +29,10 @@
 #include "SD.h"
 #endif
 
+#ifdef USE_ITCH
+#include "itch.h"
+#endif
+
 //#include "ff_IniFile.h"
 
 //#include <string.h>
@@ -44,7 +48,9 @@
   Globals
 ************************************************/
 
-
+#ifdef USE_ITCH
+extern ITCH itch;
+#endif
 
 /************************************************
   Functions
@@ -289,6 +295,15 @@ void ReadProcessedConfig(void) {
 
 void InitSystem(void) {
 
+	// Set up the terminal environment
+
+	HALInitSerial(EVENT_SERIAL_PORT, EVENT_SERIAL_BAUDRATE);
+
+	#ifdef USE_ITCH
+	HALInitItch();
+	//itch.Begin(ITCH_INTERACTIVE);
+	#endif
+
 	// Set up the global system state register
 	InitStateRegister();
 
@@ -296,16 +311,17 @@ void InitSystem(void) {
 	EventBufferInit();
 
 	// log event - core internal system now functional
-#ifdef FF_ARDUINO
+	#ifdef FF_ARDUINO
 	EventMsg(SSS, E_INFO, M_FF_AWAKE, 0, 0);
-#endif
-#ifdef FF_SIMULATOR
-	EventMsg(SSS, E_INFO, M_SIM);
-#endif
+	#endif
 
-#ifdef DEBUG_SERIAL
+	#ifdef FF_SIMULATOR
+	EventMsg(SSS, E_INFO, M_SIM);
+	#endif
+
+	#ifdef DEBUG_SERIAL
 	EventMsg(SSS, E_VERBOSE, M_D_SERIAL, 0, 0);
-#endif
+	#endif
 
 	InitRTC();				// set up the Real Time Clock and synch system time to rtc
 

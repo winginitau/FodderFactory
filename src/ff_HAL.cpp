@@ -185,13 +185,9 @@ uint8_t HALSaveEventBuffer(void) {
 	return save_success;
 }
 
-uint8_t HALEventSerialSend(EventNode* e, uint8_t port, uint16_t baudrate) {
 
-	char e_str[MAX_LOG_LINE_LENGTH];
-	FormatEventMessage(e, e_str);
-
-
-	#ifdef FF_ARDUINO
+uint8_t HALInitSerial(uint8_t port, uint16_t baudrate) {
+#ifdef FF_ARDUINO
 	switch (port) {
 		case 0:
 			Serial.begin(baudrate);
@@ -205,6 +201,34 @@ uint8_t HALEventSerialSend(EventNode* e, uint8_t port, uint16_t baudrate) {
 		default:
 			break;
 	}
+#endif
+	return 1;
+}
+
+uint8_t HALEventSerialSend(EventNode* e, uint8_t port, uint16_t baudrate) {
+
+	char e_str[MAX_LOG_LINE_LENGTH];
+	FormatEventMessage(e, e_str);
+
+	#ifdef FF_ARDUINO
+
+	/*
+
+	switch (port) {
+		case 0:
+			Serial.begin(baudrate);
+			break;
+		case 1:
+			Serial1.begin(baudrate);
+			break;
+		case 2:
+			Serial2.begin(baudrate);
+			break;
+		default:
+			break;
+	}
+*/
+
 	int loop = 2000;
 	int check = 0;
     while (loop > 0) {
@@ -232,7 +256,7 @@ uint8_t HALEventSerialSend(EventNode* e, uint8_t port, uint16_t baudrate) {
     	switch (port) {
     		case 0:
 				#ifdef USE_ITCH
-    				itch.WriteLine(e_str);
+    				itch.WriteImmediate(e_str);
 				#else
     				Serial.println(e_str);
 				#endif
@@ -240,7 +264,7 @@ uint8_t HALEventSerialSend(EventNode* e, uint8_t port, uint16_t baudrate) {
     			break;
     		case 1:
 				#ifdef USE_ITCH
-    				itch.WriteLine(e_str);
+    				itch.WriteImmediate(e_str);
 				#else
     				Serial1.println(e_str);
 				#endif
@@ -248,7 +272,7 @@ uint8_t HALEventSerialSend(EventNode* e, uint8_t port, uint16_t baudrate) {
     			break;
     		case 2:
 				#ifdef USE_ITCH
-    				itch.WriteLine(e_str);
+    				itch.WriteImmediate(e_str);
 				#else
     				Serial2.println(e_str);
 				#endif
@@ -258,6 +282,8 @@ uint8_t HALEventSerialSend(EventNode* e, uint8_t port, uint16_t baudrate) {
     			break;
     	}
     }
+
+    /*
 	switch (port) {
 		case 0:
 			Serial.end();
@@ -271,9 +297,28 @@ uint8_t HALEventSerialSend(EventNode* e, uint8_t port, uint16_t baudrate) {
 		default:
 			break;
 	}
+	*/
 	#endif
 	return 1;
 }
+
+
+#ifdef USE_ITCH
+void HALInitItch(void) {
+	#ifdef ARDUINO
+		itch.Begin(ITCH_INTERACTIVE);
+		//itch.Poll();
+	#else
+		itch.Begin(stdin, stdout, ITCH_INTERACTIVE);
+	#endif
+}
+
+void HALPollItch(void) {
+	itch.Poll();
+}
+#endif
+
+
 
 #ifdef FF_ARDUINO
 #ifdef DEBUG_LCD

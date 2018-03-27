@@ -128,14 +128,16 @@ EventNode* EventBufferPop(void) {
 		if (event_buffer.head != event_buffer.tail) {  						//ie not empty
 			e_ptr = &event_buffer.event_list[event_buffer.tail];
 			event_buffer.tail = (event_buffer.tail + 1) % event_buffer.size;
+			return e_ptr;
 		}
-		return e_ptr;
+
 	} else {
 #ifdef FF_ARDUINO
 		DebugLog(SSS, E_STOP, M_EVENTMSG_BEFORE_INIT);
 #endif
 		while (1);
 	}
+	return 0;
 }
 
 void EventBufferPush(EventNode event) {

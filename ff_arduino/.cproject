@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?fileVersion 4.0.0?><cproject storage_type_id="org.eclipse.cdt.core.XmlProjectDescriptionStorage">
+	<storageModule moduleId="org.eclipse.cdt.core.settings">
+		<cconfiguration id="io.sloeber.core.toolChain.release.1923527009">
+			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="io.sloeber.core.toolChain.release.1923527009" moduleId="org.eclipse.cdt.core.settings" name="Release">
+				<externalSettings/>
+				<extensions>
+					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
+					<extension id="org.eclipse.cdt.core.GLDErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.MakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+				</extensions>
+			</storageModule>
+			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
+				<configuration artifactName="${ProjName}" buildProperties="" description="" id="io.sloeber.core.toolChain.release.1923527009" name="Release" parent="org.eclipse.cdt.build.core.emptycfg">
+					<folderInfo id="io.sloeber.core.toolChain.release.1923527009.337879387" name="/" resourcePath="">
+						<toolChain id="io.sloeber.core.toolChain.release.303432458" name="Arduino Toolchain (Sloeber edition)" superClass="io.sloeber.core.toolChain.release">
+							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="io.sloeber.targetplatform.525799772" name="Arduino Target" osList="all" superClass="io.sloeber.targetplatform"/>
+							<builder buildPath="${workspace_loc:/ff_arduino}/Release" id="io.sloeber.sketch.builder.1170596505" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Arduino sketch builder" superClass="io.sloeber.sketch.builder"/>
+							<tool id="io.sloeber.tool.sketch.compiler.cpp.1420035103" name="Arduino C++ Compiler" superClass="io.sloeber.tool.sketch.compiler.cpp">
+								<option id="io.sloeber.compiler.cpp.sketch.option.incpath.1373175890" name="Include Paths (-I)" superClass="io.sloeber.compiler.cpp.sketch.option.incpath" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/core/core}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/core/variant}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/glitch}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/itch}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/DallasTemperature}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/Ethernet/src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/OneWire}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/RTClib}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/SD/utility}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/SD}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/Wire/src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/SPI/src}&quot;"/>
+								</option>
+								<inputType id="io.sloeber.compiler.cpp.sketch.input.1479664372" name="CPP source files" superClass="io.sloeber.compiler.cpp.sketch.input"/>
+							</tool>
+							<tool id="io.sloeber.tool.compiler.c.455928934" name="Arduino C Compiler" superClass="io.sloeber.tool.compiler.c">
+								<option id="io.sloeber.compiler.c.sketch.option.incpath.160198064" name="Include Paths (-I)" superClass="io.sloeber.compiler.c.sketch.option.incpath" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/core/core}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/core/variant}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/glitch}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/itch}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/DallasTemperature}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/Ethernet/src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/OneWire}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/RTClib}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/SD/utility}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/SD}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/Wire/src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/SPI/src}&quot;"/>
+								</option>
+								<inputType id="io.sloeber.compiler.c.sketch.input.951723203" name="C Source Files" superClass="io.sloeber.compiler.c.sketch.input"/>
+							</tool>
+							<tool id="io.sloeber.tool.sketch.compiler.s.1648884968" name="Arduino Assembler" superClass="io.sloeber.tool.sketch.compiler.s">
+								<option id="io.sloeber.compiler.asm.sketch.option.incpath.1170656612" name="Include Paths (-I)" superClass="io.sloeber.compiler.asm.sketch.option.incpath" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/core/core}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/core/variant}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/glitch}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/itch}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/DallasTemperature}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/Ethernet/src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/OneWire}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/RTClib}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/SD/utility}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/SD}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/Wire/src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/SPI/src}&quot;"/>
+								</option>
+								<inputType id="io.sloeber.compiler.S.sketch.input.1581110193" name="Assembly source files" superClass="io.sloeber.compiler.S.sketch.input"/>
+							</tool>
+							<tool id="io.sloeber.tool.ar.1666752582" name="Arduino archiver" superClass="io.sloeber.tool.ar"/>
+							<tool id="io.sloeber.tool.combine.699712195" name="Arduino combiner" superClass="io.sloeber.tool.combine"/>
+							<tool id="io.sloeber.tool.objcopy.eep.437298284" name="Arduino tool Create eeprom" superClass="io.sloeber.tool.objcopy.eep"/>
+							<tool id="io.sloeber.tool.size.1917893766" name="Arduino tool Print Size" superClass="io.sloeber.tool.size"/>
+						</toolChain>
+					</folderInfo>
+					<fileInfo id="io.sloeber.core.toolChain.release.1923527009.1509380594" name="Debug.h" rcbsApplicability="disable" resourcePath="glitch/Debug.h" toolsToInvoke=""/>
+					<fileInfo id="io.sloeber.core.toolChain.release.1923527009.1380304696" name="Identifiers.h" rcbsApplicability="disable" resourcePath="glitch/Identifiers.h" toolsToInvoke=""/>
+					<fileInfo id="io.sloeber.core.toolChain.release.1923527009.1569458570" name="KeyValuePairList.h" rcbsApplicability="disable" resourcePath="glitch/KeyValuePairList.h" toolsToInvoke=""/>
+					<fileInfo id="io.sloeber.core.toolChain.release.1923527009.859123229" name="LineBuffer.h" rcbsApplicability="disable" resourcePath="glitch/LineBuffer.h" toolsToInvoke=""/>
+					<fileInfo id="io.sloeber.core.toolChain.release.1923527009.231738945" name="AST.h" rcbsApplicability="disable" resourcePath="glitch/AST.h" toolsToInvoke=""/>
+					<fileInfo id="io.sloeber.core.toolChain.release.1923527009.130194195" name="config.h" rcbsApplicability="disable" resourcePath="glitch/config.h" toolsToInvoke=""/>
+					<fileInfo id="io.sloeber.core.toolChain.release.1923527009.936208111" name="glitch_errors.h" rcbsApplicability="disable" resourcePath="glitch/glitch_errors.h" toolsToInvoke=""/>
+					<fileInfo id="io.sloeber.core.toolChain.release.1923527009.19893187" name="Identifier.h" rcbsApplicability="disable" resourcePath="glitch/Identifier.h" toolsToInvoke=""/>
+					<fileInfo id="io.sloeber.core.toolChain.release.1923527009.383968397" name="glitch_config.h" rcbsApplicability="disable" resourcePath="glitch/glitch_config.h" toolsToInvoke=""/>
+					<fileInfo id="io.sloeber.core.toolChain.release.1923527009.909800190" name="Lexer.h" rcbsApplicability="disable" resourcePath="glitch/Lexer.h" toolsToInvoke=""/>
+					<fileInfo id="io.sloeber.core.toolChain.release.1923527009.1072261200" name="ASTNode.h" rcbsApplicability="disable" resourcePath="glitch/ASTNode.h" toolsToInvoke=""/>
+					<sourceEntries>
+						<entry excluding="libraries/SD/.github|libraries/OneWire/util|itch|glitch|src|libraries/?*/**/?xamples/**|libraries/?*/**/?xtras/**|libraries/?*/**/test*/**|libraries/?*/**/third-party/**|libraries/**/._*|libraries/?*/utility/*/*" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="LineBuffer.h|LineBuffer.cpp|Lexer.h|KeyValuePairList.h|Lexer.cpp|KeyValuePairList.cpp|Identifiers.h|Identifiers.cpp|Identifier.h|glitch.cpp|Identifier.cpp|glitch_errors.h|glitch_config.h|Debug.h|Debug.cpp|config.h|ASTNode.h|ASTNode.cpp|AST.h|AST.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="glitch"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="itch"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
+					</sourceEntries>
+				</configuration>
+			</storageModule>
+			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
+			<storageModule moduleId="ilg.gnuarmeclipse.managedbuild.packs"/>
+		</cconfiguration>
+	</storageModule>
+	<storageModule moduleId="cdtBuildSystem" version="4.0.0">
+		<project id="ff_arduino.null.503662881" name="ff_arduino"/>
+	</storageModule>
+	<storageModule moduleId="scannerConfiguration">
+		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+	</storageModule>
+	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
+	<storageModule moduleId="refreshScope" versionNumber="2">
+		<configuration configurationName="Release">
+			<resource resourceType="PROJECT" workspacePath="/ff_arduino"/>
+		</configuration>
+	</storageModule>
+	<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets"/>
+	<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
+</cproject>

@@ -1,0 +1,206 @@
+#************************************************
+# ff_sys_config.ini
+# Fodder Factory Monitoring and Control
+#
+# (c) Brendan McLearie - bmclearie@mclearie.com
+#
+# System configuration settings as an ini file:
+# 	System configuration
+# 	Input configs
+# 	Monitor Configs
+#	Rules
+#	Controller configs
+# 	Output configs
+#************************************************/
+
+
+#************************************************
+# System
+#************************************************/
+[system]
+type = SYS_SYSTEM
+display_name = System
+description = Reserved System Block
+language = English
+temp_scale = Celsius
+#temp_scale = Fahrenheit
+week_start = SUN
+		
+#************************************************
+# Inputs
+#************************************************/
+[inputs]
+input1 = IN_INSIDE_TOP_TEMP
+
+[IN_INSIDE_TOP_TEMP]
+type = IN_ONEWIRE
+display_name = Inside Top
+description = Dallas sensor inside the top of the fodder factory
+interface = ONEWIRE
+if_num = 1
+log_rate = 00:01:00
+data_units = Celsius
+data_type = float
+
+
+
+#************************************************
+# Monitors
+#************************************************/
+[monitors]
+monitor1 = MON_INSIDE_TOP_TOO_COLD
+monitor2 = MON_INSIDE_TOP_TOO_HOT
+
+
+[MON_INSIDE_TOP_TOO_COLD]
+type = MON_CONDITION_LOW
+display_name = Inside Top Too Cold
+description =  
+input1 = IN_INSIDE_TOP_TEMP
+act_val	= 21.00
+deact_val = 23.00
+
+[MON_INSIDE_TOP_TOO_HOT]
+type = MON_CONDITION_HIGH
+display_name = Inside Top Too Hot
+description = 
+input1 = IN_INSIDE_TOP_TEMP
+act_val	= 23.00
+deact_val = 21.00
+
+
+#************************************************
+# Schedules
+#************************************************/
+[schedules]
+schedule1 = SCH_EXCLUDE_WATER_HEAT_BY_DAY
+schedule2 = SCH_WATERING_TOP_SCHEDULE
+schedule3 = SCH_WATERING_BOTTOM_SCHEDULE
+
+[SCH_EXCLUDE_WATER_HEAT_BY_DAY]
+type = SCH_START_STOP
+display_name = Exclude Water Heat During Day
+description = 
+# ALL, MON, TUE, WED, THU, FRI, SAT, SUN
+days = ALL
+time_start = 09:00:00
+time_end = 18:00:00
+
+[SCH_WATERING_TOP_SCHEDULE]
+type = SCH_START_DURATION_REPEAT
+display_name = Watering Schedule Top Sprinklers
+description = 
+# ALL, MON, TUE, WED, THU, FRI, SAT, SUN
+days = ALL
+time_start = 00:00:00
+time_duration = 00:00:26
+time_repeat = 00:2:00
+
+[SCH_WATERING_BOTTOM_SCHEDULE]
+type = SCH_START_DURATION_REPEAT
+display_name = Watering Schedule Bottom Sprinklers
+description = 
+# ALL, MON, TUE, WED, THU, FRI, SAT, SUN
+days = ALL
+time_start = 00:00:30
+time_duration = 00:00:26
+time_repeat = 00:02:00
+
+
+#************************************************
+# Rules
+#************************************************/
+[rules]
+rule1 = RL_TURN_ON_WATER_HEAT_IF_INSIDE_COLD
+rule2 = RL_WATER_ON_SCHEDULE_TOP
+rule3 = RL_WATER_ON_SCHEDULE_BOTTOM 
+
+[RL_TURN_ON_WATER_HEAT_IF_INSIDE_COLD]
+type = RL_LOGIC_SINGLENOT
+display_name = Water Heat Warming Inside
+description =
+param1 = MON_INSIDE_TOP_TOO_COLD
+#param2 =
+param_not = SCH_EXCLUDE_WATER_HEAT_BY_DAY
+
+[RL_WATER_ON_SCHEDULE_TOP]
+type = RL_LOGIC_SINGLE
+display_name = Water Cycle Top
+description =
+param1 = SCH_WATERING_TOP_SCHEDULE
+#param_not = RL_SUSPEND_WATERING_IF_BOTH_DOORS_OPEN
+
+[RL_WATER_ON_SCHEDULE_BOTTOM]
+type = RL_LOGIC_SINGLE
+display_name = Water Cycle Bottom
+description =
+param1 = SCH_WATERING_BOTTOM_SCHEDULE
+#param_not = RL_SUSPEND_WATERING_IF_BOTH_DOORS_OPEN
+
+
+#************************************************
+# Controllers
+#************************************************/
+[controllers]
+controller1 = CON_WATER_HEATER_CONTROLLER
+controller2 = CON_WATERING_TOP_CONTROLLER
+controller3 = CON_WATERING_BOTTOM_CONTROLLER
+
+[CON_WATER_HEATER_CONTROLLER]
+type = CON_ONOFF
+display_name = Water Heating Controller
+description = 
+rule = RL_TURN_ON_WATER_HEAT_IF_INSIDE_COLD
+output = OUT_WATER_HEATER
+act_cmd = CMD_OUTPUT_ON
+deact_cmd = CMD_OUTPUT_OFF
+
+[CON_WATERING_TOP_CONTROLLER]
+type = CON_ONOFF
+display_name = Top Sprinklers Solenoid Controller
+description = 
+rule = RL_WATER_ON_SCHEDULE_TOP
+output = OUT_WATERING_SOLENOID_TOP
+act_cmd = CMD_OUTPUT_ON
+deact_cmd = CMD_OUTPUT_OFF
+
+[CON_WATERING_BOTTOM_CONTROLLER]
+type = CON_ONOFF
+display_name = Bottom Sprinklers Solenoid Controller
+description = 
+rule = RL_WATER_ON_SCHEDULE_BOTTOM
+output = OUT_WATERING_SOLENOID_BOTTOM
+act_cmd = CMD_OUTPUT_ON
+deact_cmd = CMD_OUTPUT_OFF
+
+
+#************************************************
+# Outputs
+#************************************************
+[outputs]
+output1 = OUT_WATER_HEATER
+output2 = OUT_WATERING_SOLENOID_TOP
+output3 = OUT_WATERING_SOLENOID_BOTTOM
+
+[OUT_WATER_HEATER]
+type = OUT_DIGITAL
+display_name = Header Tank Heater
+description = Relay to Control Header Tank Water Heater
+interface = DIG_PIN_OUT
+if_num = 29
+
+[OUT_WATERING_SOLENOID_TOP]
+type = OUT_DIGITAL
+display_name = Water Value Top
+description = Relay to Control the Top Watering Solenoid
+interface = DIG_PIN_OUT
+if_num = 33
+
+[OUT_WATERING_SOLENOID_BOTTOM]
+type = OUT_DIGITAL
+display_name = Water Value Bottom
+description = Relay to Control the Bottom Watering Solenoid
+interface = DIG_PIN_OUT
+if_num = 34
+
+
