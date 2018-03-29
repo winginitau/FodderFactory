@@ -48,9 +48,9 @@
   Globals
 ************************************************/
 
-#ifdef USE_ITCH
-extern ITCH itch;
-#endif
+//#ifdef USE_ITCH
+//extern ITCH itch;
+//#endif
 
 /************************************************
   Functions

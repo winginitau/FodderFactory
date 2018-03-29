@@ -26,6 +26,16 @@
 	</natures>
 	<linkedResources>
 		<link>
+			<name>glitch</name>
+			<type>2</type>
+			<location>/home/brendan/git/FodderFactory/glitch</location>
+		</link>
+		<link>
+			<name>itch</name>
+			<type>2</type>
+			<location>/home/brendan/git/FodderFactory/itch</location>
+		</link>
+		<link>
 			<name>src</name>
 			<type>2</type>
 			<location>/home/brendan/git/FodderFactory/src</location>
