@@ -36,7 +36,9 @@
 void InitUI(void) {
 	HALInitUI();
 #ifdef FF_ARDUINO
+#ifdef LCD_DISPLAY
 	EventMsg(SSS, E_INFO, M_LCD_INIT);
+#endif
 #endif
 #ifdef FF_SIMULATOR
 	EventMsg(SSS, E_INFO, M_SIM_CONSOLE);

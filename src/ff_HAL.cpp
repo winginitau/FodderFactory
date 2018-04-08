@@ -212,8 +212,9 @@ uint8_t HALEventSerialSend(EventNode* e, uint8_t port, uint16_t baudrate) {
 
 	#ifdef FF_ARDUINO
 
+	// Serial begin now in InitSerial, so that when ITCH is in use
+	// it can be open listening all the time
 	/*
-
 	switch (port) {
 		case 0:
 			Serial.begin(baudrate);

@@ -60,6 +60,12 @@ int main(void) {
 	// though startup / init still neeeds to be handled for any blocks coming
 	// online during run-time.
 
+	// Init the Serial coms
+	// TODO and sockets etc later
+	// Has to be first step in setup so that config processing can debug to serial
+	HALInitSerial(EVENT_SERIAL_PORT, EVENT_SERIAL_BAUDRATE);
+
+
 	// Read the binary configuration file previously created with
 	// ff_config. Note, this build and the ff_config build must use exactly
 	// the same pre-processor and compiler directives to ensure binary portability

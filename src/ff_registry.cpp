@@ -77,6 +77,7 @@ void Setup(BlockNode *b) {
 	switch (b->block_cat) {
 	case FF_SYSTEM:
 		//HALInitItch();
+		delay(60000); //XXX kludge to allow the rpi to boot and establish ppp to the controller before sending data
 		UpdateUI();
 		break;
 	case FF_INPUT:

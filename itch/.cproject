@@ -24,8 +24,8 @@
 								<option id="gnu.cpp.compiler.exe.debug.option.optimization.level.1128573470" name="Optimization Level" superClass="gnu.cpp.compiler.exe.debug.option.optimization.level" useByScannerDiscovery="false" value="gnu.cpp.compiler.optimization.level.none" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.exe.debug.option.debugging.level.1399667442" name="Debug Level" superClass="gnu.cpp.compiler.exe.debug.option.debugging.level" useByScannerDiscovery="false" value="gnu.cpp.compiler.debugging.level.max" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.option.include.paths.1793451014" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/glitch}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/itch}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/itch/glitch}&quot;"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.dialect.std.2140364764" name="Language standard" superClass="gnu.cpp.compiler.option.dialect.std" useByScannerDiscovery="true" value="gnu.cpp.compiler.dialect.default" valueType="enumerated"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1042082428" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
@@ -34,8 +34,8 @@
 								<option defaultValue="gnu.c.optimization.level.none" id="gnu.c.compiler.exe.debug.option.optimization.level.1467538967" name="Optimization Level" superClass="gnu.c.compiler.exe.debug.option.optimization.level" useByScannerDiscovery="false" valueType="enumerated"/>
 								<option id="gnu.c.compiler.exe.debug.option.debugging.level.1732306093" name="Debug Level" superClass="gnu.c.compiler.exe.debug.option.debugging.level" useByScannerDiscovery="false" value="gnu.c.debugging.level.max" valueType="enumerated"/>
 								<option id="gnu.c.compiler.option.include.paths.1827260806" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/glitch}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/itch}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/itch/glitch}&quot;"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1614163588" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
@@ -52,8 +52,8 @@
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.assembler.exe.debug.1920615742" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.exe.debug">
 								<option id="gnu.both.asm.option.include.paths.651929319" name="Include paths (-I)" superClass="gnu.both.asm.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/glitch}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/itch}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/itch/glitch}&quot;"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.44261102" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
 							</tool>
@@ -74,7 +74,7 @@
 					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.1154591455.2087666060" name="string_consts.h" rcbsApplicability="disable" resourcePath="glitch/string_consts.h" toolsToInvoke=""/>
 					<sourceEntries>
 						<entry excluding="glitch" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
-						<entry excluding="string_consts.h|config.h|glitch_config.h|out_user_code_bak.cpp|out_bak.h|out_bak.cpp|KeyValuePairList.cpp|KeyValuePairList.h|glitch_errors.h|LineBuffer.cpp|LineBuffer.h|glitch.cpp|Identifier.cpp|Identifier.h|Identifiers.cpp|Identifiers.h|Lexer.cpp|Lexer.h|Debug.h|Debug.cpp|ASTNode.h|ASTNode.cpp|AST.h|AST.cpp|ff_string_consts.cpp|ff_string_consts.h|ff_sys_config.h|processor_config.h|processor.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="glitch"/>
+						<entry excluding="LineBuffer.h|LineBuffer.cpp|Lexer.h|Lexer.cpp|KeyValuePairList.h|KeyValuePairList.cpp|Identifiers.h|Identifiers.cpp|Identifier.h|Identifier.cpp|glitch.cpp|glitch_errors.h|glitch_config.h|Debug.h|Debug.cpp|config.h|ASTNode.h|ASTNode.cpp|AST.h|AST.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="glitch"/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -135,7 +135,7 @@
 					<fileInfo id="cdt.managedbuild.config.gnu.exe.release.342175032.620320076" name="Lexer.h" rcbsApplicability="disable" resourcePath="glitch/Lexer.h" toolsToInvoke=""/>
 					<fileInfo id="cdt.managedbuild.config.gnu.exe.release.342175032.1908944366" name="string_consts.h" rcbsApplicability="disable" resourcePath="glitch/string_consts.h" toolsToInvoke=""/>
 					<sourceEntries>
-						<entry excluding="glitch/string_consts.h|glitch/config.h|glitch/glitch_config.h|glitch/out_user_code_bak.cpp|glitch/out_bak.h|glitch/out_bak.cpp|glitch/KeyValuePairList.cpp|glitch/KeyValuePairList.h|glitch/glitch_errors.h|glitch/LineBuffer.cpp|glitch/LineBuffer.h|glitch/glitch.cpp|glitch/AST.cpp|ff_config_parser/Identifiers.cpp|ff_config_parser/processor_config.h|ff_config_parser/Lexer.cpp|ff_config_parser/AST.h|ff_config_parser/ff_string_consts.h|ff_config_parser/Identifier.cpp|ff_config_parser/Identifiers.h|ff_config_parser/ff_sys_config.h|ff_config_parser/Lexer.h|ff_config_parser/Debug.cpp|ff_config_parser/Debug.h|ff_config_parser/ff_string_consts.cpp|ff_config_parser/processor.cpp|ff_config_parser/ASTNode.cpp|ff_config_parser/ASTNode.h|ff_config_parser/AST.cpp|ff_config_parser/Identifier.h" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="glitch/Lexer.h|glitch/Lexer.cpp|glitch/Identifiers.h|glitch/Identifiers.cpp|glitch/Identifier.h|glitch/Identifier.cpp|glitch/Debug.h|glitch/Debug.cpp|glitch/ASTNode.h|glitch/ASTNode.cpp|glitch/AST.h|glitch/string_consts.h|glitch/config.h|glitch/glitch_config.h|glitch/out_user_code_bak.cpp|glitch/out_bak.h|glitch/out_bak.cpp|glitch/KeyValuePairList.cpp|glitch/KeyValuePairList.h|glitch/glitch_errors.h|glitch/LineBuffer.cpp|glitch/LineBuffer.h|glitch/glitch.cpp|glitch/AST.cpp|ff_config_parser/Identifiers.cpp|ff_config_parser/processor_config.h|ff_config_parser/Lexer.cpp|ff_config_parser/AST.h|ff_config_parser/ff_string_consts.h|ff_config_parser/Identifier.cpp|ff_config_parser/Identifiers.h|ff_config_parser/ff_sys_config.h|ff_config_parser/Lexer.h|ff_config_parser/Debug.cpp|ff_config_parser/Debug.h|ff_config_parser/ff_string_consts.cpp|ff_config_parser/processor.cpp|ff_config_parser/ASTNode.cpp|ff_config_parser/ASTNode.h|ff_config_parser/AST.cpp|ff_config_parser/Identifier.h" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -144,21 +144,6 @@
 	</storageModule>
 	<storageModule moduleId="cdtBuildSystem" version="4.0.0">
 		<project id="config_icli.cdt.managedbuild.target.gnu.exe.1589771872" name="Executable" projectType="cdt.managedbuild.target.gnu.exe"/>
-	</storageModule>
-	<storageModule moduleId="scannerConfiguration">
-		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
-		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.release.342175032;cdt.managedbuild.config.gnu.exe.release.342175032.;cdt.managedbuild.tool.gnu.cpp.compiler.exe.release.290398966;cdt.managedbuild.tool.gnu.cpp.compiler.input.1485815482">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
-		</scannerConfigBuildInfo>
-		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.debug.1154591455;cdt.managedbuild.config.gnu.exe.debug.1154591455.;cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1546792958;cdt.managedbuild.tool.gnu.cpp.compiler.input.1042082428">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
-		</scannerConfigBuildInfo>
-		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.debug.1154591455;cdt.managedbuild.config.gnu.exe.debug.1154591455.;cdt.managedbuild.tool.gnu.c.compiler.exe.debug.1850954241;cdt.managedbuild.tool.gnu.c.compiler.input.1614163588">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
-		</scannerConfigBuildInfo>
-		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.release.342175032;cdt.managedbuild.config.gnu.exe.release.342175032.;cdt.managedbuild.tool.gnu.c.compiler.exe.release.7434386;cdt.managedbuild.tool.gnu.c.compiler.input.900486834">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
-		</scannerConfigBuildInfo>
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
 	<storageModule moduleId="refreshScope" versionNumber="2">
@@ -170,4 +155,19 @@
 		</configuration>
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets"/>
+	<storageModule moduleId="scannerConfiguration">
+		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.release.342175032;cdt.managedbuild.config.gnu.exe.release.342175032.;cdt.managedbuild.tool.gnu.cpp.compiler.exe.release.290398966;cdt.managedbuild.tool.gnu.cpp.compiler.input.1485815482">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.release.342175032;cdt.managedbuild.config.gnu.exe.release.342175032.;cdt.managedbuild.tool.gnu.c.compiler.exe.release.7434386;cdt.managedbuild.tool.gnu.c.compiler.input.900486834">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.debug.1154591455;cdt.managedbuild.config.gnu.exe.debug.1154591455.;cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1546792958;cdt.managedbuild.tool.gnu.cpp.compiler.input.1042082428">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.debug.1154591455;cdt.managedbuild.config.gnu.exe.debug.1154591455.;cdt.managedbuild.tool.gnu.c.compiler.exe.debug.1850954241;cdt.managedbuild.tool.gnu.c.compiler.input.1614163588">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		</scannerConfigBuildInfo>
+	</storageModule>
 </cproject>

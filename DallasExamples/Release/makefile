@@ -53,7 +53,7 @@ endif
 
 # Add inputs and outputs from these tool invocations to the build variables 
 AR += \
-/home/brendan/ff-workspace/DallasExamples/Release/arduino.ar \
+/home/brendan/git/FodderFactory/DallasExamples/Release/arduino.ar \
 
 ELF += \
 DallasExamples.elf \
@@ -69,19 +69,19 @@ all: DallasExamples
 DallasExamples: $(HEX)
 	@echo 'Building target: $@'
 	@echo 'Printing size:'
-	"/home/brendan/eclipse/cpp-oxygen/eclipse//arduinoPlugin/packages/arduino/tools/avr-gcc/4.9.2-atmel3.5.4-arduino2/bin/avr-size" -A "/home/brendan/ff-workspace/DallasExamples/Release/DallasExamples.elf"
+	"/home/brendan/eclipse/cpp-oxygen/eclipse//arduinoPlugin/packages/arduino/tools/avr-gcc/4.9.2-atmel3.5.4-arduino2/bin/avr-size" -A "/home/brendan/git/FodderFactory/DallasExamples/Release/DallasExamples.elf"
 	@echo 'Finished building target: $@'
 	@echo ' '
 
-/home/brendan/ff-workspace/DallasExamples/Release/arduino.ar: $(AR_OBJ)
+/home/brendan/git/FodderFactory/DallasExamples/Release/arduino.ar: $(AR_OBJ)
 	@echo 'Starting archiver'
-	"/home/brendan/eclipse/cpp-oxygen/eclipse//arduinoPlugin/packages/arduino/tools/avr-gcc/4.9.2-atmel3.5.4-arduino2/bin/avr-gcc-ar" rcs    /home/brendan/ff-workspace/DallasExamples/Release/arduino.ar $(AR_OBJ)
+	"/home/brendan/eclipse/cpp-oxygen/eclipse//arduinoPlugin/packages/arduino/tools/avr-gcc/4.9.2-atmel3.5.4-arduino2/bin/avr-gcc-ar" rcs    /home/brendan/git/FodderFactory/DallasExamples/Release/arduino.ar $(AR_OBJ)
 	@echo 'Finished building: $@'
 	@echo ' '
 
 DallasExamples.elf: $(LINK_OBJ) $(AR)
 	@echo 'Starting combiner'
-	"/home/brendan/eclipse/cpp-oxygen/eclipse//arduinoPlugin/packages/arduino/tools/avr-gcc/4.9.2-atmel3.5.4-arduino2/bin/avr-gcc" -Wall -Wextra -Os -Wl,--gc-sections,--relax -mmcu=atmega2560 -o "/home/brendan/ff-workspace/DallasExamples/Release/DallasExamples.elf"   $(LINK_OBJ)   /home/brendan/ff-workspace/DallasExamples/Release/arduino.ar  "-L/home/brendan/ff-workspace/DallasExamples/Release" -lm
+	"/home/brendan/eclipse/cpp-oxygen/eclipse//arduinoPlugin/packages/arduino/tools/avr-gcc/4.9.2-atmel3.5.4-arduino2/bin/avr-gcc" -Wall -Wextra -Os -Wl,--gc-sections,--relax -mmcu=atmega2560 -o "/home/brendan/ff-workspace/DallasExamples/Release/DallasExamples.elf"   $(LINK_OBJ)   /home/brendan/git/FodderFactory/DallasExamples/Release/arduino.ar  "-L/home/brendan/ff-workspace/DallasExamples/Release" -lm
 	@echo 'Finished building: $@'
 	@echo ' '
 

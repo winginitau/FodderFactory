@@ -19,15 +19,15 @@
 /************************************************
  PLATFORM Directives
  ************************************************/
-//#define FF_ARDUINO
-#define FF_TEMPERATURE_SIM  //optionally
+#define FF_ARDUINO
+//#define FF_TEMPERATURE_SIM  //optionally
 //OR
-#define FF_SIMULATOR
+//#define FF_SIMULATOR
 //#define FF_SIM_PARSECONFIG	//optional parse the TXT config (default -> read BIN)
 //OR
 //#define FF_CONFIG
 
-#define USE_ITCH
+//#define USE_ITCH
 
 #ifdef FF_CONFIG
 #define FF_SIMULATOR

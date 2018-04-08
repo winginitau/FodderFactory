@@ -297,7 +297,8 @@ void InitSystem(void) {
 
 	// Set up the terminal environment
 
-	HALInitSerial(EVENT_SERIAL_PORT, EVENT_SERIAL_BAUDRATE);
+	// Moved to setup() so is prior to Read config - which debugs to serial if enbaled
+	//HALInitSerial(EVENT_SERIAL_PORT, EVENT_SERIAL_BAUDRATE);
 
 	#ifdef USE_ITCH
 	HALInitItch();

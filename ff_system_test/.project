@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>ff_dallastemp_test</name>
+	<name>ff_system_test</name>
 	<comment></comment>
 	<projects>
 	</projects>
@@ -32,11 +32,6 @@
 	</natures>
 	<linkedResources>
 		<link>
-			<name>src</name>
-			<type>2</type>
-			<location>/home/brendan/git/FodderFactory/src</location>
-		</link>
-		<link>
 			<name>core/core</name>
 			<type>2</type>
 			<locationURI>ECLIPSE_HOME/arduinoPlugin/packages/arduino/hardware/avr/1.6.20/cores/arduino</locationURI>
@@ -52,39 +47,9 @@
 			<location>/home/brendan/Arduino/libraries/DallasTemperature</location>
 		</link>
 		<link>
-			<name>libraries/Ethernet</name>
-			<type>2</type>
-			<locationURI>ECLIPSE_HOME/arduinoPlugin/libraries/Ethernet/1.1.2</locationURI>
-		</link>
-		<link>
 			<name>libraries/OneWire</name>
 			<type>2</type>
 			<location>/home/brendan/Arduino/libraries/OneWire</location>
-		</link>
-		<link>
-			<name>libraries/RTClib</name>
-			<type>2</type>
-			<location>/home/brendan/Arduino/libraries/RTClib</location>
-		</link>
-		<link>
-			<name>libraries/SD</name>
-			<type>2</type>
-			<location>/home/brendan/Arduino/libraries/SD</location>
-		</link>
-		<link>
-			<name>libraries/SPI</name>
-			<type>2</type>
-			<locationURI>ECLIPSE_HOME/arduinoPlugin/packages/arduino/hardware/avr/1.6.20/libraries/SPI</locationURI>
-		</link>
-		<link>
-			<name>libraries/U8g2</name>
-			<type>2</type>
-			<location>/home/brendan/Arduino/libraries/U8g2</location>
-		</link>
-		<link>
-			<name>libraries/Wire</name>
-			<type>2</type>
-			<locationURI>ECLIPSE_HOME/arduinoPlugin/packages/arduino/hardware/avr/1.6.20/libraries/Wire</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>
