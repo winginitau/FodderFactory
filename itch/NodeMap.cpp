@@ -10,7 +10,8 @@
 #include "config.h"
 #include "NodeMap.h"
 #include "TokenList.h"
-#include "parser_errors.h"
+#include "itch_strings.h"
+#include "itch_hal.h"
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -31,6 +32,8 @@ uint16_t g_map_id_current;		// currently matched node
 uint16_t g_map_id_walker;		// to walk through the asta array nodes by id
 
 char g_map_last_target_str[MAX_IDENTIFIER_LABEL_SIZE];
+
+extern ASTA g_temp_asta;
 
 /********************************************************************
  * Functions
@@ -101,8 +104,9 @@ uint8_t MapDetermineTarget(uint8_t* target_size, char* target, char* line) {
 		// past the space delimiter at the end of the line.
 		// Don't process
 		#ifdef DEBUG
-		sprintf(n_debug_message, "DEBUG (MapDetermineTarget): DELIM_SKIP\n\r");
-		M(n_debug_message);
+			strcpy_debug(n_debug_message, ITCH_DEBUG_MAPDETERMINETARGET_DELIM_SKIP);
+			//sprintf(n_debug_message, "DEBUG (MapDetermineTarget): DELIM_SKIP\n\r");
+			M(n_debug_message);
 		#endif
 
 		return MR_DELIM_SKIP;
@@ -186,7 +190,8 @@ uint8_t Compare_N_PARAM_STRING(char* target, ASTA* temp_node) {
 }
 
 uint8_t Compare_N_LOOKUP(char* target, ASTA* temp_node) {
-
+	// TODO temp note will throw warning unused
+	// When lookup fully implemented it will be used
 	if (isdigit(target[0])) {
 		// can't be keyword or ident or lookup
 		return 0;
@@ -282,6 +287,7 @@ uint8_t MapMatch(char* line, TokenList* matched_list) {
 	MapSelectMatchingNodes(target, matched_list);
 
 	return MapEvaluateMatchedList(matched_list);
+
 }
 
 void MapSelectMatchingNodes(char* target, TokenList* matched_list) {
@@ -311,7 +317,37 @@ void MapSelectMatchingNodes(char* target, TokenList* matched_list) {
 			// the node is a possible match to be included
 			TLAddASTAToTokenList(matched_list, g_temp_asta);
 			#ifdef DEBUG
-			sprintf(n_debug_message, "DEBUG (MapSelectMatchingNodes) Adding Possible Match: ID:%d  Label:%s  which has Action:%s \n\r", g_temp_asta.id, g_temp_asta.label, g_temp_asta.action_identifier);
+			// XXX
+			// XXX This causes an lto_wrapper / ld seg fault at compile time
+			// XXX TRIAGE
+
+			//ORIGINAL - FAILS
+			//sprintf(n_debug_message, "DEBUG (MapSelectMatchingNodes) Adding Possible Match: ID:%d  Label:%s  which has Action:%s \n\r", g_temp_asta.id, g_temp_asta.label, g_temp_asta.action_identifier);
+
+			// WORKS
+			//sprintf(n_debug_message, "ID:%d \n\r", g_temp_asta.id);
+
+			// FAILS
+			//sprintf(n_debug_message, "Label:%s\n\r", g_temp_asta.label);
+
+			// WORKS
+			//strcpy(n_debug_message, g_temp_asta.label);
+
+			// WORKS
+			//sprintf(g_temp_asta.label, "Triage Label\n");
+			//sprintf(n_debug_message, "Label:%s\n\r", g_temp_asta.label);
+
+			// WORKS
+			//strcpy(n_debug_message, g_temp_asta.label);
+			//strcpy(n_debug_message, g_temp_asta.action_identifier);
+			//sprintf(n_debug_message, "DEBUG (MapSelectMatchingNodes) Adding Possible Match: ID:%d  Label:%s  which has Action:%s \n\r", g_temp_asta.id, g_temp_asta.label, g_temp_asta.action_identifier);
+
+			//NEW
+			strcpy(n_debug_message, g_temp_asta.label);
+			strcpy(n_debug_message, g_temp_asta.action_identifier);
+			strcpy_debug(g_temp_str, ITCH_DEBUG_MAPSELECTMATCHINGNODES_ID_LABEL_ACTION);
+			sprintf(n_debug_message, "%s%d/%s/%s\n", g_temp_str, g_temp_asta.id, g_temp_asta.label, g_temp_asta.action_identifier);
+
 			M(n_debug_message);
 			#endif
 		}
@@ -423,8 +459,8 @@ uint16_t MapMatchReduce(TokenList* list) {
 					// reduce did not achieve a unique match
 
 					#ifdef DEBUG
-					sprintf(n_debug_message, "DEBUG Fatal in (MatchReduce): size != 1 after iterative delete to unique node\n\r");
-					M(n_debug_message);
+						strcpy_debug(n_debug_message, ITCH_DEBUG_MATCH_REDUCE_FATAL_SIZE_NOT_1);
+						M(n_debug_message);
 					#endif
 
 					g_mflags.error_code = ME_MATCHREDUCE_EXPECTED_1;
@@ -444,8 +480,8 @@ uint16_t MapMatchReduce(TokenList* list) {
 			if (TLGetSize(list) == 1) {
 
 				#ifdef DEBUG
-				sprintf(n_debug_message, "XXX Fatal Error in (MatchReduce): unique lookup node passed to reducer\n\r");
-				M(n_debug_message);
+					strcpy_debug(n_debug_message, ITCH_DEBUG_MATCH_REDUCE_UNIQUE_NODE_PASSED_TO_REDUCER);
+					M(n_debug_message);
 				#endif
 
 				g_mflags.error_code = PE_LOOKUP_PASSED_TO_REDUCER;
@@ -456,8 +492,8 @@ uint16_t MapMatchReduce(TokenList* list) {
 	}
 
 	#ifdef DEBUG
-	sprintf(n_debug_message, "(MatchReduce) Serious Error - Next parse step dependent on multiple user-param nodes which can't be distinguished\n\r");
-	M(n_debug_message);
+		strcpy_debug(n_debug_message, ITCH_DEBUG_MATCH_REDUCE_NEXT_DEP_MULTIPLE_USER_PARAM_NODES);
+		M(n_debug_message);
 	#endif
 
 	g_mflags.error_code = PE_MULTIPLE_PARAM_LOOKAHEAD;
@@ -488,8 +524,8 @@ uint16_t MapAdvance(uint8_t in_buf_idx) {
 	g_map_line_pos = in_buf_idx;
 
 	#ifdef DEBUG
-	sprintf(n_debug_message, "DEBUG (MapAdvance)\n\r");
-	M(n_debug_message);
+		strcpy_debug(n_debug_message, ITCH_DEBUG_MAP_ADVANCE);
+		M(n_debug_message);
 	#endif
 
 	return g_map_id_current;

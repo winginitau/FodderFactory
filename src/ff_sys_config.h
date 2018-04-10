@@ -27,7 +27,7 @@
 //OR
 //#define FF_CONFIG
 
-//#define USE_ITCH
+#define USE_ITCH
 
 #ifdef FF_CONFIG
 #define FF_SIMULATOR
@@ -69,7 +69,7 @@
 /************************************************
  DEBUG Directives
  ************************************************/
-//#define DEBUG			// Call debug output at all or not?
+#define DEBUG			// Call debug output at all or not?
 
 #ifdef DEBUG
 
@@ -106,7 +106,7 @@
 #endif
 
 #ifdef FF_ARDUINO
-//#define DEBUG_MEMORY					//print heap and stack pointers in the debug process
+#define DEBUG_MEMORY					//print heap and stack pointers in the debug process
 //#define DEBUG_DALLAS				//Check and dump details on Dallas temperature sensors during start up
 #endif
 

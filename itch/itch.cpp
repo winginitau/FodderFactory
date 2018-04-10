@@ -9,10 +9,10 @@
 
 //#include "config.h"
 //#include "out.h"
+#include "itch_strings.h"
 #include "itch.h"
-#include "parser_errors.h"
+#include "itch_hal.h"
 #include <stdlib.h>
-
 
 #ifdef ARDUINO
 #define D(x) Serial.write(x)
@@ -28,6 +28,7 @@
 //extern void M(char strn[]);
 
 void M(char strn[]) {
+//void M(char *strn) {
 	char str[MAX_OUTPUT_LINE_SIZE];
 	strncpy(str, strn, MAX_OUTPUT_LINE_SIZE);
 	#ifdef ARDUINO
@@ -39,13 +40,13 @@ void M(char strn[]) {
 
 char i_debug_message[MAX_OUTPUT_LINE_SIZE];
 
-#endif
+#endif //DEBUG
 
 // Lots of routines dealing with input and output buffers
 // strings, param lists, tokens etc.... although ugly coding
 // practice, for cleaner memory management on embedded systems
 // with limited ram, better to have some preallocated variables
-// that can be have their space measured at compile / link time
+// that can have their space measured at compile / link time
 // and allocated at the start rather than dynamically creating them
 // on the stack inside functions, potentially bumping into the heap.
 
@@ -54,7 +55,7 @@ char* g_itch_replay_buff_ptr = (char *)g_itch_replay_buff;
 
 OutputBuffer g_itch_output_buff;		// General output buffer
 char g_out_str[MAX_OUTPUT_LINE_SIZE];	// Strings being assembled for output
-char g_temp_str[MAX_OUTPUT_LINE_SIZE];	// Generl string temp
+char g_temp_str[MAX_OUTPUT_LINE_SIZE];	// General string temp
 ASTA g_temp_asta;						// Temp asta node (and for the Progmem working copy)
 
 /******************************************************************************
@@ -83,7 +84,7 @@ void ITCH::Begin(int mode) {
 
 	if (iflags.mode == ITCH_INTERACTIVE) {
 		//sprintf(prompt_base, "\n\r$ ");
-		strcpy_P(prompt_base, misc_strings[MISC_PROMPT_BASE].text);
+		strcpy_hal(prompt_base, misc_strings[MISC_PROMPT_BASE].text);
 		strcpy(prompt, prompt_base);
 		Serial.write(prompt_base);
 	};
@@ -108,7 +109,6 @@ void ITCH::Begin(FILE* input_stream, FILE* output_stream, int mode) {
 
 
 void ITCH::Poll(void) {
-	//char output_line[MAX_OUTPUT_LINE_SIZE];
 
 	char ch;
 
@@ -243,8 +243,8 @@ void ITCH::Poll(void) {
 				break; //continue
 			case R_COMPLETE: {
 				#ifdef DEBUG
-				strcpy(i_debug_message, "R_COMPLETE\n");
-				M(i_debug_message);
+					strcpy_debug(i_debug_message, ITCH_DEBUG_R_COMPLETE);
+					M(i_debug_message);
 				#endif
 				while (g_itch_output_buff.OutputAvailable()) {
 					g_itch_output_buff.GetOutputAsString(g_out_str);
@@ -258,9 +258,9 @@ void ITCH::Poll(void) {
 				}
 				ParserResetLine();
 				#ifdef ARDUINO
-				Serial.write(prompt);
+					Serial.write(prompt);
 				#else
-				fputs(prompt, osp);
+					fputs(prompt, osp);
 				#endif
 				break;
 			}
@@ -277,8 +277,9 @@ void ITCH::Poll(void) {
 				}
 				ParserResetLine();
 				#ifdef DEBUG
-				sprintf(i_debug_message, "DEBUG (Poll) case R_REPLAY. replay_buf: %s\n\r", g_itch_replay_buff_ptr);
-				M(i_debug_message);
+					strcpy_debug(g_temp_str, ITCH_DEBUG_POLL_CASE_R_REPLAY);
+					sprintf(i_debug_message, "%s%s\n\r", g_temp_str, g_itch_replay_buff_ptr);
+					M(i_debug_message);
 				#endif
 				// Set the replay flag on
 				iflags.replay = 1;

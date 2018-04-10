@@ -51,11 +51,4 @@ static const EnumStringArray misc_strings[LAST_MISC_STRING] = {
 };
 
 
-
-
-
-
-
-
-
 #endif /* ITCH_CONFIG_H_ */
