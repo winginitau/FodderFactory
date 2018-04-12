@@ -33,9 +33,11 @@ uint8_t HALInitSerial(uint8_t port, uint16_t baudrate);
 
 uint8_t HALEventSerialSend(EventNode* e, uint8_t port, uint16_t baudrate);
 
+#ifdef USE_ITCH
 void HALInitItch(void);
 void HALPollItch(void);
-
+void HALItchWriteLnImmediate(char *str);
+#endif
 
 uint8_t HALDigitalRead(uint8_t if_num);
 

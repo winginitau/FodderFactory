@@ -221,8 +221,11 @@ enum {
 	LAST_OUT_KEY_TYPE
 };
 
-
+#ifdef PROGMEM_BLOCK_DEFS
+static const BlockCatArray block_cat_defs[LAST_BLOCK_CAT] PROGMEM = {
+#else
 static const BlockCatArray block_cat_defs[LAST_BLOCK_CAT] = {
+#endif
 
 	FF_ERROR_CAT,
 	"\0",

@@ -23,6 +23,10 @@
 #include <stdio.h>
 #endif
 
+#ifdef USE_ITCH
+#include "itch.h"
+#endif
+
 #include "ff_datetime.h"
 //#include "ff_display.h"
 //#include "ff_datetime.h"
@@ -73,6 +77,10 @@ char* GetMemPointers(char* str) {
 #ifdef DEBUG_SERIAL
 void DebugSerial(char *log_entry) {
     //Serial.begin(DEBUG_SERIAL_BAUDRATE);
+
+#ifdef USE_ITCH
+	HALItchWriteLnImmediate(log_entry);
+#else
     int loop = 2000;
     while (loop > 0) {
       loop--;
@@ -86,6 +94,7 @@ void DebugSerial(char *log_entry) {
       Serial.flush();
     };
     //Serial.end();
+#endif
 
 }
 #endif // DEBUG_SERIAL

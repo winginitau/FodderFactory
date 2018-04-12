@@ -16,6 +16,22 @@
 #include <Arduino.h>
 #endif
 
+char *strcpy_misc(char *dest, uint8_t src) {
+	#ifdef ARDUINO
+		return strcpy_P(dest, misc_strings[src].text);
+	#else
+		return strcpy(dest, misc_strings[src].text);
+	#endif
+}
+
+char *strcat_misc(char *dest, uint8_t src) {
+	#ifdef ARDUINO
+		return strcat_P(dest, misc_strings[src].text);
+	#else
+		return strcat(dest, misc_strings[src].text);
+	#endif
+}
+
 char *strcpy_hal(char *dest, const char *src) {
 	#ifdef ARDUINO
 		return strcpy_P(dest, src);
@@ -40,7 +56,7 @@ void *memcpy(void *dest, const void *src, size_t sz) {
 #endif
 }
 
-#ifdef DEBUG
+#ifdef ITCH_DEBUG
 char *strcpy_debug(char *dest, uint8_t src) {
 	#ifdef ARDUINO
 		return strcpy_P(dest, itch_debug_strings[src].text);
@@ -57,7 +73,7 @@ char *strcat_debug(char *dest, uint8_t src) {
 	#endif
 }
 
-#endif //DEBUG
+#endif //ITCH_DEBUG
 
 
 

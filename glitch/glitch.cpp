@@ -364,7 +364,7 @@ int main(int argc, char* argv[]) {
 	SendToOutput(Q_HEADER, out);
 
 	// Write header includes into the code and user_code files
-	sprintf(out, "#include \"parser_errors.h\"\n\n");
+	sprintf(out, "#include \"itch_strings.h\"\n\n");
 	SendToOutput(Q_CODE, out);
 	sprintf(out, "#include \"%s\"\n\n", hf_name);
 	SendToOutput(Q_CODE, out);

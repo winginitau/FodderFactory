@@ -24,10 +24,10 @@
 #include "ff_controllers.h"
 #include "ff_outputs.h"
 
+#include <stdlib.h>
+#include <string.h>
 
 #ifdef FF_SIMULATOR
-#include <string.h>
-#include <stdlib.h>
 #include <stdio.h>
 #endif
 
@@ -41,10 +41,10 @@
  Data Structures
 ************************************************/
 
-typedef struct BLOCK_TYPE {
-	char label[MAX_LABEL_LENGTH];
-	uint8_t active;
-} Block;
+//typedef struct BLOCK_TYPE {
+//	char label[MAX_LABEL_LENGTH];
+//	uint8_t active;
+//} Block;
 
 
 typedef struct FF_STATE_REGISTER {
@@ -77,7 +77,11 @@ void Setup(BlockNode *b) {
 	switch (b->block_cat) {
 	case FF_SYSTEM:
 		//HALInitItch();
-		delay(60000); //XXX kludge to allow the rpi to boot and establish ppp to the controller before sending data
+		#ifdef FF_ARDUINO
+		#ifdef FF_RPI_START_DELAY
+			delay(FF_RPI_START_DELAY); //XXX kludge to allow the rpi to boot and establish ppp to the controller before sending data
+		#endif
+		#endif
 		UpdateUI();
 		break;
 	case FF_INPUT:
@@ -286,6 +290,7 @@ BlockNode* AddBlockNode(BlockNode** head_ref, uint8_t block_cat, const char *blo
 		}
 		new_block->next_block = NULL;
 
+		new_block->block_label = NULL;
 		new_block->block_cat = block_cat;
 		new_block->block_type = UINT8_INIT;
 
@@ -305,13 +310,25 @@ BlockNode* AddBlockNode(BlockNode** head_ref, uint8_t block_cat, const char *blo
 				new_block->block_id = BLOCK_ID_BASE + block_count;
 				block_count++;
 			}
-			strcpy(new_block->block_label, block_label);
-#ifndef	EXCLUDE_DISPLAYNAME
-			new_block->display_name[0] = '\0';
-#endif
-#ifndef EXCLUDE_DESCRIPTION
-			new_block->description[0] = '\0';
-#endif
+
+			//strcpy(new_block->block_label, block_label);
+
+			if(block_label != NULL) {
+				// XXX add null checks
+				new_block->block_label = (char *)malloc( (strlen(block_label)+1) * sizeof(char) );
+				strcpy(new_block->block_label, block_label);
+			} else {
+				new_block->block_label = NULL;
+			}
+
+			#ifndef	EXCLUDE_DISPLAYNAME
+			//new_block->display_name[0] = '\0';
+			new_block->display_name = NULL;
+			#endif
+			#ifndef EXCLUDE_DESCRIPTION
+			//new_block->description[0] = '\0';
+			new_block->description = NULL;
+			#endif
 
 			switch (block_cat) {
 				case FF_SYSTEM:
@@ -369,7 +386,7 @@ BlockNode* AddBlockNode(BlockNode** head_ref, uint8_t block_cat, const char *blo
 
 BlockNode* AddBlock(uint8_t block_cat, const char *block_label) {
 	//to save stack memory, iterate down the block list
-	//and only call the recursive AddBlockNode function
+	//and only call AddBlockNode function
 	//once at the end of the list
 
 	if (bll == NULL) {
@@ -382,6 +399,43 @@ BlockNode* AddBlock(uint8_t block_cat, const char *block_label) {
 		}
 		return AddBlockNode(&(walker->next_block), block_cat, block_label);
 	}
+}
+
+char* UpdateBlockLabel(BlockNode* b, char * block_label) {
+	// Possible options:
+	// b->label == NULL and block_label != NULL - malloc
+	// b->label == NULL and block_label == NULL - do nothing
+	// b->label != NULL and block_label == NULL - free b->label
+	// b->label != NULL and block_label != NULL - realloc b->label
+
+	//char* result;
+
+	if (b->block_label == NULL) {
+		// not previously malloced
+		if (block_label != NULL) {
+			b->block_label = (char *)malloc( (strlen(block_label)+1) * sizeof(char) );
+			// XXX add null check and debug throw
+			strcpy(b->block_label, block_label);
+		} else {
+			// block_label is NULL
+			return NULL;
+		}
+	} else {
+		// b->block label already assigned
+		if(block_label == NULL) {
+			// update to NULL
+			free(b->block_label);
+			b->block_label = NULL;
+			return NULL;
+		} else {
+			// XXX realloc fails at link workaround
+			free(b->block_label);
+			b->block_label = (char *)malloc( (strlen(block_label)+1) * sizeof(char) );
+			// XXX add null check and debug throw
+			strcpy(b->block_label, block_label);
+		}
+	}
+	return b->block_label;
 }
 
 BlockNode* GetBlockNodeByLabel(BlockNode *list_node, const char *block_label) {
@@ -402,6 +456,34 @@ BlockNode* GetBlockNodeByLabel(BlockNode *list_node, const char *block_label) {
 BlockNode* GetBlockByLabel(const char *block_label) {
 	return GetBlockNodeByLabel(bll, block_label);
 }
+
+/********************************************************************************************
+ * ITCH Integration Handlers
+ ********************************************************************************************/
+
+void RegShowBlocks(void(*Callback)(char *)) {
+	BlockNode* b;
+	b = bll;
+	char out[MAX_MESSAGE_STRING_LENGTH];
+
+	if (b == NULL) {
+		Callback("Empty List");
+	} else {
+		sprintf(out, "\tBID\tCAT\tTYPE\tLABEL");
+		Callback(out);
+		while(b != NULL) {
+			sprintf(out, "\t%d\t%d\t%d\t%s", b->block_id, b->block_cat, b->block_type, b->block_label);
+			Callback(out);
+			b = b->next_block;
+		}
+	}
+}
+
+
+
+/********************************************************************************************
+ * State Register and UI Data Set Functions
+ ********************************************************************************************/
 
 
 UIDataSet* GetUIDataSet(void) {
@@ -483,9 +565,7 @@ void UpdateStateRegister(uint16_t source, uint8_t msg_type, uint8_t msg_str, int
 	//sr.ui_data.water_heater_flag = 0;
 }
 
-
 void InitStateRegister(void) {
-
 	DebugLog(SSS, E_INFO, M_INI_SR);
 
 	sr.language = ENGLISH;
@@ -519,7 +599,6 @@ void InitStateRegister(void) {
 	//TODO these will go
 	//sr.ui_data.light_flag = 0;
 	//sr.ui_data.water_heater_flag = 0;
-
 
 }
 

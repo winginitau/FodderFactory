@@ -82,9 +82,16 @@ uint8_t GetConfKeyIndex(uint8_t block_cat, const char* key_str) {
 	}
 
 	//check that we have a key that matches one of the keys strings of the block category
-	while ((strcmp(key_str, block_cat_defs[block_cat].conf_keys[key_idx]) != 0) && key_idx < last_key) {
-		key_idx++;
-	}
+
+	#ifdef PROGMEM_BLOCK_DEFS
+		while ((strcmp_P(key_str, block_cat_defs[block_cat].conf_keys[key_idx]) != 0) && key_idx < last_key) {
+			key_idx++;
+		}
+	#else
+		while ((strcmp(key_str, block_cat_defs[block_cat].conf_keys[key_idx]) != 0) && key_idx < last_key) {
+			key_idx++;
+		}
+	#endif
 
 	if (key_idx == last_key) {
 		DebugLog(SSS, E_STOP, M_CONFKEY_NOTIN_DEFS);
@@ -636,8 +643,11 @@ void ReadAndParseConfig(void) {
 
 
 	for (int key = 1; key < last_key; key++) {  //see string_consts.h - 0 reserved for error types.
-		strcpy(block_section_key, block_cat_defs[block_cat].conf_keys[key]);
-
+		#ifdef PROGMEM_BLOCK_DEFS
+			strcpy_P(block_section_key, block_cat_defs[block_cat].conf_keys[key]);
+		#else
+			strcpy(block_section_key, block_cat_defs[block_cat].conf_keys[key]);
+		#endif
 		if (cf.getValue("system", block_section_key, key_value, INI_FILE_MAX_LINE_LENGTH)) {
 			if (ConfigureBlock(FF_SYSTEM, "system", block_section_key, key_value)) {
 				sprintf(debug_msg, "[CONFIG][SYSTEM][%s] = %s", block_section_key, key_value);
@@ -657,7 +667,7 @@ void ReadAndParseConfig(void) {
 
 	// Read each of the block category list sections
 	// getting all the user defined labels and registering
-	// them in the registry vis the ConfigureBlock call.
+	// them in the registry via the ConfigureBlock call.
 	// Note they can't be fully configured
 	// in this iteration because blocks refer to other blocks
 	// so we need the full list of block identifiers registered first
@@ -674,9 +684,13 @@ void ReadAndParseConfig(void) {
 	for (; block_cat < LAST_BLOCK_CAT; block_cat++) { //iterate through each block category
 		last_found = 0;
 		while (bl < MAX_BLOCKS_PER_CATEGORY && !last_found) { 		// a b_cat<bl> = <Label> is still to process (potentially)
-
-			strcpy(list_section, block_cat_defs[block_cat].conf_section_label);	//list_section
-			sprintf(list_section_key, "%s%d", block_cat_defs[block_cat].conf_section_key_base, bl);	//list_section_key
+			#ifdef PROGMEM_BLOCK_DEFS
+				strcpy_P(list_section, block_cat_defs[block_cat].conf_section_label);	//list_section
+				sprintf_P(list_section_key, "%S%d", block_cat_defs[block_cat].conf_section_key_base, bl);	//list_section_key
+			#else
+				strcpy(list_section, block_cat_defs[block_cat].conf_section_label);	//list_section
+				sprintf(list_section_key, "%s%d", block_cat_defs[block_cat].conf_section_key_base, bl);	//list_section_key
+			#endif
 			key_value[0] = '\0';
 
 			if (cf.getValue(list_section, list_section_key, key_value,
@@ -699,11 +713,19 @@ void ReadAndParseConfig(void) {
 				bl++;
 
 			} else {
+				#ifdef PROGMEM_BLOCK_DEFS
+				if( cf.getError() == errorKeyNotFound) {  // this is expected once key list end is found
+					sprintf_P(debug_msg, "[CONFIG] Registered %d [%S]", bl-1, block_cat_defs[block_cat].conf_section_label);
+				} else {
+					sprintf_P(debug_msg, "[CONFIG] LAST [%s] REACHED - [%S]: %s ", block_cat_defs[block_cat].conf_section_label, list_section_key, GetINIError(cf.getError(), ini_error_string));
+				}
+				#else
 				if( cf.getError() == errorKeyNotFound) {  // this is expected once key list end is found
 					sprintf(debug_msg, "[CONFIG] Registered %d [%s]", bl-1, block_cat_defs[block_cat].conf_section_label);
 				} else {
 					sprintf(debug_msg, "[CONFIG] LAST [%s] REACHED - [%s]: %s ", block_cat_defs[block_cat].conf_section_label, list_section_key, GetINIError(cf.getError(), ini_error_string));
 				}
+				#endif
 				DebugLog(debug_msg);
 				last_found = 1;
 				bl = 1;
@@ -723,9 +745,13 @@ void ReadAndParseConfig(void) {
 	for (; block_cat < LAST_BLOCK_CAT; block_cat++) { //iterate through each block category
 		last_found = 0;
 		while (bl < MAX_BLOCKS_PER_CATEGORY && !last_found) { 		// a b_cat<bl> = <Label> is still to process (potentially)
-
-			strcpy(list_section, block_cat_defs[block_cat].conf_section_label);	//list_section
-			sprintf(list_section_key, "%s%d", block_cat_defs[block_cat].conf_section_key_base, bl);	//list_section_key
+			#ifdef PROGMEM_BLOCK_DEFS
+				strcpy_P(list_section, block_cat_defs[block_cat].conf_section_label);	//list_section
+				sprintf_P(list_section_key, "%S%d", block_cat_defs[block_cat].conf_section_key_base, bl);	//list_section_key
+			#else
+				strcpy(list_section, block_cat_defs[block_cat].conf_section_label);	//list_section
+				sprintf(list_section_key, "%s%d", block_cat_defs[block_cat].conf_section_key_base, bl);	//list_section_key
+			#endif
 			key_value[0] = '\0';
 
 			if (cf.getValue(list_section, list_section_key, key_value, INI_FILE_MAX_LINE_LENGTH)) {
@@ -759,9 +785,11 @@ void ReadAndParseConfig(void) {
 					;
 				}
 				for (int key = 1; key < last_key; key++) {
-
-					strcpy(block_section_key, block_cat_defs[block_cat].conf_keys[key]);
-
+					#ifdef PROGMEM_BLOCK_DEFS
+						strcpy_P(block_section_key, block_cat_defs[block_cat].conf_keys[key]);
+					#else
+						strcpy(block_section_key, block_cat_defs[block_cat].conf_keys[key]);
+					#endif
 					if (cf.getValue(block_section, block_section_key, key_value,
 					INI_FILE_MAX_LINE_LENGTH)) {
 
@@ -785,11 +813,19 @@ void ReadAndParseConfig(void) {
 				bl++;
 
 			} else {
+				#ifdef PROGMEM_BLOCK_DEFS
+				if( cf.getError() == errorKeyNotFound) {
+					sprintf_P(debug_msg, "[CONFIG] Processed %d [%S]", bl-1, block_cat_defs[block_cat].conf_section_label);
+				} else {
+					sprintf(debug_msg, "[CONFIG] LAST [%s] REACHED - [%S]: %s ", block_cat_defs[block_cat].conf_section_label, list_section_key, GetINIError(cf.getError(), ini_error_string));
+				}
+				#else
 				if( cf.getError() == errorKeyNotFound) {
 					sprintf(debug_msg, "[CONFIG] Processed %d [%s]", bl-1, block_cat_defs[block_cat].conf_section_label);
 				} else {
 					sprintf(debug_msg, "[CONFIG] LAST [%s] REACHED - [%s]: %s ", block_cat_defs[block_cat].conf_section_label, list_section_key, GetINIError(cf.getError(), ini_error_string));
 				}
+				#endif
 				DebugLog(debug_msg);
 				last_found = 1;
 				bl = 1;

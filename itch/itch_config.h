@@ -13,7 +13,7 @@
 
 //#define IDENTIFIER_REGEX "^[a-zA-Z0-9_]{1,31}$"
 
-#define DEBUG
+//#define ITCH_DEBUG
 
 #include "common_config.h"
 
@@ -27,28 +27,6 @@ typedef struct ENUM_STRING_ARRAY_TYPE {
 	char text[MAX_BUFFER_LENGTH];
 } EnumStringArray;
 
-enum {
-	MISC_ERROR = 0,
-	MISC_HELP_HEADING,
-	MISC_ERROR_PROMPT,
-	MISC_ERROR_HEADER,
-	MISC_PROMPT_BASE,
-	MISC_CRNL,
-	LAST_MISC_STRING
-};
-
-#ifdef USE_PROGMEM
-static const EnumStringArray misc_strings[LAST_MISC_STRING] PROGMEM = {
-#else
-static const EnumStringArray misc_strings[LAST_MISC_STRING] = {
-#endif
-	"MISC_ERROR",
-	"\nCommand Help:\n",
-	"\n\rTry \"?\" or <command> ? for help.\n\r",
-	"\n\r>>> Error:\n\r>>> ",
-	"\n\r$ ",
-	"\n\r",
-};
 
 
 #endif /* ITCH_CONFIG_H_ */

@@ -23,9 +23,7 @@
  * Globals
  ******************************************************************************/
 
-#ifdef DEBUG
-
-//extern void M(char strn[]);
+#ifdef ITCH_DEBUG
 
 void M(char strn[]) {
 //void M(char *strn) {
@@ -40,7 +38,7 @@ void M(char strn[]) {
 
 char i_debug_message[MAX_OUTPUT_LINE_SIZE];
 
-#endif //DEBUG
+#endif //ITCH_DEBUG
 
 // Lots of routines dealing with input and output buffers
 // strings, param lists, tokens etc.... although ugly coding
@@ -86,7 +84,8 @@ void ITCH::Begin(int mode) {
 		//sprintf(prompt_base, "\n\r$ ");
 		strcpy_hal(prompt_base, misc_strings[MISC_PROMPT_BASE].text);
 		strcpy(prompt, prompt_base);
-		Serial.write(prompt_base);
+		//Serial.write("Itch Begin Called ");
+		WriteImmediate(prompt);
 	};
 
 }
@@ -97,11 +96,12 @@ void ITCH::Begin(FILE* input_stream, FILE* output_stream, int mode) {
 	isp = input_stream;
 	osp = output_stream;
 	iflags.mode = mode;
+
 	ParserInit();
 
 	if (iflags.mode == ITCH_INTERACTIVE) {
 		sprintf(prompt_base, "\n\r$ ");
-		fputs(prompt_base, osp);
+		fputs(prompt, osp);
 	};
 }
 
@@ -117,18 +117,25 @@ void ITCH::Poll(void) {
 	// if no replay editing is active then get the next ch from the input stream
 	if (iflags.replay == 0) {
 		#ifndef ARDUINO
-			ch = getc(isp);
+		ch = getc(isp);
 		#endif
 
 		#ifdef ARDUINO
-			if (Serial.available()) {
-				ch = Serial.read();
-				Serial.write(ch);
-			} else {
-				return;
-			}
+		if (Serial.available()) {
+			//delay(5);
+			ch = Serial.read();
+			// XXX deal with terminal modes - local echo?
+			//delay(5);
+			//Serial.flush();
+			//delay(5);
+			Serial.write(ch);
+			//delay(5);
+			//Serial.flush();
+			//delay(5);
+		} else return;
 		#endif
-	} else {
+
+	} else { //iflags.relay != 0
 		// re-stuff the replay buffer into the stream
 		ch = *g_itch_replay_buff_ptr;
 		g_itch_replay_buff_ptr++;
@@ -145,30 +152,14 @@ void ITCH::Poll(void) {
 
 		switch (result) {
 			case R_HELP:
-				#ifdef ARDUINO
-				strcpy_P(g_out_str, misc_strings[MISC_HELP_HEADING].text);
-				Serial.write(g_out_str);
-				#else
-				strcpy(g_out_str, misc_strings[MISC_HELP_HEADING].text);
-				fputs(g_out_str, osp);
-				#endif
+				strcpy_misc(g_out_str, MISC_HELP_HEADING);
+				WriteLnImmediate(g_out_str);
 				while (g_itch_output_buff.OutputAvailable()) {
 					g_itch_output_buff.GetOutputAsString(g_out_str);
-					strcat(g_out_str, "\r");
-
-					#ifdef ARDUINO
-					Serial.write(g_out_str);
-					Serial.flush();
-					#else
-					fputs(g_out_str, osp);
-					#endif
+					WriteLnImmediate(g_out_str);
 				}
 				ParserResetLine();
-				#ifdef ARDUINO
-				Serial.write(prompt);
-				#else
-				fputs(prompt, osp);
-				#endif
+				WriteImmediate(prompt);
 				// logic to repost up to
 				// but not including the ? that triggered help
 				// parser.RePost????();
@@ -185,100 +176,53 @@ void ITCH::Poll(void) {
 				// 	or the rest of the input buffer after error detected
 				while (g_itch_output_buff.OutputAvailable()) {
 					g_itch_output_buff.GetOutputAsString(g_out_str);
-					strcat(g_out_str, "\r");
-					#ifdef ARDUINO
-					Serial.write(g_out_str);
-					Serial.flush();
-					#else
-					fputs(g_out_str, osp);
-					#endif
+					WriteLnImmediate(g_out_str);
 				}
 				break; //continue
 			case R_ERROR:
-				#ifdef ARDUINO
-				strcpy_P(g_out_str, misc_strings[MISC_ERROR_HEADER].text);
-				Serial.write(g_out_str);
-				#else
-				strcpy(g_out_str, misc_strings[MISC_ERROR_HEADER].text);
-				fputs(g_out_str, osp);
-				#endif
-
-				//Serial.write("Error caught back to ITCH R_ERROR - now after Error Header Write\n\r");
-				//char temp[MAX_OUTPUT_LINE_SIZE];
-				//sprintf(temp, "result: %d \n\r", result);
-				//Serial.write(temp);
-
+				strcpy_misc(g_out_str, MISC_ERROR_HEADER);
+				WriteLnImmediate(g_out_str);
 				ParserGetErrorString(g_out_str);
-				strcat(g_out_str, misc_strings[MISC_ERROR_PROMPT].text);
-				#ifdef ARDUINO
-				Serial.write(g_out_str);
-				#else
-				fputs(g_out_str, osp);
-				#endif
-				#ifdef ARDUINO
-				Serial.write(prompt);
-				#else
-				fputs(prompt, osp);
-				#endif
+				strcat_misc(g_out_str, MISC_ERROR_PROMPT);
+				WriteLnImmediate(g_out_str);
+				WriteImmediate(prompt);
 				ParserResetLine();
 				break;
 			case R_NONE:
-				// parser should always return a meaningful result
+				// parser should always return a meaningful result - report error
 				ParserSetError(PE_NO_PARSE_RESULT);
 				ParserGetErrorString(g_out_str);
-				strcat_P(g_out_str, misc_strings[MISC_CRNL].text);
-				#ifdef ARDUINO
-				Serial.write(g_out_str);
-				#else
-				fputs(g_out_str, osp);
-				#endif
-				#ifdef ARDUINO
-				Serial.write(prompt);
-				#else
-				fputs(prompt, osp);
-				#endif
+				strcat_misc(g_out_str, MISC_CRNL);
+				WriteLnImmediate(g_out_str);
+				WriteImmediate(prompt);
 				ParserResetLine();
 				break; //continue
 			case R_UNFINISHED:
-				break; //continue
+				//char consumed, ready for next, nothing to report
+				break;
 			case R_COMPLETE: {
-				#ifdef DEBUG
+				#ifdef ITCH_DEBUG
 					strcpy_debug(i_debug_message, ITCH_DEBUG_R_COMPLETE);
 					M(i_debug_message);
 				#endif
 				while (g_itch_output_buff.OutputAvailable()) {
 					g_itch_output_buff.GetOutputAsString(g_out_str);
-					strcat(g_out_str, "\r");
-					#ifdef ARDUINO
-					Serial.write(g_out_str);
-					Serial.flush();
-					#else
-					fputs(g_out_str, osp);
-					#endif
+					WriteLnImmediate(g_out_str);
 				}
 				ParserResetLine();
-				#ifdef ARDUINO
-					Serial.write(prompt);
-				#else
-					fputs(prompt, osp);
-				#endif
+				WriteImmediate(prompt);
 				break;
 			}
 			case R_REPLAY:
 				while (g_itch_output_buff.OutputAvailable()) {
 					g_itch_output_buff.GetOutputAsString(g_out_str);
 					strcat(g_out_str, "\r");
-					#ifdef ARDUINO
-					Serial.write(prompt);
-					Serial.flush();
-					#else
-					fputs(g_out_str, osp);
-					#endif
+					WriteImmediate(prompt);
 				}
 				ParserResetLine();
-				#ifdef DEBUG
+				#ifdef ITCH_DEBUG
 					strcpy_debug(g_temp_str, ITCH_DEBUG_POLL_CASE_R_REPLAY);
-					sprintf(i_debug_message, "%s%s\n\r", g_temp_str, g_itch_replay_buff_ptr);
+					sprintf(i_debug_message, "%s%s\n", g_temp_str, g_itch_replay_buff_ptr);
 					M(i_debug_message);
 				#endif
 				// Set the replay flag on
@@ -286,34 +230,207 @@ void ITCH::Poll(void) {
 				//ParserBufferInject(parser_replay_buff);
 				// Write out the prompt and the replay buffer to indicate to the user
 				// recall success
-				#ifdef ARDUINO
-				Serial.write(prompt);
-				Serial.write(g_itch_replay_buff);
-				Serial.flush();
-				#else
-				fputs(prompt, osp);
-				fputs(g_itch_replay_buff, osp);
-				#endif
+				WriteImmediate(prompt);
+				WriteImmediate(g_itch_replay_buff);
 				break;
 		}
 	}
 }
 
 void ITCH::WriteLine(char* string) {
+	//strcat(string, "\r");
 	g_itch_output_buff.AddString(string);
 	g_itch_output_buff.SetOutputAvailable();
 }
 
+void ITCH::WriteLnImmediate(char* string) {
+	#ifdef ARDUINO
+		strcat(string, "\n\r");
+		//delay(5);
+		Serial.flush();
+		//delay(5);
+		Serial.write(string);
+		//delay(5);
+		Serial.flush();
+	#else
+		fputs(g_out_str, osp);
+	#endif
+}
+
 void ITCH::WriteImmediate(char* string) {
 	#ifdef ARDUINO
-		Serial.write(string);
+	delay(500);
 		Serial.flush();
+		//delay(5);
+		Serial.write(string);
+		//delay(5);
+		Serial.flush();
+		//delay(5);
+	#else
+		fputs(g_out_str, osp);
 	#endif
 }
 
 
 
+/*************************************************************************
+ * Example Terminal Program for picking over
+ */
 
+/*
+typedef struct command {
+	char	cmd[10];
+	void	(*func)	(void);
+};
 
+command commands[] = {
+	{"rd",		Cmd_RD},
+	{"rdw",		Cmd_RDW},
+	{"wr",		Cmd_WR},
+	{"l",		Cmd_L},
+	{"p",		Cmd_P},
+	{"regs",	Cmd_REGS},
+	{"io",		Cmd_IO},
+	{"f",		Cmd_F},
+	{"sp",		Cmd_SP},
+	{"per",		Cmd_PER},
+	{"watch",	Cmd_WATCH},
+	{"rst",		Cmd_RST},
+	{"ipc",		Cmd_IPC},
+	{"set",		Cmd_SET},
+	{"dig",		Cmd_DIG},
+	{"an",		Cmd_AN},
+	{"pin",		Cmd_PIN},
+	{"pc",		Cmd_PC},
+	{"info",	Cmd_INFO},
+	{"/",		Cmd_HELP}
+};
+...
+void	Cmd_WR () {  // example of one of the commands
+	/////////////////////////////////////////////////////////
+	// write a value to target RAM
+	int addr = GetAddrParm(0);
+	byte val = GetValParm(1, HEX);
+	if (SetTargetByte (addr, val) != val)
+		Serial << "Write did not verify" << endl;
+}
+...
+void	loop() {
+	char c;
+
+	if (Serial.available() > 0) {
+		c = Serial.read();
+		if (ESC == c) {
+			while (Serial.available() < 2) {};
+			c = Serial.read();
+			c = Serial.read();
+			switch (c) {
+				case 'A':  // up arrow
+					// copy the last command into the command buffer
+					// then echo it to the terminal and set the
+					// the buffer's index pointer to the end
+					memcpy(cmd_buffer, last_cmd, sizeof(last_cmd));
+					cmd_buffer_index = strlen (cmd_buffer);
+					Serial << cmd_buffer;
+					break;
+			}
+		} else {
+			c = tolower(c);
+			switch (c) {
+
+				case TAB:   // retrieve and execute last command
+					memcpy(cmd_buffer, last_cmd, sizeof(cmd_buffer));
+					ProcessCommand ();
+					break;
+
+				case BACKSPACE:  // delete last char
+					if (cmd_buffer_index > 0) {
+						cmd_buffer[--cmd_buffer_index] = NULLCHAR;
+						Serial << _BYTE(BACKSPACE) << SPACE << _BYTE(BACKSPACE);
+					}
+					break;
+
+				case LF:
+					ProcessCommand ();
+					Serial.read();		// remove any following CR
+					break;
+
+				case CR:
+					ProcessCommand ();
+					Serial.read();		// remove any following LF
+					break;
+
+				default:
+					cmd_buffer[cmd_buffer_index++] = c;
+					cmd_buffer[cmd_buffer_index] = NULLCHAR;
+					Serial.print (c);
+			}
+		}
+	}
+}
+
+void	ProcessCommand () {
+	int cmd, per;
+	peripheral p;
+
+	/////////////////////////////////////////////////////
+	// any command will kill the watching feature
+	watching = false;
+
+	Serial.println("");
+
+	/////////////////////////////////////////////////////
+	// trap just a CRLF
+	if (cmd_buffer[0] == NULLCHAR) {
+		Serial.print("AVR> ");
+		return;
+	}
+
+	/////////////////////////////////////////////////////
+	// save this command for later use with TAB or UP arrow
+	memcpy(last_cmd, cmd_buffer, sizeof(last_cmd));
+
+	/////////////////////////////////////////////////////
+	// Chop the command line into substrings by
+	// replacing ' ' with '\0'
+	// Also adds pointers to the substrings
+	SplitCommand();
+
+	/////////////////////////////////////////////////////
+	// Scan the command table looking for a match
+	for (cmd = 0; cmd < N_COMMANDS; cmd++) {
+		if (strcmp (commands[cmd].cmd, (char *)cmd_buffer) == 0) {
+			commands[cmd].func();
+			goto done;
+		}
+	}
+
+	/////////////////////////////////////////////////////
+	// If we didn't find a valid command scan the peripherals
+	// table looking for a match with the entered command
+	for (per = 0; per < N_PERIPHERALS; per++) {
+		memcpy_P(&p, &peripherals[per], sizeof (p));
+		if (strcmp (UCASE_STR(cmd_buffer), p.name) == 0) {
+			// we found a match, point the first parm pointer
+			// to the command and call Cmd_PER to do the work
+			// Cmd_PER will use parms[0] to find the peripheral
+			// to dump
+			parms[0] = cmd_buffer;
+			n_parms = 1;
+			Cmd_PER();
+			goto done;
+		}
+	}
+
+	/////////////////////////////////////////////////////
+	// if we get here no valid command was found
+	Serial << "wtf?" << endl;
+
+	done:
+	cmd_buffer_index = 0;
+	cmd_buffer[0] = NULLCHAR;
+	Serial << "AVR> ";
+}
+*/
 
 

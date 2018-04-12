@@ -64,7 +64,8 @@ public:
 
 	void Poll();
 	void WriteLine(char* string);
-	void WriteImmediate(char* string);
+	static void WriteLnImmediate(char* string);
+	static void WriteImmediate(char* string);
 };
 
 

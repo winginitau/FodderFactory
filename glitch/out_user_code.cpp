@@ -1,4 +1,5 @@
 #include "out.h"
+#include "ff_registry.h"
 
 #include "itch.h"
 #include <stdint.h>
@@ -17,6 +18,9 @@ void ShowBlocks(void) {
 	#else
 		sprintf(temp, "ShowBlocks(...) with param list (void)\n\n\r");
 	#endif
+
+	RegShowBlocks(itch.WriteLnImmediate);
+
 	// >>>
 	// >>> Results Callback via ITCHriteLine
 	// >>>

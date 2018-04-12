@@ -24,7 +24,7 @@
 #endif
 
 
-#ifdef DEBUG
+#ifdef ITCH_DEBUG
 extern void M(char strn[]);
 char p_debug_message[MAX_OUTPUT_LINE_SIZE];
 #endif
@@ -161,7 +161,7 @@ void P_ESCAPE(char ch) {
 	if ( (ch == '[') && (g_pflags.escape == 1) ) {
 		g_pflags.escape = 2;
 	}
-	#ifdef DEBUG
+	#ifdef ITCH_DEBUG
 		strcpy_debug(g_temp_str, ITCH_DEBUG_PF_ESCAPE_IS);
 		sprintf(p_debug_message, "%s %d\n", g_temp_str, g_pflags.escape);
 		M(p_debug_message);
@@ -189,7 +189,7 @@ uint8_t P_EOL() {
 				// 	the ParseMatch will not have been triggered to save it
 				ParserSaveTokenAsParameter();
 
-				#ifdef DEBUG
+				#ifdef ITCH_DEBUG
 					char action_ident[MAX_AST_ACTION_SIZE];
 					MapGetAction(MapGetLastMatchedID(), action_ident);
 					strcpy_debug(g_temp_str, ITCH_DEBUG_P_EOL_ACTION_TO_BE_CALLED_IS);
@@ -302,7 +302,7 @@ uint8_t Parse(char ch) {
 	// Process incoming char in context of parse flags
 	// set from processing the previous char and match
 	// and results from the node map (if called on previous).
-	#ifdef DEBUG
+	#ifdef ITCH_DEBUG
 		strcpy_debug(g_temp_str, ITCH_DEBUG_PARSE_PROCESSING_CHAR);
 		sprintf(p_debug_message, "%s%c\n", g_temp_str, ch);
 		M(p_debug_message);
@@ -324,7 +324,7 @@ uint8_t Parse(char ch) {
 		case 'D':
 			if(g_pflags.escape == 2) {
 				g_pflags.escape = 0;
-				#ifdef DEBUG
+				#ifdef ITCH_DEBUG
 					strcpy_debug(p_debug_message, ITCH_DEBUG_PARSE_R_REPLAY);
 					M(p_debug_message);
 				#endif
@@ -367,7 +367,7 @@ uint8_t Parse(char ch) {
 		// Error already flagged but need to discard buffered chars still coming before finishing
 		// so just ignore until EOL. Next iteration will return Error or Complete accordingly
 		// once EOL encountered
-		#ifdef DEBUG
+		#ifdef ITCH_DEBUG
 			strcpy_debug(g_temp_str, ITCH_DEBUG_PARSE_DISCARD_CHAR);
 			sprintf(p_debug_message, "%s%c\n", g_temp_str, ch);
 			M(p_debug_message);
@@ -421,7 +421,7 @@ uint8_t ParserMatchEvaluate(void) {
 	switch (g_pflags.match_result) {
 		case MR_NO_MATCH:
 
-			#ifdef DEBUG
+			#ifdef ITCH_DEBUG
 				strcpy_debug(p_debug_message, ITCH_DEBUG_PARSERMATCHEVALUATE_MR_NO_MATCH);
 				M(p_debug_message);
 			#endif
@@ -431,7 +431,7 @@ uint8_t ParserMatchEvaluate(void) {
 			break;
 		case MR_UNIQUE: {
 
-			#ifdef DEBUG
+			#ifdef ITCH_DEBUG
 				// single unique match - will still need EOL to finsih
 				strcpy_debug(p_debug_message, ITCH_DEBUG_PARSERMATCHEVALUATE_MR_UNIQUE);
 				M(p_debug_message);
@@ -450,7 +450,7 @@ uint8_t ParserMatchEvaluate(void) {
 			break;
 		case MR_ACTION_POSSIBLE:
 
-			#ifdef DEBUG
+			#ifdef ITCH_DEBUG
 				// single unique matched with is actionalable - (if EOL is next)
 				strcpy_debug(p_debug_message, ITCH_DEBUG_PARSERMATCHEVALUATE_MR_ACTION_POSSIBLE);
 				M(p_debug_message);
@@ -463,7 +463,7 @@ uint8_t ParserMatchEvaluate(void) {
 			break;
 		case MR_MULTI: {
 
-			#ifdef DEBUG
+			#ifdef ITCH_DEBUG
 				strcpy_debug(p_debug_message, ITCH_DEBUG_PARSERMATCHEVALUATE_MR_MULTI);
 				M(p_debug_message);
 				TLToTop(g_parser_possible_list);
@@ -484,7 +484,7 @@ uint8_t ParserMatchEvaluate(void) {
 
 		case MR_DELIM_SKIP:
 
-			#ifdef DEBUG
+			#ifdef ITCH_DEBUG
 				strcpy_debug(p_debug_message, ITCH_DEBUG_PARSERMATCHEVALUATE_MR_DELIM_SKIP);
 				M(p_debug_message);
 			#endif
@@ -495,7 +495,7 @@ uint8_t ParserMatchEvaluate(void) {
 
 		case MR_HELP_ACTIVE: {
 
-			#ifdef DEBUG
+			#ifdef ITCH_DEBUG
 				strcpy_debug(p_debug_message, ITCH_DEBUG_PARSERMATCHEVALUATE_MR_HELP_ACTIVE);
 				M(p_debug_message);
 			#endif
@@ -503,9 +503,9 @@ uint8_t ParserMatchEvaluate(void) {
 			TLToTop(g_parser_possible_list);
 			for (uint16_t i = 0; i < TLGetSize(g_parser_possible_list); i++) {
 				TLCopyCurrentLabel(g_parser_possible_list, g_temp_str);
-				sprintf(g_out_str, "\t%s\n\r", g_temp_str);
+				sprintf(g_out_str, "\t%s", g_temp_str);
 
-				#ifdef DEBUG
+				#ifdef ITCH_DEBUG
 					sprintf(p_debug_message, "DEBUG: %s", g_out_str);
 					M(p_debug_message);
 				#endif
@@ -519,7 +519,7 @@ uint8_t ParserMatchEvaluate(void) {
 
 		case MR_ERROR:
 
-			#ifdef DEBUG
+			#ifdef ITCH_DEBUG
 				strcpy_debug(p_debug_message, ITCH_DEBUG_PARSERMATCHEVALUATE_MR_ERROR);
 				M(p_debug_message);
 			#endif
@@ -531,7 +531,7 @@ uint8_t ParserMatchEvaluate(void) {
 
 		default:
 
-			#ifdef DEBUG
+			#ifdef ITCH_DEBUG
 				strcpy_debug(p_debug_message, ITCH_DEBUG_PARSERMATCHEVALUATE_NO_MR_CAUGHT_DEFUALT);
 				M(p_debug_message);
 			#endif

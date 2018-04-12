@@ -20,7 +20,7 @@
  * Forward declarations for globals defined elsewhere
  ******************************************************************************/
 
-#ifdef DEBUG
+#ifdef ITCH_DEBUG
 extern void M(char * strn);
 #endif
 

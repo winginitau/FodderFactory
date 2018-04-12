@@ -6,7 +6,7 @@
 // WHENEVER THE LEXER / PROCESSOR IS INVOKED.
 //
 
-#include "parser_errors.h"
+#include "itch_strings.h"
 
 #include "out.h"
 

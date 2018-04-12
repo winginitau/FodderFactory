@@ -12,11 +12,13 @@
 
 #include <stdio.h>
 
+char *strcpy_misc(char *dest, uint8_t src);
+char *strcat_misc(char *dest, uint8_t src);
 char *strcpy_hal(char *dest, const char *src);
 char *strcat_hal(char *dest, const char *src);
 void *memcpy(void *dest, const void *src, size_t sz);
 
-#ifdef DEBUG
+#ifdef ITCH_DEBUG
 char *strcpy_debug(char *dest, uint8_t src);
 char *strcat_debug(char *dest, uint8_t src);
 #endif

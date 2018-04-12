@@ -1,5 +1,5 @@
 /*****************************************************************
- parser_errors.h
+ itch_strings.h
 
  Copyright (C) 2018 Brendan McLearie 
 
@@ -31,8 +31,6 @@ enum {
 	PE_BAD_PARAM_ACTION_DISPATCHER,
 	ME_GETASTABYID_FAIL,
 	PE_NO_PARSE_RESULT,
-
-
 	LAST_PARSE_ERROR
 };
 
@@ -58,7 +56,41 @@ static const EnumStringArray parser_error_strings[LAST_PARSE_ERROR] = {
 
 };
 
-#ifdef DEBUG
+enum {
+	MISC_ERROR = 0,
+	MISC_HELP_HEADING,
+	MISC_ERROR_PROMPT,
+	MISC_ERROR_HEADER,
+	MISC_PROMPT_BASE,
+	MISC_CRNL,
+	MISC_PARAM_DATE,
+	MISC_PARAM_TIME,
+	MISC_PARAM_FLOAT,
+	MISC_PARAM_INTEGER,
+	MISC_PARAM_STRING,
+	LAST_MISC_STRING
+};
+
+#ifdef USE_PROGMEM
+static const EnumStringArray misc_strings[LAST_MISC_STRING] PROGMEM = {
+#else
+static const EnumStringArray misc_strings[LAST_MISC_STRING] = {
+#endif
+	"MISC_ERROR",
+	"\nCommand Help:\n",
+	"\n\rTry \"?\" or <command> ? for help.\n",
+	"\n\r>>> Error:\n>>> ",
+	"\n$ ",
+	"\n\r",
+	"<param-date>",
+	"<param-time>",
+	"<param-float>",
+	"<param-integer>",
+	"<param-string>",
+};
+
+
+#ifdef ITCH_DEBUG
 
 enum {
 	ITCH_DEBUG_ERROR = 0,

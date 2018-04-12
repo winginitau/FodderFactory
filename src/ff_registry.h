@@ -91,8 +91,10 @@ struct BLOCK_NODE {
 	uint8_t block_cat;
 	uint16_t block_type;
 	uint16_t block_id;
-	char block_label[MAX_LABEL_LENGTH];
-#ifndef EXCLUDE_DISPLAYNAME
+	//char block_label[MAX_LABEL_LENGTH];
+	char *block_label;
+
+	#ifndef EXCLUDE_DISPLAYNAME
 	char display_name[MAX_LABEL_LENGTH];
 #endif
 #ifndef EXCLUDE_DESCRIPTION
@@ -164,10 +166,12 @@ BlockNode* GetBlockByID(BlockNode *list_node, uint16_t block_id);
 BlockNode* GetBlockByLabel(const char *block_label);
 BlockNode* AddBlock(uint8_t block_cat, const char *block_label);
 //BlockNode* AddBlockNode(BlockNode** head_ref, uint8_t block_cat, const char *block_label);
+char* UpdateBlockLabel(BlockNode* b, char * block_label);
+
+void RegShowBlocks(void(*Callback)(char *));
+
 void UpdateStateRegister(uint16_t source, uint8_t msg_type, uint8_t msg_str, int i_val, float f_val);
-
 UIDataSet* GetUIDataSet(void);
-
 void InitStateRegister(void);
 
 

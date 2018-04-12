@@ -160,6 +160,7 @@ float floatRead(File *f) {
 void ReadProcessedConfig(void) {
 	BlockNode* b;
 	uint8_t b_cat; 	//used as read-ahead to test for eof before creating a new block
+	char temp_label[MAX_LABEL_LENGTH];
 
 	#ifdef FF_SIMULATOR
 	FILE *fp;
@@ -212,7 +213,9 @@ void ReadProcessedConfig(void) {
 		}
 		#endif
 
-		b = AddBlock(FF_GENERIC_BLOCK, "NEW_BLANK_BLOCK"); //add a new one
+		//b = AddBlock(FF_GENERIC_BLOCK, "NEW_BLANK_BLOCK"); //add a new one
+		b = AddBlock(FF_GENERIC_BLOCK, NULL); //add a new one
+
 //DebugLog("Add block passed");
 		if (b != NULL) {
 			//we now have a valid block ptr pointing to a new block in the list
@@ -220,7 +223,11 @@ void ReadProcessedConfig(void) {
 			b->block_cat = b_cat;
 			b->block_type = uint16_tRead(fp);
 			b->block_id = uint16_tRead(fp);
-			LabelRead(b->block_label, MAX_LABEL_LENGTH, fp);
+
+			//LabelRead(b->block_label, MAX_LABEL_LENGTH, fp);
+			LabelRead(temp_label, MAX_LABEL_LENGTH, fp);
+			UpdateBlockLabel(b, temp_label);
+
 			#ifndef	EXCLUDE_DISPLAYNAME
 			LabelRead(b->display_name, MAX_LABEL_LENGTH, fp);
 			#endif
@@ -294,16 +301,6 @@ void ReadProcessedConfig(void) {
 
 
 void InitSystem(void) {
-
-	// Set up the terminal environment
-
-	// Moved to setup() so is prior to Read config - which debugs to serial if enbaled
-	//HALInitSerial(EVENT_SERIAL_PORT, EVENT_SERIAL_BAUDRATE);
-
-	#ifdef USE_ITCH
-	HALInitItch();
-	//itch.Begin(ITCH_INTERACTIVE);
-	#endif
 
 	// Set up the global system state register
 	InitStateRegister();

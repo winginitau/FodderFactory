@@ -21,7 +21,7 @@
  * Globals
  ********************************************************************/
 
-#ifdef DEBUG
+#ifdef ITCH_DEBUG
 extern void M(char strn[]);
 char n_debug_message[MAX_OUTPUT_LINE_SIZE];
 #endif
@@ -103,7 +103,7 @@ uint8_t MapDetermineTarget(uint8_t* target_size, char* target, char* line) {
 		// We've been advanced and line_pos is now pointing
 		// past the space delimiter at the end of the line.
 		// Don't process
-		#ifdef DEBUG
+		#ifdef ITCH_DEBUG
 			strcpy_debug(n_debug_message, ITCH_DEBUG_MAPDETERMINETARGET_DELIM_SKIP);
 			//sprintf(n_debug_message, "DEBUG (MapDetermineTarget): DELIM_SKIP\n\r");
 			M(n_debug_message);
@@ -129,7 +129,7 @@ uint8_t Compare_N_PARAM_DATE(char* target, ASTA* temp_node) {
 	// date format is 2018-02-20
 	// sufficient for filtering to just check if it starts with a digit
 	if (isdigit(target[0])) {
-		sprintf(temp_node->label, "<param-date>");
+		strcpy_misc(temp_node->label, MISC_PARAM_DATE);
 		return 1;
 	}
 	return 0;
@@ -144,7 +144,7 @@ uint8_t Compare_N_PARAM_TIME(char* target, ASTA* temp_node) {
 		int x = target[0] - '0';
 		if (x < 3) {
 			// could be
-			sprintf(temp_node->label, "<param-time>");
+			strcpy_misc(temp_node->label, MISC_PARAM_TIME);
 			return 1;
 		}
 	}
@@ -157,7 +157,7 @@ uint8_t Compare_N_PARAM_FLOAT(char* target, ASTA* temp_node) {
 	//}
 	// sufficient for filtering to just check if it starts with a digit
 	if (isdigit(target[0])) {
-		sprintf(temp_node->label, "<param-float>");
+		strcpy_misc(temp_node->label, MISC_PARAM_FLOAT);
 		return 1;
 	}
 	return 0;
@@ -169,7 +169,7 @@ uint8_t Compare_N_PARAM_INTEGER(char* target, ASTA* temp_node) {
 	//}
 	// sufficient for filtering to just check if it starts with a digit
 	if (isdigit(target[0])) {
-		sprintf(temp_node->label, "<param-integer>");
+		strcpy_misc(temp_node->label, MISC_PARAM_INTEGER);
 		return 1;
 	}
 	return 0;
@@ -185,7 +185,7 @@ uint8_t Compare_N_PARAM_STRING(char* target, ASTA* temp_node) {
 	}
 	// input is a string by definition
 	// we're looking for a string, so add it otherwise
-	sprintf(temp_node->label, "<param-string>");
+	strcpy_misc(temp_node->label, MISC_PARAM_STRING);
 	return 1;
 }
 
@@ -215,7 +215,7 @@ uint8_t Compare_N_IDENTIFIER(char* target, ASTA* temp_node) {
 	xlat = LookupIdentMap(temp_node->label);
 	member_id = LookupIdentifierMembers(xlat, target);
 
-#ifdef DEBUG
+#ifdef ITCH_DEBUG
 	//sprintf(n_debug_message, "DEBUG (Compare_N_IDENTIFIER): Target: %s  ASTALabel: %s  xlatVal: %d  block_cat_id: %d\n\n\r", target, temp_node->label, xlat, member_id);
 	//M(n_debug_message);
 #endif
@@ -316,7 +316,7 @@ void MapSelectMatchingNodes(char* target, TokenList* matched_list) {
 		if ((cr > 0) || (g_mflags.help_active == 1)) {
 			// the node is a possible match to be included
 			TLAddASTAToTokenList(matched_list, g_temp_asta);
-			#ifdef DEBUG
+			#ifdef ITCH_DEBUG
 			// XXX
 			// XXX This causes an lto_wrapper / ld seg fault at compile time
 			// XXX TRIAGE
@@ -458,7 +458,7 @@ uint16_t MapMatchReduce(TokenList* list) {
 				} else {
 					// reduce did not achieve a unique match
 
-					#ifdef DEBUG
+					#ifdef ITCH_DEBUG
 						strcpy_debug(n_debug_message, ITCH_DEBUG_MATCH_REDUCE_FATAL_SIZE_NOT_1);
 						M(n_debug_message);
 					#endif
@@ -479,7 +479,7 @@ uint16_t MapMatchReduce(TokenList* list) {
 		if (count == 1) {
 			if (TLGetSize(list) == 1) {
 
-				#ifdef DEBUG
+				#ifdef ITCH_DEBUG
 					strcpy_debug(n_debug_message, ITCH_DEBUG_MATCH_REDUCE_UNIQUE_NODE_PASSED_TO_REDUCER);
 					M(n_debug_message);
 				#endif
@@ -491,7 +491,7 @@ uint16_t MapMatchReduce(TokenList* list) {
 		}
 	}
 
-	#ifdef DEBUG
+	#ifdef ITCH_DEBUG
 		strcpy_debug(n_debug_message, ITCH_DEBUG_MATCH_REDUCE_NEXT_DEP_MULTIPLE_USER_PARAM_NODES);
 		M(n_debug_message);
 	#endif
@@ -523,7 +523,7 @@ uint16_t MapAdvance(uint8_t in_buf_idx) {
 	// buffer so that the next match starts on the next token
 	g_map_line_pos = in_buf_idx;
 
-	#ifdef DEBUG
+	#ifdef ITCH_DEBUG
 		strcpy_debug(n_debug_message, ITCH_DEBUG_MAP_ADVANCE);
 		M(n_debug_message);
 	#endif

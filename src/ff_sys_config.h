@@ -20,7 +20,8 @@
  PLATFORM Directives
  ************************************************/
 #define FF_ARDUINO
-//#define FF_TEMPERATURE_SIM  //optionally
+#define FF_TEMPERATURE_SIM  //optionally
+//#define FF_RPI_START_DELAY 60000	// Start delay kludge to allow RPIs to get going
 //OR
 //#define FF_SIMULATOR
 //#define FF_SIM_PARSECONFIG	//optional parse the TXT config (default -> read BIN)
@@ -55,6 +56,7 @@
 
 #ifdef FF_ARDUINO
 #define USE_PROGMEM
+#define PROGMEM_BLOCK_DEFS
 #endif
 
 #define EXCLUDE_DESCRIPTION			// to save .data segment and heap space on arduino
@@ -182,7 +184,7 @@
 #define MAX_DEBUG_LENGTH 150			//line buffer length for debug messages "stack smashing if too short"
 #define MAX_LABEL_LENGTH 48
 #define MAX_DESCR_LENGTH 80
-#define MAX_BLOCKS 255
+//#define MAX_BLOCKS 255
 #define MAX_BLOCKS_PER_CATEGORY 32
 #define MAX_CONF_KEYS_PER_BLOCK 12
 

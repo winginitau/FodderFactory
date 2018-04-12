@@ -65,6 +65,10 @@ int main(void) {
 	// Has to be first step in setup so that config processing can debug to serial
 	HALInitSerial(EVENT_SERIAL_PORT, EVENT_SERIAL_BAUDRATE);
 
+	// If using itch, init here because it proxies all comms on serial
+	#ifdef USE_ITCH
+	HALInitItch();
+	#endif
 
 	// Read the binary configuration file previously created with
 	// ff_config. Note, this build and the ff_config build must use exactly

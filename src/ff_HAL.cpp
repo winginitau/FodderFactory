@@ -190,7 +190,9 @@ uint8_t HALInitSerial(uint8_t port, uint16_t baudrate) {
 #ifdef FF_ARDUINO
 	switch (port) {
 		case 0:
+			delay(5);
 			Serial.begin(baudrate);
+			delay(5);
 			break;
 		case 1:
 			Serial1.begin(baudrate);
@@ -257,15 +259,17 @@ uint8_t HALEventSerialSend(EventNode* e, uint8_t port, uint16_t baudrate) {
     	switch (port) {
     		case 0:
 				#ifdef USE_ITCH
-    				itch.WriteImmediate(e_str);
+    				itch.WriteLnImmediate(e_str);
 				#else
     				Serial.println(e_str);
 				#endif
+    			//delay(5);
     	    	Serial.flush();
+    			//delay(5);
     			break;
     		case 1:
 				#ifdef USE_ITCH
-    				itch.WriteImmediate(e_str);
+    				itch.WriteLnImmediate(e_str);
 				#else
     				Serial1.println(e_str);
 				#endif
@@ -273,7 +277,7 @@ uint8_t HALEventSerialSend(EventNode* e, uint8_t port, uint16_t baudrate) {
     			break;
     		case 2:
 				#ifdef USE_ITCH
-    				itch.WriteImmediate(e_str);
+    				itch.WriteLnImmediate(e_str);
 				#else
     				Serial2.println(e_str);
 				#endif
@@ -317,8 +321,12 @@ void HALInitItch(void) {
 void HALPollItch(void) {
 	itch.Poll();
 }
-#endif
 
+void HALItchWriteLnImmediate(char *str) {
+	itch.WriteLnImmediate(str);
+}
+
+#endif //USE_ITCH
 
 
 #ifdef FF_ARDUINO
