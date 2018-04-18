@@ -21,9 +21,6 @@ void ShowBlocks(void) {
 
 	RegShowBlocks(itch.WriteLnImmediate);
 
-	// >>>
-	// >>> Results Callback via ITCHriteLine
-	// >>>
 	itch.WriteLine(temp);
 }
 
@@ -101,9 +98,9 @@ void ShowBlockByID(int16_t param1_int) {
 	#else
 		sprintf(temp, "ShowBlockByID(...) with param list (int16_t:param1_int:%d)\n\r", param1_int);
 	#endif
-	// >>>
-	// >>> Results Callback via ITCHriteLine
-	// >>>
+
+	RegShowBlockByID(param1_int, itch.WriteLnImmediate);
+
 	itch.WriteLine(temp);
 }
 

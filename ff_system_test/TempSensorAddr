@@ -1,0 +1,8 @@
+Bus 1 Device Count: 3
+0 WAT    Count:3, Device:0, Addr 28:74:AB:03:00:00:80:1D, d_res: 12, d_temp: 18.38  
+1 INT    Count:3, Device:1, Addr 28:FF:F0:8D:93:16:05:1F, d_res: 12, d_temp: 21.88  
+2 INB    Count:3, Device:2, Addr 28:FF:EA:32:85:16:03:93, d_res: 12, d_temp: 19.56  
+ Bus 2 Device Count: 2
+3 TAN    Count:3, Device:0, Addr 28:FF:20:34:85:16:03:05, d_res: 12, d_temp: 20.06  
+4 CAB    Count:3, Device:1, Addr 28:FF:68:23:85:16:03:6C, d_res: 9, d_temp: 23.50  
+5 OUT    Count:3, Device:2, Addr 28:FF:B7:2C:85:16:03:C7, d_res: 12, d_temp: 22.44  

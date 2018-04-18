@@ -113,13 +113,13 @@ void DebugLog(const char* log_message) {
 	char dt[24];
 	time_t now;
 	now = TimeNow();
-	strftime(dt, 24, "%Y-%m-%d, %H:%M:%S", localtime(&now));		//yyyy-mm-dd, 00:00:00
+	strftime(dt, 24, "%Y-%m-%d,%H:%M:%S", localtime(&now));		//yyyy-mm-dd, 00:00:00
 	#ifdef DEBUG_MEMORY
 		char mem_str[MAX_DEBUG_LENGTH];
 		GetMemPointers(mem_str);
-		sprintf(log_entry, "DEBUG, %s, (%s) %s", dt, mem_str, log_message);  				//assemble log entry with time stamp
+		sprintf(log_entry, "%s, DEBUG, (%s) %s", dt, mem_str, log_message);  				//assemble log entry with time stamp
 	#else
-		sprintf(log_entry, "DEBUG, %s, %s", dt, log_message);  				//assemble log entry with time stamp
+		sprintf(log_entry, "%s, DEBUG, %s", dt, log_message);  				//assemble log entry with time stamp
 	#endif
 
 	#ifdef DEBUG_SERIAL

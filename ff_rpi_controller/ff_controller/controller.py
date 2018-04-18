@@ -108,7 +108,7 @@ MODEM_SERIAL_SPEED = 9600
 SERIAL_POLL_INTERVAL = 0.1          # Seconds
 UI_UPDATE_INTERVAL = 1.0            # Seconds
 
-HEAT_PALLET = (
+STD_HEAT_PALLET = (
     [-50, 15, FF_FREEZE_BLUE ],       # Freeze Blue
     [15, 20, FF_COLD_BLUE ],    # Cold Blue
     [20, 25, FF_GREEN ],     # green - good
@@ -147,7 +147,7 @@ ui_outputs_values = [
 # Global Functions
 
 def get_colour_by_temp(temp_val):
-    for [low, high, [r, g, b, a]] in HEAT_PALLET:
+    for [low, high, [r, g, b, a]] in STD_HEAT_PALLET:
         if ((temp_val > low) and (temp_val <= high)):
             #print (temp_val)
             #print(low, high, [r, g, b, a])

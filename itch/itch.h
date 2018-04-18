@@ -37,15 +37,14 @@ typedef struct ITCH_FLAGS {
 #define strcat_P(d, c) strcat(d, c)
 #endif
 
+#ifndef ARDUINO
+FILE* isp;	// input stream pointer
+FILE* osp;	// output stream pointer
+#endif
+
 
 class ITCH {
-
 private:
-	#ifndef ARDUINO
-	FILE* isp;	// input stream pointer
-	FILE* osp;	// output stream pointer
-	#endif
-
 	I_FLAGS iflags;
 
 	char prompt[MAX_OUTPUT_LINE_SIZE];

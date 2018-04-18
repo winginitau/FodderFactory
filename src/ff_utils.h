@@ -41,10 +41,11 @@ uint8_t DayStrToFlag(uint8_t day_flag[7], const char* day_str);
 
 char* FFFloatToCString(char* buf, float f);
 
+/*
 #ifdef FF_ARDUINO
 String FFFloatString(float f);
 #endif
-
+*/
 
 
 

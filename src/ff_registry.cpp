@@ -67,8 +67,6 @@ static FFStateRegister sr;
 static uint16_t block_count = 0;
 static BlockNode *bll = NULL;		//Block Linked List - variant record block list
 
-//extern ITCH itch;
-
 /************************************************
  Functions
 ************************************************/
@@ -167,19 +165,33 @@ BlockNode* GetLastBlockAddr(void) {
 	}
 }
 
-BlockNode* GetBlockByID(BlockNode *list_node, uint16_t block_id) {
+BlockNode* GetBlockByID(BlockNode *head, uint16_t block_id) {
+	// re-written iteratively
 
-	if(list_node == NULL) {   //empty list
-		return NULL;
-	} else {
-		if (list_node->block_id == block_id) {
-			return list_node;
+	BlockNode* walker;
+	walker = head;
+	while(walker != NULL) {
+		if(walker->block_id == block_id) {
+			return walker;
 		} else {
-			list_node = GetBlockByID(list_node->next_block, block_id);
+			walker = walker->next_block;
 		}
 	}
-	return list_node;
+	return walker;
 }
+/*
+	if(head == NULL) {   //empty list
+		return NULL;
+	} else {
+		if (head->block_id == block_id) {
+			return head;
+		} else {
+			head = GetBlockByID(head->next_block, block_id);
+		}
+	}
+	return head;
+*/
+
 
 uint8_t SetCommand(uint16_t block_id, uint8_t cmd_msg) {
 	BlockNode *b;
@@ -278,7 +290,7 @@ BlockNode* GetBlockListHead(void) {
 BlockNode* AddBlockNode(BlockNode** head_ref, uint8_t block_cat, const char *block_label) {
 	BlockNode* new_block;
 
-	if (*head_ref == NULL) {   //empty list or end of list
+	if (*head_ref == NULL) {   //empty list or end of list - add the block
 		// common settings and setting holders for all blocks
 		new_block = (BlockNode *) malloc(sizeof(BlockNode));
 		if (new_block == NULL) {
@@ -289,7 +301,6 @@ BlockNode* AddBlockNode(BlockNode** head_ref, uint8_t block_cat, const char *blo
 //			DebugLog("(AddBlock) malloc OK");
 		}
 		new_block->next_block = NULL;
-
 		new_block->block_label = NULL;
 		new_block->block_cat = block_cat;
 		new_block->block_type = UINT8_INIT;
@@ -402,13 +413,12 @@ BlockNode* AddBlock(uint8_t block_cat, const char *block_label) {
 }
 
 char* UpdateBlockLabel(BlockNode* b, char * block_label) {
-	// Possible options:
-	// b->label == NULL and block_label != NULL - malloc
-	// b->label == NULL and block_label == NULL - do nothing
-	// b->label != NULL and block_label == NULL - free b->label
-	// b->label != NULL and block_label != NULL - realloc b->label
-
-	//char* result;
+	// Update the label of a block and adjust its memory use
+	// Possible calling value combinations:
+	// b->label == NULL and block_label != NULL - malloc (new label to previously NULL label)
+	// b->label == NULL and block_label == NULL - do nothing (NULL label to existing NULL label)
+	// b->label != NULL and block_label == NULL - free b->label (Existing label to be NULL'd and freed)
+	// b->label != NULL and block_label != NULL - realloc b->label (Different label - free and re-malloc)
 
 	if (b->block_label == NULL) {
 		// not previously malloced
@@ -428,7 +438,7 @@ char* UpdateBlockLabel(BlockNode* b, char * block_label) {
 			b->block_label = NULL;
 			return NULL;
 		} else {
-			// XXX realloc fails at link workaround
+			// XXX realloc fails at link time. Workaround: free and malloc again
 			free(b->block_label);
 			b->block_label = (char *)malloc( (strlen(block_label)+1) * sizeof(char) );
 			// XXX add null check and debug throw
@@ -467,7 +477,8 @@ void RegShowBlocks(void(*Callback)(char *)) {
 	char out[MAX_MESSAGE_STRING_LENGTH];
 
 	if (b == NULL) {
-		Callback("Empty List");
+		strcpy(out, "Empty List");
+		Callback(out);
 	} else {
 		sprintf(out, "\tBID\tCAT\tTYPE\tLABEL");
 		Callback(out);
@@ -476,6 +487,151 @@ void RegShowBlocks(void(*Callback)(char *)) {
 			Callback(out);
 			b = b->next_block;
 		}
+	}
+}
+
+void RegShowBlockByID(uint16_t id, void(*Callback)(char *)) {
+	char out_str[MAX_MESSAGE_STRING_LENGTH];	// 80
+	char temp_str[10];
+
+	BlockNode *b;
+	b = GetBlockByID(bll, id);
+
+	sprintf(out_str, "Base Data");
+	Callback(out_str);
+	sprintf(out_str, " block_id:     %d", b->block_id);
+	Callback(out_str);
+	sprintf(out_str, " block_cat:    %d", b->block_cat);
+	Callback(out_str);
+	sprintf(out_str, " block_type:   %d", b->block_type);
+	Callback(out_str);
+	sprintf(out_str, " block_label:  %s", b->block_label);
+	Callback(out_str);
+
+	#ifndef EXCLUDE_DISPLAYNAME
+	sprintf(out_str, " display_name: %s", b->display_name);
+	Callback(out_str);
+#endif
+#ifndef EXCLUDE_DESCRIPTION
+	sprintf(out_str, " description:  %s", b->description);
+	Callback(out_str);
+#endif
+
+	sprintf(out_str, "Operational Data");
+	Callback(out_str);
+	sprintf(out_str, " active:       %d", b->active);
+	Callback(out_str);
+	sprintf(out_str, " bool_val:     %d", b->bool_val);
+	Callback(out_str);
+	sprintf(out_str, " int_val:      %d", b->int_val);
+	Callback(out_str);
+	FFFloatToCString(temp_str, b->f_val);
+	sprintf(out_str, " f_val:        %s", temp_str);
+	Callback(out_str);
+	sprintf(out_str, " last_update:  %lu", b->last_update);
+	Callback(out_str);
+	sprintf(out_str, " status:       %d", b->status);
+	Callback(out_str);
+
+	sprintf(out_str, "Block Category Specific Data");
+	Callback(out_str);
+
+	switch (b->block_cat) {
+		case (FF_SYSTEM):
+			sprintf(out_str, "System:");
+			Callback(out_str);
+			sprintf(out_str, " temp_scale:   %d", b->settings.sys.temp_scale);
+			Callback(out_str);
+			sprintf(out_str, " language:     %d", b->settings.sys.language);
+			Callback(out_str);
+			sprintf(out_str, " week_star     %d", b->settings.sys.week_start);
+			Callback(out_str);
+			break;
+		case FF_INPUT:
+			sprintf(out_str, "Input:");
+			Callback(out_str);
+			sprintf(out_str, " interface     %d", b->settings.in.interface);
+			Callback(out_str);
+			sprintf(out_str, " if_num:       %d", b->settings.in.if_num);
+			Callback(out_str);
+			sprintf(out_str, " log_rate      %lu", b->settings.in.log_rate); //TV_TYPE
+			Callback(out_str);
+			sprintf(out_str, " data_unit     %d", b->settings.in.data_units);
+			Callback(out_str);
+			sprintf(out_str, " data_type     %d", b->settings.in.data_type);		// float, int
+			Callback(out_str);
+		break;
+		case FF_MONITOR:
+			sprintf(out_str, "Monitor:");
+			Callback(out_str);
+			sprintf(out_str, " input1:       %d", b->settings.mon.input1);
+			Callback(out_str);
+			sprintf(out_str, " input2:       %d", b->settings.mon.input2);
+			Callback(out_str);
+			sprintf(out_str, " input3:       %d", b->settings.mon.input3);
+			Callback(out_str);
+			sprintf(out_str, " input4:       %d", b->settings.mon.input4);
+			Callback(out_str);
+			FFFloatToCString(temp_str, b->settings.mon.act_val);
+			sprintf(out_str, " act_val:      %s", temp_str);   //float
+			Callback(out_str);
+			FFFloatToCString(temp_str, b->settings.mon.deact_val);
+			sprintf(out_str, " deact_val:    %s", temp_str);  //float
+			Callback(out_str);
+		break;
+		case FF_SCHEDULE: {
+			sprintf(out_str, "Schedule:");
+			Callback(out_str);
+			sprintf(out_str, " days          ");
+			for(uint8_t i = 0; i < 7; i++) {
+				sprintf(temp_str, "%d ", b->settings.sch.days[i]);
+				strcat(out_str, temp_str);
+			}
+			Callback(out_str);
+			sprintf(out_str, " time_start    %lu", b->settings.sch.time_start);
+			Callback(out_str);
+			sprintf(out_str, " time_end      %lu", b->settings.sch.time_end);
+			Callback(out_str);
+			sprintf(out_str, " time_duration %lu", b->settings.sch.time_duration);
+			Callback(out_str);
+			sprintf(out_str, " time_repeat   %lu", b->settings.sch.time_repeat);
+			Callback(out_str);
+		}
+		break;
+		case FF_RULE:
+			sprintf(out_str, "Rule:");
+			Callback(out_str);
+			sprintf(out_str, " param1:       %d", b->settings.rl.param1);
+			Callback(out_str);
+			sprintf(out_str, " param2:       %d", b->settings.rl.param2);
+			Callback(out_str);
+			sprintf(out_str, " param3:       %d", b->settings.rl.param3);
+			Callback(out_str);
+			sprintf(out_str, " param_not     %d", b->settings.rl.param_not);
+			Callback(out_str);
+		break;
+		case FF_CONTROLLER:
+			sprintf(out_str, "Controller:");
+			Callback(out_str);
+			sprintf(out_str, " rule:         %d", b->settings.con.rule);
+			Callback(out_str);
+			sprintf(out_str, " output:       %d", b->settings.con.output);
+			Callback(out_str);
+			sprintf(out_str, " act_cmd:      %d", b->settings.con.act_cmd);
+			Callback(out_str);
+			sprintf(out_str, " deact_cmd:    %d", b->settings.con.deact_cmd);
+			Callback(out_str);
+		break;
+		case FF_OUTPUT:
+			sprintf(out_str, "Output:");
+			Callback(out_str);
+			sprintf(out_str, " interface:    %d", b->settings.out.interface);
+			Callback(out_str);
+			sprintf(out_str, " if_num:       %d", b->settings.out.if_num);
+			Callback(out_str);
+			sprintf(out_str, " command:      %d", b->settings.out.command);
+			Callback(out_str);
+		break;
 	}
 }
 

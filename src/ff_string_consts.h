@@ -97,7 +97,6 @@ typedef struct SIMPLE_STRING_ARRAY_TYPE {
 
 #endif
 
-
 typedef struct BLOCK_CATS {
 	const uint8_t cat_id;
 	const char conf_section_label[MAX_LABEL_LENGTH];
@@ -513,7 +512,7 @@ typedef enum {
 	M_ADDBLOCK_ERROR,
 	CMD_RESET_MINMAX,
 	M_SR_MINMAX_RESET,
-	M68,
+	M_BAD_TEMPERATURE_READ,
 	M69,
 	M70,
 	M71,
@@ -603,7 +602,7 @@ static const StringArray message_strings[LAST_MESSAGE] = {
 	14, { "(AddBlock) malloc returned NULL",				"M65" },
 	14, { "CMD_RESET_MINMAX",								"M66" },
 	14, { "(UpdateS..R..) MinMax Display Registers Reset",	"M67" },
-	14, { "M68",								"M68" },
+	14, { "DallasTemerature Invalid Repeating Previous",	"M68" },
 	14, { "M69",								"M69" },
 	14, { "M70",								"M70" },
 	14, { "M71",								"M71" },

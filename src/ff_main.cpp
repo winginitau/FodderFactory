@@ -228,6 +228,7 @@ void ReadProcessedConfig(void) {
 			LabelRead(temp_label, MAX_LABEL_LENGTH, fp);
 			UpdateBlockLabel(b, temp_label);
 
+			// XXX the following excludes need to be same as when the binary was created
 			#ifndef	EXCLUDE_DISPLAYNAME
 			LabelRead(b->display_name, MAX_LABEL_LENGTH, fp);
 			#endif

@@ -41,11 +41,22 @@ void InputSetup(BlockNode *b) {
 //	DebugLog("Input Setup");
 	switch (b->block_type) {
 		case IN_ONEWIRE:
+			float temp;
 			b->last_update = TimeNow();
 //			TempSensorsTakeReading();
 //			Dump(b, "IN_ONEWIRE Input Setup");
-			b->f_val = GetTemperature(b->settings.in.if_num);
-			EventMsg(b->block_id, E_DATA, M_F_READ, 0, b->f_val);
+			temp = GetTemperature(b->settings.in.if_num);
+			// XXX temporary sanity checking until data quality schema
+			// designed and implemented. For now to prevent silly data display
+			// on the RPI controller. Downside - controller will always show
+			// valid data even if it bollocks due to a real device failure
+			if ( (temp > (float) -20) && temp < (float)80) {
+				// reasonable value, update the block and report
+				b->f_val = temp;
+				EventMsg(b->block_id, E_DATA, M_F_READ, 0, b->f_val);
+			} else {
+				EventMsg(b->block_id, E_WARNING, M_BAD_TEMPERATURE_READ, 0, b->f_val);
+			}
 			#ifdef IN_LOGRATE_OVERRIDE
 			b->settings.in.log_rate = IN_LOGRATE_OVERRIDE;
 			#endif
@@ -70,6 +81,7 @@ void InputOperate(BlockNode *b) {
 
 	switch (b->block_type) {
 		case IN_ONEWIRE:
+			float temp;
 			next = b->last_update + b->settings.in.log_rate;
 //			Dump(b, "IN_ONEWIRE Input Operate");
 			if (now >= next) {
@@ -77,8 +89,19 @@ void InputOperate(BlockNode *b) {
 				b->last_update = now;
 //				TempSensorsTakeReading();
 //				DebugLog("Input Operate");
-				b->f_val = GetTemperature(b->settings.in.if_num);
-				EventMsg(b->block_id, E_DATA, M_F_READ, 0, b->f_val);
+				temp = GetTemperature(b->settings.in.if_num);
+				// XXX temporary sanity checking until data quality schema
+				// designed and implemented. For now to prevent silly data display
+				// on the RPI controller. Downside - controller will always show
+				// valid data even if its bollocks due to a real device failure
+				if ( (temp > (float) -20) && temp < (float)80) {
+					// reasonable value, update the block and report
+					b->f_val = temp;
+					EventMsg(b->block_id, E_DATA, M_F_READ, 0, b->f_val);
+				} else {
+					EventMsg(b->block_id, E_WARNING, M_BAD_TEMPERATURE_READ, 0, b->f_val);
+				}
+				//EventMsg(b->block_id, E_DATA, M_F_READ, 0, b->f_val);
 			}
 			break;
 		case IN_DIGITAL: {

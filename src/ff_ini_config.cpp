@@ -817,7 +817,7 @@ void ReadAndParseConfig(void) {
 				if( cf.getError() == errorKeyNotFound) {
 					sprintf_P(debug_msg, "[CONFIG] Processed %d [%S]", bl-1, block_cat_defs[block_cat].conf_section_label);
 				} else {
-					sprintf(debug_msg, "[CONFIG] LAST [%s] REACHED - [%S]: %s ", block_cat_defs[block_cat].conf_section_label, list_section_key, GetINIError(cf.getError(), ini_error_string));
+					sprintf_P(debug_msg, "[CONFIG] LAST [%S] REACHED - [%s]: %s ", block_cat_defs[block_cat].conf_section_label, list_section_key, GetINIError(cf.getError(), ini_error_string));
 				}
 				#else
 				if( cf.getError() == errorKeyNotFound) {

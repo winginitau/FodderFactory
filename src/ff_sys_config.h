@@ -20,7 +20,7 @@
  PLATFORM Directives
  ************************************************/
 #define FF_ARDUINO
-#define FF_TEMPERATURE_SIM  //optionally
+//#define FF_TEMPERATURE_SIM  //optionally
 //#define FF_RPI_START_DELAY 60000	// Start delay kludge to allow RPIs to get going
 //OR
 //#define FF_SIMULATOR
@@ -71,7 +71,9 @@
 /************************************************
  DEBUG Directives
  ************************************************/
-#define DEBUG			// Call debug output at all or not?
+//#define DEBUG			// Call debug output at all or not?
+//#define DEBUG			// Call debug output at all or not?
+
 
 #ifdef DEBUG
 
@@ -114,8 +116,9 @@
 
 #endif //DEBUG
 
-//#define SET_RTC YES						//WARNING - This hard codes the time on restart to the compile time
-										//as the set time on device restart - use once to set then exclude
+//#define SET_RTC YES				// WARNING - This hard codes the time on restart to the compile time
+									// as the set time on device restart - use once to set then exclude
+									// and immediately reflash with it disabled.
 
 /************************************************
  System, Hardware, PINS and Initialisation
@@ -123,10 +126,13 @@
 #define DIG_HIGH 0x1
 #define DIG_LOW 0x0
 
-#define ONE_WIRE_BUS_1 6                			//for Dallas temp signals
-#define ONE_WIRE_BUS_2 7                			//for Dallas temp signals
-#define OWB1_SENSOR_COUNT 3
-#define OWB2_SENSOR_COUNT 2
+#define ONE_WIRE_BUS_1 5                			//for Dallas temp signals
+#define ONE_WIRE_BUS_2 6                			//for Dallas temp signals
+#define ONE_WIRE_BUS_3 7                			//for Dallas temp signals
+#define OWB1_SENSOR_COUNT 2
+#define OWB2_SENSOR_COUNT 3
+#define OWB3_SENSOR_COUNT 1
+
 
 #define EVENT_SERIAL							//send event messages over a serial link
 #define EVENT_SERIAL_PORT 0

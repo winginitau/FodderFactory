@@ -90,6 +90,7 @@ char* FFFloatToCString(char* buf, float f) {
 #endif
 
 
+/*
 #ifdef FF_ARDUINO
 String FFFloatString(float f) {
 	String s;
@@ -102,7 +103,7 @@ String FFFloatString(float f) {
 	}
 }
 #endif
-
+*/
 
 
 

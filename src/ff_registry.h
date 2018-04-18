@@ -169,6 +169,8 @@ BlockNode* AddBlock(uint8_t block_cat, const char *block_label);
 char* UpdateBlockLabel(BlockNode* b, char * block_label);
 
 void RegShowBlocks(void(*Callback)(char *));
+void RegShowBlockByID(uint16_t, void(*Callback)(char *));
+
 
 void UpdateStateRegister(uint16_t source, uint8_t msg_type, uint8_t msg_str, int i_val, float f_val);
 UIDataSet* GetUIDataSet(void);

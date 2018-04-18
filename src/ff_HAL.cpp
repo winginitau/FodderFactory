@@ -381,25 +381,72 @@ void HALDebugLCD(String log_entry) {
 #endif
 #endif
 
+//XXX Temporary hard coding of device addresses until itch can support
+// device addresses as part of config processing
+
+//Bus 1 Device Count: 3
+//0 WAT    Count:3, Device:0, Addr 28:74:AB:03:00:00:80:1D, d_res: 12, d_temp: 18.38
+//1 INT    Count:3, Device:1, Addr 28:FF:F0:8D:93:16:05:1F, d_res: 12, d_temp: 21.88
+//2 INB    Count:3, Device:2, Addr 28:FF:EA:32:85:16:03:93, d_res: 12, d_temp: 19.56
+// Bus 2 Device Count: 2
+//3 TAN    Count:3, Device:0, Addr 28:FF:20:34:85:16:03:05, d_res: 12, d_temp: 20.06
+//4 CAB    Count:3, Device:1, Addr 28:FF:68:23:85:16:03:6C, d_res: 9, d_temp: 23.50
+//5 OUT    Count:3, Device:2, Addr 28:FF:B7:2C:85:16:03:C7, d_res: 12, d_temp: 22.44
+
+//Bus 5 Device Count: 2
+//0 INT Bus:5 Count:2, Device:0, Addr 28:FF:F0:8D:93:16:05:1F, d_res: 12, d_temp: 18.56
+//1 INB Bus:5 Count:2, Device:1, Addr 28:FF:EA:32:85:16:03:93, d_res: 12, d_temp: 17.31
+//Bus 6 Device Count: 3
+//2 WAT Bus:6 Count:3, Device:0, Addr 28:74:AB:03:00:00:80:1D, d_res: 12, d_temp: 21.38
+//3 CAB Bus:6 Count:3, Device:1, Addr 28:FF:68:23:85:16:03:6C, d_res: 9, d_temp: 23.00
+//4 OUT Bus:6 Count:3, Device:2, Addr 28:FF:B7:2C:85:16:03:C7, d_res: 12, d_temp: 20.56
+//Bus 7 Device Count: 1
+//5 TAN Bus:7 Count:1, Device:0, Addr 28:FF:20:34:85:16:03:05, d_res: 12, d_temp: 19.38
+
+#ifdef ARDUINO
+const DeviceAddress devices[6] PROGMEM = {
+		0x28,0xFF,0xF0,0x8D,0x93,0x16,0x05,0x1F,
+		0x28,0xFF,0xEA,0x32,0x85,0x16,0x03,0x93,
+		0x28,0x74,0xAB,0x03,0x00,0x00,0x80,0x1D,
+		0x28,0xFF,0x68,0x23,0x85,0x16,0x03,0x6C,
+		0x28,0xFF,0xB7,0x2C,0x85,0x16,0x03,0xC7,
+		0x28,0xFF,0x20,0x34,0x85,0x16,0x03,0x05
+};
+
+#endif
 
 float GetTemperature(int if_num) {
 	float temp_c;
 #ifdef FF_ARDUINO
 #ifndef FF_TEMPERATURE_SIM
-	//trying this as a local each time called to save global memory
+	//XXX Temporary hard coding of device addresses - see above
+
+	//Select the bus based on the devices per bus defs
 	uint8_t bus_pin;
 	if (if_num < OWB1_SENSOR_COUNT) {
 		bus_pin = ONE_WIRE_BUS_1;
 	} else {
-		bus_pin = ONE_WIRE_BUS_2;
+		if(if_num < (OWB1_SENSOR_COUNT + OWB2_SENSOR_COUNT)) {
+			bus_pin = ONE_WIRE_BUS_2;
+		} else {
+			bus_pin = ONE_WIRE_BUS_3;
+
+		}
 	}
 	OneWire one_wire(bus_pin); // oneWire instance to communicate with any OneWire devices
 	DallasTemperature temp_sensors(&one_wire);     // Pass our one_wire reference to Dallas Temperature
 	temp_sensors.begin();
+
+	DeviceAddress d;
+	memcpy_P(d, devices[if_num], sizeof(DeviceAddress));
+
+	temp_sensors.requestTemperaturesByAddress(d);
+	temp_c = temp_sensors.getTempC(d);
+
 	//delay(500);
-	temp_sensors.requestTemperatures();  //tell them to take a reading (stored on device)
+	//temp_sensors.requestTemperatures();  //tell them to take a reading (stored on device)
 	//delay(500);
-	temp_c = temp_sensors.getTempCByIndex(if_num % OWB1_SENSOR_COUNT);
+	//temp_c = temp_sensors.getTempCByIndex(if_num % OWB1_SENSOR_COUNT);
 	//delay(500);
 #endif
 #endif
