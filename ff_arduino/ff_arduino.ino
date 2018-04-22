@@ -6,6 +6,55 @@
 // Description :
 //============================================================================
 
+//XXX Architectural Matters for Resolution
+//	Validation of fundamental concepts - "blocks"
+//	Operational Data exchange
+//		Push vs Pull or Both?
+//		Text vs Binary
+//		Placement of itch in above
+//		Transport options - LORA, IP, Serial
+//		Error correcting
+//		Distributed message bussing - roll own? MQTT? Other?
+//		Infosec wrappers / embedding
+//	Overall Network Model
+//		Janitor Core
+//		Core Processing Nodes / Clusters
+//		Spokes
+//		Shadowing (all the way to top?)
+//		How to handle HA
+//		How to handle multipath redundancy
+//	Provisioning and configuration model generally
+//		Ref GLITCH grammar file notes and config bucket
+//		Dumb start / disconnected start / online start
+//		Cascading of configs
+//		Reconfiguration of configs for HA and failure mode workarounds
+//		Immediate management of Fodder config
+//			Moving off the INI file and its binary form
+//			Moving to the Cisco like version
+//			Cisco model generally
+//			+++ and switching between message protocol and itch (or is it the same)
+//	User Tools
+//		Design modelling -> Configuration management
+//			Web app? Download win app? Mac app? iThing and Android apps?
+//		Monitoring and management
+//			Touch screen for fodder - or should it be an app? or both?
+//			Genericising the user app - Design process also deploys an app?
+//	Immediate needs (fodder and frustrations)
+//		XXX *current sensor dropout bug
+//		Fodder assurance
+//		Arduinos and RPIs
+//			Serial interaction model
+//		Getting control of the config
+//		Remote tweaking and rule changes
+//		Present data analysis and visualisation - for rule tuning
+//		Collecting energy system data - physical interface done, need SW
+//			To support decisions on heating and lighting run times
+//		Priorities for which line of C code should be written next
+//		In general - targets or free form prioritisation
+//		If we need "project management" then we're not having fun anymore
+
+
+
 
 /************************************************
  Includes
@@ -117,4 +166,6 @@ int main(void) {
 	#endif
 
 }
+
+
 

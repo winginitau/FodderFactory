@@ -23,9 +23,10 @@ chmod ugo+rw /dev/ttyUSB0
 # set up the pppd to allow the remote unit to connect as an IP peer
 # additional options for remote end: usepeerdns defaultroute replacedefultroute
 
-pppd /dev/ttyUSB0 57600 noauth crtscts nocdtrcts lock mru 296 mtu 296 passive 192.168.10.1:192.168.10.2 local maxfail 0 persist proxyarp updetach 
+pppd /dev/ttyUSB0 384000 noauth crtscts nocdtrcts lock passive 192.168.10.1:192.168.10.2 local maxfail 0 persist proxyarp updetach 
 
-#ktune bsdcomp 12 xonxoff nocrtscts
+
+#mru 296 mtu 296 ktune bsdcomp 12 xonxoff nocrtscts
 
 # make sure the kernel is forwarding ip (the ktune param in pppd should do this)
 sysctl -w net.ipv4.ip_forward=1
