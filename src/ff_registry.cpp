@@ -80,7 +80,11 @@ void Setup(BlockNode *b) {
 			delay(FF_RPI_START_DELAY); //XXX kludge to allow the rpi to boot and establish ppp to the controller before sending data
 		#endif
 		#endif
+
+		#ifdef UI_ATTACHED
 		UpdateUI();
+		#endif //UI_ATTACHED
+
 		break;
 	case FF_INPUT:
 		InputSetup(b);
@@ -113,7 +117,9 @@ void Operate(BlockNode *b) {
 		//itch.Poll();
 		HALPollItch();
 		#endif
+		#ifdef UI_ATTACHED
 		UpdateUI();
+		#endif
 		break;
 	case FF_INPUT:
 		InputOperate(b);

@@ -6,12 +6,11 @@
 #
 # System configuration settings as an ini file:
 # 	System configuration
-# 	Input Configs
+# 	Input configs
 # 	Monitor Configs
-#	Schedule Configs
-#   Rule Configs
-#	Controller Configs
-# 	Output Configs
+#	Rules
+#	Controller configs
+# 	Output configs
 #************************************************/
 
 
@@ -121,25 +120,16 @@ monitor1 = MON_INSIDE_TOP_TOO_COLD
 monitor2 = MON_INSIDE_TOP_TOO_HOT
 monitor3 = MON_INSIDE_BOTTOM_TOO_COLD
 monitor4 = MON_INSIDE_BOTTOM_TOO_HOT
-monitor5 = MON_OUTSIDE_HOT
-monitor6 = MON_OUTSIDE_COLD
-monitor7 = MON_INSIDE_AVERAGE_TOO_COLD
-monitor8 = MON_INSIDE_AVERAGE_TOO_HOT
-#monitor9 = MON_OUT_HOTTER_THAN_TOP
-#monitor5 = MON_WATER_TOO_HOT
-#monitor6 = MON_WATER_TOO_COLD
+monitor5 = MON_WATER_TOO_HOT
+monitor6 = MON_WATER_TOO_COLD
+monitor7 = MON_OUTSIDE_HOT
+monitor8 = MON_OUTSIDE_COLD
+monitor9 = MON_INSIDE_AVERAGE_TOO_COLD
+monitor10 = MON_INSIDE_AVERAGE_TOO_HOT
 #monitor11 = MON_LOAD_DOOR_OPEN 
 #monitor12 = MON_HARVEST_DOOR_OPEN
 #monitor13 = 
 
-[MON_OUT_HOTTER_THAN_TOP]
-type = MON_GREATER_THAN
-display_name = 
-description =  
-input1 = IN_INSIDE_TOP_TEMP
-input2 = IN_OUTSIDE_TEMP
-#act_val = 
-#deact_val = 
 
 [MON_INSIDE_TOP_TOO_COLD]
 type = MON_CONDITION_LOW
@@ -147,15 +137,15 @@ display_name = Inside Top Too Cold
 description =  
 input1 = IN_INSIDE_TOP_TEMP
 act_val	= 20.00
-deact_val = 23.00
+deact_val = 24.00
 
 [MON_INSIDE_TOP_TOO_HOT]
 type = MON_CONDITION_HIGH
 display_name = Inside Top Too Hot
 description = 
 input1 = IN_INSIDE_TOP_TEMP
-act_val	= 23.00
-deact_val = 22.00
+act_val	= 24.00
+deact_val = 20.00
 
 [MON_INSIDE_BOTTOM_TOO_COLD]
 type = MON_CONDITION_LOW
@@ -163,15 +153,15 @@ display_name = Inside Bottom Too Cold
 description =  
 input1 = IN_INSIDE_BOTTOM_TEMP
 act_val	= 20.00
-deact_val = 23.00
+deact_val = 24.00
 
 [MON_INSIDE_BOTTOM_TOO_HOT]
 type = MON_CONDITION_HIGH
 display_name = Inside Bottom Too Hot
 description = 
 input1 = IN_INSIDE_BOTTOM_TEMP
-act_val	= 23.00
-deact_val = 22.00
+act_val	= 24.00
+deact_val = 20.00
 
 [MON_INSIDE_AVERAGE_TOO_COLD]
 type = MON_AVERAGE_CONDITION_LOW
@@ -180,7 +170,7 @@ description =
 input1 = IN_INSIDE_BOTTOM_TEMP
 input2 = IN_INSIDE_TOP_TEMP
 act_val	= 20.00
-deact_val = 23.00
+deact_val = 24.00
 
 [MON_INSIDE_AVERAGE_TOO_HOT]
 type = MON_AVERAGE_CONDITION_HIGH
@@ -188,8 +178,8 @@ display_name = Average Inside Too Hot
 description =  
 input1 = IN_INSIDE_BOTTOM_TEMP
 input2 = IN_INSIDE_TOP_TEMP
-act_val	= 23.00
-deact_val = 22.00
+act_val	= 24.00
+deact_val = 20.00
 
 [MON_WATER_TOO_HOT]
 type = MON_CONDITION_HIGH
@@ -213,15 +203,15 @@ display_name = Outside Hot
 description = Outside Temprature Above Set Point
 input1 = IN_OUTSIDE_TEMP
 act_val	= 23.00
-deact_val = 22.00
+deact_val = 21.00
 
 [MON_OUTSIDE_COLD]
 type = MON_CONDITION_LOW
 display_name = Outside Cold
 description = Outside Temprature Below Set Point
 input1 = IN_OUTSIDE_TEMP
-act_val	= 20.00
-deact_val = 22.00
+act_val	= 21.00
+deact_val = 23.00
 
 [MON_LOAD_DOOR_OPEN]
 type = MON_TRIGGER
@@ -254,7 +244,7 @@ description =
 # ALL, MON, TUE, WED, THU, FRI, SAT, SUN
 days = ALL
 time_start = 09:00:00
-time_end = 16:00:00
+time_end = 18:00:00
 
 [SCH_RUN_LIGHTS_AT_NIGHT]
 type = SCH_START_STOP
@@ -280,7 +270,7 @@ description =
 # ALL, MON, TUE, WED, THU, FRI, SAT, SUN
 days = ALL
 time_start = 00:00:00
-time_duration = 00:00:20
+time_duration = 00:00:26
 time_repeat = 00:45:00
 
 [SCH_WATERING_BOTTOM_SCHEDULE]
@@ -290,7 +280,7 @@ description =
 # ALL, MON, TUE, WED, THU, FRI, SAT, SUN
 days = ALL
 time_start = 00:00:30
-time_duration = 00:00:20
+time_duration = 00:00:26
 time_repeat = 00:45:00
 
 
@@ -298,12 +288,12 @@ time_repeat = 00:45:00
 # Rules
 #************************************************/
 [rules]
-rule1 = RL_WATER_HEAT_IF_INSIDE_COLD
-rule2 = RL_LIGHTS_ON_SCHEDULE
+rule1 = RL_TURN_ON_WATER_HEAT_IF_INSIDE_COLD
+rule2 = RL_RUN_LIGHTS_ON_SCHEDULE
 rule3 = RL_WATER_ON_SCHEDULE_TOP
 rule4 = RL_WATER_ON_SCHEDULE_BOTTOM
-rule5 = RL_CIRC_IF_TOP_HOT_BOT_COLD 
-rule6 = RL_EXHAUST_IF_TOP_HOT_BOT_HOT
+#rule3 = RL_FAN_IF_INSIDE_BOTTOM_HOT_OUTSIDE_COLD
+#rule4 = RL_CIRCULATE_IF_TOP_HOT_AND_BOTTOM_COLD 
 #rule7 = RL_RESET_MINMAX_ON_SCHEDULE  
 #rule8 = RL_SUSPEND_WATERING_IF_BOTH_DOORS_OPEN
 #rule10 =  
@@ -316,7 +306,7 @@ description =
 param1 = SCH_RESET_MIN_MAX_COUNTERS
 #param_not = 
 
-[RL_WATER_HEAT_IF_INSIDE_COLD]
+[RL_TURN_ON_WATER_HEAT_IF_INSIDE_COLD]
 type = RL_LOGIC_SINGLENOT
 display_name = Water Heat Warming Inside
 description =
@@ -324,28 +314,29 @@ param1 = MON_INSIDE_AVERAGE_TOO_COLD
 #param2 =
 param_not = SCH_EXCLUDE_WATER_HEAT_BY_DAY
 
-[RL_LIGHTS_ON_SCHEDULE]
+[RL_RUN_LIGHTS_ON_SCHEDULE]
 type = RL_LOGIC_SINGLE
-display_name = Lights on Schedule
-description = Operate Lights According to Schedule
+display_name = Light Schedule
+description =
 param1 = SCH_RUN_LIGHTS_AT_NIGHT
 #param_not = 
 
-[RL_CIRC_IF_TOP_HOT_BOT_COLD]
-type = RL_LOGIC_SINGLE
-display_name = Circulate Rule
-description = Circulate Because Top is Hot and Bottom is Cold
-param1 = MON_INSIDE_TOP_TOO_HOT
-#param2 = MON_INSIDE_BOTTOM_TOO_COLD
+[RL_FAN_IF_INSIDE_BOTTOM_HOT_OUTSIDE_COLD]
+type = RL_LOGIC_AND
+display_name = Cooling Fan
+description =
+param1 = MON_INSIDE_BOTTOM_TOO_HOT
+param2 = MON_OUTSIDE_COLD
 #param_not = 
 
-[RL_EXHAUST_IF_TOP_HOT_BOT_HOT]
-type = RL_LOGIC_AND
-display_name = Exhaust Fan Rule
-description = Exhaust Top and Bottom are Hot and Outside Not as Hot
-param1 = MON_INSIDE_BOTTOM_TOO_HOT
-param2 = MON_INSIDE_TOP_TOO_HOT
-#param_not = MON_OUT_HOTTER_THAN_TOP
+[RL_CIRCULATE_IF_TOP_HOT_AND_BOTTOM_COLD]
+type = RL_LOGIC_ANDNOT
+display_name = Circualtion Fan
+description =
+param1 = MON_INSIDE_TOP_TOO_HOT
+param2 = MON_INSIDE_BOTTOM_TOO_COLD
+#prevent if cold air being sucked in already
+param_not = RL_FAN_IF_INSIDE_BOTTOM_HOT_OUTSIDE_COLD   
 
 [RL_WATER_ON_SCHEDULE_TOP]
 type = RL_LOGIC_SINGLE
@@ -366,13 +357,13 @@ param1 = SCH_WATERING_BOTTOM_SCHEDULE
 # Controllers
 #************************************************/
 [controllers]
-controller1 = CON_WATER_HEAT_CONTROLLER
+controller1 = CON_WATER_HEATER_CONTROLLER
 controller2 = CON_END_LIGHTS_CONTROLLER
 controller3 = CON_WATERING_TOP_CONTROLLER
-controller4 = CON_WATERING_BOT_CONTROLLER
-controller5 = CON_CIRC_FAN_CONTROLLER
-controller6 = CON_EXHAUST_FAN_CONTROLLER
+controller4 = CON_WATERING_BOTTOM_CONTROLLER
 #controller3 = CON_FRESH_AIR_CONTROLLER
+#controller4 = CON_CIRCULATION_FAN_CONTROLLER
+#controller5 = CON_EXHAUST_FAN_CONTROLLER
 #controller8 = CON_RESET_MINMAX 
 #controller10 = 
 
@@ -385,11 +376,11 @@ output = OUT_SYSTEM_INTERNAL
 act_cmd = CMD_OUTPUT_ON
 deact_cmd = CMD_OUTPUT_OFF
 
-[CON_WATER_HEAT_CONTROLLER]
+[CON_WATER_HEATER_CONTROLLER]
 type = CON_ONOFF
 display_name = Water Heating Controller
 description = 
-rule = RL_WATER_HEAT_IF_INSIDE_COLD
+rule = RL_TURN_ON_WATER_HEAT_IF_INSIDE_COLD
 output = OUT_WATER_HEATER
 act_cmd = CMD_OUTPUT_ON
 deact_cmd = CMD_OUTPUT_OFF
@@ -398,16 +389,25 @@ deact_cmd = CMD_OUTPUT_OFF
 type = CON_ONOFF
 display_name = End Lights Controller
 description = 
-rule = RL_LIGHTS_ON_SCHEDULE
+rule = RL_RUN_LIGHTS_ON_SCHEDULE
 output = OUT_END_LIGHTS
 act_cmd = CMD_OUTPUT_ON
 deact_cmd = CMD_OUTPUT_OFF
 
-[CON_CIRC_FAN_CONTROLLER]
+[CON_FRESH_AIR_CONTROLLER]
+type = CON_ONOFF
+display_name = Fresh Air Controller
+description = 
+rule = RL_FAN_IF_INSIDE_BOTTOM_HOT_OUTSIDE_COLD
+output = OUT_FRESH_AIR_FAN
+act_cmd = CMD_OUTPUT_ON
+deact_cmd = CMD_OUTPUT_OFF
+
+[CON_CIRCULATION_FAN_CONTROLLER]
 type = CON_ONOFF
 display_name = Circulation Fan Controller
 description = 
-rule = RL_CIRC_IF_TOP_HOT_BOT_COLD
+rule = RL_CIRCULATE_IF_TOP_HOT_AND_BOTTOM_COLD
 output = OUT_CIRCULATION_FAN
 act_cmd = CMD_OUTPUT_ON
 deact_cmd = CMD_OUTPUT_OFF
@@ -416,7 +416,7 @@ deact_cmd = CMD_OUTPUT_OFF
 type = CON_ONOFF
 display_name = Exhaust Fan Controller
 description = 
-rule = RL_EXHAUST_IF_TOP_HOT_BOT_HOT
+rule = RL_FAN_IF_INSIDE_BOTTOM_HOT_OUTSIDE_COLD
 output = OUT_EXHAUST_FAN
 act_cmd = CMD_OUTPUT_ON
 deact_cmd = CMD_OUTPUT_OFF
@@ -430,7 +430,7 @@ output = OUT_WATERING_SOLENOID_TOP
 act_cmd = CMD_OUTPUT_ON
 deact_cmd = CMD_OUTPUT_OFF
 
-[CON_WATERING_BOT_CONTROLLER]
+[CON_WATERING_BOTTOM_CONTROLLER]
 type = CON_ONOFF
 display_name = Bottom Sprinklers Solenoid Controller
 description = 
@@ -439,14 +439,6 @@ output = OUT_WATERING_SOLENOID_BOTTOM
 act_cmd = CMD_OUTPUT_ON
 deact_cmd = CMD_OUTPUT_OFF
 
-[CON_FRESH_AIR_CONTROLLER]
-type = CON_ONOFF
-display_name = Fresh Air Controller
-description = 
-rule = RL_FAN_IF_INSIDE_BOTTOM_HOT_OUTSIDE_COLD
-output = OUT_FRESH_AIR_FAN
-act_cmd = CMD_OUTPUT_ON
-deact_cmd = CMD_OUTPUT_OFF
 
 #************************************************
 # Outputs
@@ -456,9 +448,9 @@ output1 = OUT_END_LIGHTS
 output2 = OUT_WATER_HEATER
 output3 = OUT_WATERING_SOLENOID_TOP
 output4 = OUT_WATERING_SOLENOID_BOTTOM
-output5 = OUT_CIRCULATION_FAN
-output6 = OUT_EXHAUST_FAN
 #output3 = OUT_FRESH_AIR_FAN
+#output4 = OUT_CIRCULATION_FAN
+#output5 = OUT_EXHAUST_FAN
 #output6 = OUT_SYSTEM_INTERNAL 
 #output9 = 
 

@@ -29,8 +29,9 @@
 void HALDebugLCD(String log_entry);
 #endif
 
+#ifdef UI_ATTACHED
 void InitUI(void);
 void UpdateUI(void);
-
+#endif //UI_ATTACHED
 
 #endif /* SRC_FF_DISPLAY_H_ */

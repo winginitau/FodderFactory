@@ -47,9 +47,13 @@ void HALInitDigitalOutput (uint8_t if_num);
 float GetTemperature(int if_num);
 void TempSensorsTakeReading(void);
 void InitTempSensors(void);
+
+#ifdef UI_ATTACHED
 void HALInitUI(void);
 void HALDrawDataScreenCV(const UIDataSet* uids, time_t dt);
 //void HALDrawDataScreen(const UIDataSet* uids, time_t dt);
+#endif
+
 //FFDateTime HALFFDTNow(void);
 time_t TimeNow(void);
 void HALInitRTC(void);

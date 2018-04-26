@@ -19,16 +19,20 @@
 /************************************************
  PLATFORM Directives
  ************************************************/
-//#define FF_ARDUINO
-//#define FF_TEMPERATURE_SIM  //optionally
-//#define FF_RPI_START_DELAY 60000	// Start delay kludge to allow RPIs to get going
+#define FF_ARDUINO
+// Optionally:
+//#define FF_TEMPERATURE_SIM
+//#define FF_TEMP_SIM_WITH_DALLAS
+#define FF_RPI_START_DELAY 60000	// Start delay kludge to allow RPIs to get going
 //OR
-#define FF_SIMULATOR
+//#define FF_SIMULATOR
 //#define FF_SIM_PARSECONFIG	//optional parse the TXT config (default -> read BIN)
 //OR
 //#define FF_CONFIG
 
 //#define USE_ITCH
+
+//#define UI_ATTACHED			// is there a directly attached UI? LCD? Console in sim?
 
 #ifdef FF_CONFIG
 #define FF_SIMULATOR
@@ -41,17 +45,27 @@
 #endif
 
 #ifdef FF_TEMPERATURE_SIM
-//#define FF_DEFINED_TEMP_SIM
+
+#define FF_DEFINED_TEMP_SIM
 // OR
-#define FF_RANDOM_TEMP_SIM
+//#define FF_RANDOM_TEMP_SIM
+
+// Optionally:
+#define RANDOM_TEMP_SIM_DELAY
+
+#ifdef RANDOM_TEMP_SIM_DELAY
+#define TEMP_SIM_MIN_DELAY	600		//msec
+#define TEMP_SIM_MAX_DELAY	1500	//msec
+#endif
 #endif
 
-
 #ifdef FF_DEFINED_TEMP_SIM
-#define SIM_TEMP_0 18
-#define SIM_TEMP_1 21
-#define SIM_TEMP_2 26
-#define SIM_TEMP_3 29
+#define SIM_TEMP_0 22.0
+#define SIM_TEMP_1 22.1
+#define SIM_TEMP_2 22.2
+#define SIM_TEMP_3 22.3
+#define SIM_TEMP_4 22.4
+#define SIM_TEMP_5 22.5
 #endif
 
 #ifdef FF_ARDUINO
@@ -59,9 +73,12 @@
 #define PROGMEM_BLOCK_DEFS
 #endif
 
+//#define IN_LOGRATE_OVERRIDE 15				// seconds. Override defined logging rate (for debug)
+
 #define EXCLUDE_DESCRIPTION			// to save .data segment and heap space on arduino
 #define EXCLUDE_DISPLAYNAME			// to save .data segment and heap space on arduino
 
+#define RTC_POLL_INTERVAL 10000		// milliseconds between calls to the rtc
 /************************************************
  Localisation - TODO Move to Config
  ************************************************/
@@ -71,8 +88,7 @@
 /************************************************
  DEBUG Directives
  ************************************************/
-#define DEBUG			// Call debug output at all or not?
-
+//#define DEBUG			// Call debug output at all or not?
 
 #ifdef DEBUG
 
@@ -89,8 +105,6 @@
 9 = E_ERROR
 10 = E_STOP
 */
-
-//#define IN_LOGRATE_OVERRIDE 30				// seconds. Override defined logging rate (for debug)
 
 #ifdef FF_ARDUINO
 #define DEBUG_SERIAL                  		// For use when USB connected

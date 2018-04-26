@@ -1,20 +1,50 @@
+%# 
 %# glitch - Grammar Lexer and Interactive Terminal Command sHell
 %#
-%# Command grammar, Config and Enumerated Identifier Lists and Callback Definition
-%#      
-%# Read by glitch to produce an output header
-%#  file .h for ANSI C definition of:
-%#  - Anonyous or typed enum lists
-%#  - Keyword definitions
-%#  -  
+%# Copyright 2018, Brendan McLearie, all rights reserved.
 %#
-%# Premable code to insert "as is" between %code and %end-code 
-%#  Use to define Class or typedef structs referenced in the grammar
-%#  "%#" used as comments to glitch to allow #compiler directives
-%#  to be included in code sections.
-
-
-%# %include ff_sys_config.h
+%#  This file: 
+%#      - A fully worked example of a complex grammar using   
+%#        all of the features of the package.
+%#      - In production use in https://github.com/winginitau/FodderFactory 
+%#
+%#  Input:   
+%#      - A grammar definition file (this file) - default "grammar.gf"
+%#         
+%#  Output:
+%#      - itch - Interactive Terminal Command sHell (parser) comprsing:   
+%#          - itch header (out.h) 
+%#              - Anonyous and/or typed enum lists (const reference/master data for the intended application)
+%#              - The executable sytax logic - abstract syntax tree (AST) 
+%#                rendered as a static const array (ASTA) 
+%#              - ANSI C function prototypes for all "actions" that are called from the processing
+%#                of parsed commands
+%#              - Preprocessor logic for different platforms. Currently:
+%#                  - "ARDUINO" - Atmnel AVR using PROGMEM for all static const data
+%#                  - linux - implying a generic gcc (or equivalient) environment
+%#              - Utility and lookup function defintions to operate on the ASTA, make calls, callbacks etc
+%#              - c++ itch class wrapper (for what is otherise ANSI C)
+%#              - Any included inline code (via %header-start and %header-end directives) 
+%#          - itch code body (out.cpp)
+%#              - The code to read inputs and parse it according to the ASTA logic 
+%#              - Utility functions - static const lookups (and from PROGMEM), callers and callbacks
+%#              - Any included inline code (via %code-start and %code-end directives)
+%#          - Action calling skeleton functions (out_user_code.cpp)
+%#              - Optionally overwriting previous output
+%#              - Provides place-holders that can be used to fully develop the code that
+%#                gets called (and calls callbacks) resulting from the parsing of a command  
+%#              - Including correct passing of all paramaters that were entered with the command
+%#   
+%#  Directive: %# 
+%#  - Used as comments in the grammar file (which allows #pre-processor directives in inline code)
+%#
+%#  Directive: %include ff_sys_config.h
+%#  (***** Revisit and differentiate between include in header or code  
+%#
+%#  Directive: %header-start / %header-end / %code-start / %code-end 
+%#  - Start and end of code to insert "as is" in the header or code files  
+%#  - Use to define classes and/or typedef structs that are referenced in the grammar
+%#
 
 %header-start
 
@@ -45,7 +75,6 @@ typedef struct SIMPLE_STRING_ARRAY_TYPE {
     const char* text;
 } SimpleStringArray;
 
-
 typedef struct AST_ARRAY {
     uint16_t id;
     int type;
@@ -56,7 +85,6 @@ typedef struct AST_ARRAY {
     uint16_t next_sibling;
     char action_identifier[MAX_AST_ACTION_SIZE];
 } ASTA;
-
 
 typedef struct XLAT_MAP {
 	char label[MAX_IDENTIFIER_LABEL_SIZE];
@@ -74,10 +102,12 @@ typedef union {
 %header-end
 
 %#
-%#  Grammar defs start with %grammar-start and end with %grammar-end  
+%#  Directive: %grammar-start
+%#  - Grammar definition starts with %grammar-start and ends with %grammar-end  
 %#
 
 %grammar-start
+
 
 %comment #
 %comment //

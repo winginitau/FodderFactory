@@ -32,7 +32,7 @@
  Functions
 ************************************************/
 
-
+#ifdef UI_ATTACHED
 void InitUI(void) {
 	HALInitUI();
 #ifdef FF_ARDUINO
@@ -44,14 +44,12 @@ void InitUI(void) {
 	EventMsg(SSS, E_INFO, M_SIM_CONSOLE);
 #endif
 }
+#endif //UI_ATTACHED
 
+#ifdef UI_ATTACHED
 void UpdateUI(void) {
-
 	UIDataSet* ui_data_ptr = GetUIDataSet();
-
 	time_t dt_now = TimeNow();
-
 	HALDrawDataScreenCV(ui_data_ptr, dt_now);
-
 }
-
+#endif

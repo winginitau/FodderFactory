@@ -85,6 +85,9 @@ ITCH itch;
 	int screen_refresh_counter = 0;
 #endif
 
+unsigned long g_last_milli_val;	// used to pad calls to TimeNow so that the RTC isn't smashed
+DateTime g_last_rtc_DT;
+
 /************************************************
  Functions
 ************************************************/
@@ -433,23 +436,32 @@ float GetTemperature(int if_num) {
 
 		}
 	}
-	OneWire one_wire(bus_pin); // oneWire instance to communicate with any OneWire devices
-	DallasTemperature temp_sensors(&one_wire);     // Pass our one_wire reference to Dallas Temperature
-	temp_sensors.begin();
+	// XXX temp override to test removal of longrun temp probe
+	//if(bus_pin == ONE_WIRE_BUS_3) {
+	//	temp_c = -100;
+	//} else {
+		OneWire one_wire(bus_pin); // oneWire instance to communicate with any OneWire devices
+		DallasTemperature temp_sensors(&one_wire);     // Pass our one_wire reference to Dallas Temperature
+		temp_sensors.begin();
 
-	DeviceAddress d;
-	memcpy_P(d, devices[if_num], sizeof(DeviceAddress));
+		DeviceAddress d;
+		memcpy_P(d, devices[if_num], sizeof(DeviceAddress));
 
-	temp_sensors.requestTemperaturesByAddress(d);
-	temp_c = temp_sensors.getTempC(d);
+		temp_sensors.requestTemperaturesByAddress(d);
+		temp_c = temp_sensors.getTempC(d);
+	//}
+
+	#ifdef FF_TEMP_SIM_WITH_DALLAS
+	temp_c = random(17.01, 26.99);
+	#endif
 
 	//delay(500);
 	//temp_sensors.requestTemperatures();  //tell them to take a reading (stored on device)
 	//delay(500);
 	//temp_c = temp_sensors.getTempCByIndex(if_num % OWB1_SENSOR_COUNT);
 	//delay(500);
-#endif
-#endif
+#endif //#ifndef FF_TEMPERATURE_SIM
+#endif //#ifdef FF_ARDUINO
 
 #ifdef FF_TEMPERATURE_SIM
 #ifdef FF_RANDOM_TEMP_SIM
@@ -474,6 +486,16 @@ float GetTemperature(int if_num) {
 	case 3:
 		temp_c = SIM_TEMP_3;
 		break;
+	case 4:
+		temp_c = SIM_TEMP_4;
+		//XXX temp kludge
+		delay(131);
+		break;
+	case 5:
+		temp_c = SIM_TEMP_5;
+		//XXX temp kludge
+		delay(199);
+		break;
 	default:
 		temp_c = FLOAT_INIT;
 	}
@@ -484,9 +506,15 @@ float GetTemperature(int if_num) {
 #ifdef FF_RANDOM_TEMP_SIM
 #ifdef FF_ARDUINO
 		temp_c = random(5.01, 39.99);
-#endif
-#endif
-#endif
+#endif //FF_ARDUINO
+#endif //FF_RANDOM_TEMP_SIM
+#endif //FF_TEMPERATURE_SIM
+
+#ifdef RANDOM_TEMP_SIM_DELAY
+#ifdef FF_ARDUINO
+		delay(random(TEMP_SIM_MIN_DELAY, TEMP_SIM_MAX_DELAY));
+#endif //FF_ARDUINO
+#endif //RANDOM_TEMP_SIM_DELAY
 
 	return temp_c;
 }
@@ -603,6 +631,7 @@ void InitTempSensors(void) {
 #endif
 }
 
+#ifdef UI_ATTACHED
 void HALInitUI(void) {
 #ifdef FF_ARDUINO
 #ifdef LCD_DISPLAY
@@ -612,8 +641,9 @@ void HALInitUI(void) {
 #ifdef FF_SIMULATOR
 #endif
 }
+#endif
 
-
+#ifdef UI_ATTACHED
 void HALDrawDataScreenCV(const UIDataSet* uids, time_t dt) {
 
 	char time_now_str[10];
@@ -703,14 +733,35 @@ void HALDrawDataScreenCV(const UIDataSet* uids, time_t dt) {
 	}
 #endif
 }
+#endif //UI_ATTACHED
 
 time_t TimeNow(void) {
 #ifdef FF_ARDUINO
+/*
 	DateTime rtcDT;
 	time_t epoch_time;
 
 	rtcDT = rtc.now();
 	epoch_time = rtcDT.secondstime();
+	return epoch_time;
+*/
+	time_t epoch_time;
+	unsigned long milli_now = millis();
+
+	if(milli_now < g_last_milli_val) {
+		// Assume millis has rolled over to zero (every 59 days)
+		g_last_rtc_DT = rtc.now();
+		epoch_time = g_last_rtc_DT.secondstime();
+		g_last_milli_val = milli_now;
+	} else {
+		if((milli_now - g_last_milli_val) > RTC_POLL_INTERVAL) {
+			g_last_rtc_DT = rtc.now();
+			epoch_time = g_last_rtc_DT.secondstime();
+			g_last_milli_val = milli_now;
+		} else {
+			epoch_time = g_last_rtc_DT.secondstime() + ((milli_now - g_last_milli_val) / 1000);
+		}
+	}
 	return epoch_time;
 #endif
 
@@ -760,6 +811,7 @@ FFDateTime HALFFDTNow(void) {
 }
 */
 
+/*
 #ifdef FF_ARDUINO
 void HALSetSysTimeToRTC(void) {
 	DateTime rtcDT;
@@ -773,6 +825,7 @@ void HALSetSysTimeToRTC(void) {
 	set_system_time(epoch_time);
 }
 #endif
+*/
 
 void HALInitRTC(void) {
 #ifdef FF_ARDUINO
@@ -786,6 +839,12 @@ void HALInitRTC(void) {
 		EventMsg(SSS, E_INFO, M_RTC_DETECT, 0, 0);
 		if (rtc.isrunning()) {
 			EventMsg(SSS, E_INFO, M_RTC_REPORT_RUNNING, 0, 0);
+			// Store the current millis timer value - used to avoid calling on the RTC
+			// too often - ie for every time query
+			//TCCR1A = 0;
+			//TCCR1B = 0;
+			g_last_rtc_DT = rtc.now();
+			g_last_milli_val = millis();
 #ifdef SET_RTC
 			EventMsg(SSS, E_WARNING, M_WARN_SET_RTC, 0, 0);
 			// following line sets the RTC localtime() to the date & time this sketch was compiled

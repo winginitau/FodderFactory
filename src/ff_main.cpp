@@ -324,11 +324,12 @@ void InitSystem(void) {
 
 	InitRTC();				// set up the Real Time Clock and synch system time to rtc
 
+	#ifdef UI_ATTACHED
 	// setup real UI (LCD, TFT, QT, None)
 	//TODO - extend beyond LCD
 	InitUI(); 				// set up UI arrangements
-
 	// TODO display some timed status pages
+	#endif
 
 	// check for a file system
 	InitFileSystem(); // DEPR placeholder - no longer really needed
