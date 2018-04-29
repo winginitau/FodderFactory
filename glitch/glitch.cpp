@@ -335,7 +335,7 @@ int main(int argc, char* argv[]) {
 		SendToOutput(i, out);
 		sprintf(out, "// ANY CHANGES MADE IN THIS FILE WILL BE OVERWRITTEN WITHOUT WARNING\n");
 		SendToOutput(i, out);
-		sprintf(out, "// WHENEVER THE LEXER / PROCESSOR IS INVOKED.\n");
+		sprintf(out, "// WHENEVER THE GLITCH IS INVOKED.\n");
 		SendToOutput(i, out);
 		sprintf(out, "//\n\n");
 		SendToOutput(i, out);

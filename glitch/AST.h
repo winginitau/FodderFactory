@@ -11,7 +11,7 @@
 #define AST_H_
 
 #include "config.h"
-#include "string_consts.h"
+//#include "string_consts.h"
 #include "ASTNode.h"
 #include "StringList.h"
 #include "OutputBuffer.h"

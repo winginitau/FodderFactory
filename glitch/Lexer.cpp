@@ -8,6 +8,7 @@
  ******************************************************************/
 
 #include "Lexer.h"
+#include "glitch_errors.h"
 
 
 Lexer::Lexer() {

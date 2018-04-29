@@ -24,6 +24,10 @@ from kivy.uix.gridlayout import GridLayout
 #from kivy.uix.slider import Slider
 from kivy.clock import Clock
 from kivy.graphics import Color, Rectangle
+#from kivy.properties import StringProperty, OptionProperty
+from kivy.properties import NumericProperty
+#BooleanProperty, ReferenceListProperty,
+ 
 
 
 # Constants
@@ -73,24 +77,24 @@ FF_SLATE.append(1.0)
 # [Index, "SOURCE BLOCK", "Display Label"]
 #########################################################
 INPUTS_LIST = (
-    [0, "IN_INSIDE_TOP_TEMP", "Inside Top"],
-    [1, "IN_INSIDE_BOTTOM_TEMP", "Inside Bottom"],
+    [0, "IN_INSIDE_TOP_TEMP", "Top"],
+    [1, "IN_INSIDE_BOTTOM_TEMP", "Bottom"],
     [2, "IN_OUTSIDE_TEMP", "Outside"],
-    [3, "IN_WATER_TEMP", "Header Water"],
-    [4, "IN_CABINET_TEMP", "Electrical Cabinet"],
-    [5, "IN_LONGRUN_TEMP", "Main Water Tank"]
+    [3, "IN_WATER_TEMP", "Water"],
+    [4, "IN_CABINET_TEMP", "Cabinet"],
+    [5, "IN_LONGRUN_TEMP", "Main Tank"]
 )
 
 # [Index, "SOURCE BLOCK", "Display Label"]
 
 OUTPUTS_LIST = (
     [0, "OUT_END_LIGHTS", "Lights"], 
-    [1, "OUT_WATER_HEATER", "Water Heater"],
-    [2, "OUT_FRESH_AIR_FAN", "Inlet Fan"],
-    [3, "OUT_CIRCULATION_FAN", "Circulation Fan"],
-    [4, "OUT_EXHAUST_FAN", "Exhaust Fan"],
-    [5, "OUT_WATERING_SOLENOID_TOP", "Top Sprinklers"],
-    [6, "OUT_WATERING_SOLENOID_BOTTOM", "Bottom Sprinklers"]
+    [1, "OUT_WATER_HEATER", "Heater"],
+#    [2, "OUT_FRESH_AIR_FAN", "Inlet Fan"],
+    [2, "OUT_CIRCULATION_FAN", "Circulation"],
+    [3, "OUT_EXHAUST_FAN", "Exhaust"],
+    [4, "OUT_WATERING_SOLENOID_TOP", "Top Spray"],
+    [5, "OUT_WATERING_SOLENOID_BOTTOM", "Bottom Spray"]
 )
 
 ########################################################
@@ -101,6 +105,7 @@ UINT16_INIT = 65535
 FLOAT_INIT = 255.255
 
 ########################################################
+#MESSAGE_FILENAME = "message_dev.log"
 MESSAGE_FILENAME = "/root/message.log"
 MODEM_SERIAL_PORT = "/dev/ttyV0"
 MODEM_SERIAL_SPEED = 9600
@@ -116,6 +121,14 @@ STD_HEAT_PALLET = (
     [30, 100, FF_RED ]     # red - hot
 )
     
+CABINET_HEAT_PALLET = (
+    [-50, -4, FF_FREEZE_BLUE ],       # Freeze Blue
+    [-4, 5, FF_COLD_BLUE ],    # Cold Blue
+    [5, 50, FF_GREEN ],     # green - good
+    [50, 60, FF_YELLOW ],    # yellow - warm
+    [60, 100, FF_RED ]     # red - hot
+)
+
     
 STATE_UNKNOWN = 2
 STATE_ON = 1
@@ -137,7 +150,7 @@ ui_inputs_values = [
 ui_outputs_values = [ 
     STATE_UNKNOWN,
     STATE_UNKNOWN,
-    STATE_UNKNOWN,
+#    STATE_UNKNOWN,
     STATE_UNKNOWN,
     STATE_UNKNOWN,
     STATE_UNKNOWN,
@@ -146,12 +159,19 @@ ui_outputs_values = [
 
 # Global Functions
 
-def get_colour_by_temp(temp_val):
-    for [low, high, [r, g, b, a]] in STD_HEAT_PALLET:
-        if ((temp_val > low) and (temp_val <= high)):
-            #print (temp_val)
-            #print(low, high, [r, g, b, a])
-            return [r, g, b, a]
+def get_colour_by_temp(temp_val, src_index):
+    if (src_index == 4):
+        for [low, high, [r, g, b, a]] in STD_HEAT_PALLET:
+            if ((temp_val > low) and (temp_val <= high)):
+                #print (temp_val)
+                #print(low, high, [r, g, b, a])
+                return [r, g, b, a]
+    else:
+        for [low, high, [r, g, b, a]] in STD_HEAT_PALLET:
+            if ((temp_val > low) and (temp_val <= high)):
+                #print (temp_val)
+                #print(low, high, [r, g, b, a])
+                return [r, g, b, a]
     return [1, 1, 1, 1]
 
 class ParsedMessage():
@@ -235,6 +255,7 @@ class FFButton(Button):
         self.valign = "middle"
         self.background_normal = ''
         self.background_color = FF_GREY
+        self.font_size = '30sp'
     def set_name(self, name_str):
         self.name = name_str
         self.text = name_str    
@@ -249,10 +270,10 @@ class FFTempButton(FFButton):
         self.temperature = ui_inputs_values[self.source_index]
         if (self.temperature != FLOAT_INIT):
             #self.background_normal = ''
-            self.background_color = get_colour_by_temp(self.temperature)
+            self.background_color = get_colour_by_temp(self.temperature, self.source_index)
         else:
             self.background_color = FF_GREY            
-        self.text = self.name + "\n\n[b]" + str(self.temperature) + "[/b]"
+        self.text = self.name + "\n[b]" + str(self.temperature) + "[/b]"
         #self.text.color = [1, 0, 0, 1]
         
 class FFDeviceButton(FFButton):
@@ -272,7 +293,7 @@ class FFDeviceButton(FFButton):
             self.state_str = "ON"
             #self.background_normal = ""
             self.background_color = FF_GREEN
-        self.text = self.name + "\n\n[b]" + self.state_str + "[/b]"
+        self.text = self.name + "\n[b]" + self.state_str + "[/b]"
         #self.text.color = [1, 0, 0, 1]
 #        print("*****FFDeviceButton update method called by clock *************")
 
@@ -280,8 +301,8 @@ class FFMainScreen(GridLayout):
     def __init__(self, **kwargs):
         super(FFMainScreen, self).__init__(**kwargs)
         self.cols = 3
-        self.spacing = 10
-        self.padding = 30
+        self.spacing = 5
+        self.padding = 5
         #self.row_default_height = 30
         self.height = 480
         self.width = 800

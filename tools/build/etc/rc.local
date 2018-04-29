@@ -23,7 +23,7 @@ chmod ugo+rw /dev/ttyUSB0
 # set up the pppd to allow the remote unit to connect as an IP peer
 # additional options for remote end: usepeerdns defaultroute replacedefultroute
 
-pppd /dev/ttyUSB0 384000 noaccomp nobsdcomp nodeflate nopcomp nopredictor1 novj novjccomp noauth crtscts nocdtrcts lock passive 192.168.10.1:192.168.10.2 local maxfail 0 persist proxyarp updetach 
+pppd /dev/ttyUSB0 57600 noaccomp nobsdcomp nodeflate nopcomp nopredictor1 novj novjccomp noauth crtscts nocdtrcts lock passive 192.168.10.1:192.168.10.2 local maxfail 0 persist proxyarp updetach 
 
 
 #mru 296 mtu 296 ktune bsdcomp 12 xonxoff nocrtscts

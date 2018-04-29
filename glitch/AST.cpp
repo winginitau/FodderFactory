@@ -8,6 +8,7 @@
  ******************************************************************/
 
 #include "AST.h"
+#include "glitch_errors.h"
 
 AST::AST() {
 	root = NULL;

@@ -12,7 +12,7 @@
 
 
 #include "config.h"
-#include "string_consts.h"
+//#include "string_consts.h"
 #include "Identifier.h"
 #include "OutputBuffer.h"
 

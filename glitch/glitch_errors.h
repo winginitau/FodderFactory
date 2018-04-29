@@ -1,5 +1,5 @@
 /*****************************************************************
- processor_errors.h
+ glitch_errors.h
 
  Copyright (C) 2018 Brendan McLearie 
 

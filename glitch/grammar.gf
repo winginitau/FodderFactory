@@ -6,7 +6,9 @@
 %#  This file: 
 %#      - A fully worked example of a complex grammar using   
 %#        all of the features of the package.
-%#      - In production use in https://github.com/winginitau/FodderFactory 
+%#      - Annotated to provide explanation of each of the Directives 
+%#        in context of their use.
+%#      - This example is in production use in https://github.com/winginitau/FodderFactory 
 %#
 %#  Input:   
 %#      - A grammar definition file (this file) - default "grammar.gf"
@@ -34,16 +36,22 @@
 %#              - Provides place-holders that can be used to fully develop the code that
 %#                gets called (and calls callbacks) resulting from the parsing of a command  
 %#              - Including correct passing of all paramaters that were entered with the command
+
 %#   
 %#  Directive: %# 
 %#  - Used as comments in the grammar file (which allows #pre-processor directives in inline code)
+
 %#
 %#  Directive: %include ff_sys_config.h
 %#  (***** Revisit and differentiate between include in header or code  
+
 %#
 %#  Directive: %header-start / %header-end / %code-start / %code-end 
 %#  - Start and end of code to insert "as is" in the header or code files  
-%#  - Use to define classes and/or typedef structs that are referenced in the grammar
+%#  - Use it to define classes and/or typedef structs that are referenced in the grammar
+%#  - Or to include any other code or pre-processor defines
+%#  - The lexer does not attempt to interpret any lines between start and end markers
+%#  - except if the line starts with '%'
 %#
 
 %header-start
@@ -98,50 +106,174 @@ typedef union {
 	char* param_char_star;
 } ParamUnion;
 
+%#
+%#  Directive: %header-end / %code-end
+%#  - See description %header-start 
 
 %header-end
 
 %#
 %#  Directive: %grammar-start
 %#  - Grammar definition starts with %grammar-start and ends with %grammar-end  
-%#
 
 %grammar-start
 
+%#
+%#  Directive: %comment <comment token>
+%#  - itch can read commands from a terminal or from files (eg a config file cronstructed according to 
+%#    a defined grammar). %comment designates a token to be a comment indicator. Any commands or file lines
+%#    read by itch that start with this token will be ignored by the parser.
+%#  - Any number of comment tokens may be designated  
 
 %comment #
 %comment //
+
+%#
+%#  Directive: %sub-section-close <close-token>
+%#  - itch can process and build a parser for stateful context grammars  
+%#  - For example, when configuring a system component (eg a serial port) a sub-config context could be
+%#    entered by a context changing command such as "config Serial1" (if so specified by the grammar) 
+%#    Thereafter, commands such as "baudrate 57600" or "parity none" or "stopbits 1" relate to the context
+%#    of "config Serial1". 
+%#  - To close the context (and move outward to the enclosing context (or scope)) a %sub-section-close token
+%#    is used. 
+%#  - These tokens then apply for context exiting for interactive sessions and when reading a config file
+%#    that contains sub sections / contexts. 
+%#  - Any number of these tokens can be specified (eg in a file read "!" is useful. Interactively CTRL-D (0x26))
 
 %sub-section-close !
 %sub-section-close EXIT
 %sub-section-close 0x26
 
+%#
+%#  Directive: %redundant-close-as-comment
+%#  - Has the effect of treating superfluous %sub-section-close tokens as comments
+%#  - ie. ignored. Useful for readability padding in a hand crafted configuration file. 
+
 %redundant-close-as-comment
+
+%#
+%#  Directive: %ignore-case
+%#  - ***** not currently implmeneted - nor likely to be
+%#  - Case Sensitivity Generally: The grammar defintion itself is case sensitive (and the resultant 
+%#    function calls, unums, etc) are all case sensitive - as it is with any C/C++ program - and the code
+%#    of the parser (itch) that is produced by the grammar lexer (glitch). 
+%#  - At runtime, itch ignores case. It does this by converting all user
+%#    input and all grammar defined syntax, keywords and lookups to a common case (U or L can't remember)
+%#    with the exception of any string litteral enclosed in double quotes eg: "Some String"
+%#  - A consequence of the runtime case agnostisim is that for keywords, identifiers and actions, 
+%#    sensible use of case will aid readability in the grammar file, however at runtime they will become 
+%#    case insensitive. 
 
 %ignore-case
 
+%#
+%#  Directive: %escape-sequence
+%#  - Because itch uses bi-directional serial and socket communication it needs to manage the ports
+%#    that it uses. 
+%#  - However, until itch is explicitly invoked via an escape-sequence it operates transparently.
+%#  - This means that exisiting code that uses ports can continue to do so with only minor changes.
+%#  - Function calls and instances that open and close ports or communication device files 
+%#    need to be commented out (and their settings instead passed to the itch instantiation). 
+%#  - Examples:
+%#      - ioctl();; fopen("/dev/ttyUSB0, "rw"); ->  itch.Begin("/dev/ttyUSB0", 9600, ITCH_TRANSPARENT);
+%#      - Serial1.Begin(9600);                  ->  itch.Begin(Serial1, 9600, ITCH_TRANSPARENT);
+%#  - Then fwrite, Serial.Write, Srial.writeln etc can then still be used without change.
+%#  - However, for consistency and to make use of itch buffers, itch provides similar functions.
+%#  - Any data sent or recived passes through itch transparently until it detects an escape-sequence.
+%#  - This is particulalry useful if a port normally carries a binary or text protocol and is only
+%#    connected with a terminal for debug / diags / config purposes.
+%#  - This mode (ITCH_TRANSPARENT) has similar invocation to the old AT command sets 
+%#    implemented on modems where +++ is issued to enter command mode.  
+%#  - TO avoid escaping any inline modems that are used (in particular radio modems) the escape 
+%#    sequence (+++) should be avoided. Instead ^^^ is recommended. 
+%#  - If no binary protocol is used, or if itch is used to implement a text protocol, or if no
+%#    machine-to-machine protocol is used on the port then itch can be instantiated in interactive
+%#    mode (ITCH_INTERACTIVE) - in which case, the %escape-sequence is redundant and is ignored.  
+
 %escape-sequence ^^^
 
-%#  Usage: %enum-list
-%#  
-%#      %enum-list [ <EnumIdentififer> | anon ] <start-value> \
-%#          <ArraryType> <static-const-var-identifier> <field-name>
-%#          (<keyword-id>)  
 %#
-%#  Creates a code block:
+%#  Feature: enum and string list management.
 %#
-%#      enum { ENUM1 = start-value, ENUM2, ... } optional-EnumIdentifier;
+%#  A feature of glitch/itch is the management of enum lists that reference related string lists. 
+%#  This feature can be used indpendently or in conjunction with the generation of the itch
+%#  parser code. 
 %#
-
+%#  It is particularly useful (and is required) for defining lists of identifiers 
+%#  that are used in the grammar syntax and relate to the specific application for which 
+%#  glitch/itch is being used eg: device names (LED1, LED2, etc) or command strings (FORWARD, BACK, LEFT, etc)
+%#
+%#  Where the target platform is avr / ARDUINO, if ARDUINO is defined then glitch willl
+%#  place all strings into program memory using PROGMEM attributes.   
+%#   
+%#  Directive Set: %enum flags
+%#  - Several directives operate together to implement the enum management features.
+%#      - enum flags are directives that can be set once and will then apply to all enums.
+%#        They can be changed throughout the grammar but they don't have to be repeated.
+%#      - enum descriptors describe each enum list and need to be set for each enum list.
+%#           
+%#  Directive: %enum-terminating-member
+%#  - Type: enum flag
+%#  - Instructs glicth to place an additional enum member "LAST_<identifier>" as the final
+%#    member of the list. This allows for nice loop constructs in the parser and user code.
+%#    Example: for(int i = 0; i < LAST_member; i++)
+%#    Example: do {} while(count < LAST_member); if(count == LAST_member) { // Throw error } 
+%#
+%#  Directive: %enum-plus-list-array
+%#  - Type: enum flag
+%#  - Create a string list as well as the enum list
+%#
+%#  Directive: %enum-start-value <n>
+%#  - Type: enum flag
+%#  - Value of the first member ******* revisit 0 is hard coded at present
+%#
+%#  Directive: %enum-array-member-label <field-label>
+%#  - Type: enum flag
+%#  - Generated strings lists are stored in an a struct that has a single char array field <field-label>
+%#  - ***** presently safest to use the label "text" as this may be hard coded in parts of the 
+%#    parser code generated by glitch.
+%#
+%#  Directive: %enum-array-reserve-words
+%#  - Type: enum flag
+%#  - Instructs glitch to reserve each of the strings associated to an enum as identifiers 
+%#    for use by the parser.
+%#  ****** check on this functionality - how does it differ from %enum-identifier???
+%#
+%#  Directive: %enum-array-type
+%#  - Type: enum flag
+%#  - Specifies the typedef struct that will hold the strings associated to an enum list.
+%#  - Works with %enum-array-member-label which specifies the field within the type.
+%#  - If all enum / string combinations for the application are of the same type, this only needs
+%#    to be declared once. Alternatively, it can change for each enum list.
 
 %enum-terminating-member
 %enum-plus-list-array
 %enum-start-value 0
 %enum-array-member-label text
 %enum-array-reserve-words
+%enum-array-type SimpleStringArray
+
+%#  Directive: %enum-identifier
+%#  - Type: enum descriptor
+%#  - Specifies internal identifier used by glitch and the parser (itch) to refer to the enum list
+%#  - Is also the identifier name that is used when referring to the list in grammar directives.
+%#  - Must be unique for each enum list and conform to standard ANSI C identifier regex rules
+
+%#  Directive: %enum-array-instance
+%#  - Type: enum descriptor
+%#  - Specifies the instance variable of %enum-array-type that will refer to the strings in the parser code 
+%#  - if ARDUINO is declared the string array will be placed into program memory using the PROGMEM attribute
+%#  - Must be unique for each enum list and conform to standard ANSI C identifier regex rules
+
+%#  Directive: %enum-start and %enum-end
+%#  - Instructs glitch that all following lines up until %enum-end contain the enum identifiers and strings.
+%#  - The format of the lines are:
+%#      - <enum-name> <space or tab> <related string> 
+%#  - If %enum-terminating-member is specified, the the last line is the last enum-name without a following string. 
+%# ***** TODO - check this is working properly
 
 %enum-identifier block_category
-%enum-array-type SimpleStringArray
 %enum-array-instance block_cat_names
 %enum-start
 FF_ERROR_CAT        ERROR_CAT
@@ -157,7 +289,6 @@ LAST_BLOCK_CAT
 %enum-end
 
 %enum-identifier command
-%enum-array-type SimpleStringArray
 %enum-array-instance command_strings
 %enum-start
 CMD_ERROR           CMD_ERROR   
@@ -168,6 +299,8 @@ LAST_COMMAND
 %enum-end
 
 %# 
+%#  Directive: %lookup-list
+%#
 %#  Usage: %lookup-list <lookup-identifier> <FunctionName>
 %#
 %#  Results in a prototype being defined in the output header file which is the
@@ -196,11 +329,10 @@ LAST_COMMAND
 %#
 %#  the resulting prototype would be:
 %#
-%#      char** LookupBlockLabel(char* block_label); 
+%#      void LookupBlockLabel(char* block_label); 
 %#  
 
 %lookup-list block_label LookupBlockLabel
-
 
 %# 
 %#  Usage: %action-define <ACTION_IDENTIFIER> <FunctionName>
@@ -229,7 +361,7 @@ LAST_COMMAND
 %#
 %#  the resulting prototype would be:
 %#
-%#      char** SendMessage( int block_category, 
+%#      void SendMessage( int block_category, 
 %#                          int param_int_1, int param_int_2); 
 %#  
 
@@ -364,7 +496,6 @@ LAST_COMMAND
 %4 keyword FLOAT
 %5 param-float
 %action MESSAGE_DATA_LABEL_FLOAT
-
 
 
 %action-define DEBUG_ON DebugOn

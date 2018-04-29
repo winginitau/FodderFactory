@@ -8,6 +8,7 @@
  ******************************************************************/
 
 #include "Identifiers.h"
+#include "glitch_errors.h"
 
 Debug debug;
 
