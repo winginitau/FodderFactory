@@ -12,7 +12,7 @@
 #include "Debug.h"
 #endif
 
-#define PROC_DEBUG		// dubug output in the processor executable
+//#define PROC_DEBUG		// dubug output in the processor executable
 
 #include "LineBuffer.h"
 #include "StringList.h"
@@ -65,10 +65,16 @@ void SendToOutput(int out_q, char* out) {
 			#endif
 			break;
 		case Q_USER_CODE:
-			fprintf(uf, "%s", out);
-			#ifdef PROC_DEBUG
-			printf("DEBUG USER_CODE \t%s", out);
-			#endif
+			if (overwrite_user_file) {
+				fprintf(uf, "%s", out);
+				#ifdef PROC_DEBUG
+				printf("DEBUG USER_CODE \t%s", out);
+				#endif
+			} else {
+				#ifdef PROC_DEBUG
+				printf("DEBUG USER_CODE (not written) \t%s", out);
+				#endif
+			}
 			break;
 		default:
 			printf("FATAL Error, Nonexistent output destination referenced in Processor::SendToOutput()\n");
@@ -77,17 +83,23 @@ void SendToOutput(int out_q, char* out) {
 }
 
 void ProcessGrammarFile() {
+	// Main processing loop - reads grammar file char by char
+	// When whole lines are available, it tokenises
+	// 	and calls the lexer to process the line.
+	// Handles return from the lexer and directs output
 
-	int line_count = 0;
-	LineBuffer line;
+	int line_count = 0;		// For reporting count of processed and location of errors
+	LineBuffer line;		// A custom class that allows char by char build up,
+							//	tokenisation, indexable tokens, and preservation of original,
+							//	smart handling of \r \n, EOL flagging etc
 
-	char ch;
+	char ch;				// used to read the grammar file char by char
 
-	char output_line[MAX_BUFFER_LENGTH];
+	char output_line[MAX_BUFFER_LENGTH];	// generic buffer for any string going "out"
 
-	int result = R_NONE;
+	int result = R_NONE;	// line-to-line processing state machine
 
-	ch = fgetc(gf);
+	ch = fgetc(gf);			// get the first char from the grammar file
 	while (ch != EOF) {
 		line.AddChar(ch);
 
@@ -121,6 +133,7 @@ void ProcessGrammarFile() {
 					//TODO: Lookup error code
 					exit(-1);
 					break; //continue
+				case R_IGNORE:		// fall through to unfinished - used for comments
 				case R_UNFINISHED:
 					while (lex.User_OutputAvailable()) {
 						lex.GetOutputAsString(Q_USER, output_line);
@@ -140,12 +153,14 @@ void ProcessGrammarFile() {
 						lex.GetOutputAsString(Q_CODE, output_line);
 						SendToOutput(Q_CODE, output_line);
 					}
-					if (overwrite_user_file) {
-						while (lex.User_Code_OutputAvailable()) {
-							lex.GetOutputAsString(Q_USER_CODE, output_line);
+					while (lex.User_Code_OutputAvailable()) {
+						lex.GetOutputAsString(Q_USER_CODE, output_line);
+						if (overwrite_user_file) {
 							SendToOutput(Q_USER_CODE, output_line);
 						}
 					}
+					// Only if R_COMPLETE is the lexer reset
+					// 	which clears sectional flags
 					lex.Init();
 					break;
 				}
@@ -275,7 +290,7 @@ int ArgsAndFiles(int argc, char* argv[]) {
 		printf("-f option given - overwriting user_code file\n");
 		uf = fopen(uf_name, "w");
 		if (uf == 0) {
-			printf(">> Error opening usert code file for writing: %s\n", uf_name);
+			printf(">> Error opening user code file for writing: %s\n", uf_name);
 			return 1;
 		}
 
@@ -292,7 +307,7 @@ int ArgsAndFiles(int argc, char* argv[]) {
 				uf = fopen(uf_name, "w");
 				overwrite_user_file = true;
 				if (uf == 0) {
-					printf(">> Error opening usert code file for writing: %s\n", uf_name);
+					printf(">> Error opening user code file for writing: %s\n", uf_name);
 					return 1;
 				}
 			} else { // no
@@ -302,7 +317,7 @@ int ArgsAndFiles(int argc, char* argv[]) {
 			uf = fopen(uf_name, "w");
 			overwrite_user_file = true;
 			if (uf == 0) {
-				printf(">> Error opening usert code file for writing: %s\n", uf_name);
+				printf(">> Error opening user code file for writing: %s\n", uf_name);
 				return 1;
 			}
 		}

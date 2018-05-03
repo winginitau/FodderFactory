@@ -197,9 +197,17 @@ uint8_t Compare_N_LOOKUP(char* target, ASTA* temp_node) {
 		return 0;
 	}
 
-	// input is a string by definition
-	// if we're looking for a lookup value, then we're looking for a string
-	return 1;
+	// XXX although a lookup is a string it is actually
+	// a special case of a reserved word (ie identifier)
+	// So lookup needs to be called here or the idea of
+	// lookups needs to be expunged from the whole code base.
+
+	// Currently - lookups not matched at all
+	// Cant just treat as a string or matchreduce will error
+	// because it can't distinguish a string from a lookup
+	// in the case where an AST node has valid branching to
+	// both a param-string node and a lookup node.
+	return 0;
 }
 
 uint8_t Compare_N_IDENTIFIER(char* target, ASTA* temp_node) {
@@ -253,20 +261,30 @@ uint8_t Compare_N_KEYWORD(char* target, ASTA* temp_node) {
 }
 
 uint8_t MapMatch(char* line, TokenList* matched_list) {
+	// working from the currently matched node, isolate the last token
+	// in the line buffer (complete or partial), match it against
+	// possible nodes, evaluate the results and return result
+	// and a list of matched nodes to the parser
+
 	char target[MAX_IDENTIFIER_LABEL_SIZE]; 	// for the last bit that we are interested in
 	uint8_t target_size;					//
 
 	// clear the previous match list
 	TLReset(matched_list);
 
-	// if a new line advance to the first node
+	// if a new line advance to the first node in the ASTA
 	if (g_map_id_current == 0) { g_map_id_current = 1; }
 
+	// set the ASTA walker to the current node
 	g_map_id_walker = g_map_id_current;
 
-	// Size up the target
+	// Determine the target part of the line buffer
+	// ie the last token on the line - complete or partial and get its size
 	g_mflags.match_result = MapDetermineTarget(&target_size, target, line);
+
 	// If size == 0 assume advanced past a delim, return
+	// size will only be 0 if the previous pass detected a delim and advanced the buffer
+	// therefore code now just checks for the MR_DELIM_SKIP flag
 	if (g_mflags.match_result == MR_DELIM_SKIP) { return MR_DELIM_SKIP; }
 
 	// save the target to be turned into an action call parameter later (once delim reached)
@@ -274,7 +292,7 @@ uint8_t MapMatch(char* line, TokenList* matched_list) {
 
 	// by default help is off
 	g_mflags.help_active = 0;
-	// except
+	// except if '?' is the last char (ie target/token of interest)
 	if (target[(target_size-1)] == '?') {
 		// add sibling nodes to list based match so far
 		// - if advanced past delimiter using space " " then it will be
@@ -284,33 +302,37 @@ uint8_t MapMatch(char* line, TokenList* matched_list) {
 	// reset keyword match if set previously
 	g_mflags.keyword_match = 0 ;
 
+	// Scan the current node and its siblings for potential or exact matches
+	// Returning the result in matched_list
 	MapSelectMatchingNodes(target, matched_list);
 
+	// Evaluate the matched_list and return the result
 	return MapEvaluateMatchedList(matched_list);
 
 }
 
-void MapSelectMatchingNodes(char* target, TokenList* matched_list) {
+void MapSelectMatchingNodes(char* token, TokenList* matched_list) {
 	//ASTA g_temp_asta;
 	uint8_t cr = 0;		// compare result
 
 	do {
 		// Iteratively short list possible sibling node matches
 		// by comparing the top node at this level and each of its siblings
-		// to what we have in the target
+		// to what we have in the token
 
+		// Get the first candidate node
 		MapGetASTAByID(g_map_id_walker, &g_temp_asta);
 
-		// type will determine how we compare the node
+		// Node type will determine how we compare it to the token
 		switch (g_temp_asta.type) {
-			case AST_PARAM_DATE:	cr = Compare_N_PARAM_DATE(target, &g_temp_asta);		break;
-			case AST_PARAM_TIME:	cr = Compare_N_PARAM_TIME(target, &g_temp_asta);		break;
-			case AST_PARAM_FLOAT: 	cr = Compare_N_PARAM_FLOAT(target, &g_temp_asta);		break;
-			case AST_PARAM_INTEGER:	cr = Compare_N_PARAM_INTEGER(target, &g_temp_asta);	break;
-			case AST_PARAM_STRING:	cr = Compare_N_PARAM_STRING(target, &g_temp_asta);	break;
-			case AST_LOOKUP:		cr = Compare_N_LOOKUP(target, &g_temp_asta);			break;
-			case AST_IDENTIFIER:	cr = Compare_N_IDENTIFIER(target, &g_temp_asta);		break;
-			case AST_KEYWORD:		cr = Compare_N_KEYWORD(target, &g_temp_asta);			break;
+			case AST_PARAM_DATE:	cr = Compare_N_PARAM_DATE(token, &g_temp_asta);		break;
+			case AST_PARAM_TIME:	cr = Compare_N_PARAM_TIME(token, &g_temp_asta);		break;
+			case AST_PARAM_FLOAT: 	cr = Compare_N_PARAM_FLOAT(token, &g_temp_asta);		break;
+			case AST_PARAM_INTEGER:	cr = Compare_N_PARAM_INTEGER(token, &g_temp_asta);	break;
+			case AST_PARAM_STRING:	cr = Compare_N_PARAM_STRING(token, &g_temp_asta);	break;
+			case AST_LOOKUP:		cr = Compare_N_LOOKUP(token, &g_temp_asta);			break;
+			case AST_IDENTIFIER:	cr = Compare_N_IDENTIFIER(token, &g_temp_asta);		break;
+			case AST_KEYWORD:		cr = Compare_N_KEYWORD(token, &g_temp_asta);			break;
 		};
 
 		if ((cr > 0) || (g_mflags.help_active == 1)) {
@@ -433,7 +455,7 @@ uint16_t MapMatchReduce(TokenList* list) {
 	// if 0 identifier check lookup
 	// if 2 or more lookup, return multi
 	// if 1 lookup and no others - would have been caught as unique and dealt with in MatchEvaluate
-	//		return error
+	//		return error XXX (when implemented)
 	// if 0 lookup, check rest
 	// XXX if more than 1 at this point, then it can't be parsed
 	// because it requires a LOOK-RIGHT, on a user parameter to branch
@@ -443,21 +465,28 @@ uint16_t MapMatchReduce(TokenList* list) {
 	uint16_t count;
 	uint8_t type;
 
+	// Work through the types in order of precedence - one by one
+	// Starting with the two that have values known to the parser
 	for (type = AST_KEYWORD; type <= AST_IDENTIFIER; type++) {
 		count = TLCountByType(list, type);
 		if (count > 1) {
+			// return > 1 - still need more chars to determine uniqueness
 			return TLGetSize(list);
 		} else {
+			// count is 0 or 1
 			if (count == 1) {
+				// count of this type unique
+				// drop the rest of list
 				for (int i = (type + 1); i < LAST_AST_TYPE; i++) {
 					TLDeleteByType(list, i);
 				}
+				// double check - should now definitely be 1
+				// TODO: redundant?
 				count = TLGetSize(list);
 				if (count == 1) {
 					return 1;
 				} else {
-					// reduce did not achieve a unique match
-
+					// error - count  expected to be 1 but did not achieve a unique match
 					#ifdef ITCH_DEBUG
 						strcpy_debug(n_debug_message, ITCH_DEBUG_MATCH_REDUCE_FATAL_SIZE_NOT_1);
 						M(n_debug_message);
@@ -471,6 +500,7 @@ uint16_t MapMatchReduce(TokenList* list) {
 		}
 	}
 
+	// TODO: not sure why LOOKUPs can be treated in the previous loop??
 	type = AST_LOOKUP;
 	count = TLCountByType(list, type);
 	if (count > 1) {

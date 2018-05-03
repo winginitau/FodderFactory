@@ -21,6 +21,43 @@ char* FFFloatToCString(char* buf, float f) {
 	return dtostrf(f,-7,2,buf);
 }
 
+char WaitForUser(void) {
+	char c = '\0';
+
+	while ((c != '\n') && (c != '\r')) {
+		if(Serial.available()) {
+			c = Serial.read();
+		}
+	}
+
+	delay(10); // wait for and discard extra chars on the line
+	while(Serial.available()) {
+		Serial.read();
+		delay(10);
+	}
+
+	return c;
+}
+
+char GetResponse(void) {
+	char c = '\0';
+
+	while (c == '\0') {
+		if(Serial.available()) {
+			c = Serial.read();
+		}
+	}
+
+	delay(10); // wait for and discard extra chars on the line
+	while(Serial.available()) {
+		Serial.read();
+		delay(10);
+	}
+
+	return c;
+}
+
+
 void TestTempSensors(uint8_t bus) {
 
 	OneWire one_wire(bus);            		// oneWire instance to communicate with any OneWire devices
@@ -63,63 +100,116 @@ void TestTempSensors(uint8_t bus) {
 
 }
 
+void Operate(void) {
+	uint8_t pins[] = { 22, 24, 26, 28, 30, 32, 34, 36 };
+	uint8_t status[] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+	char buf[200];
+
+	char on[] = "ON";
+	char off[] = "--";
+
+	char c = '\0';
+	int i;
+	int n;
+
+	sprintf(buf, "Use Numbers 0 - 7 to Toggle Relays, \"x\" to Exit\n\n");
+	Serial.write(buf);
+
+	while (c != 'x') {
+		sprintf(buf, "0   1   2   3   4   5   6   7 \n");
+		Serial.write(buf);
+		sprintf(buf, "LT  WH  NA  FC  FE  NA  WT  WB\n");
+		Serial.write(buf);
+		buf[0] = '\0';
+		for (i = 0; i < 8; i++) {
+			if (status[i] == 0) {
+				strcat(buf, off);
+				strcat(buf, "  ");
+			} else {
+				strcat(buf, on);
+				strcat(buf, "  ");
+			}
+		}
+		strcat(buf, "\n\n");
+		Serial.write(buf);
+		Serial.flush();
+
+		c = GetResponse();
+		n = c - '0';
+
+		if ((n >= 0) && (n < 8)) {
+			pinMode(pins[n], OUTPUT);
+			if (status[n] == 0) {
+				status[n] = 1;
+				digitalWrite(pins[n], HIGH);
+			} else {
+				status[n] = 0;
+				digitalWrite(pins[n], LOW);
+			}
+		}
+	}
+}
+
 void TestRelays(void) {
 	uint8_t pins[] = {22, 24, 26, 28, 30, 32, 34, 36};
 	uint8_t pin_count = 8;
 
 	char buf[200];
-	int c = 0;
 
 	for (uint8_t i = 0; i < pin_count; i++) {
-		pinMode(pins[i], OUTPUT);
 		sprintf(buf, "Ready to Test   Relay:%d   Pin:%d    <CR/NL> to Activate\n", i, pins[i]);
 		Serial.write(buf);
-
-		c = Serial.read();
-		while (c != '\n') {
-			c = Serial.read();
-		}
 		Serial.flush();
+
+		WaitForUser();
+
+		pinMode(pins[i], OUTPUT);
 
 		sprintf(buf, "HIGH            Relay:%d   Pin:%d    <CR/NL> to Deactivate\n", i, pins[i]);
 		Serial.write(buf);
+		Serial.flush();
+
 		digitalWrite(pins[i], HIGH);
 
-		c = Serial.read();
-		while (c != '\n') {
-			c = Serial.read();
-		}
-		Serial.flush();
+		WaitForUser();
 
 		sprintf(buf, "LOW             Relay:%d   Pin:%d    \n\n", i, pins[i]);
 		Serial.write(buf);
+		Serial.flush();
 
 		digitalWrite(pins[i], LOW);
 	}
 }
 
 void setup() {
+	//delay(10000);	// to switch between avrdude and screen session
+
+	delay(500); //let terminal settle
 	Serial.begin(9600);
+	delay(100);
 	Serial.write("Fodder Factory System Test\n");
+	Serial.flush();
 }
+
 
 void loop() {
 	char c;
 
-	Serial.write("(r)elays or (t)emps?\n");
+	Serial.write("(r)elays  (t)emps  (o)perate?\n");
+	Serial.flush();
 
-	c = Serial.read();
-	while ((c != 'r') && (c != 't')) {
-		c = Serial.read();
+	c = GetResponse();
+
+	if(c == 'r') {
+		TestRelays();
 	}
-
-	if(c == 'r') TestRelays();
 	if(c == 't') {
 		TestTempSensors(ONE_WIRE_BUS_1);
 		TestTempSensors(ONE_WIRE_BUS_2);
 		TestTempSensors(ONE_WIRE_BUS_3);
 	}
-
-	Serial.flush();
+	if(c == 'o') {
+		Operate();
+	}
 	Serial.write("Iteration Complete\n");
-}
+	Serial.flush();}

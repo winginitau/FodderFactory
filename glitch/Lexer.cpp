@@ -19,7 +19,7 @@ Lexer::Lexer() {
     ignore_case = false;
     enum_terminating_member = false;
     enum_plus_list_array = false;
-    enum_start_value[0] = '\0';
+    strcpy(enum_start_value, "0");
     enum_array_member_label[0] = '\0';
     enum_array_reserve_words = false;
     enum_array_type[0] = '\0';
@@ -56,27 +56,40 @@ void Lexer::Init() {
     output_string[0] = '\0';
     error_type = E_NO_ERROR;
     // sectionally persistent directives
-    // persist only while line result = R_UNFINISHED
+    // persist only while line result = R_UNFINISHED or R_IGNORE
     code_section = false;
     enum_section = false;
     header_section = false;
+
+    temp_string[0] = '\0';
 
 
 
 }
 
-int Lexer::MatchToken(char* token_str) {
+int Lexer::MatchTokenToDirective(char* token_str) {
+	// Match the token string to directives and
+	// 	return the related enum value
+	// Assumes that the string is a valid token (ie no leading space etc)
 	int i;
+
+	// Special case - NULL string
 	if (token_str[0] == '\0') {
 		return D_NULL;
-	} else {
-		for (i = LAST_DIRECTIVE; i > D_UNKNOWN; i--) {
-			if (strcmp(token_str, grammar_directives[i].text) == 0) {
-				return i;
-			}
-		}
-		return i;
 	}
+
+	// Special case - grammar comment - first two chars are "%#"
+	if ((strlen(token_str) >= 2) && (token_str[0] == '%') && (token_str[1] == '#')) {
+		return D_GRAMMAR_COMMENT;
+	}
+
+	// Match it or return D_UNKNOWN
+	for (i = LAST_DIRECTIVE; i > D_UNKNOWN; i--) {
+		if (strcmp(token_str, grammar_directives[i].text) == 0) {
+			return i;
+		}
+	}
+	return i;
 }
 
 char* Lexer::GetErrorString(char* error_str) {
@@ -84,18 +97,20 @@ char* Lexer::GetErrorString(char* error_str) {
     return error_str;
 }
 
-void Lexer::SizeCheck(int* max, char* str) {
+void Lexer::RegisterSize(int* max, char* str) {
+	// Update the passed max_ size counter (that will be used as #defines in the parser)
 	int sz = strlen(str);
 	if (sz > *max) *max = sz;
 }
 
 int Lexer::ProcessLine(LineBuffer& line_buf) {
 
-	line = line_buf;
+	line = line_buf;					// can't remember why there's a second reference
 
-    line.GetTokenStr(token_str, 0);     //get the first token on the line
-    line.GetTokenStr(tokens[0], 0);
-    directive = MatchToken(token_str);
+    line.GetTokenStr(token_str, 0);     // get the first token on the line
+    line.GetTokenStr(tokens[0], 0);		// can't remember why we need both
+    directive = MatchTokenToDirective(token_str);	// The first token is a directive unless it is data
+    									// 	inside sectional start and stop directives
     switch (directive) {
         case D_UNKNOWN: 					Process_D_UNKNOWN(); 						break;
         case D_GRAMMAR_COMMENT: 			Process_D_GRAMMAR_COMMENT(); 				break;
@@ -144,6 +159,9 @@ int Lexer::ProcessLine(LineBuffer& line_buf) {
 }
 
 void Lexer::Process_D_UNKNOWN(void) {
+	// The first token did not match any directive
+	// Therefore it is either a data line inside start / top sectional directives
+	//	or it is an error
 	if (header_section) {
 		line.GetRawBuffer(output_string);
 		strcat(output_string, "\n");
@@ -163,7 +181,7 @@ void Lexer::Process_D_UNKNOWN(void) {
 			line.GetTokenStr(tokens[0], 0);
 			line.GetTokenStr(tokens[1], 1);
 			idents.AddMember(enum_identifier, tokens[0], tokens[1]);
-			SizeCheck(&max_enum_string_array_string_size, tokens[1]);
+			RegisterSize(&max_enum_string_array_string_size, tokens[1]);
 			// TODO possibly add code to process lines as enum-only entries
 			// if token[1] fails
 			process_result = R_UNFINISHED;
@@ -177,7 +195,7 @@ void Lexer::Process_D_UNKNOWN(void) {
 
 void Lexer::Process_D_GRAMMAR_COMMENT(void) {
 	//ignore
-	process_result = R_COMPLETE;
+	process_result = R_IGNORE;
 }
 
 void Lexer::Process_D_NULL(void) {
@@ -209,6 +227,8 @@ void Lexer::Process_D_CODE_START(void) {
 	} else {
 		code_section = true;
 		process_result = R_UNFINISHED;
+		user_output_queue.EnQueue("Found code-start\n");
+		user_output_available = true;
 	}
 }
 
@@ -216,6 +236,8 @@ void Lexer::Process_D_CODE_END(void) {
 	if (code_section) {
 		code_section = false;
 		process_result = R_COMPLETE;
+		user_output_queue.EnQueue("Code Specified by code-start and code-end inserted into the code file\n");
+		user_output_available = true;
 	} else {
 		process_result = R_ERROR;
 		error_type = E_CODE_END_WITHOUT_START;
@@ -229,6 +251,8 @@ void Lexer::Process_D_GRAMMAR_START(void) {
 	} else {
 		grammar_section = true;
 		process_result = R_COMPLETE;
+		user_output_queue.EnQueue("Found grammar-start\n");
+		user_output_available = true;
 	}
 }
 
@@ -254,6 +278,9 @@ void Lexer::Process_D_SUB_SECTION_CLOSE(void) {
 	} else {
 		if (sub_section_closes.AddString(token_str)) {
 			process_result = R_COMPLETE;
+			sprintf(temp_string, "Registered \"%s\" as a config sub-section closure\n", token_str);
+			user_output_queue.EnQueue(temp_string);
+			user_output_available = true;
 		} else {
 			process_result = R_ERROR;
 			error_type = E_INTERNAL_ERROR_ADDING_TO_SET;
@@ -264,11 +291,15 @@ void Lexer::Process_D_SUB_SECTION_CLOSE(void) {
 void Lexer::Process_D_REDUNDANT_CLOSE_AS_COMMENT(void) {
 	redundant_close_as_comment = true;
 	process_result = R_COMPLETE;
+	user_output_queue.EnQueue("Redundant-close-as-comment set ON\n");
+	user_output_available = true;
 }
 
 void Lexer::Process_D_IGNORE_CASE(void) {
 	ignore_case = true;
 	process_result = R_COMPLETE;
+	user_output_queue.EnQueue("Ignore-case set ON\n");
+	user_output_available = true;
 }
 
 void Lexer::Process_D_ESCAPE_SEQUENCE(void) {
@@ -278,6 +309,9 @@ void Lexer::Process_D_ESCAPE_SEQUENCE(void) {
     } else {
         if (escape_sequences.AddString(token_str)) {
             process_result = R_COMPLETE;
+			sprintf(temp_string, "Registered \"%s\" as a terminal escape sequence\n", token_str);
+			user_output_queue.EnQueue(temp_string);
+			user_output_available = true;
         } else {
             process_result = R_ERROR;
             error_type = E_INTERNAL_ERROR_ADDING_TO_SET;
@@ -286,23 +320,36 @@ void Lexer::Process_D_ESCAPE_SEQUENCE(void) {
 }
 
 void Lexer::Process_D_ENUM_TERMINATING_MEMBER(void) {
-	enum_terminating_member = true;
-	process_result = R_COMPLETE;
+	if(strcmp(enum_start_value, "0") == 0) {
+		enum_terminating_member = true;
+		process_result = R_COMPLETE;
+		user_output_queue.EnQueue("Enums with terminating members set to ON\n");
+		user_output_available = true;
+	} else {
+        process_result = R_ERROR;
+        error_type = E_ENUM_START_NOT_ZERO_AND_TERMINATING_MEMBER_TRUE;
+	}
 }
 
 void Lexer::Process_D_ENUM_PLUS_LIST_ARRAY(void) {
 	enum_plus_list_array = true;
 	process_result = R_COMPLETE;
+	user_output_queue.EnQueue("Enums with associated string lists set to ON\n");
+	user_output_available = true;
 }
 
 void Lexer::Process_D_ENUM_NO_TERMINATING_MEMBER(void) {
 	enum_terminating_member = false;
 	process_result = R_COMPLETE;
+	user_output_queue.EnQueue("Enums with terminating members set to OFF\n");
+	user_output_available = true;
 }
 
 void Lexer::Process_D_ENUM_NO_LIST_ARRAY(void) {
 	enum_plus_list_array = false;
 	process_result = R_COMPLETE;
+	user_output_queue.EnQueue("Enums with associated string lists set to OFF\n");
+	user_output_available = true;
 }
 
 void Lexer::Process_D_ENUM_START_VALUE(void) {
@@ -310,8 +357,16 @@ void Lexer::Process_D_ENUM_START_VALUE(void) {
         process_result = R_ERROR;
         error_type = E_ENUM_START_VALUE_NULL;
     } else {
-        strcpy(enum_start_value, token_str);
-        process_result = R_COMPLETE;
+    	if ((strcmp(token_str, "0") != 0) && enum_terminating_member) {
+            process_result = R_ERROR;
+            error_type = E_ENUM_START_NOT_ZERO_AND_TERMINATING_MEMBER_TRUE;
+    	} else {
+    		strcpy(enum_start_value, token_str);
+    		process_result = R_COMPLETE;
+    		sprintf(temp_string, "Enum start value set to %s\n", token_str);
+    		user_output_queue.EnQueue(temp_string);
+    		user_output_available = true;
+    	}
     }
 }
 
@@ -320,9 +375,12 @@ void Lexer::Process_D_ENUM_ARRAY_TYPE(void) {
         process_result = R_ERROR;
         error_type = E_ENUM_ARRAY_TYPE_NULL;
     } else {
-    	SizeCheck(&max_identifier_label_size, token_str);
+    	RegisterSize(&max_identifier_label_size, token_str);
         strcpy(enum_array_type, token_str);
         process_result = R_COMPLETE;
+		sprintf(temp_string, "Enum string array type set to: %s\n", token_str);
+		user_output_queue.EnQueue(temp_string);
+		user_output_available = true;
     }
 }
 
@@ -331,10 +389,11 @@ void Lexer::Process_D_ENUM_ARRAY_INSTANCE(void) {
         process_result = R_ERROR;
         error_type = E_ENUM_ARRAY_INSTANCE_NULL;
     } else {
-    	SizeCheck(&max_identifier_label_size, token_str);
-    	SizeCheck(&max_ast_label_size, token_str);
+    	RegisterSize(&max_identifier_label_size, token_str);
+    	RegisterSize(&max_ast_label_size, token_str);
         strcpy(enum_array_instance, token_str);
         process_result = R_COMPLETE;
+        // indicate user output at end of processing the list
     }
 }
 
@@ -343,15 +402,19 @@ void Lexer::Process_D_ENUM_ARRAY_MEMBER_LABEL(void) {
         process_result = R_ERROR;
         error_type = E_ENUM_ARRAY_MEMBER_LABEL_NULL;
     } else {
-    	SizeCheck(&max_identifier_label_size, token_str);
+    	RegisterSize(&max_identifier_label_size, token_str);
         strcpy(enum_array_member_label, token_str);
         process_result = R_COMPLETE;
+		sprintf(temp_string, "Enum array member field label set to: %s\n", token_str);
+		user_output_queue.EnQueue(temp_string);
+		user_output_available = true;
     }
 }
 
 void Lexer::Process_D_ENUM_ARRAY_RESERVE(void) {
     enum_array_reserve_words = true;
     process_result = R_COMPLETE;
+    // XXX not sure if this is used or is defualt anyway
 }
 
 void Lexer::Process_D_ENUM_ARRAY_NO_RESERVE(void) {
@@ -364,9 +427,10 @@ void Lexer::Process_D_ENUM_IDENTIFIFER(void) {
         process_result = R_ERROR;
         error_type = E_ENUM_IDENTFIFER_NULL;
     } else {
-    	SizeCheck(&max_identifier_label_size, token_str);
+    	RegisterSize(&max_identifier_label_size, token_str);
         strcpy(enum_identifier, token_str);
         process_result = R_COMPLETE;
+        // indicate user output at end of processing the list
     }
 }
 
@@ -399,6 +463,7 @@ void Lexer::Process_D_ENUM_START(void) {
     	if (enum_plus_list_array) {
     		error_type = idents.NewIdent(enum_identifier, ID_ENUM_ARRAY_PAIR);
     		idents.SetInstanceName(enum_identifier, enum_array_instance);
+            // indicate user output at end of processing the list
     	} else {
     		error_type = idents.NewIdent(enum_identifier, ID_ENUM_LIST);
     	}
@@ -413,42 +478,69 @@ void Lexer::Process_D_ENUM_START(void) {
 }
 
 void Lexer::Process_D_ENUM_END(void) {
+	// Write the enum definition and the associated string array (if defined)
+	// to the header file.
+
+	// write the start of the enum definition
 	strcpy(output_string, "enum {\n");
 	header_output_queue.EnQueue(output_string);
-	for (uint16_t i = 0; i < idents.GetSizeByIdentifierName(enum_identifier); i++) {
+
+	// Get the size of the ident list holding the enum symbols
+	uint16_t enum_list_size = idents.GetSizeByIdentifierName(enum_identifier);
+	uint16_t string_list_size = 0;	// work this out later depending on terminating member
+
+	// and iterate through the enums writing the symbols to the header file
+	for (uint16_t i = 0; i < enum_list_size; i++) {
 		if (enum_plus_list_array) {
+			// get the enum symbol and the associated string
 			idents.GetEntryAtLocation(enum_identifier,tokens[0], tokens[1], i);
 		} else {
+			// or only the enum symbol if there's no strings
 			idents.GetEntryAtLocation(enum_identifier,tokens[0], i);
 		}
+		// write the symbol
 		strcpy(output_string, "\t");
 		strcat(output_string, tokens[0]);
+		// if its the first symbol, append " = <enum_start_value>"
 		if (i == 0) {
             strcat(output_string, " = ");
             strcat(output_string, enum_start_value);
 		}
+		// and then a ','
 		strcat(output_string, ",\n");
 		header_output_queue.EnQueue(output_string);
 	}
+	// write the enum close
 	strcpy(output_string, "};\n\n");
 	header_output_queue.EnQueue(output_string);
 
-	if (enum_plus_list_array) {
-		uint16_t size = idents.GetSizeByIdentifierName(enum_identifier);		// # entries in the enum
-		if (enum_terminating_member) {
-			// array size cardinal will be the enum value of the last member
-			// less the value of the first entry (if not 0)
-			// TODO: enum_terminating_member only works if enum_start_value == 0
-			//  add checks to enum start pre-req checks
+    // tell the user
+	sprintf(temp_string, "Processed enum list with enum identifier: %s\n", enum_identifier);
+	user_output_queue.EnQueue(temp_string);
+	user_output_available = true;
 
-			// get the last enum @ size-1
-			idents.GetEntryAtLocation(enum_identifier,tokens[0], tokens[1], size-1);
+	// set up for the associated string array (if defined)
+	if (enum_plus_list_array) {
+		if (enum_terminating_member) {
+			// See discussion elsewhere on looping arrays with enums that have terminating members
+			// A prerequisite is that the value of the first enum symbol is 0 - checked elsewhere
+
+			// If there's a terminating enum member then
+			// - its symbol is the size of the string array
+			// - its located at enum_list_size -1.
+			// Put it into token[0] (token[1] will be null but working with a tupple get both)
+			idents.GetEntryAtLocation(enum_identifier,tokens[0], tokens[1], enum_list_size-1);
+			// and the string list size is one less than the enum list size
+			string_list_size = enum_list_size - 1;
 		} else {
-			// arrary size cardinal will be the number of entries in the enum
-			sprintf(token_str, "%u", size);
+			// no terminating member - string array size cardinal
+			// will be the number of entries in the enum
+			sprintf(token_str, "%u", enum_list_size);
 			strcpy(tokens[0], token_str);
+			string_list_size = enum_list_size;
 		}
 
+		// write the string array definition - token[0] containing the size
 		strcpy(output_string, "#ifdef USE_PROGMEM\n");
     	header_output_queue.EnQueue(output_string);
 
@@ -476,38 +568,50 @@ void Lexer::Process_D_ENUM_END(void) {
 		strcpy(output_string, "#endif\n");
     	header_output_queue.EnQueue(output_string);
 
-    	for (uint16_t i = 0; i < size - 1; i++) {
+    	// write the instantiation strings
+    	for (uint16_t i = 0; i < string_list_size; i++) {
 			idents.GetEntryAtLocation(enum_identifier,tokens[0], tokens[1], i);
     		strcpy(output_string, "\t\"");
     		strcat(output_string, tokens[1]);
     		strcat(output_string, "\",\n");
         	header_output_queue.EnQueue(output_string);
     	}
+
+    	// write the array close
     	strcpy(output_string, "};\n\n");
     	header_output_queue.EnQueue(output_string);
     }
 
-	/*
-    %enum-array-member-label text
-    */
     header_output_available = true;
     enum_section = false;
     process_result = R_COMPLETE;
 
+    // tell the user
+	sprintf(temp_string, "Processed associated string list of type: %s Array name: %s\n", enum_array_type, enum_array_instance);
+	user_output_queue.EnQueue(temp_string);
+	user_output_available = true;
+
+
     // Housekeeping - These need to be explicitly defined for each
     // enum list, so null them out so they get caught in the pre-req
     // checks if they have not been explicitly defined for the next enum.
-    enum_array_type[0] = '\0';
+
+    // enum_array_type[0] = '\0';
     enum_array_instance[0] = '\0';
     enum_identifier[0] = '\0';
 }
 
 void Lexer::Process_D_TERM(void) {
+	// Called to process a line where the first directive
+	// has the form %<n> starting with %1
+
+	// get the term that follows
 	if (line.GetTokenStr(tokens[1], 1) == NULL) {
 		process_result = R_ERROR;
 		error_type = E_TERM_WITHOUT_ARGUMENTS;
 	} else {
-		// get rid of the leading %
+		// There is a second token, proceed
+		// get rid of the leading % by shifting that token[0] left
 		int i;
 		for (i = 1; i < MAX_BUFFER_WORD_LENGTH; i++) {
 			tokens[0][i - 1] = tokens[0][i];
@@ -541,17 +645,19 @@ void Lexer::Process_D_TERM(void) {
 			if (line.GetTokenStr(tokens[2], 2) == NULL) {
 				// 2 - Must be a param type - AST will check for valid types when added
 				error_type = ast.NewNode(term_level, tokens[1]);
-		    	SizeCheck(&max_ast_label_size, tokens[1]);
+		    	RegisterSize(&max_ast_label_size, tokens[1]);
 			} else {
-				// is 3 token form (keyword, ident or lookup)
+				// it is a 3 token form (identifier or lookup)
 				if (   (strcmp(tokens[1], "identifier") == 0)
 					|| (strcmp(tokens[1], "lookup") == 0) ) {
-					// check that it has not already been defined
+					// check that it has already been defined
 					if (idents.Exists(tokens[2])) {
+						// add it to the term to the AST
 						error_type = ast.NewNode(term_level, tokens[1], tokens[2]);
-				    	SizeCheck(&max_identifier_label_size, tokens[2]);
-				    	SizeCheck(&max_ast_label_size, tokens[2]);
+				    	RegisterSize(&max_identifier_label_size, tokens[2]);
+				    	RegisterSize(&max_ast_label_size, tokens[2]);
 					} else {
+						// tried to use
 						error_type = E_UNKNOWN_IDENT_OR_LOOKUP;
 					}
 				} else {
@@ -559,9 +665,9 @@ void Lexer::Process_D_TERM(void) {
 					if (strcmp(tokens[1], "keyword") == 0) {
 						// XXX duplicate check needs to be done in AST - its the only place the keywords persist
 						error_type = ast.NewNode(term_level, tokens[1], tokens[2]);
-				    	SizeCheck(&max_ast_label_size, tokens[1]);
-						SizeCheck(&max_identifier_label_size, tokens[2]);
-				    	SizeCheck(&max_ast_label_size, tokens[2]);
+				    	RegisterSize(&max_ast_label_size, tokens[1]);
+						RegisterSize(&max_identifier_label_size, tokens[2]);
+				    	RegisterSize(&max_ast_label_size, tokens[2]);
 					} else {
 						error_type = E_UNKNOWN_TERM_OR_MALFORMED_DIRECTIVE;
 					}
@@ -600,9 +706,9 @@ void Lexer::Process_D_ACTION_DEFINE(void) {
 			} else {
 				if ((error_type = idents.NewIdent(tokens[1], ID_ACTION_PAIR)) == E_NO_ERROR) {
 					idents.SetInstanceName(tokens[1], tokens[2]);
-			    	SizeCheck(&max_identifier_label_size, tokens[1]);
-			    	SizeCheck(&max_identifier_label_size, tokens[2]);
-			    	SizeCheck(&max_ast_action_size, tokens[2]);
+			    	RegisterSize(&max_identifier_label_size, tokens[1]);
+			    	RegisterSize(&max_identifier_label_size, tokens[2]);
+			    	RegisterSize(&max_ast_action_size, tokens[2]);
 					process_result = R_COMPLETE;
 				} else {
 					process_result = R_ERROR;
@@ -826,7 +932,7 @@ void Lexer::Process_D_LOOKUP_LIST(void) {
 				error_type = idents.NewIdent(tokens[1], ID_LOOKUP_LIST);
 				if (error_type == E_NO_ERROR) {
 					idents.SetInstanceName(tokens[1], tokens[2]);
-			    	SizeCheck(&max_identifier_label_size, tokens[2]);
+			    	RegisterSize(&max_identifier_label_size, tokens[2]);
 					process_result = R_COMPLETE;
 				} else {
 					process_result = R_ERROR;

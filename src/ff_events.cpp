@@ -91,9 +91,9 @@ uint8_t EventSendSubscribers(EventNode* e) {
 	//Or possible not - who should know if a reg update is required? Block or Event?
 
 	// Partial move in this direction
-	if     ((e->source == GetBlockID(DISPLAY_INSIDE_SOURCE_BLOCK)) ||
-			(e->source == GetBlockID(DISPLAY_OUTSIDE_SOURCE_BLOCK)) ||
-			(e->source == GetBlockID(DISPLAY_WATER_SOURCE_BLOCK)) ) {
+	if     ((e->source == GetBlockIDByLabel(DISPLAY_INSIDE_SOURCE_BLOCK)) ||
+			(e->source == GetBlockIDByLabel(DISPLAY_OUTSIDE_SOURCE_BLOCK)) ||
+			(e->source == GetBlockIDByLabel(DISPLAY_WATER_SOURCE_BLOCK)) ) {
 		UpdateStateRegister(e->source, e->message_type, e->message, e->int_val, e->float_val);
 	}
 

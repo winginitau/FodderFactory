@@ -250,7 +250,7 @@ uint8_t GetBVal(uint16_t block_id) {
 }
 
 
-uint16_t GetBlockID(const char* label) {
+uint16_t GetBlockIDByLabel(const char* label) {
 	BlockNode* temp;
 	char debug_msg[MAX_LOG_LINE_LENGTH];
 
@@ -454,20 +454,32 @@ char* UpdateBlockLabel(BlockNode* b, char * block_label) {
 	return b->block_label;
 }
 
-BlockNode* GetBlockNodeByLabel(BlockNode *list_node, const char *block_label) {
-	//BlockNode *block;
+BlockNode* GetBlockNodeByLabel(BlockNode *head, const char *block_label) {
+	// re-written iteratively
 
-	if(list_node == NULL) {   //empty list
-		return NULL;
-	} else {
-		if (strcmp(list_node->block_label, block_label) == 0) {
-			return list_node;
+	BlockNode* walker;
+	walker = head;
+	while(walker != NULL) {
+		if (strcmp(head->block_label, block_label) == 0) {
+			return walker;
 		} else {
-			list_node = GetBlockNodeByLabel(list_node->next_block, block_label);
+			walker = walker->next_block;
 		}
 	}
-	return list_node;
+	return walker;
 }
+/*
+	if(head == NULL) {   //empty list
+		return NULL;
+	} else {
+		if (strcmp(head->block_label, block_label) == 0) {
+			return head;
+		} else {
+			head = GetBlockNodeByLabel(head->next_block, block_label);
+		}
+	}
+	return head;
+*/
 
 BlockNode* GetBlockByLabel(const char *block_label) {
 	return GetBlockNodeByLabel(bll, block_label);
@@ -642,6 +654,23 @@ void RegShowBlockByID(uint16_t id, void(*Callback)(char *)) {
 }
 
 
+void RegSendCommandToBlockLabel(char* block_label, uint16_t command, void(*Callback)(char *)) {
+	char out_str[MAX_MESSAGE_STRING_LENGTH];	// 80
+	uint16_t block_id;
+
+	block_id = GetBlockIDByLabel(block_label);
+	if (block_id == M_FF_ERROR) {
+		sprintf(out_str, "Block: %s not found", block_label);
+		Callback(out_str);
+	} else {
+		//XXX range check command
+		sprintf(out_str, "Sending %d to Block: %s", command, block_label);
+		Callback(out_str);
+		SetCommand(block_id, command);
+		EventMsg(SSS, block_id, E_COMMAND, command);
+	}
+
+}
 
 /********************************************************************************************
  * State Register and UI Data Set Functions

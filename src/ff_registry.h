@@ -157,7 +157,7 @@ uint8_t SetCommand(uint16_t block_id, uint8_t cmd_msg);
 uint8_t IsActive(uint16_t block_id);
 uint8_t GetBVal(uint16_t block_id);
 float GetFVal(uint16_t block_id);
-uint16_t GetBlockID(const char* label);
+uint16_t GetBlockIDByLabel(const char* label);
 char const* GetBlockLabelString(uint16_t block_id);
 void SetBlockLabelString(uint8_t block_type, int idx, const char* label);
 BlockNode* GetLastBlockAddr(void);
@@ -170,6 +170,8 @@ char* UpdateBlockLabel(BlockNode* b, char * block_label);
 
 void RegShowBlocks(void(*Callback)(char *));
 void RegShowBlockByID(uint16_t, void(*Callback)(char *));
+void RegSendCommandToBlockLabel(char* block_label, uint16_t command, void(*Callback)(char *));
+
 
 
 void UpdateStateRegister(uint16_t source, uint8_t msg_type, uint8_t msg_str, int i_val, float f_val);

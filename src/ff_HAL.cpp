@@ -193,9 +193,9 @@ uint8_t HALInitSerial(uint8_t port, uint16_t baudrate) {
 #ifdef FF_ARDUINO
 	switch (port) {
 		case 0:
-			delay(5);
+			//delay(5);
 			Serial.begin(baudrate);
-			delay(5);
+			//delay(5);
 			break;
 		case 1:
 			Serial1.begin(baudrate);
@@ -219,21 +219,6 @@ uint8_t HALEventSerialSend(EventNode* e, uint8_t port, uint16_t baudrate) {
 
 	// Serial begin now in InitSerial, so that when ITCH is in use
 	// it can be open listening all the time
-	/*
-	switch (port) {
-		case 0:
-			Serial.begin(baudrate);
-			break;
-		case 1:
-			Serial1.begin(baudrate);
-			break;
-		case 2:
-			Serial2.begin(baudrate);
-			break;
-		default:
-			break;
-	}
-*/
 
 	int loop = 2000;
 	int check = 0;
@@ -291,21 +276,6 @@ uint8_t HALEventSerialSend(EventNode* e, uint8_t port, uint16_t baudrate) {
     	}
     }
 
-    /*
-	switch (port) {
-		case 0:
-			Serial.end();
-			break;
-		case 1:
-			Serial1.end();
-			break;
-		case 2:
-			Serial2.end();
-			break;
-		default:
-			break;
-	}
-	*/
 	#endif
 	return 1;
 }

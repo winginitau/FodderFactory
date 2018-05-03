@@ -79,7 +79,9 @@ bool LineBuffer::IsEmptyLine(void) {
 //}
 
 char* LineBuffer::GetTokenStr(char* token, uint16_t idx) {
-    if (empty_line) {
+    // Copy the token at position idx of the word list into
+	// the char * token provided by the caller. Return that pointer.
+	if (empty_line) {
     	token[0] = '\0';
     	return token;
     }

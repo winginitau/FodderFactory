@@ -376,7 +376,7 @@ uint8_t Parse(char ch) {
 	}
 
 
-	// just another ordinary char - continue to matching
+	// if we get to here its just another ordinary char - continue to matching
 	g_pflags.match_result = ParserMatch();
 
 	// evaluate the match results for what it means for parsing

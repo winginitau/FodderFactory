@@ -40,6 +40,9 @@
 %#   
 %#  Directive: %# 
 %#  - Used as comments in the grammar file (which allows #pre-processor directives in inline code)
+%#  - May be used inside data sections (header / code sections and enun lists)
+%#  - Any line begining with %# is treated as a NULL line 
+%#  - It cannot be used as a trailing comment at the end of line
 
 %#
 %#  Directive: %include ff_sys_config.h
@@ -106,11 +109,26 @@ typedef union {
 	char* param_char_star;
 } ParamUnion;
 
-%#
+%# This is a comment inside a code / header section - will be ignored
+%#This is a comment where the comment directive is tokenised with the first word inside a section
+
+%#  
 %#  Directive: %header-end / %code-end
 %#  - See description %header-start 
 
 %header-end
+
+%#This is a comment where the comment directive is tokenised with the first word 
+
+%code-start
+
+// Code inserted from the grammar file
+// between %code-start and %code-end
+// written as is to the code output file
+
+%# This is a comment inside a code / header section - will be ignored
+
+%code-end
 
 %#
 %#  Directive: %grammar-start
@@ -466,6 +484,7 @@ LAST_COMMAND
 
 %# MESSAGE COMMAND <block_category> <INT> <command>          // Send command message to output block
 %# MESSAGE COMMAND <block_label> <command>
+%# MESSAGE COMMAND <block
 %# MESSAGE DATA <block_label> INT <INT>              // Simulate input block sending integer data
 %# MESSAGE DATA <block_category> <INT> INT <INT>     // Simulate input block sending integer data
 %# MESSAGE DATA <block_label> FLOAT <FLOAT>          // Simulate input block sending float data

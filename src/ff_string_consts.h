@@ -729,7 +729,7 @@ static const SimpleStringArray command_strings[LAST_COMMAND] = {
 	"CMD_RESET_MIN_MAX",
 };
 
-#endif //ndef USE_ITCH
+#endif //ifndef USE_ITCH
 
 enum {						// Interface Types
 	IF_ERROR = 0,

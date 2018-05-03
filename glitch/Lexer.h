@@ -144,6 +144,7 @@ private:
     int last_directive;
     int error_type;
     LineBuffer line;
+    char temp_string[MAX_BUFFER_LENGTH];	// for general use in constructing messages
 
     // sectionally persistent directives
     // persist while result = R_UNFINISHED
@@ -173,10 +174,10 @@ private:
     bool code_output_available;
     bool user_code_output_available;
     char output_string[MAX_BUFFER_LENGTH];
-    StringList header_output_queue;
-    StringList user_output_queue;
-    StringList code_output_queue;
-    StringList user_code_output_queue;
+    StringList user_output_queue;			// queue of lines for stdout
+    StringList header_output_queue;			// queue of lines for the header file
+    StringList code_output_queue;			// queue of lines for the code file
+    StringList user_code_output_queue;		// queue of lines for the user code file
 
 
     int term_level;
@@ -207,7 +208,7 @@ public:
     void Init();
     int ProcessLine(LineBuffer& line);
 
-    void SizeCheck(int* max, char* str);
+    void RegisterSize(int* max, char* str);
 
     bool Header_OutputAvailable();
     bool User_OutputAvailable();
@@ -215,7 +216,7 @@ public:
     bool User_Code_OutputAvailable();
 
     char* GetOutputAsString(int queue, char* output_str);
-    int MatchToken(char* token_str);
+    int MatchTokenToDirective(char* token_str);
     char* GetErrorString(char* error_str);
 
     AST ast;

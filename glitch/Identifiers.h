@@ -80,7 +80,7 @@ public:
 	void WriteIdentMemberLookupFunction(int header_or_code);
 	void WriteIdentMemberLookupCase(int case_num, char* string_array_instance, char* terminating_member_name);
 
-	void DEBUGDumpIdentifiers(void);
+	//void DEBUGDumpIdentifiers(void);
 
 	bool IdentifierValid(char * ident);
 

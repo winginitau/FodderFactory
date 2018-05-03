@@ -213,16 +213,16 @@ uint8_t ConfigureINSetting(BlockNode* block_ptr, uint8_t key_idx, const char* va
 uint8_t ConfigureMONSetting(BlockNode* block_ptr, uint8_t key_idx, const char* value_str) {
 	switch (key_idx) {
 		case MON_INPUT1:
-			block_ptr->settings.mon.input1 = GetBlockID(value_str);
+			block_ptr->settings.mon.input1 = GetBlockIDByLabel(value_str);
 			break;
 		case MON_INPUT2:
-			block_ptr->settings.mon.input2 = GetBlockID(value_str);
+			block_ptr->settings.mon.input2 = GetBlockIDByLabel(value_str);
 			break;
 		case MON_INPUT3:
-			block_ptr->settings.mon.input3 = GetBlockID(value_str);
+			block_ptr->settings.mon.input3 = GetBlockIDByLabel(value_str);
 			break;
 		case MON_INPUT4:
-			block_ptr->settings.mon.input4 = GetBlockID(value_str);
+			block_ptr->settings.mon.input4 = GetBlockIDByLabel(value_str);
 			break;
 		case MON_ACT_VAL:
 			// check first for IN_DIGITAL boolean values
@@ -293,16 +293,16 @@ uint8_t ConfigureSCHSetting(BlockNode* block_ptr, uint8_t key_idx, const char* v
 uint8_t ConfigureRLSetting(BlockNode* block_ptr, uint8_t key_idx, const char* value_str) {
 	switch (key_idx) {
 		case RL_PARAM_1:
-			block_ptr->settings.rl.param1 = GetBlockID(value_str);
+			block_ptr->settings.rl.param1 = GetBlockIDByLabel(value_str);
 			break;
 		case RL_PARAM_2:
-			block_ptr->settings.rl.param2 = GetBlockID(value_str);
+			block_ptr->settings.rl.param2 = GetBlockIDByLabel(value_str);
 			break;
 		case RL_PARAM_3:
-			block_ptr->settings.rl.param3 = GetBlockID(value_str);
+			block_ptr->settings.rl.param3 = GetBlockIDByLabel(value_str);
 			break;
 		case RL_PARAM_NOT:
-			block_ptr->settings.rl.param_not = GetBlockID(value_str);
+			block_ptr->settings.rl.param_not = GetBlockIDByLabel(value_str);
 			break;
 		default:
 			DebugLog(SSS, E_ERROR, M_RL_BAD_DEF);
@@ -316,10 +316,10 @@ uint8_t ConfigureRLSetting(BlockNode* block_ptr, uint8_t key_idx, const char* va
 uint8_t ConfigureCONSetting(BlockNode* block_ptr, uint8_t key_idx, const char* value_str) {
 	switch (key_idx) {
 		case CON_RULE:
-			block_ptr->settings.con.rule = GetBlockID(value_str);
+			block_ptr->settings.con.rule = GetBlockIDByLabel(value_str);
 			break;
 		case CON_OUTPUT:
-			block_ptr->settings.con.output = GetBlockID(value_str);
+			block_ptr->settings.con.output = GetBlockIDByLabel(value_str);
 			break;
 		case CON_ACT_CMD: {
 			uint8_t c = 0;

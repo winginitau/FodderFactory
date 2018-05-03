@@ -10,7 +10,9 @@
 #include "Identifiers.h"
 #include "glitch_errors.h"
 
+#ifdef DEBUG
 Debug debug;
+#endif
 
 Identifiers::Identifiers() {
 	idents_count = 0;
@@ -478,7 +480,7 @@ void Identifiers::WriteIdentMemberLookupCase(int case_num, char* string_array_in
 }
 
 
-
+/*
 void Identifiers::DEBUGDumpIdentifiers(void) {
 	int idx;
 	char out[MAX_BUFFER_LENGTH];
@@ -520,6 +522,7 @@ void Identifiers::DEBUGDumpIdentifiers(void) {
 	}
 	output.SetOutputAvailable();
 }
+*/
 
 bool Identifiers::IdentifierValid(char* ident) {
 	//
