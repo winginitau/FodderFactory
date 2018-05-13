@@ -386,8 +386,10 @@ LAST_COMMAND
 %action-define SHOW_BLOCKS ShowBlocks
 %action-define SHOW_SYSTEM ShowSystem
 %action-define SHOW_BLOCK_LABEL ShowBlockByLabel
-%action-define SHOW_BLOCK_CATEGORY ShowBlockByCategory
-%action-define SHOW_BLOCK_CAT_N ShowBlockCatN
+
+%#action-define SHOW_BLOCK_CATEGORY ShowBlockByCategory
+%#action-define SHOW_BLOCK_CAT_N ShowBlockCatN
+
 %action-define SHOW_BLOCK_ID ShowBlockByID
 
 %# SHOW BLOCKS                   // List all blocks on device with their label and integer ID 
@@ -401,10 +403,12 @@ LAST_COMMAND
 %action SHOW_BLOCKS
 %2 keyword SYSTEM 
 %action SHOW_SYSTEM
-%2 identifier block_category 
-%action SHOW_BLOCK_CATEGORY
-%3 param-integer
-%action SHOW_BLOCK_CAT_N
+
+%#2 identifier block_category 
+%#action SHOW_BLOCK_CATEGORY
+%#3 param-integer
+%#action SHOW_BLOCK_CAT_N
+
 %2 lookup block_label
 %action SHOW_BLOCK_LABEL
 %2 param-integer 
@@ -412,27 +416,27 @@ LAST_COMMAND
 
 
 
-%action-define MUTE_MESSAGES_ON MessagesMute
-%action-define MUTE_MESSAGES_OFF MessagesUnmute
+%#action-define MUTE_MESSAGES_ON MessagesMute
+%#action-define MUTE_MESSAGES_OFF MessagesUnmute
 
 %# MUTE MESSAGES ON				        // stop displaying event and debug messages to this terminal
 %# MUTE MESSAGES OFF				    // start displaying.....
 
-%1 keyword MUTE 
-%2 keyword MESSAGES 
-%3 keyword ON 
-%action MUTE_MESSAGES_ON
-%3 keyword OFF 
-%action MUTE_MESSAGES_OFF
+%#1 keyword MUTE 
+%#2 keyword MESSAGES 
+%#3 keyword ON 
+%#action MUTE_MESSAGES_ON
+%#3 keyword OFF 
+%#action MUTE_MESSAGES_OFF
 
 
 
-%action-define MONIOTR_START MonitorStart
-%action-define MONITOR_STOP_ALL MonitorStop
-%action-define MONITOR_STOP_BLOCK_LABEL MonitorRemoveByLabel
-%action-define MONITOR_STOP_BLOCK_CAT_N MonitorRemoveByBlockCatN
-%action-define MONITOR_BLOCK_LABEL MonitorByLabel
-%action-define MONITOR_BLOCK_CAT_N MonitorByBlockCatN
+%#action-define MONIOTR_START MonitorStart
+%#action-define MONITOR_STOP_ALL MonitorStop
+%#action-define MONITOR_STOP_BLOCK_LABEL MonitorRemoveByLabel
+%#action-define MONITOR_STOP_BLOCK_CAT_N MonitorRemoveByBlockCatN
+%#action-define MONITOR_BLOCK_LABEL MonitorByLabel
+%#action-define MONITOR_BLOCK_CAT_N MonitorByBlockCatN
 
 %# MONITOR <block_label>                 // Add block to the monitor pool
 %# MONITOR <block_category> <INT>        // Add block to the monitor pool
@@ -441,46 +445,53 @@ LAST_COMMAND
 %# MONITOR STOP ALL                      // Remove all blocks from the monitor pool
 %# MONITOR START                 // Show all activity from and to monitored blocks. <any key> to exit.
 
-%1 keyword MONITOR
-%2 keyword START
-%action MONIOTR_START
-%2 keyword STOP
-%3 keyword ALL
-%action MONITOR_STOP_ALL
-%3 lookup block_label
-%action MONITOR_STOP_BLOCK_LABEL
-%3 identifier block_category
-%4 param-integer
-%action MONITOR_STOP_BLOCK_CAT_N
-%2 lookup block_label
-%action MONITOR_BLOCK_LABEL
-%2 identifier block_category
-%3 param-integer
-%action MONITOR_BLOCK_CAT_N
+%#1 keyword MONITOR
+%#2 keyword START
+%#action MONIOTR_START
+%#2 keyword STOP
+%#3 keyword ALL
+%#action MONITOR_STOP_ALL
+%#3 lookup block_label
+%#action MONITOR_STOP_BLOCK_LABEL
+%#3 identifier block_category
+%#4 param-integer
+%#action MONITOR_STOP_BLOCK_CAT_N
+%#2 lookup block_label
+%#action MONITOR_BLOCK_LABEL
+%#2 identifier block_category
+%#3 param-integer
+%#action MONITOR_BLOCK_CAT_N
 
 
 
-%action-define CLEAR_BLOCK_LABEL ClearBlockByLabel
-%action-define CLEAR_BLOCK_CAT_N ClearBlockByBlockCatN
+%#action-define CLEAR_BLOCK_LABEL ClearBlockByLabel
+%#action-define CLEAR_BLOCK_CAT_N ClearBlockByBlockCatN
 
 %# CLEAR <block_label>                   // Clear block's local datalog
 %# CLEAR <block_category> <INT>          // Clear block's local datalog
 
-%1 keyword CLEAR
-%2 lookup block_label
-%action CLEAR_BLOCK_LABEL
-%2 identifier block_category
-%3 param-integer
-%action CLEAR_BLOCK_CAT_N
+%#1 keyword CLEAR
+%#2 lookup block_label
+%#action CLEAR_BLOCK_LABEL
+%#2 identifier block_category
+%#3 param-integer
+%#action CLEAR_BLOCK_CAT_N
 
 
 
-%action-define COMMAND_BLOCK_CAT_N SendCommandToBlockCatN
+%#action-define COMMAND_BLOCK_CAT_N SendCommandToBlockCatN
+
 %action-define COMMAND_BLOCK_LABEL SendCommandToBlockLabel
-%action-define MESSAGE_DATA_BCAT_N_INT SimIntDataMessageFromBCatN
-%action-define MESSAGE_DATA_BCAT_N_FLOAT SimFloatDataMessageFromBCatN
+%action-define COMMAND_BLOCK_ID SendCommandToBlockID
+
+%#action-define MESSAGE_DATA_BCAT_N_INT SimIntDataMessageFromBCatN
+%#action-define MESSAGE_DATA_BCAT_N_FLOAT SimFloatDataMessageFromBCatN
+
 %action-define MESSAGE_DATA_LABEL_INT SimIntDataMessageFromBlockLabel
 %action-define MESSAGE_DATA_LABEL_FLOAT SimFloatDataMessageFromBlockLabel
+
+%action-define MESSAGE_DATA_BLOCK_ID_INT SimIntDataMessageFromBlockID
+%action-define MESSAGE_DATA_BLOCK_ID_FLOAT SimFloatDataMessageFromBlockID
 
 %# MESSAGE COMMAND <block_category> <INT> <command>          // Send command message to output block
 %# MESSAGE COMMAND <block_label> <command>
@@ -492,22 +503,31 @@ LAST_COMMAND
 
 %1 keyword MESSAGE
 %2 keyword COMMAND
-%3 identifier block_category
-%4 param-integer
-%5 identifier command
-%action COMMAND_BLOCK_CAT_N
+
+%#3 identifier block_category
+%#4 param-integer
+%#5 identifier command
+%#action COMMAND_BLOCK_CAT_N
+
 %3 lookup block_label
 %4 identifier command
 %action COMMAND_BLOCK_LABEL
-%2 keyword DATA
-%3 identifier block_category
-%4 param-integer
-%5 keyword INT
-%6 param-integer
-%action MESSAGE_DATA_BCAT_N_INT
-%5 keyword FLOAT
-%6 param-float
-%action MESSAGE_DATA_BCAT_N_FLOAT
+
+%3 param-integer
+%4 identifier command
+%action COMMAND_BLOCK_ID
+
+%#2 keyword DATA
+
+%#3 identifier block_category
+%#4 param-integer
+%#5 keyword INT
+%#6 param-integer
+%#action MESSAGE_DATA_BCAT_N_INT
+%#5 keyword FLOAT
+%#6 param-float
+%#action MESSAGE_DATA_BCAT_N_FLOAT
+
 %3 lookup block_label
 %4 keyword INT
 %5 param-integer
@@ -516,12 +536,19 @@ LAST_COMMAND
 %5 param-float
 %action MESSAGE_DATA_LABEL_FLOAT
 
+%3 param-integer
+%4 keyword INT
+%5 param-integer
+%action MESSAGE_DATA_BLOCK_ID_INT
+%4 keyword FLOAT
+%5 param-float
+%action MESSAGE_DATA_BLOCK_ID_FLOAT
 
-%action-define DEBUG_ON DebugOn
-%action-define DEBUG_OFF DebugOff
-%action-define DEBUG_TERMINAL_ON DebugTermOn
-%action-define DEBUG_TERMINAL_OFF DebugTermOff
-%action-define DEBUG_LEVEL DebugSetLevel
+%#action-define DEBUG_ON DebugOn
+%#action-define DEBUG_OFF DebugOff
+%#action-define DEBUG_TERMINAL_ON DebugTermOn
+%#action-define DEBUG_TERMINAL_OFF DebugTermOff
+%#action-define DEBUG_LEVEL DebugSetLevel
 
 %# DEBUG LEVEL <INT>                 // 1 - 10 (lower is more verbose)
 %# DEBUG ON                          // Turn debug messages on or off system wide
@@ -529,19 +556,19 @@ LAST_COMMAND
 %# DEBUG TERMINAL ON                 // Send debug messages to this terminal 
 %# DEBUG TERMINAL OFF                // Stop sending debug messages to this terminal 
 
-%1 keyword DEBUG
-%2 keyword ON
-%action DEBUG_ON
-%2 keyword OFF
-%action DEBUG_OFF
-%2 keyword TERMINAL
-%3 keyword ON
-%action DEBUG_TERMINAL_ON
-%3 keyword OFF
-%action DEBUG_TERMINAL_OFF
-%2 keyword LEVEL
-%3 param-integer
-%action DEBUG_LEVEL
+%#1 keyword DEBUG
+%#2 keyword ON
+%#action DEBUG_ON
+%#2 keyword OFF
+%#action DEBUG_OFF
+%#2 keyword TERMINAL
+%#3 keyword ON
+%#action DEBUG_TERMINAL_ON
+%#3 keyword OFF
+%#action DEBUG_TERMINAL_OFF
+%#2 keyword LEVEL
+%#3 param-integer
+%#action DEBUG_LEVEL
 
 
 
@@ -568,10 +595,10 @@ LAST_COMMAND
 
 
 
-%action-define CONF_CLEAR_BLOCKS ConfClearBlocks
-%action-define CONF_CLEAR_ALL ConfClearAll
-%action-define CONF_FILE_DEFAULT ConfReadDefaultFile
-%action-define CONF_FILE_FILENAME ConfReadFilename
+%#action-define CONF_CLEAR_BLOCKS ConfClearBlocks
+%#action-define CONF_CLEAR_ALL ConfClearAll
+%#action-define CONF_FILE_DEFAULT ConfReadDefaultFile
+%#action-define CONF_FILE_FILENAME ConfReadFilename
 
 %# CONFIGURE CLEAR BLOCKS        // drop all block config except SYSTEM
 %# CONFIGURE CLEAR ALL           // drop all config
@@ -581,25 +608,25 @@ LAST_COMMAND
 
 %# context-define CONFIG
 
-%1 keyword CONFIGURE
-%2 keyword CLEAR
-%3 keyword BLOCKS
-%action CONF_CLEAR_BLOCKS
-%3 keyword ALL
-%action CONF_CLEAR_ALL
-%# 2 keyword TERMINAL
-%# context CONFIG
-%2 keyword FILE
-%action CONF_FILE_DEFAULT
-%3 param-string
-%action CONF_FILE_FILENAME
+%#1 keyword CONFIGURE
+%#2 keyword CLEAR
+%#3 keyword BLOCKS
+%#action CONF_CLEAR_BLOCKS
+%#3 keyword ALL
+%#action CONF_CLEAR_ALL
+%## 2 keyword TERMINAL
+%## context CONFIG
+%#2 keyword FILE
+%#action CONF_FILE_DEFAULT
+%#3 param-string
+%#action CONF_FILE_FILENAME
 
 
 
-%action-define WRITE_DEFAULT WriteToDefaultConfigFile
-%action-define WRITE_INIT WriteEmptyDefaultConfigFile
-%action-define WRITE_FILENAME WriteToFilenameConfigFile
-%action-define COPY_FILE_FILE CopyConfigFileToFile
+%#action-define WRITE_DEFAULT WriteToDefaultConfigFile
+%#action-define WRITE_INIT WriteEmptyDefaultConfigFile
+%#action-define WRITE_FILENAME WriteToFilenameConfigFile
+%#action-define COPY_FILE_FILE CopyConfigFileToFile
 
 %# WRITE                 // writes running config to default file "config.txt"
 %# WRITE INIT            // write empty init config to the default config "config.txt"
@@ -618,26 +645,26 @@ LAST_COMMAND
 %#                        //  may be intended behavior - eg if access to the config file is
 %#                        //  is provided by the operating system. 
 
-%1 keyword WRITE
-%action WRITE_DEFAULT
-%2 keyword INIT
-%action WRITE_INIT
-%2 param-string
-%action WRITE_FILENAME
-%1 keyword COPY
-%2 param-string
-%3 param-string
-%action COPY_FILE_FILE
+%#1 keyword WRITE
+%#action WRITE_DEFAULT
+%#2 keyword INIT
+%#action WRITE_INIT
+%#2 param-string
+%#action WRITE_FILENAME
+%#1 keyword COPY
+%#2 param-string
+%#3 param-string
+%#action COPY_FILE_FILE
 
 
 
-%action-define DISABLE_BLOCK_CAT_N BlockDisableByBlockCatN
-%action-define DISABLE_BLOCK_LABEL BlockDisableByLabel
-%action-define ENABLE_BLOCK_CAT_N BlockEnableByBlockCatN
-%action-define ENABLE_BLOCK_LABEL BlockEnableByLabel
-%action-define DELETE_BLOCK_CAT_N BlockDeleteByBlockCatN
-%action-define DELETE_BLOCK_LABEL BlockDeleteByLabel
-%action-define RENAME_BLOCK BlockRename
+%#action-define DISABLE_BLOCK_CAT_N BlockDisableByBlockCatN
+%#action-define DISABLE_BLOCK_LABEL BlockDisableByLabel
+%#action-define ENABLE_BLOCK_CAT_N BlockEnableByBlockCatN
+%#action-define ENABLE_BLOCK_LABEL BlockEnableByLabel
+%#action-define DELETE_BLOCK_CAT_N BlockDeleteByBlockCatN
+%#action-define DELETE_BLOCK_LABEL BlockDeleteByLabel
+%#action-define RENAME_BLOCK BlockRename
 
 %# DISABLE <block_label>         // enable and disable blocks from processing
 %# DISABLE <block_category> <INT>    
@@ -647,31 +674,32 @@ LAST_COMMAND
 %# DELETE <block_category> <INT>
 %# RENAME <block_label> new_block_label  // only possible within block types and avoiding duplicates names
 
-%1 keyword DISABLE
-%2 identifier block_category
-%3 param-integer
-%action DISABLE_BLOCK_CAT_N
-%2 param-string
-%action DISABLE_BLOCK_LABEL
-%1 keyword ENABLE
-%2 identifier block_category
-%3 param-integer
-%action ENABLE_BLOCK_CAT_N
-%2 lookup block_label
-%action ENABLE_BLOCK_LABEL
-%1 keyword DELETE
-%2 identifier block_category
-%3 param-integer
-%action DELETE_BLOCK_CAT_N
-%2 param-string
-%action DELETE_BLOCK_LABEL
-%1 keyword RENAME
-%2 param-string
-%3 param-string
-%action RENAME_BLOCK
+%#1 keyword DISABLE
+%#2 identifier block_category
+%#3 param-integer
+%#action DISABLE_BLOCK_CAT_N
+%#2 param-string
+%#action DISABLE_BLOCK_LABEL
+%#1 keyword ENABLE
+%#2 identifier block_category
+%#3 param-integer
+%#action ENABLE_BLOCK_CAT_N
+%#2 lookup block_label
+%#action ENABLE_BLOCK_LABEL
+%#1 keyword DELETE
+%#2 identifier block_category
+%#3 param-integer
+%#action DELETE_BLOCK_CAT_N
+%#2 param-string
+%#action DELETE_BLOCK_LABEL
+%#1 keyword RENAME
+%#2 param-string
+%#3 param-string
+%#action RENAME_BLOCK
 
-%action-define EXIT TerminalExit
-%action-define LOGOUT TerminalLogout
+%#action-define EXIT TerminalExit
+%#action-define LOGOUT TerminalLogout
+
 %action-define REBOOT SystemReboot
 
 %# EXIT                          // close configuration section, move to enclosing scope
@@ -680,10 +708,11 @@ LAST_COMMAND
 %# LOGOUT                                // disconnect this terminal
 %# REBOOT
 
-%1 keyword EXIT
-%action EXIT
-%1 keyword LOGOUT
-%action LOGOUT
+%#1 keyword EXIT
+%#action EXIT
+%#1 keyword LOGOUT
+%#action LOGOUT
+
 %1 keyword REBOOT
 %action REBOOT
 

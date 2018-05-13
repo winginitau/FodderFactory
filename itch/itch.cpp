@@ -56,6 +56,11 @@ char g_out_str[MAX_OUTPUT_LINE_SIZE];	// Strings being assembled for output
 char g_temp_str[MAX_OUTPUT_LINE_SIZE];	// General string temp
 ASTA g_temp_asta;						// Temp asta node (and for the Progmem working copy)
 
+#ifndef ARDUINO
+FILE* isp;	// input stream pointer
+FILE* osp;	// output stream pointer
+#endif
+
 /******************************************************************************
  * Class Methods
  ******************************************************************************/
@@ -100,9 +105,13 @@ void ITCH::Begin(FILE* input_stream, FILE* output_stream, int mode) {
 	ParserInit();
 
 	if (iflags.mode == ITCH_INTERACTIVE) {
-		sprintf(prompt_base, "\n\r$ ");
-		fputs(prompt, osp);
+		//sprintf(prompt_base, "\n\r$ ");
+		strcpy_hal(prompt_base, misc_strings[MISC_PROMPT_BASE].text);
+		strcpy(prompt, prompt_base);
+		//Serial.write("Itch Begin Called ");
+		WriteImmediate(prompt);
 	};
+
 }
 
 #endif
@@ -267,7 +276,7 @@ void ITCH::WriteImmediate(char* string) {
 		Serial.flush();
 		//delay(5);
 	#else
-		fputs(g_out_str, osp);
+		fputs(string, osp);
 	#endif
 }
 

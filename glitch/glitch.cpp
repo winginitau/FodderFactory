@@ -333,12 +333,13 @@ int main(int argc, char* argv[]) {
 	char include_guard[MAX_BUFFER_LENGTH];
 	char* temp;
 
+	// Process command line arguments, open files etc
 	if(ArgsAndFiles(argc, argv)) {
 		printf(">> Can't Continue. Exit.\n");
 		exit(-1);
 	}
 
-	// Write output file preambles and filename dependent pre-proc directives
+	// Write output file header preamble and filename dependent pre-proc directives
 	for (int i = Q_HEADER; i <= Q_CODE; i++) {
 		sprintf(out, "//\n");
 		SendToOutput(i, out);
@@ -406,10 +407,11 @@ int main(int argc, char* argv[]) {
 	SendToOutput(Q_USER_CODE, out);
 
 
-	// Do all the hard word
+	// Do all the hard word - Process the Grammar File
+	//	writing the main contents of the header, code and user code files
 	ProcessGrammarFile();
 
-	// Write include guard ends to header
+	// Write include guard ends to header file
 	sprintf(out, "\n#endif // %s\n\n", include_guard);
 	SendToOutput(Q_HEADER, out);
 
@@ -459,9 +461,12 @@ int main(int argc, char* argv[]) {
 	while (fgets(temp_buf, MAX_BUFFER_LENGTH, tf) != NULL) {
 		fputs(temp_buf, hf);
 	}
+
+	// Close the temp file and header file
 	fclose(tf);
 	fclose(hf);
 
+	// Close all the other files
 	fclose(gf);
 	fclose(cf);
 	fclose(uf);

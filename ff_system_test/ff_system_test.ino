@@ -21,7 +21,7 @@ char* FFFloatToCString(char* buf, float f) {
 	return dtostrf(f,-7,2,buf);
 }
 
-char WaitForUser(void) {
+char WaitForCRorLF(void) {
 	char c = '\0';
 
 	while ((c != '\n') && (c != '\r')) {
@@ -39,7 +39,7 @@ char WaitForUser(void) {
 	return c;
 }
 
-char GetResponse(void) {
+char WaitForResponse(void) {
 	char c = '\0';
 
 	while (c == '\0') {
@@ -57,6 +57,21 @@ char GetResponse(void) {
 	return c;
 }
 
+char CheckForResponse(void) {
+	char c = '\0';
+		if(Serial.available()) {
+			c = Serial.read();
+		}
+
+	if (c != '\0') {
+		delay(10); // wait for and discard extra chars on the line
+		while(Serial.available()) {
+			Serial.read();
+			delay(10);
+		}
+	}
+	return c;
+}
 
 void TestTempSensors(uint8_t bus) {
 
@@ -134,7 +149,7 @@ void Operate(void) {
 		Serial.write(buf);
 		Serial.flush();
 
-		c = GetResponse();
+		c = WaitForResponse();
 		n = c - '0';
 
 		if ((n >= 0) && (n < 8)) {
@@ -161,7 +176,7 @@ void TestRelays(void) {
 		Serial.write(buf);
 		Serial.flush();
 
-		WaitForUser();
+		WaitForCRorLF();
 
 		pinMode(pins[i], OUTPUT);
 
@@ -171,7 +186,7 @@ void TestRelays(void) {
 
 		digitalWrite(pins[i], HIGH);
 
-		WaitForUser();
+		WaitForCRorLF();
 
 		sprintf(buf, "LOW             Relay:%d   Pin:%d    \n\n", i, pins[i]);
 		Serial.write(buf);
@@ -179,6 +194,24 @@ void TestRelays(void) {
 
 		digitalWrite(pins[i], LOW);
 	}
+}
+
+void Serial3Dump() {
+	char c;
+	int b;
+
+	Serial3.begin(19200);
+
+	c = CheckForResponse();
+
+	while (c == '\0') {
+		if(Serial3.available()) {
+			b = Serial3.read();
+			Serial.write(b);
+		}
+		c = CheckForResponse();
+	}
+	Serial3.end();
 }
 
 void setup() {
@@ -195,10 +228,12 @@ void setup() {
 void loop() {
 	char c;
 
-	Serial.write("(r)elays  (t)emps  (o)perate?\n");
+	Serial.write("Main Menu\n");
+	Serial.write(" (use x to exit each sub-routine)\n");
+	Serial.write(" (r)elays\n (t)emps\n (o)perate\n (s)erial3 dump\n");
 	Serial.flush();
 
-	c = GetResponse();
+	c = WaitForResponse();
 
 	if(c == 'r') {
 		TestRelays();
@@ -211,5 +246,8 @@ void loop() {
 	if(c == 'o') {
 		Operate();
 	}
-	Serial.write("Iteration Complete\n");
+	if(c == 's') {
+		Serial3Dump();
+	}
+	Serial.write("Finished sub-routine\n");
 	Serial.flush();}

@@ -48,7 +48,7 @@ char *strcat_hal(char *dest, const char *src) {
 #endif
 }
 
-void *memcpy(void *dest, const void *src, size_t sz) {
+void *memcpy_hal(void *dest, const void *src, size_t sz) {
 #ifdef ARDUINO
 	return memcpy_P(dest, src, sz);
 #else

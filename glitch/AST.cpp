@@ -298,8 +298,9 @@ void AST::AttachActionToCurrent(char* action_identifier) {
 
 int AST::BuildActionCode(Identifiers& idents) {
 	// While on the AST node that is action-able - "current", walk via
-	// parent pointers up the tree, building the function parameter
-	// list that will be included in the function prototype for this action.
+	// 	parent pointers up the tree, building the function parameter
+	// 	list that will be included in the function prototype for this action
+	//	and send it to the queues for the output files.
 
 	KeyValuePairList params;
 	ASTNode* walker;
@@ -515,17 +516,20 @@ int AST::BuildActionCode(Identifiers& idents) {
 	//ShowBlockCatN(params[0].param_int16, params[1].param_int16);
 
 	// *************************************** User_Code function body
+	#ifdef USER_CODE_HINTS
 	sprintf(output_string, "\t// >>>\n");
 	user_code_output_queue.EnQueue(output_string);
 	sprintf(output_string, "\t// >>> INSERT ACTION CODE HERE\n");
 	user_code_output_queue.EnQueue(output_string);
 	sprintf(output_string, "\t// >>>\n");
 	user_code_output_queue.EnQueue(output_string);
+	#endif //USER_CODE_HINTS
+
+	// have the example code print debug info (func and param types / value) storing the strings in PROGMEM on Arduino
+	#ifdef USER_CODE_DEBUG
 	sprintf(output_string, "\tchar temp[MAX_OUTPUT_LINE_SIZE];\n");
 	user_code_output_queue.EnQueue(output_string);
 
-
-	// have the example code print debug info (func and param types / value) storing the strings in PROGMEM on Arduino
 	char arduino_output[MAX_BUFFER_LENGTH];
 	char linux_output[MAX_BUFFER_LENGTH];
 	char arduino_temp[MAX_BUFFER_LENGTH];
@@ -611,17 +615,69 @@ int AST::BuildActionCode(Identifiers& idents) {
 
 	sprintf(output_string, "\t#endif\n");
 	user_code_output_queue.EnQueue(output_string);
-
+	#endif //USER_CODE_DEBUG
 
 	// rest of the user_code function body and closures
+	#ifdef USER_CODE_HINTS
 	sprintf(output_string, "\t// >>>\n");
 	user_code_output_queue.EnQueue(output_string);
 	sprintf(output_string, "\t// >>> Results Callback via ITCHriteLine\n");
 	user_code_output_queue.EnQueue(output_string);
 	sprintf(output_string, "\t// >>>\n");
 	user_code_output_queue.EnQueue(output_string);
+	#endif //USER_CODE_HINTS
+
+	#ifdef USER_CODE_DEBUG
 	sprintf(output_string, "\titch.WriteLine(temp);\n");
 	user_code_output_queue.EnQueue(output_string);
+	#endif //USER_CODE_DEBUG
+
+
+
+	// Write a function call to an external function, adding the call back pointer
+	#ifdef USER_CODE_EXTERNAL_CALL
+
+	//sprintf(output_string, "\tchar temp[MAX_OUTPUT_LINE_SIZE];\n");
+	//user_code_output_queue.EnQueue(output_string);
+
+	//char arduino_output[MAX_BUFFER_LENGTH];
+	//char linux_output[MAX_BUFFER_LENGTH];
+	//char arduino_temp[MAX_BUFFER_LENGTH];
+	//char linux_temp[MAX_BUFFER_LENGTH];
+
+	//char out_temp[MAX_BUFFER_LENGTH];
+
+	#ifdef USER_CODE_EXTERNAL_CALL_COMMENTED
+		sprintf(output_string, "\t//");
+	#else
+		sprintf(output_string, "\t");
+	#endif
+
+	strcat(output_string, USER_CODE_EXTERNAL_CALL);
+	sprintf(temp, "%s(", func_name);
+	strcat(output_string, temp);
+
+	if (param_count == 0) {
+		// Just write the callback and close it
+		sprintf(temp, "itch.WriteLnImmediate);\n");
+		strcat(output_string, temp);
+	} else {
+		// write the param list into the external call - including the last one
+		for (int i = param_count - 1; i >= 0; i--) {
+			params.GetPairAtLocation(param_name, param_type, i);
+			sprintf(temp, "%s, ", param_name);
+			strcat(output_string, temp);
+		}
+		// then the callback and close
+		sprintf(temp, "itch.WriteLnImmediate);\n");
+		strcat(output_string, temp);
+	}
+
+	user_code_output_queue.EnQueue(output_string);
+	#endif //USER_CODE_EXTERNAL_CALL
+
+
+	// Close the the whole function
 	sprintf(output_string, "}\n\n");
 	user_code_output_queue.EnQueue(output_string);
 

@@ -154,8 +154,8 @@ type = MON_CONDITION_HIGH
 display_name = Inside Top Too Hot
 description = 
 input1 = IN_INSIDE_TOP_TEMP
-act_val	= 23.00
-deact_val = 22.00
+act_val	= 22.50
+deact_val = 20.00
 
 [MON_INSIDE_BOTTOM_TOO_COLD]
 type = MON_CONDITION_LOW

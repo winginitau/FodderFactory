@@ -28,145 +28,43 @@ uint16_t CallFunction(uint8_t func_xlat, ParamUnion params[]) {
 		case 1:
 			ShowSystem();
 			break;
-		case 3:
-			ShowBlockByCategory(params[0].param_uint16_t);
-			break;
-		case 4:
-			ShowBlockCatN(params[0].param_uint16_t, params[1].param_int16_t);
-			break;
 		case 2:
 			ShowBlockByLabel(params[0].param_char_star);
 			break;
-		case 5:
+		case 3:
 			ShowBlockByID(params[0].param_int16_t);
 			break;
-		case 6:
-			MessagesMute();
-			break;
-		case 7:
-			MessagesUnmute();
-			break;
-		case 8:
-			MonitorStart();
-			break;
-		case 9:
-			MonitorStop();
-			break;
-		case 10:
-			MonitorRemoveByLabel(params[0].param_char_star);
-			break;
-		case 11:
-			MonitorRemoveByBlockCatN(params[0].param_uint16_t, params[1].param_int16_t);
-			break;
-		case 12:
-			MonitorByLabel(params[0].param_char_star);
-			break;
-		case 13:
-			MonitorByBlockCatN(params[0].param_uint16_t, params[1].param_int16_t);
-			break;
-		case 14:
-			ClearBlockByLabel(params[0].param_char_star);
-			break;
-		case 15:
-			ClearBlockByBlockCatN(params[0].param_uint16_t, params[1].param_int16_t);
-			break;
-		case 16:
-			SendCommandToBlockCatN(params[0].param_uint16_t, params[1].param_int16_t, params[2].param_uint16_t);
-			break;
-		case 17:
+		case 4:
 			SendCommandToBlockLabel(params[0].param_char_star, params[1].param_uint16_t);
 			break;
-		case 18:
-			SimIntDataMessageFromBCatN(params[0].param_uint16_t, params[1].param_int16_t, params[2].param_int16_t);
+		case 5:
+			SendCommandToBlockID(params[0].param_int16_t, params[1].param_uint16_t);
 			break;
-		case 19:
-			SimFloatDataMessageFromBCatN(params[0].param_uint16_t, params[1].param_int16_t, params[2].param_float);
-			break;
-		case 20:
+		case 6:
 			SimIntDataMessageFromBlockLabel(params[0].param_char_star, params[1].param_int16_t);
 			break;
-		case 21:
+		case 7:
 			SimFloatDataMessageFromBlockLabel(params[0].param_char_star, params[1].param_float);
 			break;
-		case 22:
-			DebugOn();
+		case 8:
+			SimIntDataMessageFromBlockID(params[0].param_int16_t, params[1].param_int16_t);
 			break;
-		case 23:
-			DebugOff();
+		case 9:
+			SimFloatDataMessageFromBlockID(params[0].param_int16_t, params[1].param_float);
 			break;
-		case 24:
-			DebugTermOn();
-			break;
-		case 25:
-			DebugTermOff();
-			break;
-		case 26:
-			DebugSetLevel(params[0].param_int16_t);
-			break;
-		case 27:
+		case 10:
 			ShowTime();
 			break;
-		case 28:
+		case 11:
 			SetTime(params[0].param_char_star);
 			break;
-		case 29:
+		case 12:
 			ShowDate();
 			break;
-		case 30:
+		case 13:
 			SetDate(params[0].param_char_star);
 			break;
-		case 31:
-			ConfClearBlocks();
-			break;
-		case 32:
-			ConfClearAll();
-			break;
-		case 33:
-			ConfReadDefaultFile();
-			break;
-		case 34:
-			ConfReadFilename(params[0].param_char_star);
-			break;
-		case 35:
-			WriteToDefaultConfigFile();
-			break;
-		case 36:
-			WriteEmptyDefaultConfigFile();
-			break;
-		case 37:
-			WriteToFilenameConfigFile(params[0].param_char_star);
-			break;
-		case 38:
-			CopyConfigFileToFile(params[0].param_char_star, params[1].param_char_star);
-			break;
-		case 39:
-			BlockDisableByBlockCatN(params[0].param_uint16_t, params[1].param_int16_t);
-			break;
-		case 40:
-			BlockDisableByLabel(params[0].param_char_star);
-			break;
-		case 41:
-			BlockEnableByBlockCatN(params[0].param_uint16_t, params[1].param_int16_t);
-			break;
-		case 42:
-			BlockEnableByLabel(params[0].param_char_star);
-			break;
-		case 43:
-			BlockDeleteByBlockCatN(params[0].param_uint16_t, params[1].param_int16_t);
-			break;
-		case 44:
-			BlockDeleteByLabel(params[0].param_char_star);
-			break;
-		case 45:
-			BlockRename(params[0].param_char_star, params[1].param_char_star);
-			break;
-		case 46:
-			TerminalExit();
-			break;
-		case 47:
-			TerminalLogout();
-			break;
-		case 48:
+		case 14:
 			SystemReboot();
 			break;
 		default:

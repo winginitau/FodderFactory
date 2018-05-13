@@ -459,6 +459,7 @@ void Lexer::Process_D_ENUM_START(void) {
             error_type = E_ENUM_START_BEFORE_PREREQ;
         }
     }
+    // Check there were no errors - now set up the identifier
     if (process_result != R_ERROR) {
     	if (enum_plus_list_array) {
     		error_type = idents.NewIdent(enum_identifier, ID_ENUM_ARRAY_PAIR);
@@ -755,6 +756,8 @@ void Lexer::Process_D_ACTION(void) {
 }
 
 void Lexer::Process_D_GRAMMAR_END(void) {
+	// Grammar file definitions now complete
+	// Write out the main sections of each output file
 
 	if (grammar_section) {
 

@@ -61,6 +61,7 @@
 					</folderInfo>
 					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.1154591455.671511396" name="out_bak.h" rcbsApplicability="disable" resourcePath="glitch/out_bak.h" toolsToInvoke=""/>
 					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.1154591455.1290271989" name="AST.h" rcbsApplicability="disable" resourcePath="glitch/AST.h" toolsToInvoke=""/>
+					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.1154591455.157903210" name="out_user_code2.cpp.bak" rcbsApplicability="disable" resourcePath="glitch/out_user_code2.cpp.bak" toolsToInvoke=""/>
 					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.1154591455.1172383769" name="glitch_config.h" rcbsApplicability="disable" resourcePath="glitch/glitch_config.h" toolsToInvoke=""/>
 					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.1154591455.1782207193" name="ASTNode.h" rcbsApplicability="disable" resourcePath="glitch/ASTNode.h" toolsToInvoke=""/>
 					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.1154591455.1789923560" name="Identifiers.h" rcbsApplicability="disable" resourcePath="glitch/Identifiers.h" toolsToInvoke=""/>
@@ -74,7 +75,7 @@
 					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.1154591455.2087666060" name="string_consts.h" rcbsApplicability="disable" resourcePath="glitch/string_consts.h" toolsToInvoke=""/>
 					<sourceEntries>
 						<entry excluding="glitch" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
-						<entry excluding="LineBuffer.h|LineBuffer.cpp|Lexer.h|Lexer.cpp|KeyValuePairList.h|KeyValuePairList.cpp|Identifiers.h|Identifiers.cpp|Identifier.h|Identifier.cpp|glitch.cpp|glitch_errors.h|glitch_config.h|Debug.h|Debug.cpp|config.h|ASTNode.h|ASTNode.cpp|AST.h|AST.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="glitch"/>
+						<entry excluding="out_user_code2.cpp.bak|LineBuffer.h|LineBuffer.cpp|Lexer.h|Lexer.cpp|KeyValuePairList.h|KeyValuePairList.cpp|Identifiers.h|Identifiers.cpp|Identifier.h|Identifier.cpp|glitch.cpp|glitch_errors.h|glitch_config.h|Debug.h|Debug.cpp|config.h|ASTNode.h|ASTNode.cpp|AST.h|AST.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="glitch"/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -123,6 +124,7 @@
 					</folderInfo>
 					<fileInfo id="cdt.managedbuild.config.gnu.exe.release.342175032.1189158270" name="out_bak.h" rcbsApplicability="disable" resourcePath="glitch/out_bak.h" toolsToInvoke=""/>
 					<fileInfo id="cdt.managedbuild.config.gnu.exe.release.342175032.1419967286" name="AST.h" rcbsApplicability="disable" resourcePath="glitch/AST.h" toolsToInvoke=""/>
+					<fileInfo id="cdt.managedbuild.config.gnu.exe.release.342175032.670477540" name="out_user_code2.cpp.bak" rcbsApplicability="disable" resourcePath="glitch/out_user_code2.cpp.bak" toolsToInvoke=""/>
 					<fileInfo id="cdt.managedbuild.config.gnu.exe.release.342175032.1294347741" name="glitch_config.h" rcbsApplicability="disable" resourcePath="glitch/glitch_config.h" toolsToInvoke=""/>
 					<fileInfo id="cdt.managedbuild.config.gnu.exe.release.342175032.119293921" name="ASTNode.h" rcbsApplicability="disable" resourcePath="glitch/ASTNode.h" toolsToInvoke=""/>
 					<fileInfo id="cdt.managedbuild.config.gnu.exe.release.342175032.2134738391" name="Identifiers.h" rcbsApplicability="disable" resourcePath="glitch/Identifiers.h" toolsToInvoke=""/>
@@ -135,7 +137,7 @@
 					<fileInfo id="cdt.managedbuild.config.gnu.exe.release.342175032.620320076" name="Lexer.h" rcbsApplicability="disable" resourcePath="glitch/Lexer.h" toolsToInvoke=""/>
 					<fileInfo id="cdt.managedbuild.config.gnu.exe.release.342175032.1908944366" name="string_consts.h" rcbsApplicability="disable" resourcePath="glitch/string_consts.h" toolsToInvoke=""/>
 					<sourceEntries>
-						<entry excluding="glitch/Lexer.h|glitch/Lexer.cpp|glitch/Identifiers.h|glitch/Identifiers.cpp|glitch/Identifier.h|glitch/Identifier.cpp|glitch/Debug.h|glitch/Debug.cpp|glitch/ASTNode.h|glitch/ASTNode.cpp|glitch/AST.h|glitch/string_consts.h|glitch/config.h|glitch/glitch_config.h|glitch/out_user_code_bak.cpp|glitch/out_bak.h|glitch/out_bak.cpp|glitch/KeyValuePairList.cpp|glitch/KeyValuePairList.h|glitch/glitch_errors.h|glitch/LineBuffer.cpp|glitch/LineBuffer.h|glitch/glitch.cpp|glitch/AST.cpp|ff_config_parser/Identifiers.cpp|ff_config_parser/processor_config.h|ff_config_parser/Lexer.cpp|ff_config_parser/AST.h|ff_config_parser/ff_string_consts.h|ff_config_parser/Identifier.cpp|ff_config_parser/Identifiers.h|ff_config_parser/ff_sys_config.h|ff_config_parser/Lexer.h|ff_config_parser/Debug.cpp|ff_config_parser/Debug.h|ff_config_parser/ff_string_consts.cpp|ff_config_parser/processor.cpp|ff_config_parser/ASTNode.cpp|ff_config_parser/ASTNode.h|ff_config_parser/AST.cpp|ff_config_parser/Identifier.h" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="glitch/out_user_code2.cpp.bak|glitch/Lexer.h|glitch/Lexer.cpp|glitch/Identifiers.h|glitch/Identifiers.cpp|glitch/Identifier.h|glitch/Identifier.cpp|glitch/Debug.h|glitch/Debug.cpp|glitch/ASTNode.h|glitch/ASTNode.cpp|glitch/AST.h|glitch/string_consts.h|glitch/config.h|glitch/glitch_config.h|glitch/out_user_code_bak.cpp|glitch/out_bak.h|glitch/out_bak.cpp|glitch/KeyValuePairList.cpp|glitch/KeyValuePairList.h|glitch/glitch_errors.h|glitch/LineBuffer.cpp|glitch/LineBuffer.h|glitch/glitch.cpp|glitch/AST.cpp|ff_config_parser/Identifiers.cpp|ff_config_parser/processor_config.h|ff_config_parser/Lexer.cpp|ff_config_parser/AST.h|ff_config_parser/ff_string_consts.h|ff_config_parser/Identifier.cpp|ff_config_parser/Identifiers.h|ff_config_parser/ff_sys_config.h|ff_config_parser/Lexer.h|ff_config_parser/Debug.cpp|ff_config_parser/Debug.h|ff_config_parser/ff_string_consts.cpp|ff_config_parser/processor.cpp|ff_config_parser/ASTNode.cpp|ff_config_parser/ASTNode.h|ff_config_parser/AST.cpp|ff_config_parser/Identifier.h" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>

@@ -87,7 +87,7 @@ uint16_t MapGetASTAByID(uint16_t asta_id, ASTA* result) {
 			#ifdef ARDUINO
 				memcpy_P(result, &(asta[asta_idx]), sizeof(ASTA));
 			#else
-				memcpy(result, &(asta[asta_idx]), sizeof(ASTA));
+				memcpy_hal(result, &(asta[asta_idx]), sizeof(ASTA));
 
 			#endif
 			return PEME_NO_ERROR;
@@ -190,7 +190,7 @@ uint8_t Compare_N_PARAM_STRING(char* target, ASTA* temp_node) {
 }
 
 uint8_t Compare_N_LOOKUP(char* target, ASTA* temp_node) {
-	// TODO temp note will throw warning unused
+	// TODO temp_node will throw warning while unused
 	// When lookup fully implemented it will be used
 	if (isdigit(target[0])) {
 		// can't be keyword or ident or lookup
@@ -203,10 +203,15 @@ uint8_t Compare_N_LOOKUP(char* target, ASTA* temp_node) {
 	// lookups needs to be expunged from the whole code base.
 
 	// Currently - lookups not matched at all
-	// Cant just treat as a string or matchreduce will error
+	// Can't just treat as a string or matchreduce will error
 	// because it can't distinguish a string from a lookup
 	// in the case where an AST node has valid branching to
 	// both a param-string node and a lookup node.
+
+	uint16_t xlat;
+	xlat = LookupLookupMap(temp_node->label);
+
+
 	return 0;
 }
 

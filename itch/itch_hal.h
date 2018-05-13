@@ -16,7 +16,7 @@ char *strcpy_misc(char *dest, uint8_t src);
 char *strcat_misc(char *dest, uint8_t src);
 char *strcpy_hal(char *dest, const char *src);
 char *strcat_hal(char *dest, const char *src);
-void *memcpy(void *dest, const void *src, size_t sz);
+void *memcpy_hal(void *dest, const void *src, size_t sz);
 
 #ifdef ITCH_DEBUG
 char *strcpy_debug(char *dest, uint8_t src);
