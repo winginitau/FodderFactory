@@ -74,13 +74,6 @@ uint16_t CallFunction(uint8_t func_xlat, ParamUnion params[]) {
 	return PEME_NO_ERROR;
 }
 
-//TODO: AST Validation Walk - 
-//TODO: AST Order Ambiguity Report
-//TODO: Parser Match Partial Identifiers 
-//TODO: AST Warn unused IDs, lookups, params
-//TODO: Configuration Grammar with %section directive
-//TODO: Context change on <identifier> value
-
 uint16_t LookupIdentMap (char* key) {
 	XLATMap temp;
 	uint16_t idx = 0;
@@ -163,6 +156,20 @@ uint16_t LookupIdentifierMembers(uint16_t ident_xlat, char* lookup_string) {
 				idx++;
 			}
 		}
+			break;
+		default:
+		return 0;
+	}
+	return 0;
+}
+
+uint8_t LookupLookupMembers(uint16_t ident_xlat, char* lookup_string) {
+	switch(ident_xlat) {
+		case 0:
+			return LookupBlockLabel(lookup_string);
+			break;
+		case 1:
+			return LookupOtherList(lookup_string);
 			break;
 		default:
 		return 0;

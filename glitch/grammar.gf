@@ -351,6 +351,7 @@ LAST_COMMAND
 %#  
 
 %lookup-list block_label LookupBlockLabel
+%lookup-list some_other_lookup_list LookupOtherList
 
 %# 
 %#  Usage: %action-define <ACTION_IDENTIFIER> <FunctionName>
@@ -577,12 +578,12 @@ LAST_COMMAND
 %action-define SHOW_DATE ShowDate
 %action-define SET_DATE SetDate
 
-%# CLOCK                 // Show the time
-%# CLOCK SET <hh:mm:ss>  // Set the time
+%# TIME                  // Show the time
+%# TIME SET <hh:mm:ss>  // Set the time
 %# DATE                  // Show the date
 %# DATE SET <yyyy-mm-dd> // Set the date
 
-%1 keyword CLOCK
+%1 keyword TIME
 %action SHOW_TIME
 %2 keyword SET
 %3 param-time

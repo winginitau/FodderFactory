@@ -224,22 +224,22 @@ bool Identifiers::Exists(char* identifier_name) {
 // those type of identifiers which are ENUM ARRAY PAIRS - which are an array instance which
 // has member strings that relate to the associated enum.
 
-void Identifiers::WriteIdentifierMaps(void) {
+void Identifiers::WriteXLATMapArrays(void) {
 	// Write each of the XLAT map arrays into the output header
 
 	char temp[MAX_BUFFER_LENGTH];
 
 	strcpy(temp, "ident_map");
-	WriteIdentMap(ID_ENUM_ARRAY_PAIR, temp);
+	WriteXLATArrayOfTypeAndInstance(ID_ENUM_ARRAY_PAIR, temp);
 	strcpy(temp, "lookup_map");
-	WriteIdentMap(ID_LOOKUP_LIST, temp);
+	WriteXLATArrayOfTypeAndInstance(ID_LOOKUP_LIST, temp);
 	strcpy(temp, "func_map");
-	WriteIdentMap(ID_ACTION_PAIR, temp);
+	WriteXLATArrayOfTypeAndInstance(ID_ACTION_PAIR, temp);
 
 	output.SetOutputAvailable();
 }
 
-void Identifiers::WriteIdentMap(int type, char* array_instance_name) {
+void Identifiers::WriteXLATArrayOfTypeAndInstance(int type, char* array_instance_name) {
 	// Write the XLAT array
 	int idx;
 	int xlat_idx;
@@ -299,7 +299,7 @@ void Identifiers::WriteIdentMap(int type, char* array_instance_name) {
 	output.EnQueue(out);
 }
 
-void Identifiers::WriteIdentMapFunctions(int header_or_code) {
+void Identifiers::WriteXLATMapLookupFunctions(int header_or_code) {
 	// Write each of the XLAT Lookup functions into the code file
 
 	// This function genericised further after the DEFINE members
@@ -312,23 +312,23 @@ void Identifiers::WriteIdentMapFunctions(int header_or_code) {
 	strcpy(func_name, "LookupIdentMap");
 	strcpy(array_instance_name, "ident_map");
 	strcpy(member_count_define_name, "XLAT_IDENT_MAP_COUNT");
-	WriteIdentMapFunc(func_name, array_instance_name, header_or_code, member_count_define_name);
+	WriteXLATMapLookupFuncOfTypeAndInstance(func_name, array_instance_name, header_or_code, member_count_define_name);
 
 	strcpy(func_name, "LookupLookupMap");
 	strcpy(array_instance_name, "lookup_map");
 	strcpy(member_count_define_name, "XLAT_LOOKUP_MAP_COUNT");
-	WriteIdentMapFunc(func_name, array_instance_name, header_or_code, member_count_define_name);
+	WriteXLATMapLookupFuncOfTypeAndInstance(func_name, array_instance_name, header_or_code, member_count_define_name);
 
 	strcpy(func_name, "LookupFuncMap");
 	strcpy(array_instance_name, "func_map");
 	strcpy(member_count_define_name, "XLAT_FUNC_MAP_COUNT");
-	WriteIdentMapFunc(func_name, array_instance_name, header_or_code, member_count_define_name);
+	WriteXLATMapLookupFuncOfTypeAndInstance(func_name, array_instance_name, header_or_code, member_count_define_name);
 
 	output.SetOutputAvailable();
 }
 
 
-void Identifiers::WriteIdentMapFunc(char* func_name, char* map_instance, int header_or_code, char* member_count_define) {
+void Identifiers::WriteXLATMapLookupFuncOfTypeAndInstance(char* func_name, char* map_instance, int header_or_code, char* member_count_define) {
 	// Write the specified XLAT Lookup function into the header
 	// or code file (as specified by header_or_code)
 
@@ -461,8 +461,6 @@ void Identifiers::WriteIdentMemberLookupCase(int case_num, char* string_array_in
 	output.EnQueue(out);
 	sprintf(out, "				#endif\n");
 	output.EnQueue(out);
-
-
 	sprintf(out, "				if(strcasecmp(lookup_string, temp.text) == 0) {\n");
 	output.EnQueue(out);
 	sprintf(out, "					return idx;\n");
@@ -478,6 +476,107 @@ void Identifiers::WriteIdentMemberLookupCase(int case_num, char* string_array_in
 	sprintf(out, "			break;\n");
 	output.EnQueue(out);
 }
+
+void Identifiers::WriteLookupMemberLookupFunction(int header_or_code) {
+	// Write the "LookupLookupMembers" function to header / code file
+	// "cases" are the per ident_map lookup xlat case
+
+	char out[MAX_BUFFER_LENGTH];
+	int case_idx = 0;
+	int idx = 0;
+
+	// If header then write it and return
+	if (header_or_code == WRITE_HEADER) {
+		sprintf(out, "uint8_t LookupLookupMembers(uint16_t ident_xlat, char* lookup_string);\n");
+		output.EnQueue(out);
+		output.SetOutputAvailable();
+		return;
+	}
+
+	// Else write the code file function
+	// write definition and preamble
+	sprintf(out, "uint8_t LookupLookupMembers(uint16_t ident_xlat, char* lookup_string) {\n");
+	output.EnQueue(out);
+	sprintf(out, "	switch(ident_xlat) {\n");
+	output.EnQueue(out);
+
+	// Write each case stanza referring only to the ID_LOOKUP_LIST idents
+	while (idx < idents_count) {
+		if (ids[idx].Type == ID_LOOKUP_LIST) {
+			WriteLookupMemberLookupCase(case_idx, ids[idx].InstanceName);
+			case_idx++;
+		}
+		idx++;
+	}
+
+	// Write the default case and outro
+	sprintf(out, "		default:\n");
+	output.EnQueue(out);
+	sprintf(out, "		return 0;\n");
+	output.EnQueue(out);
+	sprintf(out, "	}\n");
+	output.EnQueue(out);
+	sprintf(out, "	return 0;\n");
+	output.EnQueue(out);
+	sprintf(out, "}\n\n");
+	output.EnQueue(out);
+
+	output.SetOutputAvailable();
+}
+
+void Identifiers::WriteLookupMemberLookupCase(int case_num, char* function_name) {
+	char out[MAX_BUFFER_LENGTH];
+
+	sprintf(out, "		case %d:\n", case_num);
+	output.EnQueue(out);
+	sprintf(out, "			return %s(lookup_string);\n", function_name);
+	output.EnQueue(out);
+	sprintf(out, "			break;\n");
+	output.EnQueue(out);
+}
+
+
+void Identifiers::WriteUserLookupFunctions(int header_or_code) {
+	// Write each of the lookup list function outlines to header / user_code file
+
+	char out[MAX_BUFFER_LENGTH];
+	int idx = 0;
+
+	idx = 0;
+
+	// Iterate over all the idents
+	while (idx < idents_count) {
+
+		// Select only those that are ID_LOOKUP_LIST
+		if (ids[idx].Type == ID_LOOKUP_LIST) {
+			// If header then write it and return
+			if (header_or_code == WRITE_HEADER) {
+				sprintf(out, "uint8_t %s(char* lookup_string);\n", ids[idx].InstanceName);
+				output.EnQueue(out);
+				output.SetOutputAvailable();
+			} else {
+				// Else write the code file function
+				// write definition and preamble
+				sprintf(out, "uint8_t %s(char* lookup_string) {\n", ids[idx].InstanceName);
+				output.EnQueue(out);
+				sprintf(out, "\t//\n");
+				output.EnQueue(out);
+				sprintf(out, "\t// Insert lookup call here that returns 0 or 1 if lookup string found\n");
+				output.EnQueue(out);
+				sprintf(out, "\t//\n");
+				output.EnQueue(out);
+				sprintf(out, "\treturn 0;\n");
+				output.EnQueue(out);
+				sprintf(out, "}\n\n");
+				output.EnQueue(out);
+			}
+		}
+		idx++;
+	}
+	output.SetOutputAvailable();
+}
+
+
 
 
 /*

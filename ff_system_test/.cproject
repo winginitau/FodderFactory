@@ -23,6 +23,8 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_system_test/core/variant}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_system_test/libraries/OneWire}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_system_test/libraries/DallasTemperature}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_system_test/libraries/RTClib}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_system_test/libraries/Wire/src}&quot;"/>
 								</option>
 								<inputType id="io.sloeber.compiler.cpp.sketch.input.1135462811" name="CPP source files" superClass="io.sloeber.compiler.cpp.sketch.input"/>
 							</tool>
@@ -32,6 +34,8 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_system_test/core/variant}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_system_test/libraries/OneWire}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_system_test/libraries/DallasTemperature}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_system_test/libraries/RTClib}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_system_test/libraries/Wire/src}&quot;"/>
 								</option>
 								<inputType id="io.sloeber.compiler.c.sketch.input.1196176862" name="C Source Files" superClass="io.sloeber.compiler.c.sketch.input"/>
 							</tool>
@@ -41,6 +45,8 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_system_test/core/variant}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_system_test/libraries/OneWire}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_system_test/libraries/DallasTemperature}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_system_test/libraries/RTClib}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_system_test/libraries/Wire/src}&quot;"/>
 								</option>
 								<inputType id="io.sloeber.compiler.S.sketch.input.1447091003" name="Assembly source files" superClass="io.sloeber.compiler.S.sketch.input"/>
 							</tool>

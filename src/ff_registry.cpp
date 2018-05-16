@@ -67,6 +67,13 @@ static FFStateRegister sr;
 static uint16_t block_count = 0;
 static BlockNode *bll = NULL;		//Block Linked List - variant record block list
 
+// XXX VE Direct Hack
+time_t VE_last_polled;
+time_t VE_last_logged;
+TV_TYPE VE_log_rate;
+TV_TYPE VE_poll_rate;
+int16_t VE_soc, VE_power, VE_voltage, VE_current;
+
 /************************************************
  Functions
 ************************************************/
@@ -85,6 +92,14 @@ void Setup(BlockNode *b) {
 		UpdateUI();
 		#endif //UI_ATTACHED
 
+		// XXX VE Hack
+		if (HALVEDirectInit()) {
+			VE_last_logged = TimeNow();
+			VE_last_polled = TV_TYPE_INIT;
+			VE_log_rate = VE_LOG_RATE;
+			VE_poll_rate = VE_POLL_RATE;
+			EventMsg(SSS, E_INFO, M_VE_INIT);
+		}
 		break;
 	case FF_INPUT:
 		InputSetup(b);
@@ -110,9 +125,22 @@ void Setup(BlockNode *b) {
 	}
 }
 
+//XXX move to utility
+uint8_t VarianceExceeds(int16_t old_val, int16_t new_val, uint8_t thres_pc) {
+	int16_t var_abs;
+	int16_t thres_abs;
+	var_abs = old_val - new_val;
+	var_abs = var_abs * ((var_abs > 0) - (var_abs < 0));
+
+	thres_abs = old_val * 100 / thres_pc;
+	thres_abs = thres_abs * ((thres_abs > 0) - (thres_abs < 0));
+
+	return (var_abs > thres_abs);
+}
+
 void Operate(BlockNode *b) {
 	switch (b->block_cat) {
-	case FF_SYSTEM:
+	case FF_SYSTEM: {
 		#ifdef USE_ITCH
 		//itch.Poll();
 		HALPollItch();
@@ -120,7 +148,51 @@ void Operate(BlockNode *b) {
 		#ifdef UI_ATTACHED
 		UpdateUI();
 		#endif
+
+		// XXX VE Hack
+		time_t VE_now = TimeNow();
+		time_t VE_next_poll;
+		time_t VE_next_log;
+		uint16_t new_value;
+		VE_next_log = VE_last_logged + VE_log_rate;
+		VE_next_poll = VE_last_polled + VE_poll_rate;
+		if (VE_now >= VE_next_poll) {
+			VE_last_polled = TimeNow();
+
+			new_value = HALReadVEData(M_VE_SOC);
+			if(VarianceExceeds(VE_soc, new_value, 20)) {
+				VE_next_log = TimeNow();
+			}
+			VE_soc = new_value;
+
+			new_value = HALReadVEData(M_VE_POWER);
+			if(VarianceExceeds(VE_power, new_value, 20)) {
+				VE_next_log = TimeNow();
+			}
+			VE_power = new_value;
+
+			new_value = HALReadVEData(M_VE_VOLTAGE);
+			if(VarianceExceeds(VE_voltage, new_value, 20)) {
+				VE_next_log = TimeNow();
+			}
+			VE_voltage = new_value;
+
+			new_value = HALReadVEData(M_VE_CURRENT);
+			if(VarianceExceeds(VE_current, new_value, 20)) {
+				VE_next_log = TimeNow();
+			}
+			VE_current = new_value;
+
+		}
+		if (VE_now >= VE_next_log) {
+			VE_last_logged = TimeNow();
+			EventMsg(SSS, E_DATA, M_VE_SOC, VE_soc, 0);
+			EventMsg(SSS, E_DATA, M_VE_VOLTAGE, VE_voltage, 0);
+			EventMsg(SSS, E_DATA, M_VE_POWER, VE_power, 0);
+			EventMsg(SSS, E_DATA, M_VE_CURRENT, VE_current, 0);
+		}
 		break;
+	}
 	case FF_INPUT:
 		InputOperate(b);
 		break;

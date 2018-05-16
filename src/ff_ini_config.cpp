@@ -649,7 +649,7 @@ void ReadAndParseConfig(void) {
 			strcpy(block_section_key, block_cat_defs[block_cat].conf_keys[key]);
 		#endif
 		if (cf.getValue("system", block_section_key, key_value, INI_FILE_MAX_LINE_LENGTH)) {
-			if (ConfigureBlock(FF_SYSTEM, "system", block_section_key, key_value)) {
+			if (ConfigureBlock(FF_SYSTEM, "SYSTEM", block_section_key, key_value)) {
 				sprintf(debug_msg, "[CONFIG][SYSTEM][%s] = %s", block_section_key, key_value);
 				DebugLog(debug_msg);
 			} else {

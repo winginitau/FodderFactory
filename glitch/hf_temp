@@ -17,7 +17,7 @@
 #define MAX_PARAM_COUNT 2
 
 #define XLAT_IDENT_MAP_COUNT 2
-#define XLAT_LOOKUP_MAP_COUNT 1
+#define XLAT_LOOKUP_MAP_COUNT 2
 #define XLAT_FUNC_MAP_COUNT 15
 
 #define MAX_INPUT_LINE_SIZE 80
@@ -162,7 +162,7 @@ static const ASTA asta [28] = {
 	19, 6, "param-integer", 1, 18, 0, 0, "MESSAGE_DATA_BLOCK_ID_INT",
 	20, 1, "FLOAT", 0, 17, 21, 0, "",
 	21, 7, "param-float", 1, 20, 0, 0, "MESSAGE_DATA_BLOCK_ID_FLOAT",
-	22, 1, "CLOCK", 1, 0, 23, 25, "SHOW_TIME",
+	22, 1, "TIME", 1, 0, 23, 25, "SHOW_TIME",
 	23, 1, "SET", 0, 22, 24, 0, "",
 	24, 5, "param-time", 1, 23, 0, 0, "SET_TIME",
 	25, 1, "DATE", 1, 0, 26, 28, "SHOW_DATE",
@@ -181,11 +181,12 @@ static const XLATMap ident_map [2] = {
 };
 
 #ifdef USE_PROGMEM
-static const XLATMap lookup_map [1] PROGMEM = {
+static const XLATMap lookup_map [2] PROGMEM = {
 #else
-static const XLATMap lookup_map [1] = {
+static const XLATMap lookup_map [2] = {
 #endif
 	"LookupBlockLabel", 0,
+	"LookupOtherList", 1,
 };
 
 #ifdef USE_PROGMEM
@@ -214,6 +215,9 @@ uint16_t LookupIdentMap (char* key);
 uint16_t LookupLookupMap (char* key);
 uint16_t LookupFuncMap (char* key);
 uint16_t LookupIdentifierMembers(uint16_t ident_xlat, char* lookup_string);
+uint8_t LookupLookupMembers(uint16_t ident_xlat, char* lookup_string);
+uint8_t LookupBlockLabel(char* lookup_string);
+uint8_t LookupOtherList(char* lookup_string);
 uint16_t CallFunction(uint8_t func_xlat, ParamUnion params[]);
 
 #endif // OUT_H_

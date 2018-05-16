@@ -91,6 +91,109 @@ DateTime g_last_rtc_DT;
 /************************************************
  Functions
 ************************************************/
+uint8_t HALVEDirectInit(void) {
+	// XXX hack for energy monitoring
+//	if (Serial3.begin(19200) ) {
+//		return 1;
+//	} else return 0;
+	return 1;
+}
+
+
+
+
+int16_t HALReadVEData(uint16_t data_type) {
+	int16_t ret = INT16_INIT;
+	char VE_line[MAX_LABEL_LENGTH];
+	char temp_str[MAX_LABEL_LENGTH];
+	char* label;
+	char* value;
+	uint8_t buf_idx = 0;
+
+	const char delim[2] = "\t";
+	// state machine
+	uint8_t block_count = 0;
+	uint8_t cr = 0;
+	uint8_t checksum = 0;
+
+	uint8_t b;
+
+	Serial3.begin(19200);
+
+	while (block_count < 3) {	// BMV transmits 2x blocks to deliver all data - read 3 to make sure we get all values
+		if(Serial3.available()) {
+			b = Serial3.read();
+			switch (b) {
+			case '\n':  // start of newline - reset buffer
+				cr = 0;
+				VE_line[0] = '\0';
+				buf_idx = 0;
+				break;
+			case '\r': // eol - terminate the buffer
+				cr = 1;
+				VE_line[buf_idx] = '\0';
+				buf_idx++;
+				break;
+			default: // Check special case "Checksum" or throw it in the buffer
+				if(checksum) {
+					//TODO: ignore it and preceding tab for now, assume eol, reset and inc block_count
+					if(b != '\t') {
+						cr = 0;
+						VE_line[0] = '\0';
+						buf_idx = 0;
+						block_count++;
+						checksum = 0;
+					}
+				} else {
+					cr = 0;
+					//nl = 0;
+					VE_line[buf_idx] = b;
+					buf_idx++;
+					if(strncmp(VE_line, "Checksum", 8) == 0) {
+						checksum = 1;
+					}
+				}
+			}
+		}
+		if ( cr && buf_idx) { // whole line in buffer
+			label = strtok(VE_line, delim);
+			value = strtok(0, delim);
+
+			switch (data_type) {
+				case M_VE_SOC:
+					if (strcmp(label, "SOC") == 0 ) {
+						ret = atoi(value);
+						return ret;
+					}
+					break;
+				case M_VE_VOLTAGE:
+					if (strcmp(label, "V") == 0 ) {
+						ret = atoi(value);
+						return ret;
+					}
+					break;
+				case M_VE_POWER:
+					if (strcmp(label, "P") == 0 ) {
+						ret = atoi(value);
+						return ret;
+					}
+					break;
+				case M_VE_CURRENT:
+					if (strcmp(label, "I") == 0 ) {
+						ret = atoi(value);
+						return ret;
+					}
+					break;
+				default:
+					break;
+			}
+		}
+	}
+	Serial3.flush();
+	Serial3.end();
+	return ret;
+}
+
 uint8_t HALSaveEventBuffer(void) {
 
 	uint8_t save_success = 0;
@@ -735,11 +838,11 @@ time_t TimeNow(void) {
 	return epoch_time;
 #endif
 
-
 #ifdef FF_SIMULATOR
 	return time(NULL);
 #endif
 }
+
 /*
 FFDateTime HALFFDTNow(void) {
 	FFDateTime dt;

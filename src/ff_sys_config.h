@@ -22,15 +22,15 @@
 #define FF_ARDUINO
 // Optionally:
 //#define FF_TEMPERATURE_SIM
-#define FF_TEMP_SIM_WITH_DALLAS
-//#define FF_RPI_START_DELAY 60000	// Start delay kludge to allow RPIs to get going
+//#define FF_TEMP_SIM_WITH_DALLAS
+#define FF_RPI_START_DELAY 60000	// Start delay kludge to allow RPIs to get going
 //OR
 //#define FF_SIMULATOR
 //#define FF_SIM_PARSECONFIG	//optional parse the TXT config (default -> read BIN)
 //OR
 //#define FF_CONFIG
 
-#define USE_ITCH
+//#define USE_ITCH
 
 //#define UI_ATTACHED			// is there a directly attached UI? LCD? Console in sim?
 
@@ -79,6 +79,11 @@
 #define EXCLUDE_DISPLAYNAME			// to save .data segment and heap space on arduino
 
 #define RTC_POLL_INTERVAL 10000		// milliseconds between calls to the rtc
+
+#define VE_LOG_RATE 120				// how many seconds between VE.Direct energy system logging
+#define VE_POLL_RATE 10				// how many seconds between VE.Direct energy system polling
+
+
 /************************************************
  Localisation - TODO Move to Config
  ************************************************/
@@ -186,6 +191,7 @@
 // unit16_t = 65535 seconds = 1092.25 minutes = 18.21 hours
 // uint32_t = About 137 years....
 #define TV_TYPE	uint32_t
+#define TV_TYPE_INIT 0xFFFFFFFF
 
 // Maximum length for filename, excluding NULL char 26 chars allows an
 // 8.3 filename instead and 8.3 directory with a leading slash

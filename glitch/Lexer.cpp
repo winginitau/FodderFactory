@@ -722,6 +722,7 @@ void Lexer::Process_D_ACTION_DEFINE(void) {
 void Lexer::Process_D_ACTION(void) {
 	// Attach the action to the last added AST node
 	// check first that the action identifier has been defined
+	// Build the action calling code
 
     if (line.GetTokenStr(tokens[1], 1) == NULL) {
         process_result = R_ERROR;
@@ -757,11 +758,20 @@ void Lexer::Process_D_ACTION(void) {
 
 void Lexer::Process_D_GRAMMAR_END(void) {
 	// Grammar file definitions now complete
-	// Write out the main sections of each output file
+	// - close the action caller
+	//	(As each action is declared in the grammar, the user_code templates
+	//		are built - because building the parameter lists for the function templates
+	//		requires an AST walk "back up" the tree from the current action node
+	//		to enumerate all the keywords, idents, lookups, and params that are the
+	//		"up tree" nodes on the path to that action and need to be included
+	//		to make up the calls.)
+	// - Write out the XLAT arrays and lookup functions to the code and header files
+	// - Search the identifier set for LOOKUP nodes and build the prototypes
+	//	 and code templates
 
 	if (grammar_section) {
 
-		// write the default case and closures for the function caller
+		// write the default case and closures for the action caller
 		// Before writing anything else to the code file
 		sprintf(output_string, "\t\tdefault:\n");
 		code_output_queue.EnQueue(output_string);
@@ -779,18 +789,18 @@ void Lexer::Process_D_GRAMMAR_END(void) {
 		//
 		// To Do List
 		//
-		strcpy(output_string, "//TODO: AST Validation Walk - \n");
-		code_output_queue.EnQueue(output_string);
-		strcpy(output_string, "//TODO: AST Order Ambiguity Report\n");
-		code_output_queue.EnQueue(output_string);
-		strcpy(output_string, "//TODO: Parser Match Partial Identifiers \n");
-		code_output_queue.EnQueue(output_string);
-		strcpy(output_string, "//TODO: AST Warn unused IDs, lookups, params\n");
-		code_output_queue.EnQueue(output_string);
-		strcpy(output_string, "//TODO: Configuration Grammar with %section directive\n");
-		code_output_queue.EnQueue(output_string);
-		strcpy(output_string, "//TODO: Context change on <identifier> value\n\n");
-		code_output_queue.EnQueue(output_string);
+		//strcpy(output_string, "//TODO: AST Validation Walk - \n");
+		//code_output_queue.EnQueue(output_string);
+		//strcpy(output_string, "//TODO: AST Order Ambiguity Report\n");
+		//code_output_queue.EnQueue(output_string);
+		//strcpy(output_string, "//TODO: Parser Match Partial Identifiers \n");
+		//code_output_queue.EnQueue(output_string);
+		//strcpy(output_string, "//TODO: AST Warn unused IDs, lookups, params\n");
+		//code_output_queue.EnQueue(output_string);
+		//strcpy(output_string, "//TODO: Configuration Grammar with %section directive\n");
+		//code_output_queue.EnQueue(output_string);
+		//strcpy(output_string, "//TODO: Context change on <identifier> value\n\n");
+		//code_output_queue.EnQueue(output_string);
 
 		// Write out the main ASTA Array
 		ast.WriteASTArray(&idents);
@@ -800,31 +810,31 @@ void Lexer::Process_D_GRAMMAR_END(void) {
 			header_output_queue.EnQueue(output_string);
 		}
 
-		// write out the identifiers XLAT map arrays (idents, lookups, actions)
-		idents.WriteIdentifierMaps();
+		// write out the identifiers "XLAT map arrays" (idents, lookups, actions)
+		idents.WriteXLATMapArrays();
 		// and send it to the header file
 		while (idents.output.OutputAvailable()) {
 			idents.output.GetOutputAsString(output_string);
 			header_output_queue.EnQueue(output_string);
 		}
 
-		// write out the XLAT map lookup function prototypes
-		idents.WriteIdentMapFunctions(WRITE_HEADER);
+		// write out the "XLAT map lookup function prototypes" (idents, lookups, actions)
+		idents.WriteXLATMapLookupFunctions(WRITE_HEADER);
 		// and send it to the header file
 		while (idents.output.OutputAvailable()) {
 			idents.output.GetOutputAsString(output_string);
 			header_output_queue.EnQueue(output_string);
 		}
 
-		// write out the XLAT map lookup functions
-		idents.WriteIdentMapFunctions(WRITE_CODE);
+		// write out the "XLAT map lookup function bodies" (idents, lookups, actions)
+		idents.WriteXLATMapLookupFunctions(WRITE_CODE);
 		// and send it to the code file
 		while (idents.output.OutputAvailable()) {
 			idents.output.GetOutputAsString(output_string);
 			code_output_queue.EnQueue(output_string);
 		}
 
-		// write out the XLAT map lookup functions prototypes
+		// write out the XLAT map "ident member" lookup functions prototypes
 		idents.WriteIdentMemberLookupFunction(WRITE_HEADER);
 		// and send it to the header file
 		while (idents.output.OutputAvailable()) {
@@ -832,7 +842,7 @@ void Lexer::Process_D_GRAMMAR_END(void) {
 			header_output_queue.EnQueue(output_string);
 		}
 
-		// write out the XLAT map lookup functions
+		// write out the XLAT map "ident member" lookup function bodies
 		idents.WriteIdentMemberLookupFunction(WRITE_CODE);
 		// and send it to the code file
 		while (idents.output.OutputAvailable()) {
@@ -840,12 +850,47 @@ void Lexer::Process_D_GRAMMAR_END(void) {
 			code_output_queue.EnQueue(output_string);
 		}
 
-		// Add the Caller function prototype to the header
+		// write out the XLAT map "lookup member" lookup functions prototypes
+		idents.WriteLookupMemberLookupFunction(WRITE_HEADER);
+		// and send it to the header file
+		while (idents.output.OutputAvailable()) {
+			idents.output.GetOutputAsString(output_string);
+			header_output_queue.EnQueue(output_string);
+		}
+
+		// write out the XLAT map "lookup member" lookup function bodies
+		idents.WriteLookupMemberLookupFunction(WRITE_CODE);
+		// and send it to the code file
+		while (idents.output.OutputAvailable()) {
+			idents.output.GetOutputAsString(output_string);
+			code_output_queue.EnQueue(output_string);
+		}
+
+		// write out user code lookup function outlines - prototype first
+		idents.WriteUserLookupFunctions(WRITE_HEADER);
+		// and send it to the header file
+		while (idents.output.OutputAvailable()) {
+			idents.output.GetOutputAsString(output_string);
+			header_output_queue.EnQueue(output_string);
+		}
+
+		// write out user code lookup function outlines - user_code
+		idents.WriteUserLookupFunctions(WRITE_USER_CODE);
+		// and send it to the user_code file
+		while (idents.output.OutputAvailable()) {
+			idents.output.GetOutputAsString(output_string);
+			user_code_output_queue.EnQueue(output_string);
+		}
+
+
+
+		// Add the User Code Action Function Caller function prototype to the header
 		sprintf(output_string, "uint16_t CallFunction(uint8_t func_xlat, ParamUnion params[]);\n");
 		header_output_queue.EnQueue(output_string);
 
 		header_output_available = true;
 		code_output_available = true;
+		user_code_output_available = true;
 		grammar_section = false;
 		process_result = R_COMPLETE;
 	} else {
@@ -915,8 +960,11 @@ void Lexer::Process_D_LOOKUP_LIST(void) {
 	//	<lookup-identifier> as IdentifierName
 	// Set FunctionName as InstanceName
 	//
-	//	Then later populate through grammar parsing for
+	//	//TODO: Then later populate through grammar parsing for
 	//		parameter types and names in order.
+	//	//TODO: for now the lookup function just returns 0 or 1
+	//		to indicate if the string is in the list
+	//		- lookup code to be provided by user in out_user_code.cpp
 	line.GetTokenStr(tokens[0], 0);
 
 	if (line.GetTokenStr(tokens[1], 1) == NULL) {
@@ -942,6 +990,10 @@ void Lexer::Process_D_LOOKUP_LIST(void) {
 				}
 			}
 		}
+	    // tell the user
+		sprintf(temp_string, "Registered lookup list \"%s\" calling function instance \"%s\"\n", tokens[1], tokens[2]);
+		user_output_queue.EnQueue(temp_string);
+		user_output_available = true;
 	}
 }
 

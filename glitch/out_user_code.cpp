@@ -1,11 +1,11 @@
 #include "out.h"
 
-//#include "itch.h"
+#include "itch.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-//extern ITCH itch;
+extern ITCH itch;
 
 void ShowBlocks(void) {
 	//RegShowBlocks(itch.WriteLnImmediate);
@@ -65,5 +65,19 @@ void SetDate(char* param1_date) {
 
 void SystemReboot(void) {
 	//RegSystemReboot(itch.WriteLnImmediate);
+}
+
+uint8_t LookupBlockLabel(char* lookup_string) {
+	//
+	// Insert lookup call here that returns 0 or 1 if lookup string found
+	//
+	return 0;
+}
+
+uint8_t LookupOtherList(char* lookup_string) {
+	//
+	// Insert lookup call here that returns 0 or 1 if lookup string found
+	//
+	return 0;
 }
 

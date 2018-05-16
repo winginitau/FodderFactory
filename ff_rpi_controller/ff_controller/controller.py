@@ -157,6 +157,20 @@ ui_outputs_values = [
     STATE_UNKNOWN 
 ]
 
+ui_energy_values = [
+    FLOAT_INIT,
+    FLOAT_INIT,
+    FLOAT_INIT,
+    FLOAT_INIT
+]
+    
+#i_energy_soc = UINT16_INIT
+#energy_soc = FLOAT_INIT
+#energy_voltage = FLOAT_INIT
+#energy_power = FLOAT_INIT
+#energy_current = FLOAT_INIT
+
+
 # Global Functions
 
 def get_colour_by_temp(temp_val, src_index):
@@ -227,6 +241,15 @@ def parse_and_update(dt):               # dt passed in kivy callback - not used
                         ui_outputs_values[i] = STATE_ON
                     elif (parsed_message.msg_type_string == "DEACTIVATED"):        
                         ui_outputs_values[i] = STATE_OFF
+            if (parsed_message.msg_string == "VE_DATA_SOC"):
+                ui_energy_values[0] = float(parsed_message.int_val) / 10
+            if (parsed_message.msg_string == "VE_DATA_VOLTAGE"):
+                ui_energy_values[1] = float(parsed_message.int_val) / 1000
+            if (parsed_message.msg_string == "VE_DATA_POWER"):
+                ui_energy_values[2] = float(parsed_message.int_val)
+            if (parsed_message.msg_string == "VE_DATA_CURRENT"):
+                ui_energy_values[3] = float(parsed_message.int_val) / 1000
+                
 
 def modem_read_line(dt):
         #print("********RadioModem method read_line called***********")
@@ -266,6 +289,8 @@ class FFTempButton(FFButton):
     def __init__(self, **kwargs):
         super(FFTempButton, self).__init__(**kwargs)
         self.temperature = 255.255
+        #self.size_hint_max_y = 200
+
     def update(self, dt):                   # dt passed in kivy callback - not used
         self.temperature = ui_inputs_values[self.source_index]
         if (self.temperature != FLOAT_INIT):
@@ -280,6 +305,7 @@ class FFDeviceButton(FFButton):
     def __init__(self, **kwargs):
         super(FFDeviceButton, self).__init__(**kwargs)
         self.FF_state = STATE_UNKNOWN
+        #self.size_hint_max_y = 200
     def update(self, dt):                   # dt passed in kivy callback - not used
         self.FF_state = ui_outputs_values[self.source_index]
         #self.background_color = get_colour_by_temp(self.temperature)
@@ -297,18 +323,54 @@ class FFDeviceButton(FFButton):
         #self.text.color = [1, 0, 0, 1]
 #        print("*****FFDeviceButton update method called by clock *************")
 
-class FFMainScreen(GridLayout):
+class FFEnergyButton(FFButton):
     def __init__(self, **kwargs):
-        super(FFMainScreen, self).__init__(**kwargs)
-        self.cols = 3
-        self.spacing = 5
-        self.padding = 5
-        #self.row_default_height = 30
-        self.height = 480
-        self.width = 800
+        super(FFEnergyButton, self).__init__(**kwargs)
+        #self.size_hint_max_y = 80
+    def update(self, dt):                   # dt passed in kivy callback - not used
         
+        self.soc = ui_energy_values[0]
+        self.voltage = ui_energy_values[1]
+        self.power = ui_energy_values[2]
+        self.current = ui_energy_values[3]
+        
+        #FF_state = ui_outputs_values[self.source_index]
+        #self.background_color = get_colour_by_temp(self.temperature)
+        if (self.soc == 0):
+            self.background_color = FF_GREY
+        elif (self.soc > 101):
+            self.background_color = FF_GREY
+        elif (self.soc > 70):
+            self.background_color = FF_GREEN
+        elif (self.soc > 60):
+            self.background_color = FF_YELLOW
+        elif (self.soc > 50):
+            self.background_color = FF_RED
+        
+        #self.text = str(self.soc)
+        #print(self.text)
+        #print(ui_energy_values[0])
+        self.text = "[b]Energy    "+"{:.1f}".format(self.soc)+" %     " + \
+                    "{:.2f}".format(self.voltage)+" V     " + \
+                    "{:.2f}".format(self.current)+" A     " + \
+                    "{:.0f}".format(self.power) + " W [/b]"
+
+    
+
+class TopSection(GridLayout):
+    def __init__(self, **kwargs):
+        super(TopSection, self).__init__(**kwargs)
+        self.cols = 3
+        self.spacing = 2
+        self.padding = 2
+        #self.row_default_height = 30
+        #self.size_hint_y = 400
+        #self.height = 400
+        #self.width = 800
+        self.size_hint_min_y = 380
         self.input_buttons = []
         self.output_buttons = []
+        
         
 #        radio_modem = RadioModem(radio_modem_port)
 #        print("*************RADIO MODEM INSTANTIATED****************")
@@ -316,8 +378,9 @@ class FFMainScreen(GridLayout):
         # Make the background sand:
         with self.canvas.before:
             Color(237, 235, 230, 1)
-            self.rect = Rectangle(size=(800, 480), pos=self.pos)
+            self.rect = Rectangle(size=(800, 400), pos=self.pos)
         
+        # add the input buttons
         for i, l, d in INPUTS_LIST:
             self.input_buttons.append(FFTempButton(markup=True))
             self.input_buttons[i].set_name(d)
@@ -325,6 +388,7 @@ class FFMainScreen(GridLayout):
             self.add_widget(self.input_buttons[i])
             Clock.schedule_interval(self.input_buttons[i].update, UI_UPDATE_INTERVAL)
         
+        # add the device buttons
         for i, l, d in OUTPUTS_LIST:
             self.output_buttons.append(FFDeviceButton(markup=True))
             self.output_buttons[i].set_name(d)
@@ -332,19 +396,59 @@ class FFMainScreen(GridLayout):
             self.add_widget(self.output_buttons[i])
             Clock.schedule_interval(self.output_buttons[i].update, UI_UPDATE_INTERVAL)
         
+        
+        
+
+class BottomSection(GridLayout):
+    def __init__(self, **kwargs):
+        super(BottomSection, self).__init__(**kwargs)
+        self.cols = 1
+        self.spacing = 2
+        self.padding = 2
+        
+        self.energy_button = FFEnergyButton(markup=True)
+        # add the energy button
+        self.energy_button.set_name("Energy")
+        self.add_widget(self.energy_button)
+        Clock.schedule_interval(self.energy_button.update, UI_UPDATE_INTERVAL)
+
+
+
+class MainScreen(GridLayout):
+    def __init__(self, **kwargs):
+        super(MainScreen, self).__init__(**kwargs)
+        self.cols = 1
+        self.spacing = 0
+        self.padding = 0
+        #self.row_default_height = 30
+        #self.height = 480
+        #self.width = 800
+        # Make the background sand:
+        with self.canvas.before:
+            Color(237, 235, 230, 1)
+            self.rect = Rectangle(size=(800, 480), pos=self.pos)
+        
+        self.temperature_section = TopSection()
+        self.status_section = BottomSection()
+        
+        self.add_widget(self.temperature_section)
+        self.add_widget(self.status_section)
+
         #Clock.schedule_interval(radio_modem.read_line, SERIAL_POLL_INTERVAL)
         Clock.schedule_interval(parse_and_update, UI_UPDATE_INTERVAL)
         print("*************RADIO MODEM READ and PARSE CLOCKS ADDED ******")
         Clock.schedule_interval(modem_read_line, SERIAL_POLL_INTERVAL)
-
+        
+        
+        
 class MyApp(App):
 
     def build(self):
         Config.set('graphics', 'width', '800')
         Config.set('graphics', 'height', '480')
         Config.write()
-        return FFMainScreen()
-           
+        #return TopSection()
+        return MainScreen()   
 
 if __name__ == '__main__':
     # Connect to serial port first

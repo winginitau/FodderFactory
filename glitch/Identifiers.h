@@ -28,6 +28,7 @@
 enum {
 	WRITE_HEADER = 0,
 	WRITE_CODE,
+	WRITE_USER_CODE,
 };
 
 
@@ -71,14 +72,19 @@ public:
 
 	bool Exists(char* identifier_name);
 
-	void WriteIdentifierMaps(void);
-	void WriteIdentMap(int type, char* instance_name);
+	void WriteXLATMapArrays(void);
+	void WriteXLATArrayOfTypeAndInstance(int type, char* instance_name);
 
-	void WriteIdentMapFunctions(int header_or_code);
-	void WriteIdentMapFunc(char* func_name, char* map_instance, int header_or_code, char* member_count_define);
+	void WriteXLATMapLookupFunctions(int header_or_code);
+	void WriteXLATMapLookupFuncOfTypeAndInstance(char* func_name, char* map_instance, int header_or_code, char* member_count_define);
 
 	void WriteIdentMemberLookupFunction(int header_or_code);
 	void WriteIdentMemberLookupCase(int case_num, char* string_array_instance, char* terminating_member_name);
+
+	void WriteLookupMemberLookupFunction(int header_or_code);
+	void WriteLookupMemberLookupCase(int case_num, char* function_name);
+
+	void WriteUserLookupFunctions(int header_or_code);
 
 	//void DEBUGDumpIdentifiers(void);
 
