@@ -45,6 +45,8 @@ void OutputSetup(BlockNode *b) {
 			b->last_update = TimeNow();
 			b->settings.out.command = UINT8_INIT;
 			HALInitDigitalOutput(b->settings.out.if_num);
+			EventMsg(b->block_id, E_DEACT);
+			HALDigitalWrite (b->settings.out.if_num, DIG_LOW);
 			break;
 		}
 		case OUT_SYSTEM_CALL: {

@@ -35,6 +35,8 @@ from kivy.properties import NumericProperty
 ################################################### 
 #Colours
 ###################################################
+_FF_BLACK = [0, 0, 0]
+_FF_WHITE = [255, 255, 255]
 _FF_RED = [196, 3, 51]
 _FF_GREEN = [0, 158, 107]
 _FF_BLUE = [0, 135, 189]
@@ -44,6 +46,12 @@ _FF_YELLOW = [255, 211, 1]
 _FF_GREY = [128, 127, 128]
 _FF_SAND = [237, 235, 230]
 _FF_SLATE = [69, 72, 90]
+
+FF_BLACK = [x/255 for x in _FF_BLACK]
+FF_BLACK.append(1.0)
+
+FF_WHITE = [x/255 for x in _FF_WHITE]
+FF_WHITE.append(1.0)
 
 FF_RED = [x/255 for x in _FF_RED]
 FF_RED.append(1.0)
@@ -106,22 +114,22 @@ FLOAT_INIT = 255.255
 
 ########################################################
 #MESSAGE_FILENAME = "message_dev.log"
-MESSAGE_FILENAME = "/root/message.log"
+MESSAGE_FILENAME = "message.log"
 MODEM_SERIAL_PORT = "/dev/ttyV0"
 MODEM_SERIAL_SPEED = 9600
 
 SERIAL_POLL_INTERVAL = 0.1          # Seconds
 UI_UPDATE_INTERVAL = 1.0            # Seconds
 
-STD_HEAT_PALLET = (
-    [-50, 15, FF_FREEZE_BLUE ],       # Freeze Blue
-    [15, 20, FF_COLD_BLUE ],    # Cold Blue
-    [20, 25, FF_GREEN ],     # green - good
+STD_HEAT_BACK_PALLET = (
+    [-50, 12, FF_FREEZE_BLUE ],       # Freeze Blue
+    [12, 19, FF_COLD_BLUE ],    # Cold Blue
+    [19, 25, FF_GREEN ],     # green - good
     [25, 30, FF_YELLOW ],    # yellow - warm
     [30, 100, FF_RED ]     # red - hot
 )
     
-CABINET_HEAT_PALLET = (
+CABINET_HEAT_BACK_PALLET = (
     [-50, -4, FF_FREEZE_BLUE ],       # Freeze Blue
     [-4, 5, FF_COLD_BLUE ],    # Cold Blue
     [5, 50, FF_GREEN ],     # green - good
@@ -129,6 +137,21 @@ CABINET_HEAT_PALLET = (
     [60, 100, FF_RED ]     # red - hot
 )
 
+STD_HEAT_FORE_PALLET = (
+    [-50, 12, FF_GREY ],       # Freeze Blue
+    [12, 19, FF_GREY ],    # Cold Blue
+    [19, 25, FF_WHITE ],     # green - good
+    [25, 30, FF_BLACK ],    # yellow - warm
+    [30, 100, FF_WHITE ]     # red - hot
+)
+    
+CABINET_HEAT_FORE_PALLET = (
+    [-50, -4, FF_GREY ],       # Freeze Blue
+    [-4, 5, FF_GREY ],    # Cold Blue
+    [5, 50, FF_WHITE ],     # green - good
+    [50, 60, FF_BLACK ],    # yellow - warm
+    [60, 100, FF_WHITE ]     # red - hot
+)
     
 STATE_UNKNOWN = 2
 STATE_ON = 1
@@ -173,20 +196,36 @@ ui_energy_values = [
 
 # Global Functions
 
-def get_colour_by_temp(temp_val, src_index):
+def GetBackColorByTemp(temp_val, src_index):
     if (src_index == 4):
-        for [low, high, [r, g, b, a]] in STD_HEAT_PALLET:
+        for [low, high, [r, g, b, a]] in CABINET_HEAT_BACK_PALLET:
             if ((temp_val > low) and (temp_val <= high)):
                 #print (temp_val)
                 #print(low, high, [r, g, b, a])
                 return [r, g, b, a]
     else:
-        for [low, high, [r, g, b, a]] in STD_HEAT_PALLET:
+        for [low, high, [r, g, b, a]] in STD_HEAT_BACK_PALLET:
             if ((temp_val > low) and (temp_val <= high)):
                 #print (temp_val)
                 #print(low, high, [r, g, b, a])
                 return [r, g, b, a]
     return [1, 1, 1, 1]
+
+def GetForeColorByTemp(temp_val, src_index):
+    if (src_index == 4):
+        for [low, high, [r, g, b, a]] in CABINET_HEAT_FORE_PALLET:
+            if ((temp_val > low) and (temp_val <= high)):
+                #print (temp_val)
+                #print(low, high, [r, g, b, a])
+                return [r, g, b, a]
+    else:
+        for [low, high, [r, g, b, a]] in STD_HEAT_FORE_PALLET:
+            if ((temp_val > low) and (temp_val <= high)):
+                #print (temp_val)
+                #print(low, high, [r, g, b, a])
+                return [r, g, b, a]
+    return [1, 1, 1, 1]
+
 
 class ParsedMessage():
     def __init__(self):
@@ -279,6 +318,7 @@ class FFButton(Button):
         self.background_normal = ''
         self.background_color = FF_GREY
         self.font_size = '30sp'
+        #self.color = FF_WHITE
     def set_name(self, name_str):
         self.name = name_str
         self.text = name_str    
@@ -295,9 +335,11 @@ class FFTempButton(FFButton):
         self.temperature = ui_inputs_values[self.source_index]
         if (self.temperature != FLOAT_INIT):
             #self.background_normal = ''
-            self.background_color = get_colour_by_temp(self.temperature, self.source_index)
+            self.background_color = GetBackColorByTemp(self.temperature, self.source_index)
+            self.color = GetForeColorByTemp(self.temperature, self.source_index)
         else:
-            self.background_color = FF_GREY            
+            self.background_color = FF_GREY
+            self.color = FF_WHITE            
         self.text = self.name + "\n[b]" + str(self.temperature) + "[/b]"
         #self.text.color = [1, 0, 0, 1]
         
@@ -308,18 +350,20 @@ class FFDeviceButton(FFButton):
         #self.size_hint_max_y = 200
     def update(self, dt):                   # dt passed in kivy callback - not used
         self.FF_state = ui_outputs_values[self.source_index]
-        #self.background_color = get_colour_by_temp(self.temperature)
+        #self.background_color = GetBackColorByTemp(self.temperature)
         if (self.FF_state == STATE_UNKNOWN):
-            self.state_str = "State Unknown"
+            self.state_str = "\nState Unknown"
         elif (self.FF_state == STATE_OFF):
-            self.state_str = "OFF"
+            self.state_str = "\n[b]OFF[/b]"
             #self.background_normal = ""
             self.background_color = FF_SLATE
+            self.color = FF_WHITE
         elif (self.FF_state == STATE_ON):
-            self.state_str = "ON"
+            self.state_str = "\n[b]ON[/b]"
             #self.background_normal = ""
             self.background_color = FF_GREEN
-        self.text = self.name + "\n[b]" + self.state_str + "[/b]"
+            self.color = FF_WHITE
+        self.text = self.name + self.state_str
         #self.text.color = [1, 0, 0, 1]
 #        print("*****FFDeviceButton update method called by clock *************")
 
@@ -335,17 +379,22 @@ class FFEnergyButton(FFButton):
         self.current = ui_energy_values[3]
         
         #FF_state = ui_outputs_values[self.source_index]
-        #self.background_color = get_colour_by_temp(self.temperature)
+        #self.background_color = GetBackColorByTemp(self.temperature)
         if (self.soc == 0):
             self.background_color = FF_GREY
+            self.color = FF_WHITE
         elif (self.soc > 101):
             self.background_color = FF_GREY
+            self.color = FF_WHITE
         elif (self.soc > 70):
             self.background_color = FF_GREEN
+            self.color = FF_WHITE
         elif (self.soc > 60):
             self.background_color = FF_YELLOW
+            self.color = FF_BLACK
         elif (self.soc > 50):
             self.background_color = FF_RED
+            self.color = FF_BLACK
         
         #self.text = str(self.soc)
         #print(self.text)

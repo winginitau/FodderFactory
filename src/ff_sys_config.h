@@ -23,7 +23,7 @@
 // Optionally:
 //#define FF_TEMPERATURE_SIM
 //#define FF_TEMP_SIM_WITH_DALLAS
-#define FF_RPI_START_DELAY 60000	// Start delay kludge to allow RPIs to get going
+//#define FF_RPI_START_DELAY 60000	// Start delay kludge to allow RPIs to get going
 //OR
 //#define FF_SIMULATOR
 //#define FF_SIM_PARSECONFIG	//optional parse the TXT config (default -> read BIN)
