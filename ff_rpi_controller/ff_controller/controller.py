@@ -28,7 +28,7 @@ from kivy.graphics import Color, Rectangle
 from kivy.properties import NumericProperty
 #BooleanProperty, ReferenceListProperty,
  
-
+#import copy
 
 # Constants
 
@@ -47,37 +47,84 @@ _FF_GREY = [128, 127, 128]
 _FF_SAND = [237, 235, 230]
 _FF_SLATE = [69, 72, 90]
 
+L_G = 0.3
+H_G = 0.8
+
 FF_BLACK = [x/255 for x in _FF_BLACK]
+FF_BLACK_LG = [x/255 for x in _FF_BLACK]
+FF_BLACK_HG = [x/255 for x in _FF_BLACK]
+FF_BLACK_LG.append(L_G)
+FF_BLACK_HG.append(H_G)
 FF_BLACK.append(1.0)
 
 FF_WHITE = [x/255 for x in _FF_WHITE]
+FF_WHITE_LG = [x/255 for x in _FF_WHITE]
+FF_WHITE_HG = [x/255 for x in _FF_WHITE]
+FF_WHITE_LG.append(L_G)
+FF_WHITE_HG.append(H_G)
 FF_WHITE.append(1.0)
 
 FF_RED = [x/255 for x in _FF_RED]
+FF_RED_LG = [x/255 for x in _FF_RED]
+FF_RED_HG = [x/255 for x in _FF_RED]
+FF_RED_LG.append(L_G)
+FF_RED_HG.append(H_G)
 FF_RED.append(1.0)
 
 FF_GREEN = [x/255 for x in _FF_GREEN]
+FF_GREEN_LG = [x/255 for x in _FF_GREEN]
+FF_GREEN_HG = [x/255 for x in _FF_GREEN]
+FF_GREEN_LG.append(L_G)
+FF_GREEN_HG.append(H_G)
 FF_GREEN.append(1.0)
 
 FF_BLUE = [x/255 for x in _FF_BLUE]
+FF_BLUE_LG = [x/255 for x in _FF_BLUE]
+FF_BLUE_HG = [x/255 for x in _FF_BLUE]
+FF_BLUE_LG.append(L_G)
+FF_BLUE_HG.append(H_G)
 FF_BLUE.append(1.0)
 
 FF_COLD_BLUE = [x/255 for x in _FF_COLD_BLUE]
+FF_COLD_BLUE_LG = [x/255 for x in _FF_COLD_BLUE]
+FF_COLD_BLUE_HG = [x/255 for x in _FF_COLD_BLUE]
+FF_COLD_BLUE_LG.append(L_G)
+FF_COLD_BLUE_HG.append(H_G)
 FF_COLD_BLUE.append(1.0)
 
 FF_FREEZE_BLUE = [x/255 for x in _FF_FREEZE_BLUE]
+FF_FREEZE_BLUE_LG = [x/255 for x in _FF_FREEZE_BLUE]
+FF_FREEZE_BLUE_HG = [x/255 for x in _FF_FREEZE_BLUE]
+FF_FREEZE_BLUE_LG.append(L_G)
+FF_FREEZE_BLUE_HG.append(H_G)
 FF_FREEZE_BLUE.append(1.0)
 
 FF_YELLOW = [x/255 for x in _FF_YELLOW]
+FF_YELLOW_LG = [x/255 for x in _FF_YELLOW]
+FF_YELLOW_HG = [x/255 for x in _FF_YELLOW]
+FF_YELLOW_LG.append(L_G)
+FF_YELLOW_HG.append(H_G)
 FF_YELLOW.append(1.0)
 
 FF_GREY = [x/255 for x in _FF_GREY]
+FF_GREY_LG = [x/255 for x in _FF_GREY]
+FF_GREY_HG = [x/255 for x in _FF_GREY]
+FF_GREY_LG.append(L_G)
+FF_GREY_HG.append(H_G)
 FF_GREY.append(1.0)
 
 FF_SAND = [x/255 for x in _FF_SAND]
+FF_SAND_LG = [x/255 for x in _FF_SAND]
+FF_SAND_HG = [x/255 for x in _FF_SAND]
+FF_SAND_LG.append(L_G)
+FF_SAND_HG.append(H_G)
 FF_SAND.append(1.0)
 
 FF_SLATE = [x/255 for x in _FF_SLATE]
+FF_SLATE_LG = [x/255 for x in _FF_SLATE]
+FF_SLATE_HG = [x/255 for x in _FF_SLATE]
+FF_SLATE_LG.append(L_G)
+FF_SLATE_HG.append(H_G)
 FF_SLATE.append(1.0)
 
 
@@ -122,35 +169,35 @@ SERIAL_POLL_INTERVAL = 0.1          # Seconds
 UI_UPDATE_INTERVAL = 1.0            # Seconds
 
 STD_HEAT_BACK_PALLET = (
-    [-50, 12, FF_FREEZE_BLUE ],       # Freeze Blue
-    [12, 19, FF_COLD_BLUE ],    # Cold Blue
-    [19, 25, FF_GREEN ],     # green - good
-    [25, 30, FF_YELLOW ],    # yellow - warm
-    [30, 100, FF_RED ]     # red - hot
+    [-50, 12, FF_FREEZE_BLUE_LG ],       # Freeze Blue
+    [12, 19, FF_COLD_BLUE_LG ],    # Cold Blue
+    [19, 25, FF_GREEN_LG ],     # green - good
+    [25, 30, FF_YELLOW_LG ],    # yellow - warm
+    [30, 100, FF_RED_LG ]     # red - hot
 )
     
 CABINET_HEAT_BACK_PALLET = (
-    [-50, -4, FF_FREEZE_BLUE ],       # Freeze Blue
-    [-4, 5, FF_COLD_BLUE ],    # Cold Blue
-    [5, 50, FF_GREEN ],     # green - good
-    [50, 60, FF_YELLOW ],    # yellow - warm
-    [60, 100, FF_RED ]     # red - hot
+    [-50, -4, FF_FREEZE_BLUE_LG ],       # Freeze Blue
+    [-4, 5, FF_COLD_BLUE_LG ],    # Cold Blue
+    [5, 50, FF_GREEN_LG ],     # green - good
+    [50, 60, FF_YELLOW_LG ],    # yellow - warm
+    [60, 100, FF_RED_LG ]     # red - hot
 )
 
 STD_HEAT_FORE_PALLET = (
-    [-50, 12, FF_GREY ],       # Freeze Blue
-    [12, 19, FF_GREY ],    # Cold Blue
-    [19, 25, FF_WHITE ],     # green - good
-    [25, 30, FF_BLACK ],    # yellow - warm
-    [30, 100, FF_WHITE ]     # red - hot
+    [-50, 12, FF_WHITE_HG ],       # Freeze Blue
+    [12, 19, FF_WHITE_HG ],    # Cold Blue
+    [19, 25, FF_WHITE_HG ],     # green - good
+    [25, 30, FF_BLACK_HG ],    # yellow - warm
+    [30, 100, FF_WHITE_HG ]     # red - hot
 )
     
 CABINET_HEAT_FORE_PALLET = (
-    [-50, -4, FF_GREY ],       # Freeze Blue
-    [-4, 5, FF_GREY ],    # Cold Blue
-    [5, 50, FF_WHITE ],     # green - good
-    [50, 60, FF_BLACK ],    # yellow - warm
-    [60, 100, FF_WHITE ]     # red - hot
+    [-50, -4, FF_WHITE_HG ],       # Freeze Blue
+    [-4, 5, FF_WHITE_HG ],    # Cold Blue
+    [5, 50, FF_WHITE_HG ],     # green - good
+    [50, 60, FF_WHITE_HG ],    # yellow - warm
+    [60, 100, FF_WHITE_HG ]     # red - hot
 )
     
 STATE_UNKNOWN = 2
@@ -316,8 +363,9 @@ class FFButton(Button):
         self.halign = "center"
         self.valign = "middle"
         self.background_normal = ''
-        self.background_color = FF_GREY
+        #self.background_color = FF_GREY
         self.font_size = '30sp'
+        
         #self.color = FF_WHITE
     def set_name(self, name_str):
         self.name = name_str
@@ -338,8 +386,8 @@ class FFTempButton(FFButton):
             self.background_color = GetBackColorByTemp(self.temperature, self.source_index)
             self.color = GetForeColorByTemp(self.temperature, self.source_index)
         else:
-            self.background_color = FF_GREY
-            self.color = FF_WHITE            
+            self.background_color = FF_GREY_LG
+            self.color = FF_WHITE_LG            
         self.text = self.name + "\n[b]" + str(self.temperature) + "[/b]"
         #self.text.color = [1, 0, 0, 1]
         
@@ -353,16 +401,18 @@ class FFDeviceButton(FFButton):
         #self.background_color = GetBackColorByTemp(self.temperature)
         if (self.FF_state == STATE_UNKNOWN):
             self.state_str = "\nState Unknown"
+            self.background_color = FF_GREY_LG
+            self.color = FF_WHITE_LG            
         elif (self.FF_state == STATE_OFF):
             self.state_str = "\n[b]OFF[/b]"
             #self.background_normal = ""
-            self.background_color = FF_SLATE
-            self.color = FF_WHITE
+            self.background_color = FF_SLATE_LG
+            self.color = FF_WHITE_HG
         elif (self.FF_state == STATE_ON):
             self.state_str = "\n[b]ON[/b]"
             #self.background_normal = ""
-            self.background_color = FF_GREEN
-            self.color = FF_WHITE
+            self.background_color = FF_GREEN_LG
+            self.color = FF_WHITE_HG
         self.text = self.name + self.state_str
         #self.text.color = [1, 0, 0, 1]
 #        print("*****FFDeviceButton update method called by clock *************")
@@ -381,20 +431,20 @@ class FFEnergyButton(FFButton):
         #FF_state = ui_outputs_values[self.source_index]
         #self.background_color = GetBackColorByTemp(self.temperature)
         if (self.soc == 0):
-            self.background_color = FF_GREY
-            self.color = FF_WHITE
+            self.background_color = FF_GREY_LG
+            self.color = FF_WHITE_LG
         elif (self.soc > 101):
-            self.background_color = FF_GREY
-            self.color = FF_WHITE
+            self.background_color = FF_GREY_LG
+            self.color = FF_WHITE_LG
         elif (self.soc > 70):
-            self.background_color = FF_GREEN
-            self.color = FF_WHITE
+            self.background_color = FF_GREEN_LG
+            self.color = FF_WHITE_HG
         elif (self.soc > 60):
-            self.background_color = FF_YELLOW
-            self.color = FF_BLACK
+            self.background_color = FF_YELLOW_LG
+            self.color = FF_BLACK_HG
         elif (self.soc > 50):
-            self.background_color = FF_RED
-            self.color = FF_BLACK
+            self.background_color = FF_RED_LG
+            self.color = FF_BLACK_HG
         
         #self.text = str(self.soc)
         #print(self.text)
@@ -410,8 +460,8 @@ class TopSection(GridLayout):
     def __init__(self, **kwargs):
         super(TopSection, self).__init__(**kwargs)
         self.cols = 3
-        self.spacing = 2
-        self.padding = 2
+        self.spacing = 20
+        self.padding = 20
         #self.row_default_height = 30
         #self.size_hint_y = 400
         #self.height = 400
@@ -425,9 +475,9 @@ class TopSection(GridLayout):
 #        print("*************RADIO MODEM INSTANTIATED****************")
  
         # Make the background sand:
-        with self.canvas.before:
-            Color(237, 235, 230, 1)
-            self.rect = Rectangle(size=(800, 400), pos=self.pos)
+        #with self.canvas.before:
+            #Color(237, 235, 230, 1)
+            #self.rect = Rectangle(size=(800, 400), pos=self.pos, source='cows.png')
         
         # add the input buttons
         for i, l, d in INPUTS_LIST:
@@ -452,8 +502,8 @@ class BottomSection(GridLayout):
     def __init__(self, **kwargs):
         super(BottomSection, self).__init__(**kwargs)
         self.cols = 1
-        self.spacing = 2
-        self.padding = 2
+        self.spacing = 0
+        self.padding = 20
         
         self.energy_button = FFEnergyButton(markup=True)
         # add the energy button
@@ -474,9 +524,10 @@ class MainScreen(GridLayout):
         #self.width = 800
         # Make the background sand:
         with self.canvas.before:
-            Color(237, 235, 230, 1)
-            self.rect = Rectangle(size=(800, 480), pos=self.pos)
-        
+            #Color(237, 235, 230, 1)
+            #self.rect = Rectangle(size=(800, 480), pos=self.pos)
+            self.rect = Rectangle(size=(800, 480), pos=self.pos, source='cows.png')
+
         self.temperature_section = TopSection()
         self.status_section = BottomSection()
         
