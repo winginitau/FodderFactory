@@ -72,7 +72,8 @@ time_t VE_last_polled;
 time_t VE_last_logged;
 TV_TYPE VE_log_rate;
 TV_TYPE VE_poll_rate;
-int16_t VE_soc, VE_power, VE_voltage, VE_current;
+int32_t VE_soc, VE_power;
+int32_t VE_voltage, VE_current;
 
 /************************************************
  Functions
@@ -126,15 +127,22 @@ void Setup(BlockNode *b) {
 }
 
 //XXX move to utility
-uint8_t VarianceExceeds(int16_t old_val, int16_t new_val, uint8_t thres_pc) {
-	int16_t var_abs;
-	int16_t thres_abs;
+uint8_t VarianceExceedsPercent(int32_t old_val, int32_t new_val, uint8_t thres_pc) {
+	int32_t var_abs;
+	int32_t thres_abs;
 	var_abs = old_val - new_val;
 	var_abs = var_abs * ((var_abs > 0) - (var_abs < 0));
 
-	thres_abs = old_val * 100 / thres_pc;
+	thres_abs = old_val * thres_pc / 100;
 	thres_abs = thres_abs * ((thres_abs > 0) - (thres_abs < 0));
 
+	return (var_abs > thres_abs);
+}
+
+uint8_t VarianceExceedsAbsolute(int32_t old_val, int32_t new_val, uint16_t thres_abs) {
+	int32_t var_abs;
+	var_abs = old_val - new_val;
+	var_abs = var_abs * ((var_abs > 0) - (var_abs < 0));
 	return (var_abs > thres_abs);
 }
 
@@ -153,35 +161,21 @@ void Operate(BlockNode *b) {
 		time_t VE_now = TimeNow();
 		time_t VE_next_poll;
 		time_t VE_next_log;
-		uint16_t new_value;
+		uint32_t new_current;
 		VE_next_log = VE_last_logged + VE_log_rate;
 		VE_next_poll = VE_last_polled + VE_poll_rate;
 		if (VE_now >= VE_next_poll) {
 			VE_last_polled = TimeNow();
 
-			new_value = HALReadVEData(M_VE_SOC);
-			if(VarianceExceeds(VE_soc, new_value, 20)) {
-				VE_next_log = TimeNow();
-			}
-			VE_soc = new_value;
+			VE_soc = HALReadVEData(M_VE_SOC);
+			VE_power = HALReadVEData(M_VE_POWER);
+			VE_voltage = HALReadVEData(M_VE_VOLTAGE);
 
-			new_value = HALReadVEData(M_VE_POWER);
-			if(VarianceExceeds(VE_power, new_value, 20)) {
-				VE_next_log = TimeNow();
+			new_current = HALReadVEData(M_VE_CURRENT);
+			if(VarianceExceedsAbsolute(VE_current, new_current, 1000)) {
+				VE_next_log = TimeNow() - 5; // set logging to earlier to trigger test
 			}
-			VE_power = new_value;
-
-			new_value = HALReadVEData(M_VE_VOLTAGE);
-			if(VarianceExceeds(VE_voltage, new_value, 20)) {
-				VE_next_log = TimeNow();
-			}
-			VE_voltage = new_value;
-
-			new_value = HALReadVEData(M_VE_CURRENT);
-			if(VarianceExceeds(VE_current, new_value, 20)) {
-				VE_next_log = TimeNow();
-			}
-			VE_current = new_value;
+			VE_current = new_current;
 
 		}
 		if (VE_now >= VE_next_log) {

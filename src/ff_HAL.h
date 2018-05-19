@@ -28,7 +28,7 @@
  Function Prototypes
 ************************************************/
 uint8_t HALVEDirectInit(void);
-int16_t HALReadVEData(uint16_t data_type);
+int32_t HALReadVEData(uint16_t data_type);
 
 uint8_t HALSaveEventBuffer(void);
 

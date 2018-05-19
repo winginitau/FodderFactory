@@ -102,8 +102,8 @@ uint8_t HALVEDirectInit(void) {
 
 
 
-int16_t HALReadVEData(uint16_t data_type) {
-	int16_t ret = INT16_INIT;
+int32_t HALReadVEData(uint16_t data_type) {
+	int32_t ret = INT16_INIT;
 	char VE_line[MAX_LABEL_LENGTH];
 	//char temp_str[MAX_LABEL_LENGTH];
 	char* label;

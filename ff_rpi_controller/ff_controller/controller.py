@@ -13,6 +13,7 @@ from collections import deque
 
 
 import kivy
+from kivy.uix.label import Label
 kivy.require('1.10.0') # replace with your current kivy version !
 from kivy.config import Config
 from kivy.app import App
@@ -27,6 +28,8 @@ from kivy.graphics import Color, Rectangle
 #from kivy.properties import StringProperty, OptionProperty
 from kivy.properties import NumericProperty
 #BooleanProperty, ReferenceListProperty,
+
+import datetime
  
 #import copy
 
@@ -234,6 +237,9 @@ ui_energy_values = [
     FLOAT_INIT
 ]
     
+last_message_time = datetime.datetime.now()
+message_ever_received = False
+     
 #i_energy_soc = UINT16_INIT
 #energy_soc = FLOAT_INIT
 #energy_voltage = FLOAT_INIT
@@ -285,19 +291,33 @@ class ParsedMessage():
         self.int_val = UINT16_INIT
         self.float_val = FLOAT_INIT
         self.valid = False
+        self.time_rx = datetime.datetime.now()
         
 def parse_message_string(raw_msg_string):
 #    print(raw_msg_string)
     parsed_message = ParsedMessage()
     parsed_message.valid = False
+    good_length = False
+    good_date = False
+    good_decode = False
+    
     print (raw_msg_string)
 
-    with open(MESSAGE_FILENAME, "a") as msg_log_file:
-        print(raw_msg_string, file=msg_log_file)
-
-    if len(raw_msg_string) > 30:                            #  possibly valid message not init junk
-        string_list = raw_msg_string.decode().split(",")
-        print (string_list)
+    if len(raw_msg_string) > 30:
+        good_length = True
+        try:
+            string_list = raw_msg_string.decode().split(",")
+            good_decode = True
+        except:
+            good_decode = False
+        if (good_decode):
+            try:
+                datetime.datetime.strptime(string_list[0], '%Y-%m-%d')
+                good_date = True
+            except:
+                good_date = False
+                 
+    if (good_length and good_decode and good_date):
         if not("DEBUG" in string_list):
             parsed_message.date_string = string_list[0]
             parsed_message.time_string = string_list[1]
@@ -308,11 +328,17 @@ def parse_message_string(raw_msg_string):
             parsed_message.int_val = int(string_list[6])
             parsed_message.float_val = float(string_list[7])
             parsed_message.valid = True
-
+            parsed_message.time_rx = datetime.datetime.now()
+            with open(MESSAGE_FILENAME, "a") as msg_log_file:
+                print(raw_msg_string, file=msg_log_file)
+                
     return parsed_message
 
 
-def parse_and_update(dt):               # dt passed in kivy callback - not used
+def parse_and_update(dt):
+    global message_ever_received
+    global last_message_time
+
 #    print("*******Callback parse_and_update called by clock *****************")
     parsed_message = ParsedMessage()
     while (len(message_line_buffer) > 0):
@@ -335,7 +361,9 @@ def parse_and_update(dt):               # dt passed in kivy callback - not used
                 ui_energy_values[2] = float(parsed_message.int_val)
             if (parsed_message.msg_string == "VE_DATA_CURRENT"):
                 ui_energy_values[3] = float(parsed_message.int_val) / 1000
-                
+            last_message_time = datetime.datetime.now()
+            message_ever_received = True
+            
 
 def modem_read_line(dt):
         #print("********RadioModem method read_line called***********")
@@ -343,18 +371,6 @@ def modem_read_line(dt):
             message_line_buffer.append(radio_modem_port.readline())
 #            print(message_line_buffer)
 
-
-'''        
-class RadioModem():
-    def __init__(self, serial_port):
-        self.port = serial_port
-        print("********RadioModem __init__ called***********")
-    def read_line(self, dt):                # dt passed in kivy callback - not used
-        print("********RadioModem method read_line called***********")
-        if (self.port.inWaiting() > 0):
-            message_line_buffer.append(self.port.readline())
-            print(message_line_buffer)
-'''
 
 class FFButton(Button):
     def __init__(self, **kwargs):
@@ -364,9 +380,11 @@ class FFButton(Button):
         self.valign = "middle"
         self.background_normal = ''
         #self.background_color = FF_GREY
-        self.font_size = '30sp'
-        
+        self.font_size = '28sp'
+        #self.spacing = 10
+        #self.padding = (10, 10)   
         #self.color = FF_WHITE
+
     def set_name(self, name_str):
         self.name = name_str
         self.text = name_str    
@@ -389,13 +407,11 @@ class FFTempButton(FFButton):
             self.background_color = FF_GREY_LG
             self.color = FF_WHITE_LG            
         self.text = self.name + "\n[b]" + str(self.temperature) + "[/b]"
-        #self.text.color = [1, 0, 0, 1]
         
 class FFDeviceButton(FFButton):
     def __init__(self, **kwargs):
         super(FFDeviceButton, self).__init__(**kwargs)
         self.FF_state = STATE_UNKNOWN
-        #self.size_hint_max_y = 200
     def update(self, dt):                   # dt passed in kivy callback - not used
         self.FF_state = ui_outputs_values[self.source_index]
         #self.background_color = GetBackColorByTemp(self.temperature)
@@ -414,22 +430,16 @@ class FFDeviceButton(FFButton):
             self.background_color = FF_GREEN_LG
             self.color = FF_WHITE_HG
         self.text = self.name + self.state_str
-        #self.text.color = [1, 0, 0, 1]
-#        print("*****FFDeviceButton update method called by clock *************")
 
 class FFEnergyButton(FFButton):
     def __init__(self, **kwargs):
         super(FFEnergyButton, self).__init__(**kwargs)
-        #self.size_hint_max_y = 80
-    def update(self, dt):                   # dt passed in kivy callback - not used
-        
+    def update(self, dt):                   # dt passed in kivy callback - not used      
         self.soc = ui_energy_values[0]
         self.voltage = ui_energy_values[1]
         self.power = ui_energy_values[2]
         self.current = ui_energy_values[3]
         
-        #FF_state = ui_outputs_values[self.source_index]
-        #self.background_color = GetBackColorByTemp(self.temperature)
         if (self.soc == 0):
             self.background_color = FF_GREY_LG
             self.color = FF_WHITE_LG
@@ -446,39 +456,96 @@ class FFEnergyButton(FFButton):
             self.background_color = FF_RED_LG
             self.color = FF_BLACK_HG
         
-        #self.text = str(self.soc)
-        #print(self.text)
-        #print(ui_energy_values[0])
         self.text = "[b]Energy    "+"{:.1f}".format(self.soc)+" %     " + \
                     "{:.2f}".format(self.voltage)+" V     " + \
                     "{:.2f}".format(self.current)+" A     " + \
                     "{:.0f}".format(self.power) + " W [/b]"
 
-    
+class TimeButton(FFButton):
+    def __init__(self, **kwargs):
+        super(TimeButton, self).__init__(**kwargs)
+        self.background_color = FF_SLATE_LG
+        self.color = FF_WHITE_HG
+        self.text = "[b]--:--:--[/b]"
+                    
+    def set_name(self, name_str):
+        self.name = name_str
+    def update(self, dt):
+        #self.currentDT = "{0:%H:%M:%S  %d-%m-%Y}".format(datetime.datetime.now())
+        self.currentDT = "{0:%H:%M:%S}".format(datetime.datetime.now())
+        #self.text = str(self.currentDT.hour) + ":" + \
+        #            str(self.currentDT.minute) + ":" + \
+        #            str(self.currentDT.second)
+        #self.text = "[b]Time: " + str(self.currentDT) + " [/b]" 
+        self.text = "[b]" + self.currentDT + "[/b]"          
 
+class UpdateIndicatorButton(FFButton):
+    def __init__(self, **kwargs):
+        super(UpdateIndicatorButton, self).__init__(**kwargs)
+        self.background_color = FF_YELLOW_LG
+        self.color = FF_WHITE_HG
+        self.text = "[b]Lights on, but no one home[/b]"
+        self.nowDT = datetime.datetime.now()
+        self.delta = datetime.timedelta()
+    def set_name(self, name_str):
+        self.name = name_str
+        
+    def update(self, dt):
+        global message_ever_received
+        global last_message_time
+        if (message_ever_received):
+            self.nowDT = datetime.datetime.now()
+            self.delta = self.nowDT - last_message_time
+            self.seconds = self.delta.total_seconds()
+            if (self.seconds > 3600):
+                self.text = "[b]>60min Rooted[/b]"
+                self.background_color = FF_RED_LG
+            elif (self.seconds > 1800):
+                self.text = "[b]>30min Really Broken[/b]"
+                self.background_color = FF_RED_LG
+            elif (self.seconds > 900):
+                self.text = "[b]>15min Yep Broken[/b]"
+                self.background_color = FF_RED_LG
+            elif (self.seconds > 600):
+                self.text = "[b]>10min Probably Broken[/b]"
+                self.background_color = FF_RED_LG
+            elif (self.seconds > 300):
+                self.text = "[b]5 mins - Broken?[/b]"
+                self.background_color = FF_YELLOW_LG
+            elif (self.seconds > 210):
+                self.text = "[b]A few minutes ago[/b]"
+                self.background_color = FF_YELLOW_LG
+            elif (self.seconds > 80):
+                self.text = "[b]A couple of minutes ago[/b]"
+                self.background_color = FF_GREEN_LG
+            elif (self.seconds > 50):
+                self.text = "[b]About a minute ago[/b]"
+                self.background_color = FF_GREEN_LG
+            elif (self.seconds > 30):
+                self.text = "[b]Less than a minute ago[/b]"
+                self.background_color = FF_GREEN_LG
+            elif (self.seconds > 10):
+                self.text = "[b]A few seconds ago[/b]"
+                self.background_color = FF_GREEN_LG
+            else: 
+                self.text = "[b]Right Now[/b]"
+                self.background_color = FF_GREEN_LG
+
+            
 class TopSection(GridLayout):
     def __init__(self, **kwargs):
         super(TopSection, self).__init__(**kwargs)
         self.cols = 3
-        self.spacing = 20
-        self.padding = 20
+        self.spacing = 15
+        self.padding = 15
         #self.row_default_height = 30
         #self.size_hint_y = 400
         #self.height = 400
         #self.width = 800
-        self.size_hint_min_y = 380
+        self.size_hint_min_y = 350
         self.input_buttons = []
         self.output_buttons = []
-        
-        
-#        radio_modem = RadioModem(radio_modem_port)
-#        print("*************RADIO MODEM INSTANTIATED****************")
- 
-        # Make the background sand:
-        #with self.canvas.before:
-            #Color(237, 235, 230, 1)
-            #self.rect = Rectangle(size=(800, 400), pos=self.pos, source='cows.png')
-        
+                
         # add the input buttons
         for i, l, d in INPUTS_LIST:
             self.input_buttons.append(FFTempButton(markup=True))
@@ -494,31 +561,44 @@ class TopSection(GridLayout):
             self.output_buttons[i].set_source_index(i)
             self.add_widget(self.output_buttons[i])
             Clock.schedule_interval(self.output_buttons[i].update, UI_UPDATE_INTERVAL)
+
+class MiddleSection(GridLayout):
+    def __init__(self, **kwargs):
+        super(MiddleSection, self).__init__(**kwargs)
+        self.cols = 1
+        self.spacing = 15
+        self.padding = [15, 0]
         
+        self.energy_button = FFEnergyButton(markup=True)
+        self.energy_button.set_name("Energy")
+        self.add_widget(self.energy_button)
         
-        
+        Clock.schedule_interval(self.energy_button.update, UI_UPDATE_INTERVAL)
 
 class BottomSection(GridLayout):
     def __init__(self, **kwargs):
         super(BottomSection, self).__init__(**kwargs)
-        self.cols = 1
-        self.spacing = 0
-        self.padding = 20
+        self.cols = 3
+        self.spacing = 15
+        self.padding = [15, 15, 15, 0]
+                
+        self.current_time = TimeButton(markup=True)
+        self.current_time.set_name("TimeNow")
+        self.add_widget(self.current_time)
         
-        self.energy_button = FFEnergyButton(markup=True)
-        # add the energy button
-        self.energy_button.set_name("Energy")
-        self.add_widget(self.energy_button)
-        Clock.schedule_interval(self.energy_button.update, UI_UPDATE_INTERVAL)
-
-
+        self.last_rx_status = UpdateIndicatorButton(markup=True)
+        self.last_rx_status.set_name("TimeRxStatus")
+        self.add_widget(self.last_rx_status)
+        
+        Clock.schedule_interval(self.current_time.update, UI_UPDATE_INTERVAL)
+        Clock.schedule_interval(self.last_rx_status.update, UI_UPDATE_INTERVAL)
 
 class MainScreen(GridLayout):
     def __init__(self, **kwargs):
         super(MainScreen, self).__init__(**kwargs)
         self.cols = 1
-        self.spacing = 0
-        self.padding = 0
+        #self.spacing = 0
+        #self.padding = 0
         #self.row_default_height = 30
         #self.height = 480
         #self.width = 800
@@ -529,17 +609,18 @@ class MainScreen(GridLayout):
             self.rect = Rectangle(size=(800, 480), pos=self.pos, source='cows.png')
 
         self.temperature_section = TopSection()
+        self.energy_section = MiddleSection()
         self.status_section = BottomSection()
         
         self.add_widget(self.temperature_section)
+        self.add_widget(self.energy_section)
         self.add_widget(self.status_section)
-
+        
         #Clock.schedule_interval(radio_modem.read_line, SERIAL_POLL_INTERVAL)
         Clock.schedule_interval(parse_and_update, UI_UPDATE_INTERVAL)
         print("*************RADIO MODEM READ and PARSE CLOCKS ADDED ******")
         Clock.schedule_interval(modem_read_line, SERIAL_POLL_INTERVAL)
-        
-        
+         
         
 class MyApp(App):
 
