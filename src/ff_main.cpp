@@ -180,17 +180,18 @@ void ReadProcessedConfig(void) {
 	// see if the card is present and can be initialized:
 	if (SD.begin(10, 11, 12, 13)) {
 //	if (SD.begin(10)) {
-//DebugLog("DEBUG INFO sd.begin");
+		//strcpy_hal(temp_label, F("DEBUG INFO sd.begin"));
+		//DebugLog(temp_label);
 		f = SD.open(BIN_CONFIG_FILENAME, FILE_READ);
 		if (!f) {
-			//DebugLog(SSS, E_STOP, M_NO_CONFIG);
-			DebugLog("NO CONFIG");
+			strcpy_hal(temp_label, F("NO CONFIG"));
+			DebugLog(temp_label);
 			// Cannot do anything else
 			while (1);
 		}
 	} else {
-		//DebugLog(SSS, E_STOP, M_SD_BEGIN_FAIL);
-		DebugLog("SD FAIL");
+		strcpy_hal(temp_label, F("SD FAIL"));
+		DebugLog(temp_label);
 		while (1);
 	}
 

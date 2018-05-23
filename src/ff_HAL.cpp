@@ -27,12 +27,13 @@
 #ifdef LCD_DISPLAY
 #include <U8g2lib.h>                  // LCD display library
 #include <U8x8lib.h>
-#endif
+#endif // LCD_DISPLAY
 #include "RTClib.h"
 #include "SD.h"
 #include <time.h>
 #include "Wire.h"
-#endif
+#include <avr/wdt.h>
+#endif // FF_ARDUINO
 
 #ifdef USE_ITCH
 #include "itch.h"
@@ -53,6 +54,10 @@
 #include <stdio.h>
 #endif
 
+#ifndef FF_ARDUINO
+#include <unistd.h>	// for sleep() and usleep() in simulator modes
+#endif
+
 /************************************************
  Data Structures
 ************************************************/
@@ -71,6 +76,9 @@ U8G2_ST7920_128X64_1_SW_SPI lcd_128_64(U8G2_R0, /* clock=*/ 40 /* A4 */ , /* dat
 #endif
 
 RTC_DS1307 rtc;
+unsigned long g_last_milli_val;	// used to pad calls to TimeNow so that the RTC isn't smashed
+//DateTime g_last_rtc_DT;
+time_t g_epoch_time;
 #endif
 
 uint8_t rtc_status = 0;		// assume dead until we can find it and talk to it
@@ -85,24 +93,26 @@ ITCH itch;
 	int screen_refresh_counter = 0;
 #endif
 
-unsigned long g_last_milli_val;	// used to pad calls to TimeNow so that the RTC isn't smashed
-DateTime g_last_rtc_DT;
-
 /************************************************
  Functions
 ************************************************/
+
+#ifdef VE_DIRECT
 uint8_t HALVEDirectInit(void) {
 	// XXX hack for energy monitoring
-//	if (Serial3.begin(19200) ) {
-//		return 1;
-//	} else return 0;
-	return 1;
+	Serial3.begin(19200);
+	if (Serial3) {
+		delay(500);
+		if(Serial3.available()) {
+			return 1;
+		}
+	}
+	return 0;
 }
 
-
-
-
 int32_t HALReadVEData(uint16_t data_type) {
+	// XXX remove hard coding of serial port
+
 	int32_t ret = INT16_INIT;
 	char VE_line[MAX_LABEL_LENGTH];
 	//char temp_str[MAX_LABEL_LENGTH];
@@ -115,84 +125,90 @@ int32_t HALReadVEData(uint16_t data_type) {
 	uint8_t block_count = 0;
 	uint8_t cr = 0;
 	uint8_t checksum = 0;
-
 	uint8_t b;
+	//int16_t loop_count = 0;
 
 	Serial3.begin(19200);
 
-	while (block_count < 3) {	// BMV transmits 2x blocks to deliver all data - read 3 to make sure we get all values
-		if(Serial3.available()) {
-			b = Serial3.read();
-			switch (b) {
-			case '\n':  // start of newline - reset buffer
-				cr = 0;
-				VE_line[0] = '\0';
-				buf_idx = 0;
-				break;
-			case '\r': // eol - terminate the buffer
-				cr = 1;
-				VE_line[buf_idx] = '\0';
-				buf_idx++;
-				break;
-			default: // Check special case "Checksum" or throw it in the buffer
-				if(checksum) {
-					//TODO: ignore it and preceding tab for now, assume eol, reset and inc block_count
-					if(b != '\t') {
+	if (Serial3) {
+
+		while (block_count < 3) {	// BMV transmits 2x blocks to deliver all data - read 3 to make sure we get all values
+
+			if (Serial3.available()) {
+				b = Serial3.read();
+				switch (b) {
+					case '\n':  // start of newline - reset buffer
 						cr = 0;
 						VE_line[0] = '\0';
 						buf_idx = 0;
-						block_count++;
-						checksum = 0;
-					}
-				} else {
-					cr = 0;
-					//nl = 0;
-					VE_line[buf_idx] = b;
-					buf_idx++;
-					if(strncmp(VE_line, "Checksum", 8) == 0) {
-						checksum = 1;
-					}
+						break;
+					case '\r': // eol - terminate the buffer
+						cr = 1;
+						VE_line[buf_idx] = '\0';
+						buf_idx++;
+						break;
+					default: // Check special case "Checksum" or throw it in the buffer
+						if (checksum) {
+							//TODO: ignore it and preceding tab for now, assume eol, reset and inc block_count
+							if (b != '\t') {
+								cr = 0;
+								VE_line[0] = '\0';
+								buf_idx = 0;
+								block_count++;
+								checksum = 0;
+							}
+						} else {
+							cr = 0;
+							//nl = 0;
+							VE_line[buf_idx] = b;
+							buf_idx++;
+							if (strncmp(VE_line, "Checksum", 8) == 0) {
+								checksum = 1;
+							}
+						}
+				}
+			}
+			if (cr && buf_idx) { // whole line in buffer
+				label = strtok(VE_line, delim);
+				value = strtok(0, delim);
+
+				switch (data_type) {
+					case M_VE_SOC:
+						if (strcmp(label, "SOC") == 0) {
+							ret = atoi(value);
+							return ret;
+						}
+						break;
+					case M_VE_VOLTAGE:
+						if (strcmp(label, "V") == 0) {
+							ret = atoi(value);
+							return ret;
+						}
+						break;
+					case M_VE_POWER:
+						if (strcmp(label, "P") == 0) {
+							ret = atoi(value);
+							return ret;
+						}
+						break;
+					case M_VE_CURRENT:
+						if (strcmp(label, "I") == 0) {
+							ret = atoi(value);
+							return ret;
+						}
+						break;
+					default:
+						break;
 				}
 			}
 		}
-		if ( cr && buf_idx) { // whole line in buffer
-			label = strtok(VE_line, delim);
-			value = strtok(0, delim);
-
-			switch (data_type) {
-				case M_VE_SOC:
-					if (strcmp(label, "SOC") == 0 ) {
-						ret = atoi(value);
-						return ret;
-					}
-					break;
-				case M_VE_VOLTAGE:
-					if (strcmp(label, "V") == 0 ) {
-						ret = atoi(value);
-						return ret;
-					}
-					break;
-				case M_VE_POWER:
-					if (strcmp(label, "P") == 0 ) {
-						ret = atoi(value);
-						return ret;
-					}
-					break;
-				case M_VE_CURRENT:
-					if (strcmp(label, "I") == 0 ) {
-						ret = atoi(value);
-						return ret;
-					}
-					break;
-				default:
-					break;
-			}
-		}
+		Serial3.flush();
+		Serial3.end();
 	}
-	Serial3.flush();
-	Serial3.end();
 	return ret;
 }
+#endif //VE_DIRECT
+
 
 uint8_t HALSaveEventBuffer(void) {
 
@@ -296,15 +312,24 @@ uint8_t HALInitSerial(uint8_t port, uint16_t baudrate) {
 #ifdef FF_ARDUINO
 	switch (port) {
 		case 0:
-			//delay(5);
+			#ifdef SERIAL_0_USED
 			Serial.begin(baudrate);
-			//delay(5);
+			#endif
 			break;
 		case 1:
+			#ifdef SERIAL_1_USED
 			Serial1.begin(baudrate);
+			#endif
 			break;
 		case 2:
+			#ifdef SERIAL_2_USED
 			Serial2.begin(baudrate);
+			#endif
+			break;
+		case 3:
+			#ifdef SERIAL_3_USED
+			Serial3.begin(baudrate);
+			#endif
 			break;
 		default:
 			break;
@@ -313,7 +338,7 @@ uint8_t HALInitSerial(uint8_t port, uint16_t baudrate) {
 	return 1;
 }
 
-uint8_t HALEventSerialSend(EventNode* e, uint8_t port, uint16_t baudrate) {
+uint8_t HALEventSerialSend(EventNode* e, uint8_t port) {
 
 	char e_str[MAX_LOG_LINE_LENGTH];
 	FormatEventMessage(e, e_str);
@@ -329,13 +354,24 @@ uint8_t HALEventSerialSend(EventNode* e, uint8_t port, uint16_t baudrate) {
     	loop--;
     	switch (port) {
     		case 0:
+				#ifdef SERIAL_0_USED
     			check = Serial;
+				#endif
     			break;
     		case 1:
+				#ifdef SERIAL_1_USED
     			check = Serial1;
+				#endif
     			break;
     		case 2:
+				#ifdef SERIAL_2_USED
     			check = Serial2;
+				#endif
+    			break;
+    		case 3:
+				#ifdef SERIAL_3_USED
+    			check = Serial3;
+				#endif
     			break;
     		default:
     			break;
@@ -350,30 +386,36 @@ uint8_t HALEventSerialSend(EventNode* e, uint8_t port, uint16_t baudrate) {
     	switch (port) {
     		case 0:
 				#ifdef USE_ITCH
-    				itch.WriteLnImmediate(e_str);
+    			itch.WriteLineDirect(e_str);
 				#else
-    				Serial.println(e_str);
-				#endif
-    			//delay(5);
+    			Serial.println(e_str);
     	    	Serial.flush();
-    			//delay(5);
+				#endif
     			break;
     		case 1:
 				#ifdef USE_ITCH
-    				itch.WriteLnImmediate(e_str);
+    			itch.WriteLineDirect(e_str);
 				#else
-    				Serial1.println(e_str);
-				#endif
+    			Serial1.println(e_str);
     	    	Serial1.flush();
+				#endif
     			break;
     		case 2:
 				#ifdef USE_ITCH
-    				itch.WriteLnImmediate(e_str);
+    			itch.WriteLineDirect(e_str);
 				#else
-    				Serial2.println(e_str);
-				#endif
+    			Serial2.println(e_str);
     	    	Serial2.flush();
+				#endif
     			break;
+       		case 3:
+    			#ifdef USE_ITCH
+        		itch.WriteLineDirect(e_str);
+    			#else
+       			Serial3.println(e_str);
+       	    	Serial3.flush();
+				#endif
+       			break;
     		default:
     			break;
     	}
@@ -399,9 +441,8 @@ void HALPollItch(void) {
 }
 
 void HALItchWriteLnImmediate(char *str) {
-	itch.WriteLnImmediate(str);
+	itch.WriteLineDirect(str);
 }
-
 #endif //USE_ITCH
 
 
@@ -509,30 +550,21 @@ float GetTemperature(int if_num) {
 
 		}
 	}
-	// XXX temp override to test removal of longrun temp probe
-	//if(bus_pin == ONE_WIRE_BUS_3) {
-	//	temp_c = -100;
-	//} else {
-		OneWire one_wire(bus_pin); // oneWire instance to communicate with any OneWire devices
-		DallasTemperature temp_sensors(&one_wire);     // Pass our one_wire reference to Dallas Temperature
-		temp_sensors.begin();
+	OneWire one_wire(bus_pin); // oneWire instance to communicate with any OneWire devices
+	DallasTemperature temp_sensors(&one_wire);     // Pass our one_wire reference to Dallas Temperature
+	temp_sensors.begin();
 
-		DeviceAddress d;
-		memcpy_P(d, devices[if_num], sizeof(DeviceAddress));
+	DeviceAddress d;
+	memcpy_P(d, devices[if_num], sizeof(DeviceAddress));
 
-		temp_sensors.requestTemperaturesByAddress(d);
-		temp_c = temp_sensors.getTempC(d);
-	//}
+	temp_sensors.requestTemperaturesByAddress(d);
+	temp_c = temp_sensors.getTempC(d);
+
 
 	#ifdef FF_TEMP_SIM_WITH_DALLAS
 	temp_c = random(17.01, 26.99);
 	#endif
 
-	//delay(500);
-	//temp_sensors.requestTemperatures();  //tell them to take a reading (stored on device)
-	//delay(500);
-	//temp_c = temp_sensors.getTempCByIndex(if_num % OWB1_SENSOR_COUNT);
-	//delay(500);
 #endif //#ifndef FF_TEMPERATURE_SIM
 #endif //#ifdef FF_ARDUINO
 
@@ -561,13 +593,25 @@ float GetTemperature(int if_num) {
 		break;
 	case 4:
 		temp_c = SIM_TEMP_4;
-		//XXX temp kludge
-		delay(131);
+		#ifdef TEMP_SIM_EXTRA_DELAY
+		#ifdef FF_ARDUINO
+			delay(random(TEMP_SIM_MIN_DELAY, TEMP_SIM_MAX_DELAY));
+		#else
+			usleep( (TEMP_SIM_MIN_DELAY * 1000) + \
+					( (rand() % (TEMP_SIM_MAX_DELAY - TEMP_SIM_MIN_DELAY)) *1000));
+		#endif //FF_ARDUINO
+		#endif //TEMP_SIM_EXTRA_DELAY
 		break;
 	case 5:
 		temp_c = SIM_TEMP_5;
-		//XXX temp kludge
-		delay(199);
+		#ifdef TEMP_SIM_EXTRA_DELAY
+		#ifdef FF_ARDUINO
+			delay(random(TEMP_SIM_MIN_DELAY, TEMP_SIM_MAX_DELAY));
+		#else
+			usleep( (TEMP_SIM_MIN_DELAY * 1000) + \
+					( (rand() % (TEMP_SIM_MAX_DELAY - TEMP_SIM_MIN_DELAY)) *1000));
+		#endif //FF_ARDUINO
+		#endif //TEMP_SIM_EXTRA_DELAY
 		break;
 	default:
 		temp_c = FLOAT_INIT;
@@ -578,7 +622,7 @@ float GetTemperature(int if_num) {
 #ifdef FF_TEMPERATURE_SIM
 #ifdef FF_RANDOM_TEMP_SIM
 #ifdef FF_ARDUINO
-		temp_c = random(5.01, 39.99);
+	temp_c = random(5.01, 39.99);
 #endif //FF_ARDUINO
 #endif //FF_RANDOM_TEMP_SIM
 #endif //FF_TEMPERATURE_SIM
@@ -586,6 +630,9 @@ float GetTemperature(int if_num) {
 #ifdef RANDOM_TEMP_SIM_DELAY
 #ifdef FF_ARDUINO
 		delay(random(TEMP_SIM_MIN_DELAY, TEMP_SIM_MAX_DELAY));
+#else
+	usleep( (TEMP_SIM_MIN_DELAY * 1000) + \
+			( (rand() % (TEMP_SIM_MAX_DELAY - TEMP_SIM_MIN_DELAY)) *1000));
 #endif //FF_ARDUINO
 #endif //RANDOM_TEMP_SIM_DELAY
 
@@ -638,6 +685,7 @@ void TempSensorsTakeReading(void) {
 void InitTempSensors(void) {
 #ifdef FF_ARDUINO
 #ifdef DEBUG_DALLAS
+	//XXX Now out of date with HW config - which has 3x busses
 
 	OneWire one_wire_1(ONE_WIRE_BUS_1);            		// oneWire instance to communicate with any OneWire devices
 	//OneWire one_wire_2(ONE_WIRE_BUS_2);            		// oneWire instance to communicate with any OneWire devices
@@ -674,7 +722,7 @@ void InitTempSensors(void) {
 
 		FFFloatToCString(f_str, d_temp);
 
-		sprintf(str, "\t bus: 2/%d, d_index: %d, d_addr: %u:%u:%u:%u:%u:%u:%u, d_res: %d, d_temp: %s", d_count, d_index, d_addr_arr[0], d_addr_arr[1], d_addr_arr[2], d_addr_arr[3], d_addr_arr[4], d_addr_arr[5], d_addr_arr[6], d_addr_arr[7], d_res, f_str);
+		sprintf(str, "\t bus: 2/%d, d_index: %d, d_addr: %u:%u:%u:%u:%u:%u:%u:%u, d_res: %d, d_temp: %s", d_count, d_index, d_addr_arr[0], d_addr_arr[1], d_addr_arr[2], d_addr_arr[3], d_addr_arr[4], d_addr_arr[5], d_addr_arr[6], d_addr_arr[7], d_res, f_str);
 		DebugLog(str);
 
 	}
@@ -695,7 +743,7 @@ void InitTempSensors(void) {
 
 		FFFloatToCString(f_str, d_temp);
 
-		sprintf(str, "\t bus: 2/%d, d_index: %d, d_addr: %u:%u:%u:%u:%u:%u:%u, d_res: %d, d_temp: %s", d_count, d_index, d_addr_arr[0], d_addr_arr[1], d_addr_arr[2], d_addr_arr[3], d_addr_arr[4], d_addr_arr[5], d_addr_arr[6], d_addr_arr[7], d_res, f_str);
+		sprintf(str, "\t bus: 2/%d, d_index: %d, d_addr: %u:%u:%u:%u:%u:%u:%u:%u, d_res: %d, d_temp: %s", d_count, d_index, d_addr_arr[0], d_addr_arr[1], d_addr_arr[2], d_addr_arr[3], d_addr_arr[4], d_addr_arr[5], d_addr_arr[6], d_addr_arr[7], d_res, f_str);
 		DebugLog(str);
 
 	}
@@ -808,31 +856,31 @@ void HALDrawDataScreenCV(const UIDataSet* uids, time_t dt) {
 }
 #endif //UI_ATTACHED
 
+
+/********************************************************************
+ * Time and Date Functions
+ ********************************************************************/
+
 time_t TimeNow(void) {
 #ifdef FF_ARDUINO
-/*
-	DateTime rtcDT;
-	time_t epoch_time;
-
-	rtcDT = rtc.now();
-	epoch_time = rtcDT.secondstime();
-	return epoch_time;
-*/
 	time_t epoch_time;
 	unsigned long milli_now = millis();
+	DateTime rtcDT;
 
 	if(milli_now < g_last_milli_val) {
 		// Assume millis has rolled over to zero (every 59 days)
-		g_last_rtc_DT = rtc.now();
-		epoch_time = g_last_rtc_DT.secondstime();
+		rtcDT = rtc.now();
+		g_epoch_time = rtcDT.secondstime();
+		epoch_time = g_epoch_time;
 		g_last_milli_val = milli_now;
 	} else {
 		if((milli_now - g_last_milli_val) > RTC_POLL_INTERVAL) {
-			g_last_rtc_DT = rtc.now();
-			epoch_time = g_last_rtc_DT.secondstime();
+			rtcDT = rtc.now();
+			g_epoch_time = rtcDT.secondstime();
+			epoch_time = g_epoch_time;
 			g_last_milli_val = milli_now;
 		} else {
-			epoch_time = g_last_rtc_DT.secondstime() + ((milli_now - g_last_milli_val) / 1000);
+			epoch_time = g_epoch_time + ((milli_now - g_last_milli_val) / 1000);
 		}
 	}
 	return epoch_time;
@@ -843,62 +891,31 @@ time_t TimeNow(void) {
 #endif
 }
 
-/*
-FFDateTime HALFFDTNow(void) {
-	FFDateTime dt;
-
 #ifdef FF_ARDUINO
-	if(rtc.isrunning()) {
-		DateTime rtcDT;
-		rtcDT = rtc.now();
-		dt.year = rtcDT.year();
-		dt.month = rtcDT.month();
-		dt.day = rtcDT.day();
-		dt.hour = rtcDT.hour();
-		dt.minute = rtcDT.minute();
-		dt.second = rtcDT.second();
-	} else {
-		dt.year = 0;
-		dt.month = 0;
-		dt.day = 0;
-		dt.hour = 0;
-		dt.minute = 0;
-		dt.second = 0;
-	}
-	return dt;
-#endif
-#ifdef FF_SIMULATOR
+uint8_t HALSetRTCTime(char *time_str) {
+    DateTime nowDT;
+	int hh,mm,ss;
+	char fmt_str[9];
+	strcpy_hal(fmt_str, F("%d:%d:%d"));
+	sscanf(time_str, fmt_str, &hh, &mm, &ss);
+	nowDT = rtc.now();
 
-	time_t sys_time  = time(0);           // get time now
-	struct tm* local_time_ptr  = localtime( & sys_time ); // convert to local time
-	struct tm  local_time = *local_time_ptr;              // make a local copy.
-
-	dt.year = local_time.tm_year +1900; //tm_year The number of years since 1900.
-	dt.month = local_time.tm_mon +1;    //tm_mon The number of months since January, in the range 0 to 11.
-	dt.day = local_time.tm_mday;
-	dt.hour = local_time.tm_hour;
-	dt.minute = local_time.tm_min;
-	dt.second = local_time.tm_sec;
-	return dt;
-#endif
+	rtc.adjust(DateTime(nowDT.year(), nowDT.month(), nowDT.day(), hh, mm, ss));
+	return 0;
 }
-*/
 
-/*
-#ifdef FF_ARDUINO
-void HALSetSysTimeToRTC(void) {
-	DateTime rtcDT;
-	time_t epoch_time;
+uint8_t HALSetRTCDate(char *date_str) {
+    DateTime nowDT;
+	int YYYY,MM,DD;
+	char fmt_str[9];
+	strcpy_hal(fmt_str, F("%d-%d-%d"));
+	sscanf(date_str, fmt_str, &YYYY, &MM, &DD);
+	nowDT = rtc.now();
 
-	set_zone(TIME_ZONE * 3600);
-	//set_dst(); //ugly - requires importing of TZ includes
-	rtcDT = rtc.now();
-	epoch_time = rtcDT.secondstime();
-
-	set_system_time(epoch_time);
+	rtc.adjust(DateTime(YYYY, MM, DD, nowDT.hour(), nowDT.minute(), nowDT.second()));
+	return 0;
 }
-#endif
-*/
+#endif //FF_ARDUINO
 
 void HALInitRTC(void) {
 #ifdef FF_ARDUINO
@@ -907,18 +924,20 @@ void HALInitRTC(void) {
 	// than the compile time date time hard coded directives
 	//TODO substitute this section and all time references to use system time rather than RTC
 	// and sync system time to RTC periodically - that way time still progresses even if RTC broken
+	DateTime rtcDT;
 	Wire.begin();
 	if (rtc.begin()) {
-		EventMsg(SSS, E_INFO, M_RTC_DETECT, 0, 0);
+		//EventMsg(SSS, E_INFO, M_RTC_DETECT, 0, 0);
 		if (rtc.isrunning()) {
-			EventMsg(SSS, E_INFO, M_RTC_REPORT_RUNNING, 0, 0);
 			// Store the current millis timer value - used to avoid calling on the RTC
 			// too often - ie for every time query
 			//TCCR1A = 0;
 			//TCCR1B = 0;
-			g_last_rtc_DT = rtc.now();
+			rtcDT = rtc.now();
+			g_epoch_time = rtcDT.secondstime();
 			g_last_milli_val = millis();
-#ifdef SET_RTC
+			EventMsg(SSS, E_INFO, M_RTC_REPORT_RUNNING, 0, 0);
+			#ifdef SET_RTC
 			EventMsg(SSS, E_WARNING, M_WARN_SET_RTC, 0, 0);
 			// following line sets the RTC localtime() to the date & time this sketch was compiled
 			rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
@@ -966,4 +985,13 @@ void HALInitRTC(void) {
 #endif
 }
 
+void HALReboot(void) {
+#ifdef FF_ARDUINO
+	MCUSR = 0;  // clear out any flags of prior resets.
+	wdt_enable(WDTO_500MS); // turn on the WatchDog and don't stroke it.
+	for(;;) {
+	  // do nothing and wait for the eventual...
+	}
+#endif
+}
 

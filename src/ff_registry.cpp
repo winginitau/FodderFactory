@@ -26,12 +26,14 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
-#ifdef FF_SIMULATOR
+#ifndef FF_ARDUINO
 #include <stdio.h>
+#include <errno.h>
 #endif
 
-#include "ff_HAL.h"
+#include <ff_HAL.h>
 
 #ifdef USE_ITCH
 //#include "itch.h"
@@ -74,6 +76,7 @@ TV_TYPE VE_log_rate;
 TV_TYPE VE_poll_rate;
 int32_t VE_soc, VE_power;
 int32_t VE_voltage, VE_current;
+uint8_t VE_status;
 
 /************************************************
  Functions
@@ -82,7 +85,8 @@ int32_t VE_voltage, VE_current;
 void Setup(BlockNode *b) {
 	switch (b->block_cat) {
 	case FF_SYSTEM:
-		//HALInitItch();
+		//EventMsg(SSS, E_DEBUG_MSG, M_SYS_HEART_BEAT);
+		//HALInitItch(); // moved to head file - needs to start first
 		#ifdef FF_ARDUINO
 		#ifdef FF_RPI_START_DELAY
 			delay(FF_RPI_START_DELAY); //XXX kludge to allow the rpi to boot and establish ppp to the controller before sending data
@@ -93,6 +97,7 @@ void Setup(BlockNode *b) {
 		UpdateUI();
 		#endif //UI_ATTACHED
 
+		#ifdef VE_DIRECT
 		// XXX VE Hack
 		if (HALVEDirectInit()) {
 			VE_last_logged = TimeNow();
@@ -100,7 +105,12 @@ void Setup(BlockNode *b) {
 			VE_log_rate = VE_LOG_RATE;
 			VE_poll_rate = VE_POLL_RATE;
 			EventMsg(SSS, E_INFO, M_VE_INIT);
+		} else {
+			VE_status = STATUS_DISABLED_ERROR;
+			EventMsg(SSS, E_ERROR, M_VE_INIT_ERROR);
+
 		}
+		#endif //VE_DIRECT
 		break;
 	case FF_INPUT:
 		InputSetup(b);
@@ -126,6 +136,7 @@ void Setup(BlockNode *b) {
 	}
 }
 
+
 //XXX move to utility
 uint8_t VarianceExceedsPercent(int32_t old_val, int32_t new_val, uint8_t thres_pc) {
 	int32_t var_abs;
@@ -149,6 +160,8 @@ uint8_t VarianceExceedsAbsolute(int32_t old_val, int32_t new_val, uint16_t thres
 void Operate(BlockNode *b) {
 	switch (b->block_cat) {
 	case FF_SYSTEM: {
+		//EventMsg(SSS, E_DEBUG_MSG, M_SYS_HEART_BEAT);
+
 		#ifdef USE_ITCH
 		//itch.Poll();
 		HALPollItch();
@@ -157,34 +170,38 @@ void Operate(BlockNode *b) {
 		UpdateUI();
 		#endif
 
+		#ifdef VE_DIRECT
 		// XXX VE Hack
-		time_t VE_now = TimeNow();
-		time_t VE_next_poll;
-		time_t VE_next_log;
-		uint32_t new_current;
-		VE_next_log = VE_last_logged + VE_log_rate;
-		VE_next_poll = VE_last_polled + VE_poll_rate;
-		if (VE_now >= VE_next_poll) {
-			VE_last_polled = TimeNow();
+			if ((VE_status > STATUS_ERROR) && (VE_status < STATUS_DISABLED)) {
+				time_t VE_now = TimeNow();
+				time_t VE_next_poll;
+				time_t VE_next_log;
+				uint32_t new_current;
+				VE_next_log = VE_last_logged + VE_log_rate;
+				VE_next_poll = VE_last_polled + VE_poll_rate;
+				if (VE_now >= VE_next_poll) {
+					VE_last_polled = TimeNow();
 
-			VE_soc = HALReadVEData(M_VE_SOC);
-			VE_power = HALReadVEData(M_VE_POWER);
-			VE_voltage = HALReadVEData(M_VE_VOLTAGE);
+					VE_soc = HALReadVEData(M_VE_SOC);
+					VE_power = HALReadVEData(M_VE_POWER);
+					VE_voltage = HALReadVEData(M_VE_VOLTAGE);
 
-			new_current = HALReadVEData(M_VE_CURRENT);
-			if(VarianceExceedsAbsolute(VE_current, new_current, 1000)) {
-				VE_next_log = TimeNow() - 5; // set logging to earlier to trigger test
+					new_current = HALReadVEData(M_VE_CURRENT);
+					if (VarianceExceedsAbsolute(VE_current, new_current, 1000)) {
+						VE_next_log = TimeNow() - 5; // set logging to earlier to trigger test
+					}
+					VE_current = new_current;
+
+				}
+				if (VE_now >= VE_next_log) {
+					VE_last_logged = TimeNow();
+					EventMsg(SSS, E_DATA, M_VE_SOC, VE_soc, 0);
+					EventMsg(SSS, E_DATA, M_VE_VOLTAGE, VE_voltage, 0);
+					EventMsg(SSS, E_DATA, M_VE_POWER, VE_power, 0);
+					EventMsg(SSS, E_DATA, M_VE_CURRENT, VE_current, 0);
+				}
 			}
-			VE_current = new_current;
-
-		}
-		if (VE_now >= VE_next_log) {
-			VE_last_logged = TimeNow();
-			EventMsg(SSS, E_DATA, M_VE_SOC, VE_soc, 0);
-			EventMsg(SSS, E_DATA, M_VE_VOLTAGE, VE_voltage, 0);
-			EventMsg(SSS, E_DATA, M_VE_POWER, VE_power, 0);
-			EventMsg(SSS, E_DATA, M_VE_CURRENT, VE_current, 0);
-		}
+		#endif //VE_DIRECT
 		break;
 	}
 	case FF_INPUT:
@@ -317,6 +334,10 @@ uint8_t GetBVal(uint16_t block_id) {
 
 
 uint16_t GetBlockIDByLabel(const char* label) {
+	//XXX resolve design clash.
+	// This fails with an error - original concept was complete internal block list
+	// consistency. Now with itch this is being used to lookup partial labels
+	// and is throwing debug errors, whereas the itch behaviour is normal
 	BlockNode* temp;
 	char debug_msg[MAX_LOG_LINE_LENGTH];
 
@@ -329,7 +350,9 @@ uint16_t GetBlockIDByLabel(const char* label) {
 			temp = temp->next_block;
 		}
 	}
-	sprintf(debug_msg, "ERROR: B-Label Not Found: [%s]", label);
+	char msg_str[31];
+	strcpy_hal(msg_str, F("ERROR: B-Label Not Found: [%s]"));
+	sprintf(debug_msg, msg_str, label);
 	DebugLog(debug_msg);
 	return M_FF_ERROR;
 }
@@ -349,7 +372,9 @@ char const* GetBlockLabelString(uint16_t block_id) {
 				temp = temp->next_block;
 			}
 		}
-		sprintf(debug_msg, "ERROR: B-ID Not Found: [%d]", block_id);
+		char msg_str[30];
+		strcpy_hal(msg_str, F("ERROR: B-ID Not Found: [%d]"));
+		sprintf(debug_msg, msg_str, block_id);
 		DebugLog(debug_msg);
 		return NULL;
 }
@@ -383,7 +408,7 @@ BlockNode* AddBlockNode(BlockNode** head_ref, uint8_t block_cat, const char *blo
 		new_block->int_val = UINT8_INIT;
 		new_block->f_val = FLOAT_INIT;
 		new_block->last_update = UINT32_INIT;
-		new_block->status = STATUS_INIT;
+		new_block->status = STATUS_ENABLED_INIT;
 
 		if (block_cat != FF_GENERIC_BLOCK) {
 
@@ -555,187 +580,423 @@ BlockNode* GetBlockByLabel(const char *block_label) {
  * ITCH Integration Handlers
  ********************************************************************************************/
 
+uint8_t RegLookupBlockLabel(char* lookup_string) {
+	return GetBlockIDByLabel(lookup_string);
+}
+
 void RegShowBlocks(void(*Callback)(char *)) {
 	BlockNode* b;
 	b = bll;
 	char out[MAX_MESSAGE_STRING_LENGTH];
-
+	char fmt_str[20];
 	if (b == NULL) {
-		strcpy(out, "Empty List");
+		strcpy_hal(out, F("Empty List"));
 		Callback(out);
 	} else {
-		sprintf(out, "\tBID\tCAT\tTYPE\tLABEL");
+		strcpy_hal(out, F("\tBID\tCAT\tTYPE\tLABEL"));
 		Callback(out);
 		while(b != NULL) {
-			sprintf(out, "\t%d\t%d\t%d\t%s", b->block_id, b->block_cat, b->block_type, b->block_label);
+			strcpy_hal(fmt_str, F("\t%d\t%d\t%d\t%s"));
+			sprintf(out, fmt_str, b->block_id, b->block_cat, b->block_type, b->block_label);
 			Callback(out);
 			b = b->next_block;
 		}
 	}
 }
 
-void RegShowBlockByID(uint16_t id, void(*Callback)(char *)) {
+void RegShowSystem(void(*Callback)(char *)) {
+	RegShowBlockByID(SSS, Callback);
+}
+
+void RegShowBlockByLabel(char* block_label, void(*Callback)(char *)) {
+	RegShowBlockByID(GetBlockIDByLabel(block_label), Callback);
+}
+
+void RegShowBlockByID(uint16_t id, void (*Callback)(char *)) {
 	char out_str[MAX_MESSAGE_STRING_LENGTH];	// 80
+	char fmt_str[MAX_MESSAGE_STRING_LENGTH];
 	char temp_str[10];
 
 	BlockNode *b;
 	b = GetBlockByID(bll, id);
 
-	sprintf(out_str, "Base Data");
-	Callback(out_str);
-	sprintf(out_str, " block_id:     %d", b->block_id);
-	Callback(out_str);
-	sprintf(out_str, " block_cat:    %d", b->block_cat);
-	Callback(out_str);
-	sprintf(out_str, " block_type:   %d", b->block_type);
-	Callback(out_str);
-	sprintf(out_str, " block_label:  %s", b->block_label);
-	Callback(out_str);
+	if (b == NULL) {
+		strcpy_hal(fmt_str, F("Error: %d is not a valid block ID"));
+		sprintf(out_str, fmt_str, id);
+		Callback(out_str);
+	} else {
 
-	#ifndef EXCLUDE_DISPLAYNAME
-	sprintf(out_str, " display_name: %s", b->display_name);
-	Callback(out_str);
+		strcpy_hal(out_str, F("Base Data"));
+		Callback(out_str);
+		strcpy_hal(fmt_str, F(" block_id:     %d"));
+		sprintf(out_str, fmt_str, b->block_id);
+		Callback(out_str);
+		strcpy_hal(fmt_str, F(" block_cat:    %d"));
+		sprintf(out_str, fmt_str, b->block_cat);
+		Callback(out_str);
+		strcpy_hal(fmt_str, F(" block_type:   %d"));
+		sprintf(out_str, fmt_str, b->block_type);
+		Callback(out_str);
+		strcpy_hal(fmt_str, F(" block_label:  %s"));
+		sprintf(out_str, fmt_str, b->block_label);
+		Callback(out_str);
+
+#ifndef EXCLUDE_DISPLAYNAME
+		strcpy_hal(fmt_str, F(" display_name: %s"));
+		sprintf(out_str, fmt_str, b->display_name);
+		Callback(out_str);
 #endif
 #ifndef EXCLUDE_DESCRIPTION
-	sprintf(out_str, " description:  %s", b->description);
-	Callback(out_str);
+		strcpy_hal(fmt_str, F(" description:  %s"));
+		sprintf(out_str, fmt_str, b->description);
+		Callback(out_str);
 #endif
 
-	sprintf(out_str, "Operational Data");
-	Callback(out_str);
-	sprintf(out_str, " active:       %d", b->active);
-	Callback(out_str);
-	sprintf(out_str, " bool_val:     %d", b->bool_val);
-	Callback(out_str);
-	sprintf(out_str, " int_val:      %d", b->int_val);
-	Callback(out_str);
-	FFFloatToCString(temp_str, b->f_val);
-	sprintf(out_str, " f_val:        %s", temp_str);
-	Callback(out_str);
-	sprintf(out_str, " last_update:  %lu", b->last_update);
-	Callback(out_str);
-	sprintf(out_str, " status:       %d", b->status);
-	Callback(out_str);
+		strcpy_hal(out_str, F("Operational Data"));
+		Callback(out_str);
+		strcpy_hal(fmt_str, F(" active:       %d"));
+		sprintf(out_str, fmt_str, b->active);
+		Callback(out_str);
+		strcpy_hal(fmt_str, F(" bool_val:     %d"));
+		sprintf(out_str, fmt_str, b->bool_val);
+		Callback(out_str);
+		strcpy_hal(fmt_str, F(" int_val:      %d"));
+		sprintf(out_str, fmt_str, b->int_val);
+		Callback(out_str);
+		FFFloatToCString(temp_str, b->f_val);
+		strcpy_hal(fmt_str, F(" f_val:        %s"));
+		sprintf(out_str, fmt_str, temp_str);
+		Callback(out_str);
+		strcpy_hal(fmt_str, F(" last_update:  %lu"));
+		sprintf(out_str, fmt_str, b->last_update);
+		Callback(out_str);
+		strcpy_hal(fmt_str, F(" status:       %d"));
+		sprintf(out_str, fmt_str, b->status);
+		Callback(out_str);
 
-	sprintf(out_str, "Block Category Specific Data");
-	Callback(out_str);
+		strcpy_hal(out_str, F("Block Category Specific Data"));
+		Callback(out_str);
 
-	switch (b->block_cat) {
-		case (FF_SYSTEM):
-			sprintf(out_str, "System:");
-			Callback(out_str);
-			sprintf(out_str, " temp_scale:   %d", b->settings.sys.temp_scale);
-			Callback(out_str);
-			sprintf(out_str, " language:     %d", b->settings.sys.language);
-			Callback(out_str);
-			sprintf(out_str, " week_star     %d", b->settings.sys.week_start);
-			Callback(out_str);
-			break;
-		case FF_INPUT:
-			sprintf(out_str, "Input:");
-			Callback(out_str);
-			sprintf(out_str, " interface     %d", b->settings.in.interface);
-			Callback(out_str);
-			sprintf(out_str, " if_num:       %d", b->settings.in.if_num);
-			Callback(out_str);
-			sprintf(out_str, " log_rate      %lu", b->settings.in.log_rate); //TV_TYPE
-			Callback(out_str);
-			sprintf(out_str, " data_unit     %d", b->settings.in.data_units);
-			Callback(out_str);
-			sprintf(out_str, " data_type     %d", b->settings.in.data_type);		// float, int
-			Callback(out_str);
-		break;
-		case FF_MONITOR:
-			sprintf(out_str, "Monitor:");
-			Callback(out_str);
-			sprintf(out_str, " input1:       %d", b->settings.mon.input1);
-			Callback(out_str);
-			sprintf(out_str, " input2:       %d", b->settings.mon.input2);
-			Callback(out_str);
-			sprintf(out_str, " input3:       %d", b->settings.mon.input3);
-			Callback(out_str);
-			sprintf(out_str, " input4:       %d", b->settings.mon.input4);
-			Callback(out_str);
-			FFFloatToCString(temp_str, b->settings.mon.act_val);
-			sprintf(out_str, " act_val:      %s", temp_str);   //float
-			Callback(out_str);
-			FFFloatToCString(temp_str, b->settings.mon.deact_val);
-			sprintf(out_str, " deact_val:    %s", temp_str);  //float
-			Callback(out_str);
-		break;
-		case FF_SCHEDULE: {
-			sprintf(out_str, "Schedule:");
-			Callback(out_str);
-			sprintf(out_str, " days          ");
-			for(uint8_t i = 0; i < 7; i++) {
-				sprintf(temp_str, "%d ", b->settings.sch.days[i]);
-				strcat(out_str, temp_str);
+		switch (b->block_cat) {
+			case (FF_SYSTEM):
+				strcpy_hal(out_str, F("System:"));
+				Callback(out_str);
+				strcpy_hal(fmt_str, F(" temp_scale:   %d"));
+				sprintf(out_str, fmt_str, b->settings.sys.temp_scale);
+				Callback(out_str);
+				strcpy_hal(fmt_str, F(" language:     %d"));
+				sprintf(out_str, fmt_str, b->settings.sys.language);
+				Callback(out_str);
+				strcpy_hal(fmt_str, F(" week_star     %d"));
+				sprintf(out_str, fmt_str, b->settings.sys.week_start);
+				Callback(out_str);
+				break;
+			case FF_INPUT:
+				strcpy_hal(out_str, F("Input:"));
+				Callback(out_str);
+				strcpy_hal(fmt_str, F(" interface     %d"));
+				sprintf(out_str, fmt_str, b->settings.in.interface);
+				Callback(out_str);
+				strcpy_hal(fmt_str, F(" if_num:       %d"));
+				sprintf(out_str, fmt_str, b->settings.in.if_num);
+				Callback(out_str);
+				strcpy_hal(fmt_str, F(" log_rate      %lu"));
+				sprintf(out_str, fmt_str, (unsigned long) b->settings.in.log_rate); //TV_TYPE
+				Callback(out_str);
+				strcpy_hal(fmt_str, F(" data_unit     %d"));
+				sprintf(out_str, fmt_str, b->settings.in.data_units);
+				Callback(out_str);
+				strcpy_hal(fmt_str, F(" data_type     %d"));
+				sprintf(out_str, fmt_str, b->settings.in.data_type);		// float, int
+				Callback(out_str);
+				break;
+			case FF_MONITOR:
+				strcpy_hal(out_str, F("Monitor:"));
+				Callback(out_str);
+				strcpy_hal(fmt_str, F(" input1:       %d"));
+				sprintf(out_str, fmt_str, b->settings.mon.input1);
+				Callback(out_str);
+				strcpy_hal(fmt_str, F(" input2:       %d"));
+				sprintf(out_str, fmt_str, b->settings.mon.input2);
+				Callback(out_str);
+				strcpy_hal(fmt_str, F(" input3:       %d"));
+				sprintf(out_str, fmt_str, b->settings.mon.input3);
+				Callback(out_str);
+				strcpy_hal(fmt_str, F(" input4:       %d"));
+				sprintf(out_str, fmt_str, b->settings.mon.input4);
+				Callback(out_str);
+				FFFloatToCString(temp_str, b->settings.mon.act_val);
+				strcpy_hal(fmt_str, F(" act_val:      %s"));
+				sprintf(out_str, fmt_str, temp_str);   //float
+				Callback(out_str);
+				FFFloatToCString(temp_str, b->settings.mon.deact_val);
+				strcpy_hal(fmt_str, F(" deact_val:    %s"));
+				sprintf(out_str, fmt_str, temp_str);  //float
+				Callback(out_str);
+				break;
+			case FF_SCHEDULE: {
+				strcpy_hal(out_str, F("Schedule:"));
+				Callback(out_str);
+				strcpy_hal(fmt_str, F(" days          "));
+				sprintf(out_str, fmt_str);
+				for (uint8_t i = 0; i < 7; i++) {
+					strcpy_hal(fmt_str, F("%d "));
+					sprintf(temp_str, fmt_str, b->settings.sch.days[i]);
+					strcat(out_str, temp_str);
+				}
+				Callback(out_str);
+				strcpy_hal(fmt_str, F(" time_start    %lu"));
+				sprintf(out_str, fmt_str, b->settings.sch.time_start);
+				Callback(out_str);
+				strcpy_hal(fmt_str, F(" time_end      %lu"));
+				sprintf(out_str, fmt_str, b->settings.sch.time_end);
+				Callback(out_str);
+				strcpy_hal(fmt_str, F(" time_duration %lu"));
+				sprintf(out_str, fmt_str, (unsigned long) b->settings.sch.time_duration);
+				Callback(out_str);
+				strcpy_hal(fmt_str, F(" time_repeat   %lu"));
+				sprintf(out_str, fmt_str, (unsigned long) b->settings.sch.time_repeat);
+				Callback(out_str);
 			}
-			Callback(out_str);
-			sprintf(out_str, " time_start    %lu", b->settings.sch.time_start);
-			Callback(out_str);
-			sprintf(out_str, " time_end      %lu", b->settings.sch.time_end);
-			Callback(out_str);
-			sprintf(out_str, " time_duration %lu", b->settings.sch.time_duration);
-			Callback(out_str);
-			sprintf(out_str, " time_repeat   %lu", b->settings.sch.time_repeat);
-			Callback(out_str);
+				break;
+			case FF_RULE:
+				strcpy_hal(out_str, F("Rule:"));
+				Callback(out_str);
+				strcpy_hal(fmt_str, F(" param1:       %d"));
+				sprintf(out_str, fmt_str, b->settings.rl.param1);
+				Callback(out_str);
+				strcpy_hal(fmt_str, F(" param2:       %d"));
+				sprintf(out_str, fmt_str, b->settings.rl.param2);
+				Callback(out_str);
+				strcpy_hal(fmt_str, F(" param3:       %d"));
+				sprintf(out_str, fmt_str, b->settings.rl.param3);
+				Callback(out_str);
+				strcpy_hal(fmt_str, F(" param_not     %d"));
+				sprintf(out_str, fmt_str, b->settings.rl.param_not);
+				Callback(out_str);
+				break;
+			case FF_CONTROLLER:
+				strcpy_hal(out_str, F("Controller:"));
+				Callback(out_str);
+				strcpy_hal(fmt_str, F(" rule:         %d"));
+				sprintf(out_str, fmt_str, b->settings.con.rule);
+				Callback(out_str);
+				strcpy_hal(fmt_str, F(" output:       %d"));
+				sprintf(out_str, fmt_str, b->settings.con.output);
+				Callback(out_str);
+				strcpy_hal(fmt_str, F(" act_cmd:      %d"));
+				sprintf(out_str, fmt_str, b->settings.con.act_cmd);
+				Callback(out_str);
+				strcpy_hal(fmt_str, F(" deact_cmd:    %d"));
+				sprintf(out_str, fmt_str, b->settings.con.deact_cmd);
+				Callback(out_str);
+				break;
+			case FF_OUTPUT:
+				strcpy_hal(out_str, F("Output:"));
+				Callback(out_str);
+				strcpy_hal(fmt_str, F(" interface:    %d"));
+				sprintf(out_str, fmt_str, b->settings.out.interface);
+				Callback(out_str);
+				strcpy_hal(fmt_str, F(" if_num:       %d"));
+				sprintf(out_str, fmt_str, b->settings.out.if_num);
+				Callback(out_str);
+				strcpy_hal(fmt_str, F(" command:      %d"));
+				sprintf(out_str, fmt_str, b->settings.out.command);
+				Callback(out_str);
+				break;
 		}
-		break;
-		case FF_RULE:
-			sprintf(out_str, "Rule:");
-			Callback(out_str);
-			sprintf(out_str, " param1:       %d", b->settings.rl.param1);
-			Callback(out_str);
-			sprintf(out_str, " param2:       %d", b->settings.rl.param2);
-			Callback(out_str);
-			sprintf(out_str, " param3:       %d", b->settings.rl.param3);
-			Callback(out_str);
-			sprintf(out_str, " param_not     %d", b->settings.rl.param_not);
-			Callback(out_str);
-		break;
-		case FF_CONTROLLER:
-			sprintf(out_str, "Controller:");
-			Callback(out_str);
-			sprintf(out_str, " rule:         %d", b->settings.con.rule);
-			Callback(out_str);
-			sprintf(out_str, " output:       %d", b->settings.con.output);
-			Callback(out_str);
-			sprintf(out_str, " act_cmd:      %d", b->settings.con.act_cmd);
-			Callback(out_str);
-			sprintf(out_str, " deact_cmd:    %d", b->settings.con.deact_cmd);
-			Callback(out_str);
-		break;
-		case FF_OUTPUT:
-			sprintf(out_str, "Output:");
-			Callback(out_str);
-			sprintf(out_str, " interface:    %d", b->settings.out.interface);
-			Callback(out_str);
-			sprintf(out_str, " if_num:       %d", b->settings.out.if_num);
-			Callback(out_str);
-			sprintf(out_str, " command:      %d", b->settings.out.command);
-			Callback(out_str);
-		break;
 	}
 }
-
 
 void RegSendCommandToBlockLabel(char* block_label, uint16_t command, void(*Callback)(char *)) {
 	char out_str[MAX_MESSAGE_STRING_LENGTH];	// 80
 	uint16_t block_id;
+	char fmt_str[35];
 
 	block_id = GetBlockIDByLabel(block_label);
 	if (block_id == M_FF_ERROR) {
-		sprintf(out_str, "Block: %s not found", block_label);
+		strcpy_hal(fmt_str, F("Block: %s not found"));
+		sprintf(out_str, fmt_str, block_label);
 		Callback(out_str);
 	} else {
 		//XXX range check command
-		sprintf(out_str, "Sending %d to Block: %s", command, block_label);
+		strcpy_hal(fmt_str, F("Sending %d to Block: %s"));
+		sprintf(out_str, fmt_str, command, block_label);
 		Callback(out_str);
 		SetCommand(block_id, command);
 		EventMsg(SSS, block_id, E_COMMAND, command);
 	}
+}
 
+void RegSendCommandToBlockID(uint16_t id, uint16_t command, void(*Callback)(char*)) {
+	char out_str[MAX_MESSAGE_STRING_LENGTH];	// 80
+
+	BlockNode *b;
+	b = GetBlockByID(bll, id);
+	char fmt_str[35];
+
+	if (b == NULL) {
+		strcpy_hal(fmt_str, F("Error: %d is not a valid block ID"));
+		sprintf(out_str, fmt_str, id);
+		Callback(out_str);
+	} else {
+		//XXX range check command
+		strcpy_hal(fmt_str, F("Sending %d to Block ID: %d"));
+		sprintf(out_str, fmt_str, command, id);
+		Callback(out_str);
+		SetCommand(id, command);
+		EventMsg(SSS, id, E_COMMAND, command);
+	}
+
+}
+
+void RegShowTime(void(*Callback)(char*)) {
+	char hms_str[12];
+	time_t now;
+	char fmt_str[9];
+
+	now = TimeNow();
+	strcpy_hal(fmt_str, F("%H:%M:%S"));
+	strftime(hms_str, 12, fmt_str, localtime(&now));
+	Callback(hms_str);
+}
+
+void RegSetTime(char* time_str, void(*Callback)(char*)) {
+	char out_str[MAX_MESSAGE_STRING_LENGTH];	// 80
+	char tok_str[MAX_MESSAGE_STRING_LENGTH];	// 80
+	char *tok;
+	uint8_t err = 1;
+	uint8_t ton;
+
+	strcpy(tok_str, time_str);
+	tok = strtok(tok_str, ":");
+	if (tok) ton = atoi(tok);
+	if(tok && (ton < 24)) {
+		tok = strtok(0, ":");
+		if (tok) ton = atoi(tok);
+		if(tok && (ton < 60)) {
+			tok = strtok(0, ":");
+			if (tok) ton = atoi(tok);
+			if(tok && (ton < 60)) {
+				err = 0;
+				strcpy_hal(out_str, F("Time string is valid"));
+				Callback(out_str);
+
+#ifndef FF_ARDUINO
+			    struct tm *tmptr;
+			    time_t now;
+			    time_t t;
+				int rc;
+				now = TimeNow();
+				tmptr = localtime(&now);
+			    strptime(time_str, "%H:%M:%S", tmptr);
+			    t = mktime(tmptr);
+			    rc = stime(&t);
+			    if(rc==0) {
+			        sprintf(out_str, "System stime() successful.\n");
+			        Callback(out_str);
+			    }
+			    else {
+			        sprintf(out_str, "Error: stime() failed, errno = %d: %s\n",errno, strerror(errno));
+			        Callback(out_str);
+			    }
+#else
+			    uint8_t rc = HALSetRTCTime(time_str);
+			    if(rc==0) {
+					strcpy_hal(out_str, F("HALSetRTCTime() successful.\n"));
+			        Callback(out_str);
+			    }
+			    else {
+					strcpy_hal(out_str, F("Error: HALSetRTCTime() failed.\n"));
+			        Callback(out_str);
+			    }
+#endif //ifndef FF_ARDUINO
+
+			}
+		}
+	}
+	if (err) {
+		strcpy_hal(out_str, F("Error: Time String not valid."));
+		Callback(out_str);
+	}
+
+}
+
+void RegShowDate(void(*Callback)(char*)) {
+	char ymd_str[14];
+	time_t now;
+	char fmt_str[9];
+
+	now = TimeNow();
+	strcpy_hal(fmt_str, F("%Y-%m-%d"));
+	strftime(ymd_str, 14, fmt_str, localtime(&now));
+	Callback(ymd_str);
+}
+
+void RegSetDate(char* date_str, void(*Callback)(char*)) {
+	char out_str[MAX_MESSAGE_STRING_LENGTH];	// 80
+	char tok_str[MAX_MESSAGE_STRING_LENGTH];	// 80
+	char *tok;
+	uint8_t err = 1;
+	uint16_t ton;
+
+	strcpy(tok_str, date_str);
+	tok = strtok(tok_str, "-");
+	if (tok) ton = atol(tok_str);
+	if(tok && (ton > 2000)) {
+		tok = strtok(0, "-");
+		if (tok) ton = atoi(tok);
+		if(tok && (ton <= 12)) {
+			tok = strtok(0, "-");
+			if (tok) ton = atoi(tok);
+			if(tok && (ton <= 31)) {
+				err = 0;
+				strcpy_hal(out_str, F("Date string is valid"));
+				Callback(out_str);
+
+#ifndef FF_ARDUINO
+			    struct tm *tmptr;
+			    time_t now;
+			    time_t t;
+				int rc;
+				now = TimeNow();
+				tmptr = localtime(&now);
+			    strptime(date_str, "%Y-%m-%d", tmptr);
+			    t = mktime(tmptr);
+			    rc = stime(&t);
+			    if(rc==0) {
+					strcpy(out_str, "System stime() successful.\n");
+			        Callback(out_str);
+			    }
+			    else {
+			        sprintf(out_str, "Error: stime() failed, errno = %d: %s\n", errno, strerror(errno));
+			        Callback(out_str);
+			    }
+#else
+			    uint8_t rc = HALSetRTCDate(date_str);
+			    if(rc==0) {
+			    	strcpy_hal(out_str, F("HALSetRTCDate() successful.\n"));
+			        Callback(out_str);
+			    }
+			    else {
+					strcpy_hal(out_str, F("Error: HALSetRTCDate() failed.\n"));
+			        Callback(out_str);
+			    }
+#endif //ifndef FF_ARDUINO
+
+			}
+		}
+	}
+	if (err) {
+		strcpy_hal(out_str, F("Error: Date String not valid."));
+		Callback(out_str);
+	}
+
+}
+
+void RegSystemReboot(void(*Callback)(char*)) {
+	HALReboot();
+	Callback(NULL); //stop compiler complaining
 }
 
 /********************************************************************************************

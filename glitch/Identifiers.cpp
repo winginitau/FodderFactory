@@ -284,12 +284,20 @@ void Identifiers::WriteXLATArrayOfTypeAndInstance(int type, char* array_instance
 
 			// For the func map the link to the ASTA is the action string which is
 			// IdentifierName rather than InstanceName
-			if (type == ID_ACTION_PAIR) {
-				sprintf(out, "\t\"%s\", %d,\n", ids[idx].IdentifierName, ids[idx].func_xlat);
-			} else {
-				sprintf(out, "\t\"%s\", %d,\n", ids[idx].InstanceName, xlat_idx);
-			}
 
+			switch(type) {
+				case ID_ENUM_ARRAY_PAIR:
+					sprintf(out, "\t\"%s\", %d,\n", ids[idx].InstanceName, xlat_idx);
+					break;
+				case ID_LOOKUP_LIST:
+					sprintf(out, "\t\"%s\", %d,\n", ids[idx].IdentifierName, ids[idx].func_xlat);
+					break;
+				case ID_ACTION_PAIR:
+					sprintf(out, "\t\"%s\", %d,\n", ids[idx].IdentifierName, ids[idx].func_xlat);
+					break;
+				default:
+					break;
+			}
 			output.EnQueue(out);
 			xlat_idx++;
 		}
@@ -559,11 +567,11 @@ void Identifiers::WriteUserLookupFunctions(int header_or_code) {
 				// write definition and preamble
 				sprintf(out, "uint8_t %s(char* lookup_string) {\n", ids[idx].InstanceName);
 				output.EnQueue(out);
-				sprintf(out, "\t//\n");
+				sprintf(out, "\t// Modify to suit. Default: call through to a function with USER_CODE_EXTERNAL_CALL\n");
 				output.EnQueue(out);
-				sprintf(out, "\t// Insert lookup call here that returns 0 or 1 if lookup string found\n");
+				sprintf(out, "\t// prefixed to to the same name as this lookup function.\n\n");
 				output.EnQueue(out);
-				sprintf(out, "\t//\n");
+				sprintf(out, "\tif (%s%s(lookup_string) != 0) return 1;\n", USER_CODE_EXTERNAL_CALL, ids[idx].InstanceName);
 				output.EnQueue(out);
 				sprintf(out, "\treturn 0;\n");
 				output.EnQueue(out);

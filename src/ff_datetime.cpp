@@ -63,7 +63,7 @@ enum enumMonthDays {
 
 //char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
 
-uint8_t MonthDays[] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+//uint8_t MonthDays[] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
 /************************************************
   Date and Time Functions
@@ -87,8 +87,10 @@ FFDateTime FFDT(uint16_t year, uint8_t month, uint8_t day, uint8_t hour, uint8_t
 TV_TYPE StrToTV(const char* time_str) {
 	int hh, mm, ss;
 	TV_TYPE tv = 0;
+	char fmt_str[10];
 
-	if (sscanf(time_str, "%d:%d:%d", &hh, &mm, &ss) == 3) {
+	strcpy_hal(fmt_str, F("%d:%d:%d"));
+	if (sscanf(time_str, fmt_str, &hh, &mm, &ss) == 3) {
 		tv = ss + (mm * 60) + (hh * 60 * 60);
 		return tv;
 	} else {

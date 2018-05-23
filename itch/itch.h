@@ -43,7 +43,10 @@ class ITCH {
 private:
 	I_FLAGS iflags;
 
-	char prompt[MAX_OUTPUT_LINE_SIZE];
+	// XXX Dynamically allocate prompt? Takes up a lot of static space for most of the time
+	//	For now - just used the base.
+	//char prompt[MAX_OUTPUT_LINE_SIZE];
+	char prompt[5];
 	//char prompt_replay[MAX_OUTPUT_LINE_SIZE];
 	char prompt_base[5];
 
@@ -58,9 +61,9 @@ public:
 	#endif
 
 	void Poll();
-	void WriteLine(char* string);
-	static void WriteLnImmediate(char* string);
-	static void WriteImmediate(char* string);
+	static void WriteLine(char* string);
+	static void WriteLineDirect(char* string);
+	static void WriteDirect(char* string);
 };
 
 

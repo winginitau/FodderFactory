@@ -31,9 +31,9 @@
 
 
 typedef struct EVENT_BUFFER {
-	int head;
-	int tail;
-	int size;
+	uint8_t head;
+	uint8_t tail;
+	uint8_t size;
 	uint8_t init;
 	EventNode event_list[EVENT_BUFFER_SIZE];
 } EventBuffer;
@@ -55,18 +55,22 @@ const char* FormatEventMessage (EventNode* e, char* e_str) {
 	char hms_str[12];
 	const char* source_str;
 	const char* destination_str;
-	const char* msg_type_str;
-	const char* msg_str;
+	char msg_type_str[MAX_MESSAGE_STRING_LENGTH];
+	char msg_str[MAX_MESSAGE_STRING_LENGTH];
 	char float_str[20];
+	char fmt_str[24];
 
-	strftime(ymd_str, 14, "%Y-%m-%d", localtime(&(e->time_stamp)));
-	strftime(hms_str, 12, "%H:%M:%S", localtime(&(e->time_stamp)));
+	strcpy_hal(fmt_str, F("%Y-%m-%d"));
+	strftime(ymd_str, 14, fmt_str, localtime(&(e->time_stamp)));
+	strcpy_hal(fmt_str, F("%H:%M:%S"));
+	strftime(hms_str, 12, fmt_str, localtime(&(e->time_stamp)));
 	source_str = GetBlockLabelString(e->source);
 	destination_str = GetBlockLabelString(e->destination);
-	msg_type_str = GetMessageTypeString(e->message_type);
-	msg_str = GetMessageString(e->message);
+	GetMessageTypeString(msg_type_str, e->message_type);
+	GetMessageString(msg_str, e->message);
 	FFFloatToCString(float_str, e->float_val);
-	sprintf(e_str, "%s,%s,%s,%s,%s,%s,%d,%s", ymd_str, hms_str, source_str, destination_str, msg_type_str, msg_str, e->int_val, float_str);
+	strcpy_hal(fmt_str, F("%s,%s,%s,%s,%s,%s,%d,%s"));
+	sprintf(e_str, fmt_str, ymd_str, hms_str, source_str, destination_str, msg_type_str, msg_str, e->int_val, float_str);
 
 	return e_str;
 }
@@ -76,8 +80,9 @@ uint8_t EventSendSubscribers(EventNode* e) {
 	// XXX add logic to iterate a subscriber list and send to each
 	//Manual inclusions to start with - need to implement subscriber publisher registry functions
 
+	#ifndef SUPRESS_EVENT_MESSAGES
 	#ifdef EVENT_SERIAL
-		HALEventSerialSend(e, EVENT_SERIAL_PORT, EVENT_SERIAL_BAUDRATE);
+		HALEventSerialSend(e, EVENT_SERIAL_PORT);
 	#endif
 
 	#ifdef EVENT_CONSOLE
@@ -85,12 +90,15 @@ uint8_t EventSendSubscribers(EventNode* e) {
 		FormatEventMessage(e, e_str);
 		printf("%s\n", e_str);
 	#endif //DEBUG_CONSOLE
+	#endif //ndef SUPRESS_EVENT_MESSAGES
 
 	//TODO - OLD Comment:
 	//Possibly call this from the Blocks rather than processing for every event
 	//Or possible not - who should know if a reg update is required? Block or Event?
 
 	// Partial move in this direction
+
+	/*
 	if     ((e->source == GetBlockIDByLabel(DISPLAY_INSIDE_SOURCE_BLOCK)) ||
 			(e->source == GetBlockIDByLabel(DISPLAY_OUTSIDE_SOURCE_BLOCK)) ||
 			(e->source == GetBlockIDByLabel(DISPLAY_WATER_SOURCE_BLOCK)) ) {
@@ -99,7 +107,7 @@ uint8_t EventSendSubscribers(EventNode* e) {
 
 	if ( (e->message_type == E_COMMAND) && (e->message == CMD_RESET_MINMAX) )
 		UpdateStateRegister(e->source, e->message_type, e->message, e->int_val, e->float_val);
-
+	*/
 
 	return 1;
 }

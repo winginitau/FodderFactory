@@ -5,79 +5,66 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <ff_registry.h>
 extern ITCH itch;
 
 void ShowBlocks(void) {
-	//RegShowBlocks(itch.WriteLnImmediate);
+	RegShowBlocks(itch.WriteLine);
 }
 
 void ShowSystem(void) {
-	//RegShowSystem(itch.WriteLnImmediate);
+	RegShowSystem(itch.WriteLine);
 }
 
 void ShowBlockByLabel(char* block_label) {
-	//RegShowBlockByLabel(block_label, itch.WriteLnImmediate);
+	RegShowBlockByLabel(block_label, itch.WriteLine);
 }
 
 void ShowBlockByID(int16_t param1_int) {
-	//RegShowBlockByID(param1_int, itch.WriteLnImmediate);
+	RegShowBlockByID(param1_int, itch.WriteLine);
 }
 
 void SendCommandToBlockLabel(char* block_label, uint16_t command) {
-	//RegSendCommandToBlockLabel(block_label, command, itch.WriteLnImmediate);
+	RegSendCommandToBlockLabel(block_label, command, itch.WriteLine);
 }
 
 void SendCommandToBlockID(int16_t param1_int, uint16_t command) {
-	//RegSendCommandToBlockID(param1_int, command, itch.WriteLnImmediate);
-}
-
-void SimIntDataMessageFromBlockLabel(char* block_label, int16_t param2_int) {
-	//RegSimIntDataMessageFromBlockLabel(block_label, param2_int, itch.WriteLnImmediate);
-}
-
-void SimFloatDataMessageFromBlockLabel(char* block_label, float param2_float) {
-	//RegSimFloatDataMessageFromBlockLabel(block_label, param2_float, itch.WriteLnImmediate);
-}
-
-void SimIntDataMessageFromBlockID(int16_t param1_int, int16_t param2_int) {
-	//RegSimIntDataMessageFromBlockID(param1_int, param2_int, itch.WriteLnImmediate);
-}
-
-void SimFloatDataMessageFromBlockID(int16_t param1_int, float param2_float) {
-	//RegSimFloatDataMessageFromBlockID(param1_int, param2_float, itch.WriteLnImmediate);
+	RegSendCommandToBlockID(param1_int, command, itch.WriteLine);
 }
 
 void ShowTime(void) {
-	//RegShowTime(itch.WriteLnImmediate);
+	RegShowTime(itch.WriteLine);
 }
 
 void SetTime(char* param1_time) {
-	//RegSetTime(param1_time, itch.WriteLnImmediate);
+	RegSetTime(param1_time, itch.WriteLine);
 }
 
 void ShowDate(void) {
-	//RegShowDate(itch.WriteLnImmediate);
+	RegShowDate(itch.WriteLine);
 }
 
 void SetDate(char* param1_date) {
-	//RegSetDate(param1_date, itch.WriteLnImmediate);
+	RegSetDate(param1_date, itch.WriteLine);
 }
 
 void SystemReboot(void) {
-	//RegSystemReboot(itch.WriteLnImmediate);
+	RegSystemReboot(itch.WriteLine);
 }
 
 uint8_t LookupBlockLabel(char* lookup_string) {
-	//
-	// Insert lookup call here that returns 0 or 1 if lookup string found
-	//
+	// Modify to suit. Default: call through to a function with USER_CODE_EXTERNAL_CALL
+	// prefixed to to the same name as this lookup function.
+
+	if (RegLookupBlockLabel(lookup_string) != 0) return 1;
 	return 0;
 }
 
 uint8_t LookupOtherList(char* lookup_string) {
-	//
-	// Insert lookup call here that returns 0 or 1 if lookup string found
-	//
+	// Modify to suit. Default: call through to a function with USER_CODE_EXTERNAL_CALL
+	// prefixed to to the same name as this lookup function.
+
+	//if (RegLookupOtherList(lookup_string) != 0) return 1;
 	return 0;
 }
 

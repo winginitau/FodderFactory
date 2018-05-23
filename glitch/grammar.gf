@@ -488,11 +488,11 @@ LAST_COMMAND
 %#action-define MESSAGE_DATA_BCAT_N_INT SimIntDataMessageFromBCatN
 %#action-define MESSAGE_DATA_BCAT_N_FLOAT SimFloatDataMessageFromBCatN
 
-%action-define MESSAGE_DATA_LABEL_INT SimIntDataMessageFromBlockLabel
-%action-define MESSAGE_DATA_LABEL_FLOAT SimFloatDataMessageFromBlockLabel
+%#action-define MESSAGE_DATA_LABEL_INT SimIntDataMessageFromBlockLabel
+%#action-define MESSAGE_DATA_LABEL_FLOAT SimFloatDataMessageFromBlockLabel
 
-%action-define MESSAGE_DATA_BLOCK_ID_INT SimIntDataMessageFromBlockID
-%action-define MESSAGE_DATA_BLOCK_ID_FLOAT SimFloatDataMessageFromBlockID
+%#action-define MESSAGE_DATA_BLOCK_ID_INT SimIntDataMessageFromBlockID
+%#action-define MESSAGE_DATA_BLOCK_ID_FLOAT SimFloatDataMessageFromBlockID
 
 %# MESSAGE COMMAND <block_category> <INT> <command>          // Send command message to output block
 %# MESSAGE COMMAND <block_label> <command>
@@ -529,21 +529,21 @@ LAST_COMMAND
 %#6 param-float
 %#action MESSAGE_DATA_BCAT_N_FLOAT
 
-%3 lookup block_label
-%4 keyword INT
-%5 param-integer
-%action MESSAGE_DATA_LABEL_INT
-%4 keyword FLOAT
-%5 param-float
-%action MESSAGE_DATA_LABEL_FLOAT
+%#3 lookup block_label
+%#4 keyword INT
+%#5 param-integer
+%#action MESSAGE_DATA_LABEL_INT
+%#4 keyword FLOAT
+%#5 param-float
+%#action MESSAGE_DATA_LABEL_FLOAT
 
-%3 param-integer
-%4 keyword INT
-%5 param-integer
-%action MESSAGE_DATA_BLOCK_ID_INT
-%4 keyword FLOAT
-%5 param-float
-%action MESSAGE_DATA_BLOCK_ID_FLOAT
+%#3 param-integer
+%#4 keyword INT
+%#5 param-integer
+%#action MESSAGE_DATA_BLOCK_ID_INT
+%#4 keyword FLOAT
+%#5 param-float
+%#action MESSAGE_DATA_BLOCK_ID_FLOAT
 
 %#action-define DEBUG_ON DebugOn
 %#action-define DEBUG_OFF DebugOff

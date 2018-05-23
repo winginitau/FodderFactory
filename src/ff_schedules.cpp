@@ -59,14 +59,17 @@ void ScheduleSetup(BlockNode *b) {
 			b->last_update = TimeNow();
 			break;
 
-		case SCH_START_DURATION_REPEAT:
+		case SCH_START_DURATION_REPEAT: {
+			char fmt_str[32];
 			b->active = 0;
 			b->last_update = TimeNow();
 			if (b->settings.sch.time_duration >= b->settings.sch.time_repeat) {
 				char log_message[MAX_LOG_LINE_LENGTH];
-				sprintf(log_message, "[%s] WARNING Duration >= Repeat", b->block_label);
+				strcpy_hal(fmt_str, F("[%s] WARNING Duration >= Repeat"));
+				sprintf(log_message, fmt_str, b->block_label);
 				DebugLog(log_message);
 			}
+		}
 			break;
 
 		default:

@@ -68,7 +68,9 @@ char* GetMemPointers(char* str) {
 	heapptr = stackptr;                     // save value of heap pointer
 	free(stackptr);      // free up the memory again (sets stackptr to 0)
 	stackptr =  (uint8_t *)(SP);           // save value of stack pointer
-	sprintf(str, "BLL: %d  SP: %d >< %d :HP", (int)bll_tail, (int)stackptr, (int)heapptr);
+	char fmt_str[26];
+	strcpy_hal(fmt_str, F("BLL: %d  SP: %d >< %d :HP"));
+	sprintf(str, fmt_str, (int)bll_tail, (int)stackptr, (int)heapptr);
 	return str;
 }
 #endif //DEBUG_MEMORY
@@ -113,13 +115,17 @@ void DebugLog(const char* log_message) {
 	char dt[24];
 	time_t now;
 	now = TimeNow();
-	strftime(dt, 24, "%Y-%m-%d,%H:%M:%S", localtime(&now));		//yyyy-mm-dd, 00:00:00
+	char fmt_str[19];
+	strcpy_hal(fmt_str, F("%Y-%m-%d,%H:%M:%S"));
+	strftime(dt, 24, fmt_str, localtime(&now));		//yyyy-mm-dd, 00:00:00
 	#ifdef DEBUG_MEMORY
 		char mem_str[MAX_DEBUG_LENGTH];
 		GetMemPointers(mem_str);
-		sprintf(log_entry, "%s, DEBUG, (%s) %s", dt, mem_str, log_message);  				//assemble log entry with time stamp
+		strcpy_hal(fmt_str, F("%s, DEBUG, (%s) %s"));
+		sprintf(log_entry, fmt_str, dt, mem_str, log_message);  				//assemble log entry with time stamp
 	#else
-		sprintf(log_entry, "%s, DEBUG, %s", dt, log_message);  				//assemble log entry with time stamp
+		strcpy_hal(fmt_str, F("%s, DEBUG, %s"));
+		sprintf(log_entry, fmt_str, dt, log_message);  				//assemble log entry with time stamp
 	#endif
 
 	#ifdef DEBUG_SERIAL
@@ -142,23 +148,32 @@ void DebugLog(const char* log_message) {
 
 
 void DebugLog(uint16_t source, uint16_t destination, uint8_t msg_type, uint8_t msg_str, int16_t i_val, float f_val) {
+	char fmt_str[27];
+	char msg_type_string[MAX_MESSAGE_STRING_LENGTH];
+	char msg_string[MAX_MESSAGE_STRING_LENGTH];
 	// Full version - mirrors event message format
 	if (msg_type >= DEBUG_LEVEL) {
 		char debug_log_message[MAX_DEBUG_LENGTH];
 		char f_str[8];
+		GetMessageTypeString(msg_type_string, msg_type);
+		GetMessageString(msg_string, msg_str);
 
 		if (destination != UINT16_INIT) {
 			FFFloatToCString(f_str, f_val);
-			sprintf(debug_log_message, "[%s]->[%s], %s, %s, %d, %s", GetBlockLabelString(source), GetBlockLabelString(destination), GetMessageTypeString(msg_type), GetMessageString(msg_str), i_val, f_str);
+			strcpy_hal(fmt_str, F("[%s]->[%s], %s, %s, %d, %s"));
+			sprintf(debug_log_message, fmt_str, GetBlockLabelString(source), GetBlockLabelString(destination), msg_type_string, msg_string, i_val, f_str);
 		} else {
 			if (msg_str == M_NULL) {
-				sprintf(debug_log_message, "[%s] %s", GetBlockLabelString(source), GetMessageTypeString(msg_type));
+				strcpy_hal(fmt_str, F("[%s] %s"));
+				sprintf(debug_log_message, fmt_str, GetBlockLabelString(source), msg_type_string);
 			} else {
 				if (i_val == (int16_t)INT16_INIT) {
-					sprintf(debug_log_message, "[%s], %s, %s", GetBlockLabelString(source), GetMessageTypeString(msg_type), GetMessageString(msg_str));
+					strcpy_hal(fmt_str, F("[%s], %s, %s"));
+					sprintf(debug_log_message, fmt_str, GetBlockLabelString(source), msg_type_string, msg_string);
 				} else {
 					FFFloatToCString(f_str, f_val);
-					sprintf(debug_log_message, "[%s], %s, %s, %d, %s", GetBlockLabelString(source), GetMessageTypeString(msg_type), GetMessageString(msg_str), i_val, f_str);
+					strcpy_hal(fmt_str, F("[%s], %s, %s, %d, %s"));
+					sprintf(debug_log_message, fmt_str, GetBlockLabelString(source), msg_type_string, msg_string, i_val, f_str);
 				}
 			}
 		}
@@ -174,9 +189,16 @@ void DebugLog(uint16_t source, uint8_t msg_type, uint8_t msg_str, int16_t i_val,
 
 void DebugLog(uint16_t source, uint8_t msg_type, uint8_t msg_str) {
 	// Simplified version
+	char fmt_str[15];
+	char msg_type_string[MAX_MESSAGE_STRING_LENGTH];
+	char msg_string[MAX_MESSAGE_STRING_LENGTH];
+
 	if (msg_type >= DEBUG_LEVEL) {
 		char debug_log_message[MAX_DEBUG_LENGTH];
-		sprintf(debug_log_message, "[%s], %s, %s", GetBlockLabelString(source), GetMessageTypeString(msg_type), GetMessageString(msg_str));
+		GetMessageTypeString(msg_type_string, msg_type);
+		GetMessageString(msg_string, msg_str);
+		strcpy_hal(fmt_str, F("[%s], %s, %s"));
+		sprintf(debug_log_message, fmt_str, GetBlockLabelString(source), msg_type_string, msg_string);
 		DebugLog(debug_log_message);
 	}
 }

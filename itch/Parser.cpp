@@ -26,7 +26,7 @@
 
 #ifdef ITCH_DEBUG
 extern void M(char strn[]);
-char p_debug_message[MAX_OUTPUT_LINE_SIZE];
+extern char g_debug_message[MAX_OUTPUT_LINE_SIZE];
 #endif
 
 
@@ -35,8 +35,8 @@ char p_debug_message[MAX_OUTPUT_LINE_SIZE];
  * Globals
  ******************************************************************************/
 
-char g_parser_in_buf[MAX_INPUT_LINE_SIZE];
-uint8_t g_parser_in_idx;
+char g_parser_in_buf[MAX_INPUT_LINE_SIZE]; 	// The subject of all parsing functions
+uint8_t g_parser_in_idx;					// Points to the next free char in the buffer
 P_FLAGS g_pflags;
 TokenList* g_parser_possible_list;
 TokenList* g_parser_param_list;
@@ -86,13 +86,13 @@ uint16_t ParserActionDispatcher(uint16_t action_asta_id) {
 	// with the required params to go with the call.
 
 	char action_ident_str[MAX_AST_ACTION_SIZE];
+	ASTA temp_asta;
 
 	uint16_t func_xlat_call_id;
 	ParamUnion param_union_array[MAX_PARAM_COUNT];
 	uint8_t param_count = 0;
 	uint8_t param_index = 0;
 
-	//char temp_str[MAX_OUTPUT_LINE_SIZE];
 	char* temp_str_ptr;
 	uint8_t param_type;
 
@@ -118,9 +118,9 @@ uint16_t ParserActionDispatcher(uint16_t action_asta_id) {
 
 				// get the original asta node that relates to this param - for its label-instance name
 				ident_asta_id = TLGetCurrentID(g_parser_param_list);
-				MapGetASTAByID(ident_asta_id, &g_temp_asta);
+				MapGetASTAByID(ident_asta_id, &temp_asta);
 
-				ident_xlat = LookupIdentMap(g_temp_asta.label);
+				ident_xlat = LookupIdentMap(temp_asta.label);
 				member_id = LookupIdentifierMembers(ident_xlat, temp_str_ptr);
 				param_union_array[param_index].param_uint16_t = member_id;
 				break;
@@ -162,9 +162,10 @@ void P_ESCAPE(char ch) {
 		g_pflags.escape = 2;
 	}
 	#ifdef ITCH_DEBUG
-		strcpy_debug(g_temp_str, ITCH_DEBUG_PF_ESCAPE_IS);
-		sprintf(p_debug_message, "%s %d\n", g_temp_str, g_pflags.escape);
-		M(p_debug_message);
+		char temp_str[MAX_OUTPUT_LINE_SIZE];
+		strcpy_itch_debug(temp_str, ITCH_DEBUG_PF_ESCAPE_IS);
+		sprintf(g_debug_message, "%s %d\n", temp_str, g_pflags.escape);
+		M(g_debug_message);
 	#endif
 }
 
@@ -190,11 +191,12 @@ uint8_t P_EOL() {
 				ParserSaveTokenAsParameter();
 
 				#ifdef ITCH_DEBUG
+					char temp_str[MAX_OUTPUT_LINE_SIZE];
 					char action_ident[MAX_AST_ACTION_SIZE];
 					MapGetAction(MapGetLastMatchedID(), action_ident);
-					strcpy_debug(g_temp_str, ITCH_DEBUG_P_EOL_ACTION_TO_BE_CALLED_IS);
-					sprintf(p_debug_message, "\n%s%s\n", g_temp_str, action_ident);
-					M(p_debug_message);
+					strcpy_itch_debug(temp_str, ITCH_DEBUG_P_EOL_ACTION_TO_BE_CALLED_IS);
+					sprintf(g_debug_message, "\n%s%s\n", temp_str, action_ident);
+					M(g_debug_message);
 				#endif
 
 				// Dispatch the action and record any error
@@ -302,10 +304,12 @@ uint8_t Parse(char ch) {
 	// Process incoming char in context of parse flags
 	// set from processing the previous char and match
 	// and results from the node map (if called on previous).
+
 	#ifdef ITCH_DEBUG
-		strcpy_debug(g_temp_str, ITCH_DEBUG_PARSE_PROCESSING_CHAR);
-		sprintf(p_debug_message, "%s%c\n", g_temp_str, ch);
-		M(p_debug_message);
+		char temp_str[MAX_OUTPUT_LINE_SIZE];
+		strcpy_itch_debug(temp_str, ITCH_DEBUG_PARSE_PROCESSING_CHAR);
+		sprintf(g_debug_message, "%s%c\n", temp_str, ch);
+		M(g_debug_message);
 	#endif
 
 	switch (ch) {
@@ -325,8 +329,8 @@ uint8_t Parse(char ch) {
 			if(g_pflags.escape == 2) {
 				g_pflags.escape = 0;
 				#ifdef ITCH_DEBUG
-					strcpy_debug(p_debug_message, ITCH_DEBUG_PARSE_R_REPLAY);
-					M(p_debug_message);
+					strcpy_itch_debug(g_debug_message, ITCH_DEBUG_PARSE_R_REPLAY);
+					M(g_debug_message);
 				#endif
 				return R_REPLAY;
 			}
@@ -359,7 +363,6 @@ uint8_t Parse(char ch) {
 			break;
 	}
 
-
 	// whatever it is now, throw it in the buffer and continue
 	P_ADD_TO_BUFFER(ch);
 
@@ -368,13 +371,12 @@ uint8_t Parse(char ch) {
 		// so just ignore until EOL. Next iteration will return Error or Complete accordingly
 		// once EOL encountered
 		#ifdef ITCH_DEBUG
-			strcpy_debug(g_temp_str, ITCH_DEBUG_PARSE_DISCARD_CHAR);
-			sprintf(p_debug_message, "%s%c\n", g_temp_str, ch);
-			M(p_debug_message);
+			strcpy_itch_debug(temp_str, ITCH_DEBUG_PARSE_DISCARD_CHAR);
+			sprintf(g_debug_message, "%s%c\n", temp_str, ch);
+			M(g_debug_message);
 		#endif
 		return R_IGNORE;
 	}
-
 
 	// if we get to here its just another ordinary char - continue to matching
 	g_pflags.match_result = ParserMatch();
@@ -410,37 +412,32 @@ uint8_t ParserMatch(void) {
 
 	// run the next match process and return the result
 	return MapMatch(g_parser_in_buf, g_parser_possible_list);
-
 }
 
-
 uint8_t ParserMatchEvaluate(void) {
-	//char out[MAX_OUTPUT_LINE_SIZE];
-	//char temp[MAX_OUTPUT_LINE_SIZE];
+	char temp_str[MAX_OUTPUT_LINE_SIZE];
+	char out_str[MAX_OUTPUT_LINE_SIZE];
 
 	switch (g_pflags.match_result) {
 		case MR_NO_MATCH:
-
 			#ifdef ITCH_DEBUG
-				strcpy_debug(p_debug_message, ITCH_DEBUG_PARSERMATCHEVALUATE_MR_NO_MATCH);
-				M(p_debug_message);
+				strcpy_itch_debug(g_debug_message, ITCH_DEBUG_PARSERMATCHEVALUATE_MR_NO_MATCH);
+				M(g_debug_message);
 			#endif
-
 			g_pflags.error_on_line = 1;
 			g_pflags.parse_result = R_IGNORE; // still need to clean out incoming buffer
 			break;
 		case MR_UNIQUE: {
-
 			#ifdef ITCH_DEBUG
 				// single unique match - will still need EOL to finsih
-				strcpy_debug(p_debug_message, ITCH_DEBUG_PARSERMATCHEVALUATE_MR_UNIQUE);
-				M(p_debug_message);
+				strcpy_itch_debug(g_debug_message, ITCH_DEBUG_PARSERMATCHEVALUATE_MR_UNIQUE);
+				M(g_debug_message);
 				//pf.unique_match = 1;
 				char temp[MAX_OUTPUT_LINE_SIZE];
 				TLCopyCurrentLabel(g_parser_possible_list, temp);
-				strcpy_debug(g_temp_str, ITCH_DEBUG_PARSERMATCHEVALUATE_UNIQUE_MATCH_IS);
-				sprintf(p_debug_message, "%s%s\n", g_temp_str, temp);
-				M(p_debug_message);
+				strcpy_itch_debug(temp_str, ITCH_DEBUG_PARSERMATCHEVALUATE_UNIQUE_MATCH_IS);
+				sprintf(g_debug_message, "%s%s\n", temp_str, temp);
+				M(g_debug_message);
 			#endif
 
 			// All good - unique match to node on this token,
@@ -449,29 +446,26 @@ uint8_t ParserMatchEvaluate(void) {
 		}
 			break;
 		case MR_ACTION_POSSIBLE:
-
 			#ifdef ITCH_DEBUG
 				// single unique matched with is actionalable - (if EOL is next)
-				strcpy_debug(p_debug_message, ITCH_DEBUG_PARSERMATCHEVALUATE_MR_ACTION_POSSIBLE);
-				M(p_debug_message);
+				strcpy_itch_debug(g_debug_message, ITCH_DEBUG_PARSERMATCHEVALUATE_MR_ACTION_POSSIBLE);
+				M(g_debug_message);
 			#endif
-
 			// All good - unique match to node on this token,
 			// and it is actionable at this point (if EOL is next)
 			// return to continue getting more chars
 			g_pflags.parse_result = R_UNFINISHED;
 			break;
 		case MR_MULTI: {
-
 			#ifdef ITCH_DEBUG
-				strcpy_debug(p_debug_message, ITCH_DEBUG_PARSERMATCHEVALUATE_MR_MULTI);
-				M(p_debug_message);
+				strcpy_itch_debug(g_debug_message, ITCH_DEBUG_PARSERMATCHEVALUATE_MR_MULTI);
+				M(g_debug_message);
 				TLToTop(g_parser_possible_list);
 				for (uint16_t i = 0; i < TLGetSize(g_parser_possible_list); i++) {
-					TLCopyCurrentLabel(g_parser_possible_list, g_temp_str);
-					sprintf(g_out_str, "\t%s\n", g_temp_str);
-					sprintf(p_debug_message, "DEBUG: %s", g_out_str);
-					M(p_debug_message);
+					TLCopyCurrentLabel(g_parser_possible_list, temp_str);
+					sprintf(out_str, "\t%s\n", temp_str);
+					sprintf(g_debug_message, "DEBUG: %s", out_str);
+					M(g_debug_message);
 					TLNext(g_parser_possible_list);
 				}
 			#endif
@@ -483,10 +477,9 @@ uint8_t ParserMatchEvaluate(void) {
 			break;
 
 		case MR_DELIM_SKIP:
-
 			#ifdef ITCH_DEBUG
-				strcpy_debug(p_debug_message, ITCH_DEBUG_PARSERMATCHEVALUATE_MR_DELIM_SKIP);
-				M(p_debug_message);
+				strcpy_itch_debug(g_debug_message, ITCH_DEBUG_PARSERMATCHEVALUATE_MR_DELIM_SKIP);
+				M(g_debug_message);
 			#endif
 
 			// good-oh, carry on
@@ -494,48 +487,48 @@ uint8_t ParserMatchEvaluate(void) {
 			break;
 
 		case MR_HELP_ACTIVE: {
-
 			#ifdef ITCH_DEBUG
-				strcpy_debug(p_debug_message, ITCH_DEBUG_PARSERMATCHEVALUATE_MR_HELP_ACTIVE);
-				M(p_debug_message);
+				strcpy_itch_debug(g_debug_message, ITCH_DEBUG_PARSERMATCHEVALUATE_MR_HELP_ACTIVE);
+				M(g_debug_message);
 			#endif
-
 			TLToTop(g_parser_possible_list);
 			for (uint16_t i = 0; i < TLGetSize(g_parser_possible_list); i++) {
-				TLCopyCurrentLabel(g_parser_possible_list, g_temp_str);
-				sprintf(g_out_str, "\t%s", g_temp_str);
-
+				TLCopyCurrentLabel(g_parser_possible_list, temp_str);
+				sprintf(out_str, "\t%s", temp_str);
 				#ifdef ITCH_DEBUG
-					sprintf(p_debug_message, "DEBUG: %s", g_out_str);
-					M(p_debug_message);
+					sprintf(g_debug_message, "DEBUG: %s", out_str);
+					M(g_debug_message);
 				#endif
-
-				g_itch_output_buff.EnQueue(g_out_str);
+				g_itch_output_buff.EnQueue(out_str);
 				TLNext(g_parser_possible_list);
 			}
 			g_pflags.parse_result = R_UNFINISHED;
 		}
 			break;
 
+		case MR_LOOKUP_TBD:
+			g_pflags.parse_result = R_UNFINISHED;
+			break;
+
+		case MR_IDENT_MEMBER_TBD:
+			g_pflags.parse_result = R_UNFINISHED;
+			break;
+
 		case MR_ERROR:
-
 			#ifdef ITCH_DEBUG
-				strcpy_debug(p_debug_message, ITCH_DEBUG_PARSERMATCHEVALUATE_MR_ERROR);
-				M(p_debug_message);
+				strcpy_itch_debug(g_debug_message, ITCH_DEBUG_PARSERMATCHEVALUATE_MR_ERROR);
+				M(g_debug_message);
 			#endif
-
 			g_pflags.last_error = MapGetErrorCode();
 			MapReset();
 			g_pflags.parse_result = R_ERROR;
 			break;
 
 		default:
-
 			#ifdef ITCH_DEBUG
-				strcpy_debug(p_debug_message, ITCH_DEBUG_PARSERMATCHEVALUATE_NO_MR_CAUGHT_DEFUALT);
-				M(p_debug_message);
+				strcpy_itch_debug(g_debug_message, ITCH_DEBUG_PARSERMATCHEVALUATE_NO_MR_CAUGHT_DEFUALT);
+				M(g_debug_message);
 			#endif
-
 			g_pflags.last_error = PE_NODEMAP_RESULT_NOT_CAUGHT;
 			MapReset();
 			g_pflags.parse_result = R_ERROR;
@@ -555,29 +548,30 @@ void ParserSaveTokenAsParameter(void) {
 	// 	the match loop - because the EOL has been reached rather than a
 	// 	delimiter.
 
+	char temp_str[MAX_OUTPUT_LINE_SIZE];
 	TokenNode* new_param;
 	//char temp_param[MAX_IDENTIFIER_LABEL_SIZE];
-	//ASTA temp_asta_node;
+	ASTA temp_asta;
 	uint16_t temp_asta_id;
 
 	// get the id of the last matched node
 	temp_asta_id = MapGetLastMatchedID();
 
 	// get the matched node from the asta
-	MapGetASTAByID(temp_asta_id, &g_temp_asta);
+	MapGetASTAByID(temp_asta_id, &temp_asta);
 
 	// Add to the param list for action calling (but exclude keywords)
-	if (g_temp_asta.type > AST_KEYWORD) {
+	if (temp_asta.type > AST_KEYWORD) {
 
 		// get the last matched param as a string
-		MapGetLastTargetString(g_temp_str);
+		MapGetLastTargetString(temp_str);
 
 		// get a new param node and write its details
 		new_param = TLNewTokenNode();
-		new_param->label = (char *)malloc((strlen(g_temp_str) + 1) * sizeof(char));
-		strcpy(new_param->label, g_temp_str);
+		new_param->label = (char *)malloc((strlen(temp_str) + 1) * sizeof(char));
+		strcpy(new_param->label, temp_str);
 		new_param->id = temp_asta_id;
-		new_param->type = g_temp_asta.type;
+		new_param->type = temp_asta.type;
 		TLAdd(g_parser_param_list, new_param);
 	}
 }

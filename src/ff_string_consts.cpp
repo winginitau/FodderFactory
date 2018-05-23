@@ -23,8 +23,8 @@
 
 #ifdef USE_PROGMEM
 // holder for strings copied from PROGMEM
-static char temp_pgm_string_msg_type[MAX_MESSAGE_STRING_LENGTH];
-static char temp_pgm_string_msg[MAX_MESSAGE_STRING_LENGTH];
+//static char temp_pgm_string_msg_type[MAX_MESSAGE_STRING_LENGTH];
+//static char temp_pgm_string_msg[MAX_MESSAGE_STRING_LENGTH];
 #endif
 
 /************************************************
@@ -36,29 +36,28 @@ uint8_t GetLanguage(void) {
 	return ENGLISH;
 }
 
+
+void GetMessageTypeString(char *str_buf, int message_type_enum) {
+	StringArray temp;
 #ifdef USE_PROGMEM
-char const* GetMessageTypeString(int message_type_enum) {
-	StringArray temp;
 	memcpy_P(&temp, &message_type_strings[message_type_enum], sizeof(temp));
-	strcpy(temp_pgm_string_msg_type, temp.text[GetLanguage()]);
-	return temp_pgm_string_msg_type;
-}
-
-char const* GetMessageString(int message_enum) {
-	StringArray temp;
-	memcpy_P(&temp, &message_strings[message_enum], sizeof(temp));
-	strcpy(temp_pgm_string_msg, temp.text[GetLanguage()]);
-	return temp_pgm_string_msg;
-}
 #else
-char const* GetMessageTypeString(int message_type_enum) {
-	return message_type_strings[message_type_enum].text[GetLanguage()];
+	memcpy_P(&temp, &message_type_strings[message_type_enum], sizeof(temp));
+#endif
+	strcpy(str_buf, temp.text[GetLanguage()]);
+	//return str_buf;
 }
 
-char const* GetMessageString(int message_enum) {
-	return message_strings[message_enum].text[GetLanguage()];
-}
+void GetMessageString(char *str_buf, int message_enum) {
+	StringArray temp;
+#ifdef USE_PROGMEM
+	memcpy_P(&temp, &message_strings[message_enum], sizeof(temp));
+#else
+	memcpy_P(&temp, &message_strings[message_enum], sizeof(temp));
 #endif
+	strcpy(str_buf, temp.text[GetLanguage()]);
+	//return temp_pgm_string_msg;
+}
 
 #ifdef USE_PROGMEM
 uint8_t DayStringArrayIndex(const char* key) {
@@ -183,5 +182,64 @@ uint8_t SimpleStringArrayIndex(const SimpleStringArray array[], const char* key)
 		}
 	}
 	return 255;
+}
+*/
+
+char *strcpy_misc(char *dest, uint8_t src) {
+	#ifdef ARDUINO
+		return strcpy_P(dest, misc_strings[src].text);
+	#else
+		return strcpy(dest, misc_strings[src].text);
+	#endif
+}
+
+char *strcat_misc(char *dest, uint8_t src) {
+	#ifdef ARDUINO
+		return strcat_P(dest, misc_strings[src].text);
+	#else
+		return strcat(dest, misc_strings[src].text);
+	#endif
+}
+
+char *strcpy_hal(char *dest, const char *src) {
+	return strcpy(dest, src);
+}
+
+char *strcpy_hal(char *dest, const __FlashStringHelper *src) {
+	return strcpy_P(dest, (const char *)src);
+}
+
+char *strcat_hal(char *dest, const char *src) {
+#ifdef ARDUINO
+	return strcat_P(dest, src);
+#else
+	return strcat(dest, src);
+#endif
+}
+
+void *memcpy_hal(void *dest, const void *src, size_t sz) {
+#ifdef ARDUINO
+	return memcpy_P(dest, src, sz);
+#else
+	return memcpy(dest, src, sz);
+#endif
+}
+
+/*
+#ifdef DEBUG
+char *strcpy_debug(char *dest, uint8_t src) {
+	#ifdef ARDUINO
+		return strcpy_P(dest, debug_strings[src].text);
+	#else
+		return strcpy(dest, itch_debug_strings[src].text);
+	#endif
+}
+
+char *strcat_debug(char *dest, uint8_t src) {
+	#ifdef ARDUINO
+		return strcat_P(dest, debug_strings[src].text);
+	#else
+		return strcat(dest, itch_debug_strings[src].text);
+	#endif
 }
 */

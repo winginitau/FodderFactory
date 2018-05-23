@@ -1,0 +1,520 @@
+#************************************************
+# ff_sys_config.ini
+# Fodder Factory Monitoring and Control
+#
+# (c) Brendan McLearie - bmclearie@mclearie.com
+#
+# System configuration settings as an ini file:
+# 	System configuration
+# 	Input Configs
+# 	Monitor Configs
+#	Schedule Configs
+#   Rule Configs
+#	Controller Configs
+# 	Output Configs
+#************************************************/
+
+
+#************************************************
+# System
+#************************************************/
+[system]
+type = SYS_SYSTEM
+display_name = System
+description = Reserved System Block
+language = English
+temp_scale = Celsius
+#temp_scale = Fahrenheit
+week_start = SUN
+		
+#************************************************
+# Inputs
+#************************************************/
+[inputs]
+input1 = IN_INSIDE_TOP_TEMP
+input2 = IN_INSIDE_BOTTOM_TEMP
+input3 = IN_OUTSIDE_TEMP
+input4 = IN_WATER_TEMP
+input5 = IN_CABINET_TEMP
+input6 = IN_LONGRUN_TEMP
+#input5 = IN_LOADING_DOOR_SWITCH
+#input6 = IN_HARVEST_DOOR_SWITCH 
+#input7 =  
+
+[IN_INSIDE_TOP_TEMP]
+type = IN_ONEWIRE
+display_name = Inside Top
+description = Dallas sensor inside the top of the fodder factory
+interface = ONEWIRE
+if_num = 0
+log_rate = 00:02:00
+data_units = Celsius
+data_type = float
+
+[IN_INSIDE_BOTTOM_TEMP]
+type = IN_ONEWIRE
+display_name = Inside Bot
+description = Dallas sensor inside the bottom of the fodder factory
+interface = ONEWIRE
+if_num = 1
+log_rate = 00:02:00
+data_units = Celsius
+data_type = float
+
+[IN_OUTSIDE_TEMP]
+type = IN_ONEWIRE
+display_name = Outside
+description = Dallas sensor for outside air temprature
+interface = ONEWIRE
+if_num = 4
+log_rate = 00:02:00
+data_units = Celsius
+data_type = float
+
+[IN_WATER_TEMP]
+type = IN_ONEWIRE
+display_name = Water
+description = Dallas sensor in the header tank
+interface = ONEWIRE
+if_num = 2
+log_rate = 00:02:00
+data_units = Celsius
+data_type = float
+
+[IN_CABINET_TEMP]
+type = IN_ONEWIRE
+display_name = Aux Temp 1
+description = Dallas sensor
+interface = ONEWIRE
+if_num = 3
+log_rate = 00:02:00
+data_units = Celsius
+data_type = float
+
+[IN_LONGRUN_TEMP]
+type = IN_ONEWIRE
+display_name = Aux Temp 1
+description = Dallas sensor
+interface = ONEWIRE
+if_num = 5
+log_rate = 00:02:00
+data_units = Celsius
+data_type = float
+
+[IN_LOADING_DOOR_SWITCH]
+type = IN_DIGITAL
+display_name = Loading Door
+description = Reed switch on loading end door
+interface = DIG_PIN_IN
+# update with real pins and remove log_rate 
+if_num =             
+log_rate = 00:01:10
+data_units = ONOFF
+data_type = int
+
+
+#************************************************
+# Monitors
+#************************************************/
+[monitors]
+monitor1 = MON_INSIDE_TOP_TOO_COLD
+monitor2 = MON_INSIDE_TOP_TOO_HOT
+monitor3 = MON_INSIDE_BOTTOM_TOO_COLD
+monitor4 = MON_INSIDE_BOTTOM_TOO_HOT
+monitor5 = MON_OUTSIDE_HOT
+monitor6 = MON_OUTSIDE_COLD
+monitor7 = MON_INSIDE_AVERAGE_TOO_COLD
+monitor8 = MON_INSIDE_AVERAGE_TOO_HOT
+#monitor9 = MON_OUT_HOTTER_THAN_TOP
+#monitor5 = MON_WATER_TOO_HOT
+#monitor6 = MON_WATER_TOO_COLD
+#monitor11 = MON_LOAD_DOOR_OPEN 
+#monitor12 = MON_HARVEST_DOOR_OPEN
+#monitor13 = 
+
+[MON_OUT_HOTTER_THAN_TOP]
+type = MON_GREATER_THAN
+display_name = 
+description =  
+input1 = IN_INSIDE_TOP_TEMP
+input2 = IN_OUTSIDE_TEMP
+#act_val = 
+#deact_val = 
+
+[MON_INSIDE_TOP_TOO_COLD]
+type = MON_CONDITION_LOW
+display_name = Inside Top Too Cold
+description =  
+input1 = IN_INSIDE_TOP_TEMP
+act_val	= 20.00
+deact_val = 23.00
+
+[MON_INSIDE_TOP_TOO_HOT]
+type = MON_CONDITION_HIGH
+display_name = Inside Top Too Hot
+description = 
+input1 = IN_INSIDE_TOP_TEMP
+act_val	= 22.50
+deact_val = 20.00
+
+[MON_INSIDE_BOTTOM_TOO_COLD]
+type = MON_CONDITION_LOW
+display_name = Inside Bottom Too Cold
+description =  
+input1 = IN_INSIDE_BOTTOM_TEMP
+act_val	= 20.00
+deact_val = 23.00
+
+[MON_INSIDE_BOTTOM_TOO_HOT]
+type = MON_CONDITION_HIGH
+display_name = Inside Bottom Too Hot
+description = 
+input1 = IN_INSIDE_BOTTOM_TEMP
+act_val	= 23.00
+deact_val = 22.00
+
+[MON_INSIDE_AVERAGE_TOO_COLD]
+type = MON_AVERAGE_CONDITION_LOW
+display_name = Average Inside Too Cold
+description =  
+input1 = IN_INSIDE_BOTTOM_TEMP
+input2 = IN_INSIDE_TOP_TEMP
+act_val	= 20.00
+deact_val = 23.00
+
+[MON_INSIDE_AVERAGE_TOO_HOT]
+type = MON_AVERAGE_CONDITION_HIGH
+display_name = Average Inside Too Hot
+description =  
+input1 = IN_INSIDE_BOTTOM_TEMP
+input2 = IN_INSIDE_TOP_TEMP
+act_val	= 23.00
+deact_val = 22.00
+
+[MON_WATER_TOO_HOT]
+type = MON_CONDITION_HIGH
+display_name = Water too hot
+description = Water Inside the Header tank is too hot
+input1 = IN_WATER_TEMP
+act_val	= 23.00
+deact_val = 21.00
+
+[MON_WATER_TOO_COLD]
+type = MON_CONDITION_LOW
+display_name = Water too cold
+description = 
+input1 = IN_WATER_TEMP
+act_val	= 21.00
+deact_val = 23.00
+
+[MON_OUTSIDE_HOT]
+type = MON_CONDITION_HIGH
+display_name = Outside Hot
+description = Outside Temprature Above Set Point
+input1 = IN_OUTSIDE_TEMP
+act_val	= 23.00
+deact_val = 22.00
+
+[MON_OUTSIDE_COLD]
+type = MON_CONDITION_LOW
+display_name = Outside Cold
+description = Outside Temprature Below Set Point
+input1 = IN_OUTSIDE_TEMP
+act_val	= 20.00
+deact_val = 22.00
+
+[MON_LOAD_DOOR_OPEN]
+type = MON_TRIGGER
+display_name = Loading End Door Open
+description =  
+input1 = IN_LOADING_DOOR_SWITCH
+act_val	= HIGH
+deact_val = LOW
+
+#************************************************
+# Schedules
+#************************************************/
+[schedules]
+schedule1 = SCH_EXCLUDE_WATER_HEAT_BY_DAY
+schedule2 = SCH_RUN_LIGHTS_AT_NIGHT
+schedule3 = SCH_RESET_MIN_MAX_COUNTERS
+schedule4 = SCH_WATERING_TOP_SCHEDULE
+schedule5 = SCH_WATERING_BOTTOM_SCHEDULE
+#schedule6 = SCH_TEST1
+#schedule7 = SCH_TEST2
+#schedule8 = SCH_TEST3
+#schedule9 = SCH_TEST4
+#schedule10 = SCH_TEST5
+#schedule11 = SCH_TEST6
+
+[SCH_EXCLUDE_WATER_HEAT_BY_DAY]
+type = SCH_START_STOP
+display_name = Exclude Water Heat During Day
+description = 
+# ALL, MON, TUE, WED, THU, FRI, SAT, SUN
+days = ALL
+time_start = 09:00:00
+time_end = 16:00:00
+
+[SCH_RUN_LIGHTS_AT_NIGHT]
+type = SCH_START_STOP
+display_name = Run Lights at Night
+description = 
+# ALL, MON, TUE, WED, THU, FRI, SAT, SUN
+days = ALL
+time_start = 22:00:00
+time_end = 07:00:00
+
+[SCH_RESET_MIN_MAX_COUNTERS]
+type = SCH_ONE_SHOT
+display_name = Reset Min and Max Daily Counters
+description = 
+# ALL, MON, TUE, WED, THU, FRI, SAT, SUN
+days = ALL
+time_start = 18:00:00
+
+[SCH_WATERING_TOP_SCHEDULE]
+type = SCH_START_DURATION_REPEAT
+display_name = Watering Schedule Top Sprinklers
+description = 
+# ALL, MON, TUE, WED, THU, FRI, SAT, SUN
+days = ALL
+time_start = 00:00:00
+time_duration = 00:00:20
+time_repeat = 00:45:00
+
+[SCH_WATERING_BOTTOM_SCHEDULE]
+type = SCH_START_DURATION_REPEAT
+display_name = Watering Schedule Bottom Sprinklers
+description = 
+# ALL, MON, TUE, WED, THU, FRI, SAT, SUN
+days = ALL
+time_start = 00:00:30
+time_duration = 00:00:20
+time_repeat = 00:45:00
+
+
+#************************************************
+# Rules
+#************************************************/
+[rules]
+rule1 = RL_WATER_HEAT_IF_INSIDE_COLD
+rule2 = RL_LIGHTS_ON_SCHEDULE
+rule3 = RL_WATER_ON_SCHEDULE_TOP
+rule4 = RL_WATER_ON_SCHEDULE_BOTTOM
+rule5 = RL_CIRC_IF_TOP_HOT_BOT_COLD 
+rule6 = RL_EXHAUST_IF_TOP_HOT_BOT_HOT
+#rule7 = RL_RESET_MINMAX_ON_SCHEDULE  
+#rule8 = RL_SUSPEND_WATERING_IF_BOTH_DOORS_OPEN
+#rule10 =  
+#rule11 =
+
+[RL_RESET_MINMAX_ON_SCHEDULE]
+type = RL_LOGIC_SINGLE
+display_name = Reset MinMax
+description =
+param1 = SCH_RESET_MIN_MAX_COUNTERS
+#param_not = 
+
+[RL_WATER_HEAT_IF_INSIDE_COLD]
+type = RL_LOGIC_SINGLENOT
+display_name = Water Heat Warming Inside
+description =
+param1 = MON_INSIDE_AVERAGE_TOO_COLD
+#param2 =
+param_not = SCH_EXCLUDE_WATER_HEAT_BY_DAY
+
+[RL_LIGHTS_ON_SCHEDULE]
+type = RL_LOGIC_SINGLE
+display_name = Lights on Schedule
+description = Operate Lights According to Schedule
+param1 = SCH_RUN_LIGHTS_AT_NIGHT
+#param_not = 
+
+[RL_CIRC_IF_TOP_HOT_BOT_COLD]
+type = RL_LOGIC_SINGLE
+display_name = Circulate Rule
+description = Circulate Because Top is Hot and Bottom is Cold
+param1 = MON_INSIDE_TOP_TOO_HOT
+#param2 = MON_INSIDE_BOTTOM_TOO_COLD
+#param_not = 
+
+[RL_EXHAUST_IF_TOP_HOT_BOT_HOT]
+type = RL_LOGIC_AND
+display_name = Exhaust Fan Rule
+description = Exhaust Top and Bottom are Hot and Outside Not as Hot
+param1 = MON_INSIDE_BOTTOM_TOO_HOT
+param2 = MON_INSIDE_TOP_TOO_HOT
+#param_not = MON_OUT_HOTTER_THAN_TOP
+
+[RL_WATER_ON_SCHEDULE_TOP]
+type = RL_LOGIC_SINGLE
+display_name = Water Cycle Top
+description =
+param1 = SCH_WATERING_TOP_SCHEDULE
+#param_not = RL_SUSPEND_WATERING_IF_BOTH_DOORS_OPEN
+
+[RL_WATER_ON_SCHEDULE_BOTTOM]
+type = RL_LOGIC_SINGLE
+display_name = Water Cycle Bottom
+description =
+param1 = SCH_WATERING_BOTTOM_SCHEDULE
+#param_not = RL_SUSPEND_WATERING_IF_BOTH_DOORS_OPEN
+
+
+#************************************************
+# Controllers
+#************************************************/
+[controllers]
+controller1 = CON_WATER_HEAT_CONTROLLER
+controller2 = CON_END_LIGHTS_CONTROLLER
+controller3 = CON_WATERING_TOP_CONTROLLER
+controller4 = CON_WATERING_BOT_CONTROLLER
+controller5 = CON_CIRC_FAN_CONTROLLER
+controller6 = CON_EXHAUST_FAN_CONTROLLER
+#controller3 = CON_FRESH_AIR_CONTROLLER
+#controller8 = CON_RESET_MINMAX 
+#controller10 = 
+
+[CON_RESET_MINMAX]
+type = CON_SYSTEM
+display_name = Reset Min Max
+description = 
+rule = RL_RESET_MINMAX_ON_SCHEDULE
+output = OUT_SYSTEM_INTERNAL
+act_cmd = CMD_OUTPUT_ON
+deact_cmd = CMD_OUTPUT_OFF
+
+[CON_WATER_HEAT_CONTROLLER]
+type = CON_ONOFF
+display_name = Water Heating Controller
+description = 
+rule = RL_WATER_HEAT_IF_INSIDE_COLD
+output = OUT_WATER_HEATER
+act_cmd = CMD_OUTPUT_ON
+deact_cmd = CMD_OUTPUT_OFF
+
+[CON_END_LIGHTS_CONTROLLER]
+type = CON_ONOFF
+display_name = End Lights Controller
+description = 
+rule = RL_LIGHTS_ON_SCHEDULE
+output = OUT_END_LIGHTS
+act_cmd = CMD_OUTPUT_ON
+deact_cmd = CMD_OUTPUT_OFF
+
+[CON_CIRC_FAN_CONTROLLER]
+type = CON_ONOFF
+display_name = Circulation Fan Controller
+description = 
+rule = RL_CIRC_IF_TOP_HOT_BOT_COLD
+output = OUT_CIRCULATION_FAN
+act_cmd = CMD_OUTPUT_ON
+deact_cmd = CMD_OUTPUT_OFF
+
+[CON_EXHAUST_FAN_CONTROLLER]
+type = CON_ONOFF
+display_name = Exhaust Fan Controller
+description = 
+rule = RL_EXHAUST_IF_TOP_HOT_BOT_HOT
+output = OUT_EXHAUST_FAN
+act_cmd = CMD_OUTPUT_ON
+deact_cmd = CMD_OUTPUT_OFF
+
+[CON_WATERING_TOP_CONTROLLER]
+type = CON_ONOFF
+display_name = Top Sprinklers Solenoid Controller
+description = 
+rule = RL_WATER_ON_SCHEDULE_TOP
+output = OUT_WATERING_SOLENOID_TOP
+act_cmd = CMD_OUTPUT_ON
+deact_cmd = CMD_OUTPUT_OFF
+
+[CON_WATERING_BOT_CONTROLLER]
+type = CON_ONOFF
+display_name = Bottom Sprinklers Solenoid Controller
+description = 
+rule = RL_WATER_ON_SCHEDULE_BOTTOM
+output = OUT_WATERING_SOLENOID_BOTTOM
+act_cmd = CMD_OUTPUT_ON
+deact_cmd = CMD_OUTPUT_OFF
+
+[CON_FRESH_AIR_CONTROLLER]
+type = CON_ONOFF
+display_name = Fresh Air Controller
+description = 
+rule = RL_FAN_IF_INSIDE_BOTTOM_HOT_OUTSIDE_COLD
+output = OUT_FRESH_AIR_FAN
+act_cmd = CMD_OUTPUT_ON
+deact_cmd = CMD_OUTPUT_OFF
+
+#************************************************
+# Outputs
+#************************************************
+[outputs]
+output1 = OUT_END_LIGHTS
+output2 = OUT_WATER_HEATER
+output3 = OUT_WATERING_SOLENOID_TOP
+output4 = OUT_WATERING_SOLENOID_BOTTOM
+output5 = OUT_CIRCULATION_FAN
+output6 = OUT_EXHAUST_FAN
+#output3 = OUT_FRESH_AIR_FAN
+#output6 = OUT_SYSTEM_INTERNAL 
+#output9 = 
+
+#PINS 8  7  6  4  4  3  2  1
+#PINS 1  2  3  4  5  6  7  8
+#PINS 53 51 49 47 45 43 41 39
+#PINS 22 24 26 28 30 32 34 36
+#PINS LT WH IF CF EF -- S1 S2 
+#PINS S2 S1 -- EF CF IF WH LT 
+
+[OUT_END_LIGHTS]
+type = OUT_DIGITAL
+display_name = Fluro Lights
+description = Relay to Control Fluro End Lights
+interface = DIG_PIN_OUT
+if_num = 22
+
+[OUT_WATER_HEATER]
+type = OUT_DIGITAL
+display_name = Header Tank Heater
+description = Relay to Control Header Tank Water Heater
+interface = DIG_PIN_OUT
+if_num = 24
+
+[OUT_FRESH_AIR_FAN]
+type = OUT_DIGITAL
+display_name = Fresh Air Fan
+description = Relay to Control Fresh Air Fan
+interface = DIG_PIN_OUT
+if_num = 26
+
+[OUT_CIRCULATION_FAN]
+type = OUT_DIGITAL
+display_name = Circulation Fan
+description = Relay to Control the Circulation Fan
+interface = DIG_PIN_OUT
+if_num = 28
+
+[OUT_EXHAUST_FAN]
+type = OUT_DIGITAL
+display_name = Exhaust Fan
+description = Relay to Control the Exhaust Fan
+interface = DIG_PIN_OUT
+if_num = 30
+
+[OUT_WATERING_SOLENOID_TOP]
+type = OUT_DIGITAL
+display_name = Water Value Top
+description = Relay to Control the Top Watering Solenoid
+interface = DIG_PIN_OUT
+if_num = 34
+
+[OUT_WATERING_SOLENOID_BOTTOM]
+type = OUT_DIGITAL
+display_name = Water Value Bottom
+description = Relay to Control the Bottom Watering Solenoid
+interface = DIG_PIN_OUT
+if_num = 36
+

@@ -25,7 +25,7 @@ typedef struct EVENT_NODE {
 	uint16_t destination;
 	uint8_t message_type;
 	uint8_t message;
-	int int_val;
+	int16_t int_val;
 	float float_val;
 } EventNode;
 

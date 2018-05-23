@@ -82,10 +82,10 @@ void MonitorOperate(BlockNode *b) {
 			float fval;
 			fval = GetFVal(b->settings.mon.input1);
 			if (fval == FLOAT_INIT) {
-				b->status = STATUS_INVALID_DATA;
+				b->status = STATUS_ENABLED_INVALID_DATA;
 				// nothing more to do
 			} else {
-				b->status = STATUS_VALID_DATA;
+				b->status = STATUS_ENABLED_VALID_DATA;
 				if (fval <= b->settings.mon.act_val) {
 					if (b->active == 0) {
 						b->active = 1;
@@ -108,10 +108,10 @@ void MonitorOperate(BlockNode *b) {
 			float fval;
 			fval = GetFVal(b->settings.mon.input1);
 			if (fval == FLOAT_INIT) {
-				b->status = STATUS_INVALID_DATA;
+				b->status = STATUS_ENABLED_INVALID_DATA;
 				// nothing more to do
 			} else {
-				b->status = STATUS_VALID_DATA;
+				b->status = STATUS_ENABLED_VALID_DATA;
 				if (GetFVal(b->settings.mon.input1) >= b->settings.mon.act_val) {
 					if (b->active == 0) {
 						b->active = 1;
@@ -134,10 +134,10 @@ void MonitorOperate(BlockNode *b) {
 			fval1 = GetFVal(b->settings.mon.input1);
 			fval2 = GetFVal(b->settings.mon.input2);
 			if (fval1 == FLOAT_INIT || fval2 == FLOAT_INIT) {
-				b->status = STATUS_INVALID_DATA;
+				b->status = STATUS_ENABLED_INVALID_DATA;
 				// nothing more to do
 			} else {
-				b->status = STATUS_VALID_DATA;
+				b->status = STATUS_ENABLED_VALID_DATA;
 				float ave;
 				ave = (fval1 + fval2) / 2;
 				if (ave <= b->settings.mon.act_val) {
@@ -162,10 +162,10 @@ void MonitorOperate(BlockNode *b) {
 			fval1 = GetFVal(b->settings.mon.input1);
 			fval2 = GetFVal(b->settings.mon.input2);
 			if (fval1 == FLOAT_INIT || fval2 == FLOAT_INIT) {
-				b->status = STATUS_INVALID_DATA;
+				b->status = STATUS_ENABLED_INVALID_DATA;
 				// nothing more to do
 			} else {
-				b->status = STATUS_VALID_DATA;
+				b->status = STATUS_ENABLED_VALID_DATA;
 				float ave;
 				ave = (fval1 + fval2) / 2;
 				if (ave >= b->settings.mon.act_val) {
@@ -189,10 +189,10 @@ void MonitorOperate(BlockNode *b) {
 			uint8_t bool_val;
 			bool_val = GetBVal(b->settings.mon.input1);
 			if (bool_val == UINT8_INIT) {
-				b->status = STATUS_INVALID_DATA;
+				b->status = STATUS_ENABLED_INVALID_DATA;
 				// nothing more to do
 			} else {
-				b->status = STATUS_VALID_DATA;
+				b->status = STATUS_ENABLED_VALID_DATA;
 				if (bool_val == (uint8_t)b->settings.mon.act_val) {
 					if (b->active == 0) {
 						b->active = 1;

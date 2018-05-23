@@ -518,8 +518,8 @@ typedef enum {
 	M_VE_POWER,
 	M_VE_VOLTAGE,
 	M_VE_CURRENT,
-	M74,
-	M75,
+	M_SYS_HEART_BEAT,
+	M_VE_INIT_ERROR,
 	M76,
 	M77,
 	M78,
@@ -608,8 +608,8 @@ static const StringArray message_strings[LAST_MESSAGE] = {
 	14, { "VE_DATA_POWER",									"M71" },
 	14, { "VE_DATA_VOLTAGE",								"M72" },
 	14, { "VE_DATA_CURRENT",								"M73" },
-	14, { "M74",								"M74" },
-	14, { "M75",								"M75" },
+	14, { "System Heart Beat",								"M74" },
+	14, { "Failed to Initialise VE.Direct Connection",		"M75" },
 	14, { "M76",								"M76" },
 	14, { "M77",								"M77" },
 	14, { "M78",								"M78" },
@@ -762,9 +762,13 @@ static const SimpleStringArray interface_strings[LAST_INTERFACE] = {
 
 enum {						// Block states
 	STATUS_ERROR = 0,
-	STATUS_INIT,
-	STATUS_VALID_DATA,
-	STATUS_INVALID_DATA,
+	STATUS_ENABLED,
+	STATUS_ENABLED_INIT,
+	STATUS_ENABLED_VALID_DATA,
+	STATUS_ENABLED_INVALID_DATA,
+	STATUS_DISABLED,
+	STATUS_DISABLED_ERROR,
+	STATUS_DISABLED_ADMIN,
 	LAST_STATUS,
 };
 
@@ -774,9 +778,14 @@ static const SimpleStringArray status_strings[LAST_STATUS] PROGMEM = {
 static const SimpleStringArray status_strings[LAST_STATUS] = {
 #endif
 	"STATUS_ERROR",
-	"STATUS_INIT",
-	"STATUS_VALID_DATA",
-	"STATUS_INVALID_DATA",
+	"STATUS_ENABLED",
+	"STATUS_ENABLED_INIT",
+	"STATUS_ENABLED_VALID_DATA",
+	"STATUS_ENABLED_INVALID_DATA",
+	"STATUS_DISABLED",
+	"STATUS_DISABLED_ERROR",
+	"STATUS_DISABLED_ADMIN",
+
 };
 
 #ifndef FF_ARDUINO
@@ -788,12 +797,26 @@ enum {
 
 #endif
 
+enum {						// Misc program strings
+	MISC_ERROR = 0,
+	LAST_MISC,
+};
+
+#ifdef USE_PROGMEM
+static const SimpleStringArray misc_strings[LAST_MISC] PROGMEM = {
+#else
+static const SimpleStringArray misc_strings[LAST_MISC] = {
+#endif
+	"MISC_ERROR_STRING",
+};
+
+
 /**************************************************************
  * String Access Functions Prototypes
  **************************************************************/
-char const* GetMessageTypeString(int message_type_enum);
+void GetMessageTypeString(char *str_buf, int message_type_enum);
 
-char const* GetMessageString(int message_enum);
+void GetMessageString(char *str_buf, int message_enum);
 
 uint8_t GetLanguage(void);
 
@@ -808,6 +831,20 @@ uint8_t InterfaceStringArrayIndex(const char* key);
 uint8_t BlockTypeStringArrayIndex(const char* key);
 
 //uint8_t SimpleStringArrayIndex(const SimpleStringArray array, const char* key);
+
+char *strcpy_misc(char *dest, uint8_t src);
+char *strcat_misc(char *dest, uint8_t src);
+char *strcpy_hal(char *dest, const char *src);
+char *strcpy_hal(char *dest, const __FlashStringHelper *src);
+char *strcat_hal(char *dest, const char *src);
+void *memcpy_hal(void *dest, const void *src, size_t sz);
+
+/*
+#ifdef DEBUG
+char *strcpy_debug(char *dest, uint8_t src);
+char *strcat_debug(char *dest, uint8_t src);
+#endif
+*/
 
 
 #endif /* SRC_FF_STRINGS_H_ */

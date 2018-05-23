@@ -16,23 +16,23 @@
 #include <Arduino.h>
 #endif
 
-char *strcpy_misc(char *dest, uint8_t src) {
+char *strcpy_itch_misc(char *dest, uint8_t src) {
 	#ifdef ARDUINO
-		return strcpy_P(dest, misc_strings[src].text);
+		return strcpy_P(dest, misc_itch_strings[src].text);
 	#else
-		return strcpy(dest, misc_strings[src].text);
+		return strcpy(dest, misc_itch_strings[src].text);
 	#endif
 }
 
-char *strcat_misc(char *dest, uint8_t src) {
+char *strcat_itch_misc(char *dest, uint8_t src) {
 	#ifdef ARDUINO
-		return strcat_P(dest, misc_strings[src].text);
+		return strcat_P(dest, misc_itch_strings[src].text);
 	#else
-		return strcat(dest, misc_strings[src].text);
+		return strcat(dest, misc_itch_strings[src].text);
 	#endif
 }
 
-char *strcpy_hal(char *dest, const char *src) {
+char *strcpy_itch_hal(char *dest, const char *src) {
 	#ifdef ARDUINO
 		return strcpy_P(dest, src);
 	#else
@@ -40,7 +40,7 @@ char *strcpy_hal(char *dest, const char *src) {
 	#endif
 }
 
-char *strcat_hal(char *dest, const char *src) {
+char *strcat_itch_hal(char *dest, const char *src) {
 #ifdef ARDUINO
 	return strcat_P(dest, src);
 #else
@@ -48,7 +48,7 @@ char *strcat_hal(char *dest, const char *src) {
 #endif
 }
 
-void *memcpy_hal(void *dest, const void *src, size_t sz) {
+void *memcpy_itch_hal(void *dest, const void *src, size_t sz) {
 #ifdef ARDUINO
 	return memcpy_P(dest, src, sz);
 #else
@@ -57,7 +57,7 @@ void *memcpy_hal(void *dest, const void *src, size_t sz) {
 }
 
 #ifdef ITCH_DEBUG
-char *strcpy_debug(char *dest, uint8_t src) {
+char *strcpy_itch_debug(char *dest, uint8_t src) {
 	#ifdef ARDUINO
 		return strcpy_P(dest, itch_debug_strings[src].text);
 	#else
@@ -65,7 +65,7 @@ char *strcpy_debug(char *dest, uint8_t src) {
 	#endif
 }
 
-char *strcat_debug(char *dest, uint8_t src) {
+char *strcat_itch_debug(char *dest, uint8_t src) {
 	#ifdef ARDUINO
 		return strcat_P(dest, itch_debug_strings[src].text);
 	#else

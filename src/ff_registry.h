@@ -168,11 +168,19 @@ BlockNode* AddBlock(uint8_t block_cat, const char *block_label);
 //BlockNode* AddBlockNode(BlockNode** head_ref, uint8_t block_cat, const char *block_label);
 char* UpdateBlockLabel(BlockNode* b, char * block_label);
 
+
+uint8_t RegLookupBlockLabel(char* lookup_string);
 void RegShowBlocks(void(*Callback)(char *));
+void RegShowSystem(void(*Callback)(char *));
 void RegShowBlockByID(uint16_t, void(*Callback)(char *));
+void RegShowBlockByLabel(char* block_label, void(*Callback)(char *));
 void RegSendCommandToBlockLabel(char* block_label, uint16_t command, void(*Callback)(char *));
-
-
+void RegSendCommandToBlockID(uint16_t id, uint16_t command, void(*Callback)(char*));
+void RegShowTime(void(*Callback)(char*));
+void RegSetTime(char* time_str, void(*Callback)(char*));
+void RegShowDate(void(*Callback)(char*));
+void RegSetDate(char* date_str, void(*Callback)(char*));
+void RegSystemReboot(void(*Callback)(char*));
 
 void UpdateStateRegister(uint16_t source, uint8_t msg_type, uint8_t msg_str, int i_val, float f_val);
 UIDataSet* GetUIDataSet(void);

@@ -20,17 +20,25 @@
  PLATFORM Directives
  ************************************************/
 #define FF_ARDUINO
-// Optionally:
-//#define FF_TEMPERATURE_SIM
-//#define FF_TEMP_SIM_WITH_DALLAS
-//#define FF_RPI_START_DELAY 60000	// Start delay kludge to allow RPIs to get going
-//OR
+// AND Optionally
+#define VE_DIRECT
+// OR
 //#define FF_SIMULATOR
+// Optionally with
 //#define FF_SIM_PARSECONFIG	//optional parse the TXT config (default -> read BIN)
-//OR
+
+// OR
 //#define FF_CONFIG
 
-//#define USE_ITCH
+// Optionally:
+#define FF_TEMPERATURE_SIM
+// OR with FF_ARDUINO
+//#define FF_TEMP_SIM_WITH_DALLAS
+
+// Optionally:
+//#define FF_RPI_START_DELAY 60000	// Start delay kludge to allow RPIs to get going
+
+#define USE_ITCH
 
 //#define UI_ATTACHED			// is there a directly attached UI? LCD? Console in sim?
 
@@ -42,6 +50,8 @@
 
 #ifdef FF_SIMULATOR
 #define FF_TEMPERATURE_SIM
+#define PSTR(x) x
+#define F(x) x
 #endif
 
 #ifdef FF_TEMPERATURE_SIM
@@ -51,7 +61,8 @@
 //#define FF_RANDOM_TEMP_SIM
 
 // Optionally:
-#define RANDOM_TEMP_SIM_DELAY
+//#define RANDOM_TEMP_SIM_DELAY
+//#define TEMP_SIM_EXTRA_DELAY
 
 #ifdef RANDOM_TEMP_SIM_DELAY
 #define TEMP_SIM_MIN_DELAY	600		//msec
@@ -73,7 +84,7 @@
 #define PROGMEM_BLOCK_DEFS
 #endif
 
-//#define IN_LOGRATE_OVERRIDE 15				// seconds. Override defined logging rate (for debug)
+#define IN_LOGRATE_OVERRIDE 15				// seconds. Override defined logging rate (for debug)
 
 #define EXCLUDE_DESCRIPTION			// to save .data segment and heap space on arduino
 #define EXCLUDE_DISPLAYNAME			// to save .data segment and heap space on arduino
@@ -93,9 +104,11 @@
 /************************************************
  DEBUG Directives
  ************************************************/
-//#define DEBUG			// Call debug output at all or not?
+#define DEBUG			// Call debug output at all or not?
 
 #ifdef DEBUG
+//Optionallly:
+#define SUPRESS_EVENT_MESSAGES
 
 #define DEBUG_LEVEL 1	// level and higher will be sent to debug log
 /*
@@ -115,10 +128,10 @@
 #define DEBUG_SERIAL                  		// For use when USB connected
 #define DEBUG_SERIAL_BAUDRATE 9600
 //#define DEBUG_LCD                     	// Debug to a connected LCD screen
-#define DEBUG_LCD_DELAY 0
+//#define DEBUG_LCD_DELAY 0
 #endif
 
-//#define DEBUG_FILE						//write a debug file on SD or locally
+#define DEBUG_FILE						//write a debug file on SD or locally
 #define DEBUG_FILENAME "FFDEBUG.TXT"
 
 #ifdef FF_SIMULATOR
@@ -151,10 +164,15 @@
 #define OWB2_SENSOR_COUNT 3
 #define OWB3_SENSOR_COUNT 1
 
-
 #define EVENT_SERIAL							//send event messages over a serial link
 #define EVENT_SERIAL_PORT 0
 #define EVENT_SERIAL_BAUDRATE 9600
+
+#define SERIAL_0_USED
+//#define SERIAL_1_USED
+//#define SERIAL_2_USED
+//#define SERIAL_3_USED
+
 
 #ifdef FF_SIMULATOR
 #define EVENT_CONSOLE

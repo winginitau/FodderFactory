@@ -1,5 +1,5 @@
 //============================================================================
-// Name        : ff_arduino.cpp
+// Name        : ff_arduino.cpp (and copied to ff_simulator.cpp
 // Author      : Brendan McLearie
 // Version     :
 // Copyright   : Copyright Brendan McLearie
@@ -55,6 +55,10 @@
 
 
 
+#ifndef ARDUINO
+#include <iostream>
+using namespace std;
+#endif
 
 /************************************************
  Includes
@@ -96,6 +100,7 @@ void setup() {
 #ifdef FF_SIMULATOR
 int main(void) {
 #endif
+	// main() is equivalent to setup() on arduino
 
 
 	//Key issue for large scalability is that the system executive (registry)
@@ -119,22 +124,39 @@ int main(void) {
 	HALInitItch();
 	#endif
 
-	// Read the binary configuration file previously created with
-	// ff_config. Note, this build and the ff_config build must use exactly
-	// the same pre-processor and compiler directives to ensure binary portability
-	ReadProcessedConfig();
+
+	// Read the config file, parse it and create a block list in memory
+	#ifdef FF_SIM_PARSECONFIG
+		// from INI source
+		ReadAndParseConfig();	//from INI config file
+	#else
+	#ifdef FF_CONFIG
+		ReadAndParseConfig();	//from INI config file
+	#else
+		// Read the binary configuration file previously created with
+		// ff_config. Note, this build and the ff_config build must use exactly
+		// the same pre-processor and compiler directives to ensure binary portability
+		ReadProcessedConfig();
+	#endif
+	#endif
 
 	// Set up the run-time environment
 	InitSystem();
 	//TODO set up remote control / data feed / radio link
 
-	// run the Validate function on each block
+	// Run the Validate function on each block
 	// currently uses assert() - which will bomb the run if failed on embedded
 	ProcessDispatcher(Validate);
 	// TODO implement assert()-like exception handling for embedded
-
 	// while using assert, its safe to declare success (if not correctness) if we get this far
 	DebugLog(SSS, E_INFO, M_DISP_VALIDATE);
+
+	#ifdef FF_CONFIG
+	//Write out a binary config file (for consumption by ReadProcessedConfig() in embedded builds
+	WriteRunningConfig();
+	DebugLog("Created Binary Configuration File. Done.");
+	return 0
+	#endif
 
 	// 1. make sure each block is in an appropriate state to start execution
 	//		(if not already set during block registration and configuration
@@ -165,6 +187,7 @@ int main(void) {
 	return 0;
 	#endif
 
+	// On Arduino loop() is now called forever by the bootloader
 }
 
 

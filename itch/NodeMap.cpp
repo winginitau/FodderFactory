@@ -23,7 +23,7 @@
 
 #ifdef ITCH_DEBUG
 extern void M(char strn[]);
-char n_debug_message[MAX_OUTPUT_LINE_SIZE];
+extern char g_debug_message[MAX_OUTPUT_LINE_SIZE];
 #endif
 
 M_FLAGS g_mflags;
@@ -33,7 +33,7 @@ uint16_t g_map_id_walker;		// to walk through the asta array nodes by id
 
 char g_map_last_target_str[MAX_IDENTIFIER_LABEL_SIZE];
 
-extern ASTA g_temp_asta;
+//extern ASTA g_temp_asta;
 
 /********************************************************************
  * Functions
@@ -62,6 +62,8 @@ void MapReset(void) {
 	g_mflags.help_active = 0;
 	g_mflags.keyword_match = 0;
 	g_mflags.error_code = PEME_NO_ERROR;
+	g_mflags.lookup_tbd = 0;
+	g_mflags.ident_member_tbd = 0;
 
 	g_map_line_pos = 0;
 	g_map_id_current = 0;
@@ -87,7 +89,7 @@ uint16_t MapGetASTAByID(uint16_t asta_id, ASTA* result) {
 			#ifdef ARDUINO
 				memcpy_P(result, &(asta[asta_idx]), sizeof(ASTA));
 			#else
-				memcpy_hal(result, &(asta[asta_idx]), sizeof(ASTA));
+				memcpy_itch_hal(result, &(asta[asta_idx]), sizeof(ASTA));
 
 			#endif
 			return PEME_NO_ERROR;
@@ -104,14 +106,13 @@ uint8_t MapDetermineTarget(uint8_t* target_size, char* target, char* line) {
 		// past the space delimiter at the end of the line.
 		// Don't process
 		#ifdef ITCH_DEBUG
-			strcpy_debug(n_debug_message, ITCH_DEBUG_MAPDETERMINETARGET_DELIM_SKIP);
-			//sprintf(n_debug_message, "DEBUG (MapDetermineTarget): DELIM_SKIP\n\r");
-			M(n_debug_message);
+			strcpy_itch_debug(g_debug_message, ITCH_DEBUG_MAPDETERMINETARGET_DELIM_SKIP);
+			//sprintf(g_debug_message, "DEBUG (MapDetermineTarget): DELIM_SKIP\n\r");
+			M(g_debug_message);
 		#endif
 
 		return MR_DELIM_SKIP;
 	}
-
 	// line is \0 terminated. Copy the bit we're interested in to the target
 	int i = 0;
 	target[i] = line[g_map_line_pos+i];
@@ -123,28 +124,26 @@ uint8_t MapDetermineTarget(uint8_t* target_size, char* target, char* line) {
 }
 
 uint8_t Compare_N_PARAM_DATE(char* target, ASTA* temp_node) {
-	//if (mf.keyword_match) {
-	//	return 0;
-	//}
 	// date format is 2018-02-20
-	// sufficient for filtering to just check if it starts with a digit
+	// sufficient for filtering to just check if it starts with a 2
 	if (isdigit(target[0])) {
-		strcpy_misc(temp_node->label, MISC_PARAM_DATE);
-		return 1;
+		int x = target[0] - '0';
+		if (x == 2) {
+			// could be
+			strcpy_itch_misc(temp_node->label, ITCH_MISC_PARAM_DATE);
+			return 1;
+		}
 	}
 	return 0;
 }
 
 uint8_t Compare_N_PARAM_TIME(char* target, ASTA* temp_node) {
-	//if (mf.keyword_match) {
-	//	return 0;
-	//}
 	// time format is 23:30:45 (hh:mm:ss)
 	if (isdigit(target[0])) {
 		int x = target[0] - '0';
 		if (x < 3) {
 			// could be
-			strcpy_misc(temp_node->label, MISC_PARAM_TIME);
+			strcpy_itch_misc(temp_node->label, ITCH_MISC_PARAM_TIME);
 			return 1;
 		}
 	}
@@ -157,7 +156,7 @@ uint8_t Compare_N_PARAM_FLOAT(char* target, ASTA* temp_node) {
 	//}
 	// sufficient for filtering to just check if it starts with a digit
 	if (isdigit(target[0])) {
-		strcpy_misc(temp_node->label, MISC_PARAM_FLOAT);
+		strcpy_itch_misc(temp_node->label, ITCH_MISC_PARAM_FLOAT);
 		return 1;
 	}
 	return 0;
@@ -169,7 +168,7 @@ uint8_t Compare_N_PARAM_INTEGER(char* target, ASTA* temp_node) {
 	//}
 	// sufficient for filtering to just check if it starts with a digit
 	if (isdigit(target[0])) {
-		strcpy_misc(temp_node->label, MISC_PARAM_INTEGER);
+		strcpy_itch_misc(temp_node->label, ITCH_MISC_PARAM_INTEGER);
 		return 1;
 	}
 	return 0;
@@ -185,34 +184,42 @@ uint8_t Compare_N_PARAM_STRING(char* target, ASTA* temp_node) {
 	}
 	// input is a string by definition
 	// we're looking for a string, so add it otherwise
-	strcpy_misc(temp_node->label, MISC_PARAM_STRING);
+	strcpy_itch_misc(temp_node->label, ITCH_MISC_PARAM_STRING);
 	return 1;
 }
 
 uint8_t Compare_N_LOOKUP(char* target, ASTA* temp_node) {
-	// TODO temp_node will throw warning while unused
-	// When lookup fully implemented it will be used
 	if (isdigit(target[0])) {
 		// can't be keyword or ident or lookup
 		return 0;
 	}
-
-	// XXX although a lookup is a string it is actually
+	// Although a lookup is a string it is actually
 	// a special case of a reserved word (ie identifier)
-	// So lookup needs to be called here or the idea of
-	// lookups needs to be expunged from the whole code base.
+	// So lookup needs to be called from here
 
-	// Currently - lookups not matched at all
 	// Can't just treat as a string or matchreduce will error
 	// because it can't distinguish a string from a lookup
 	// in the case where an AST node has valid branching to
 	// both a param-string node and a lookup node.
 
+	// A possible match to a lookup can't be determined until
+	// the token is complete. Excluding it altogether before
+	// then would result in a MR_NO_MATCH and error. Therefore
+	// special treatment is required - if a lookup is under
+	// evaluation (ie is a possibility in the sibling list) then
+	// set the mflags.lookup_tbd flag to indicate.
+
 	uint16_t xlat;
 	xlat = LookupLookupMap(temp_node->label);
-
-
-	return 0;
+	int lookup_result;
+	lookup_result = LookupLookupMembers(xlat, target);
+	if (lookup_result == 1) {
+		g_mflags.lookup_tbd = 0;
+		return 1;
+	} else {
+		g_mflags.lookup_tbd = 1;
+		return 0;
+	}
 }
 
 uint8_t Compare_N_IDENTIFIER(char* target, ASTA* temp_node) {
@@ -229,16 +236,18 @@ uint8_t Compare_N_IDENTIFIER(char* target, ASTA* temp_node) {
 	member_id = LookupIdentifierMembers(xlat, target);
 
 #ifdef ITCH_DEBUG
-	//sprintf(n_debug_message, "DEBUG (Compare_N_IDENTIFIER): Target: %s  ASTALabel: %s  xlatVal: %d  block_cat_id: %d\n\n\r", target, temp_node->label, xlat, member_id);
-	//M(n_debug_message);
+	//sprintf(g_debug_message, "DEBUG (Compare_N_IDENTIFIER): Target: %s  ASTALabel: %s  xlatVal: %d  block_cat_id: %d\n\n\r", target, temp_node->label, xlat, member_id);
+	//M(g_debug_message);
 #endif
 
+	//See comments in Compare_N_LOOKUP
 	if (member_id > 0) {
+		g_mflags.ident_member_tbd = 0;
 		return member_id;
 	} else {
+		g_mflags.ident_member_tbd = 1;
 		return 0;
 	}
-	return 1;
 }
 
 uint8_t Compare_N_KEYWORD(char* target, ASTA* temp_node) {
@@ -305,19 +314,22 @@ uint8_t MapMatch(char* line, TokenList* matched_list) {
 		g_mflags.help_active = 1;
 	}
 	// reset keyword match if set previously
-	g_mflags.keyword_match = 0 ;
+	g_mflags.keyword_match = 0;
+
+	// reset lookup_tbd and ident_member_tbd if set previously
+	g_mflags.lookup_tbd = 0;
+	g_mflags.ident_member_tbd = 0;
 
 	// Scan the current node and its siblings for potential or exact matches
 	// Returning the result in matched_list
 	MapSelectMatchingNodes(target, matched_list);
 
-	// Evaluate the matched_list and return the result
+	// Evaluate the matched_list and return the result to the parser
 	return MapEvaluateMatchedList(matched_list);
-
 }
 
 void MapSelectMatchingNodes(char* token, TokenList* matched_list) {
-	//ASTA g_temp_asta;
+	ASTA temp_asta;
 	uint8_t cr = 0;		// compare result
 
 	do {
@@ -326,66 +338,77 @@ void MapSelectMatchingNodes(char* token, TokenList* matched_list) {
 		// to what we have in the token
 
 		// Get the first candidate node
-		MapGetASTAByID(g_map_id_walker, &g_temp_asta);
+		MapGetASTAByID(g_map_id_walker, &temp_asta);
 
 		// Node type will determine how we compare it to the token
-		switch (g_temp_asta.type) {
-			case AST_PARAM_DATE:	cr = Compare_N_PARAM_DATE(token, &g_temp_asta);		break;
-			case AST_PARAM_TIME:	cr = Compare_N_PARAM_TIME(token, &g_temp_asta);		break;
-			case AST_PARAM_FLOAT: 	cr = Compare_N_PARAM_FLOAT(token, &g_temp_asta);		break;
-			case AST_PARAM_INTEGER:	cr = Compare_N_PARAM_INTEGER(token, &g_temp_asta);	break;
-			case AST_PARAM_STRING:	cr = Compare_N_PARAM_STRING(token, &g_temp_asta);	break;
-			case AST_LOOKUP:		cr = Compare_N_LOOKUP(token, &g_temp_asta);			break;
-			case AST_IDENTIFIER:	cr = Compare_N_IDENTIFIER(token, &g_temp_asta);		break;
-			case AST_KEYWORD:		cr = Compare_N_KEYWORD(token, &g_temp_asta);			break;
+		switch (temp_asta.type) {
+			case AST_PARAM_DATE:	cr = Compare_N_PARAM_DATE(token, &temp_asta);		break;
+			case AST_PARAM_TIME:	cr = Compare_N_PARAM_TIME(token, &temp_asta);		break;
+			case AST_PARAM_FLOAT: 	cr = Compare_N_PARAM_FLOAT(token, &temp_asta);		break;
+			case AST_PARAM_INTEGER:	cr = Compare_N_PARAM_INTEGER(token, &temp_asta);	break;
+			case AST_PARAM_STRING:	cr = Compare_N_PARAM_STRING(token, &temp_asta);	break;
+			case AST_LOOKUP:		cr = Compare_N_LOOKUP(token, &temp_asta);			break;
+			case AST_IDENTIFIER:	cr = Compare_N_IDENTIFIER(token, &temp_asta);		break;
+			case AST_KEYWORD:		cr = Compare_N_KEYWORD(token, &temp_asta);			break;
 		};
 
 		if ((cr > 0) || (g_mflags.help_active == 1)) {
 			// the node is a possible match to be included
-			TLAddASTAToTokenList(matched_list, g_temp_asta);
+			TLAddASTAToTokenList(matched_list, temp_asta);
 			#ifdef ITCH_DEBUG
 			// XXX
 			// XXX This causes an lto_wrapper / ld seg fault at compile time
 			// XXX TRIAGE
 
 			//ORIGINAL - FAILS
-			//sprintf(n_debug_message, "DEBUG (MapSelectMatchingNodes) Adding Possible Match: ID:%d  Label:%s  which has Action:%s \n\r", g_temp_asta.id, g_temp_asta.label, g_temp_asta.action_identifier);
+			//sprintf(g_debug_message, "DEBUG (MapSelectMatchingNodes) Adding Possible Match: ID:%d  Label:%s  which has Action:%s \n\r", temp_asta.id, temp_asta.label, temp_asta.action_identifier);
 
 			// WORKS
-			//sprintf(n_debug_message, "ID:%d \n\r", g_temp_asta.id);
+			//sprintf(g_debug_message, "ID:%d \n\r", temp_asta.id);
 
 			// FAILS
-			//sprintf(n_debug_message, "Label:%s\n\r", g_temp_asta.label);
+			//sprintf(g_debug_message, "Label:%s\n\r", temp_asta.label);
 
 			// WORKS
-			//strcpy(n_debug_message, g_temp_asta.label);
+			//strcpy(g_debug_message, temp_asta.label);
 
 			// WORKS
-			//sprintf(g_temp_asta.label, "Triage Label\n");
-			//sprintf(n_debug_message, "Label:%s\n\r", g_temp_asta.label);
+			//sprintf(temp_asta.label, "Triage Label\n");
+			//sprintf(g_debug_message, "Label:%s\n\r", g_temp_asta.label);
 
 			// WORKS
-			//strcpy(n_debug_message, g_temp_asta.label);
-			//strcpy(n_debug_message, g_temp_asta.action_identifier);
-			//sprintf(n_debug_message, "DEBUG (MapSelectMatchingNodes) Adding Possible Match: ID:%d  Label:%s  which has Action:%s \n\r", g_temp_asta.id, g_temp_asta.label, g_temp_asta.action_identifier);
+			//strcpy(g_debug_message, temp_asta.label);
+			//strcpy(g_debug_message, temp_asta.action_identifier);
+			//sprintf(g_debug_message, "DEBUG (MapSelectMatchingNodes) Adding Possible Match: ID:%d  Label:%s  which has Action:%s \n\r", g_temp_asta.id, g_temp_asta.label, g_temp_asta.action_identifier);
 
 			//NEW
-			strcpy(n_debug_message, g_temp_asta.label);
-			strcpy(n_debug_message, g_temp_asta.action_identifier);
-			strcpy_debug(g_temp_str, ITCH_DEBUG_MAPSELECTMATCHINGNODES_ID_LABEL_ACTION);
-			sprintf(n_debug_message, "%s%d/%s/%s\n", g_temp_str, g_temp_asta.id, g_temp_asta.label, g_temp_asta.action_identifier);
+			//char temp_str[MAX_OUTPUT_LINE_SIZE];
+			//char temp_str2[MAX_OUTPUT_LINE_SIZE];
+			char temp_str3[MAX_OUTPUT_LINE_SIZE];
+			//strcpy(temp_str, temp_asta.label);
+			//strcpy(temp_str2, temp_asta.action_identifier);
 
-			M(n_debug_message);
+			strcpy_itch_debug(temp_str3, ITCH_DEBUG_MAPSELECTMATCHINGNODES_ID_LABEL_ACTION);
+			sprintf(g_debug_message, "%s%d/%s/%s\n", temp_str3, temp_asta.id, temp_asta.label, temp_asta.action_identifier);
+
+			// FAILS after
+			//strcpy_itch_debug(temp_str3, ITCH_DEBUG_MAPSELECTMATCHINGNODES_ID_LABEL_ACTION);
+			//sprintf(g_debug_message, "%s%d/%s\n", temp_str3, temp_asta.id, temp_asta.label);
+
+			//FAILS
+			//sprintf(g_debug_message, "%s\n", temp_asta.action_identifier);
+
+			M(g_debug_message);
 			#endif
 		}
 
 		//set up for the siblings (if any)
-		g_map_id_walker = g_temp_asta.next_sibling;
+		g_map_id_walker = temp_asta.next_sibling;
 	} while (g_map_id_walker != 0); // reached end of sibling list
 }
 
 uint8_t MapEvaluateMatchedList(TokenList* matched_list) {
-	//ASTA temp_node;
+	ASTA temp_asta;
 
 		// filter results based on matching precedence
 		// If any of these are present together in the matched
@@ -394,23 +417,31 @@ uint8_t MapEvaluateMatchedList(TokenList* matched_list) {
 		// 	Keyword is partially or fully matched
 		// 	Member of a selected identifier list - fully matched
 		//  A look up value in full
-		//	A time or date param - distinguisable by its format
+		//	A time or date param - distinguishable by its format
 		//	string, int, float params
 	if (g_mflags.help_active == 1) {
 		// do nothing, don't filter - keep everything for help display
 		return MR_HELP_ACTIVE;
 	} else {
 		if (TLIsEmpty(matched_list)) {
-			// Dont need to do any more
-			return MR_NO_MATCH;
+			if(g_mflags.lookup_tbd == 1) {
+				return MR_LOOKUP_TBD;
+			} else {
+				if (g_mflags.ident_member_tbd == 1) {
+					return MR_IDENT_MEMBER_TBD;
+				} else {
+					// Dont need to do any more
+					return MR_NO_MATCH;
+				}
+			}
 		}
 		if ((TLGetSize(matched_list)) == 1) {
 			// single entry - no filtering required
 			//  its either uniquely matched and can continue to next token
 			//	or its unique with an action attached (if EOL is next)
-			MapGetASTAByID(TLGetCurrentID(matched_list), &g_temp_asta);
-			g_mflags.last_matched_id = g_temp_asta.id; // to advance from when there's a unique match
-			if (g_temp_asta.action) {
+			MapGetASTAByID(TLGetCurrentID(matched_list), &temp_asta);
+			g_mflags.last_matched_id = temp_asta.id; // to advance from when there's a unique match
+			if (temp_asta.action) {
 				return MR_ACTION_POSSIBLE;
 			} else {
 				return MR_UNIQUE;
@@ -426,9 +457,9 @@ uint8_t MapEvaluateMatchedList(TokenList* matched_list) {
 		switch (MapMatchReduce(matched_list)) {
 			case 0: return MR_ERROR; break;
 			case 1:
-				MapGetASTAByID(TLGetCurrentID(matched_list), &g_temp_asta);
-				g_mflags.last_matched_id = g_temp_asta.id; // to advance from when there's a unique match
-				if (g_temp_asta.action) {
+				MapGetASTAByID(TLGetCurrentID(matched_list), &temp_asta);
+				g_mflags.last_matched_id = temp_asta.id; // to advance from when there's a unique match
+				if (temp_asta.action) {
 					return MR_ACTION_POSSIBLE;
 				} else {
 					return MR_UNIQUE;
@@ -493,8 +524,8 @@ uint16_t MapMatchReduce(TokenList* list) {
 				} else {
 					// error - count  expected to be 1 but did not achieve a unique match
 					#ifdef ITCH_DEBUG
-						strcpy_debug(n_debug_message, ITCH_DEBUG_MATCH_REDUCE_FATAL_SIZE_NOT_1);
-						M(n_debug_message);
+						strcpy_itch_debug(g_debug_message, ITCH_DEBUG_MATCH_REDUCE_FATAL_SIZE_NOT_1);
+						M(g_debug_message);
 					#endif
 
 					g_mflags.error_code = ME_MATCHREDUCE_EXPECTED_1;
@@ -515,8 +546,8 @@ uint16_t MapMatchReduce(TokenList* list) {
 			if (TLGetSize(list) == 1) {
 
 				#ifdef ITCH_DEBUG
-					strcpy_debug(n_debug_message, ITCH_DEBUG_MATCH_REDUCE_UNIQUE_NODE_PASSED_TO_REDUCER);
-					M(n_debug_message);
+					strcpy_itch_debug(g_debug_message, ITCH_DEBUG_MATCH_REDUCE_UNIQUE_NODE_PASSED_TO_REDUCER);
+					M(g_debug_message);
 				#endif
 
 				g_mflags.error_code = PE_LOOKUP_PASSED_TO_REDUCER;
@@ -527,8 +558,8 @@ uint16_t MapMatchReduce(TokenList* list) {
 	}
 
 	#ifdef ITCH_DEBUG
-		strcpy_debug(n_debug_message, ITCH_DEBUG_MATCH_REDUCE_NEXT_DEP_MULTIPLE_USER_PARAM_NODES);
-		M(n_debug_message);
+		strcpy_itch_debug(g_debug_message, ITCH_DEBUG_MATCH_REDUCE_NEXT_DEP_MULTIPLE_USER_PARAM_NODES);
+		M(g_debug_message);
 	#endif
 
 	g_mflags.error_code = PE_MULTIPLE_PARAM_LOOKAHEAD;
@@ -547,31 +578,31 @@ uint16_t MapAdvance(uint8_t in_buf_idx) {
 	// Move to first child so that subsequent matching
 	// will occur against the child and its siblings
 
-	//ASTA temp;
-	MapGetASTAByID(g_mflags.last_matched_id, &g_temp_asta);
+	ASTA temp_asta;
+	MapGetASTAByID(g_mflags.last_matched_id, &temp_asta);
 
 	// set the current_id for the next matching iteration to
 	// the first child of the last matched.
-	g_map_id_current = g_temp_asta.first_child;
+	g_map_id_current = temp_asta.first_child;
 
 	// advance the start pointer (line_pos) in the match
 	// buffer so that the next match starts on the next token
 	g_map_line_pos = in_buf_idx;
 
 	#ifdef ITCH_DEBUG
-		strcpy_debug(n_debug_message, ITCH_DEBUG_MAP_ADVANCE);
-		M(n_debug_message);
+		strcpy_itch_debug(g_debug_message, ITCH_DEBUG_MAP_ADVANCE);
+		M(g_debug_message);
 	#endif
 
 	return g_map_id_current;
 }
 
 uint8_t MapGetAction(uint16_t asta_id, char* action_str) {
-	//ASTA temp_node;
+	ASTA temp_asta;
 	uint8_t result;
-	result = MapGetASTAByID(asta_id, &g_temp_asta);
+	result = MapGetASTAByID(asta_id, &temp_asta);
 	if (result == PEME_NO_ERROR) {
-		strcpy(action_str, g_temp_asta.action_identifier);
+		strcpy(action_str, temp_asta.action_identifier);
 	}
 	return result;
 }

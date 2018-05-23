@@ -31,10 +31,8 @@ uint8_t HALVEDirectInit(void);
 int32_t HALReadVEData(uint16_t data_type);
 
 uint8_t HALSaveEventBuffer(void);
-
 uint8_t HALInitSerial(uint8_t port, uint16_t baudrate);
-
-uint8_t HALEventSerialSend(EventNode* e, uint8_t port, uint16_t baudrate);
+uint8_t HALEventSerialSend(EventNode* e, uint8_t port);
 
 #ifdef USE_ITCH
 void HALInitItch(void);
@@ -59,7 +57,12 @@ void HALDrawDataScreenCV(const UIDataSet* uids, time_t dt);
 
 //FFDateTime HALFFDTNow(void);
 time_t TimeNow(void);
+#ifdef FF_ARDUINO
+uint8_t HALSetRTCTime(char *time_str);
+uint8_t HALSetRTCDate(char *date_str);
+#endif
 void HALInitRTC(void);
+void HALReboot(void);
 
 #ifdef FF_ARDUINO
 void HALDebugLCD(String log_entry);

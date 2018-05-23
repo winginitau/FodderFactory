@@ -69,6 +69,7 @@ void ControllerOperate(BlockNode *b) {
 				if (b->active == 0) {
 					b->active = 1;
 					b->last_update = TimeNow();
+					// XXX Resolve: using event messages to send commands or not?
 					SetCommand(b->settings.con.output, b->settings.con.act_cmd);
 					EventMsg(b->block_id, b->settings.con.output, E_COMMAND, M_CMD_ACT);
 				}

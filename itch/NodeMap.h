@@ -19,8 +19,8 @@
  ******************************************************************************/
 //extern OutputBuffer g_itch_output_buff;		// General output buffer
 //extern char g_out_str[MAX_OUTPUT_LINE_SIZE];	// Strings being assembled for output
-extern char g_temp_str[MAX_OUTPUT_LINE_SIZE];	// Generl string temp
-extern ASTA g_temp_asta;						// Temp asta node (and for the Progmem working copy)
+//extern char g_temp_str[MAX_OUTPUT_LINE_SIZE];	// Generl string temp
+//extern ASTA g_temp_asta;						// Temp asta node (and for the Progmem working copy)
 
 /******************************************************************************
  * Structs and typdefs
@@ -32,16 +32,18 @@ enum {
 	MR_NO_RESULT,
 	MR_NO_MATCH,
 	MR_MULTI,
-	MR_UNIQUE_KEYWORD,
-	MR_UNIQUE_IDENT,
-	MR_PARAM,
-	MR_LOOK_RIGHT,
-	MR_INCOMPLETE,
+	//MR_UNIQUE_KEYWORD,
+	//MR_UNIQUE_IDENT,
+	//MR_PARAM,
+	//MR_LOOK_RIGHT,
+	//MR_INCOMPLETE,
 	MR_ACTION_POSSIBLE,
 	MR_DELIM_SKIP,
 	MR_CONTINUE,
 	MR_UNIQUE,
 	MR_HELP_ACTIVE,
+	MR_LOOKUP_TBD,
+	MR_IDENT_MEMBER_TBD,
 };
 
 typedef struct MATCH_FLAGS {
@@ -50,6 +52,8 @@ typedef struct MATCH_FLAGS {
 	uint8_t last_matched_id;
 	uint8_t match_result;
 	uint16_t error_code;
+	uint8_t lookup_tbd;
+	uint8_t ident_member_tbd;
 } M_FLAGS;
 
 /******************************************************************************

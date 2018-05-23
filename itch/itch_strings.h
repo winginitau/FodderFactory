@@ -57,31 +57,31 @@ static const EnumStringArray parser_error_strings[LAST_PARSE_ERROR] = {
 };
 
 enum {
-	MISC_ERROR = 0,
-	MISC_HELP_HEADING,
-	MISC_ERROR_PROMPT,
-	MISC_ERROR_HEADER,
-	MISC_PROMPT_BASE,
-	MISC_CRNL,
-	MISC_PARAM_DATE,
-	MISC_PARAM_TIME,
-	MISC_PARAM_FLOAT,
-	MISC_PARAM_INTEGER,
-	MISC_PARAM_STRING,
-	LAST_MISC_STRING
+	ITCH_MISC_ERROR = 0,
+	ITCH_MISC_HELP_HEADING,
+	ITCH_MISC_ERROR_PROMPT,
+	ITCH_MISC_ERROR_HEADER,
+	ITCH_MISC_PROMPT_BASE,
+	ITCH_MISC_CRNL,
+	ITCH_MISC_PARAM_DATE,
+	ITCH_MISC_PARAM_TIME,
+	ITCH_MISC_PARAM_FLOAT,
+	ITCH_MISC_PARAM_INTEGER,
+	ITCH_MISC_PARAM_STRING,
+	LAST_ITCH_MISC_STRING
 };
 
 #ifdef USE_PROGMEM
-static const EnumStringArray misc_strings[LAST_MISC_STRING] PROGMEM = {
+static const EnumStringArray misc_itch_strings[LAST_ITCH_MISC_STRING] PROGMEM = {
 #else
-static const EnumStringArray misc_strings[LAST_MISC_STRING] = {
+static const EnumStringArray misc_itch_strings[LAST_ITCH_MISC_STRING] = {
 #endif
 	"MISC_ERROR",
-	"\nCommand Help:\n",
-	"\n\rTry \"?\" or <command> ? for help.\n",
-	"\n\r>>> Error:\n>>> ",
+	"Command Help:\n",
+	"Try \"?\" or <command> ? for help.\n",
+	">>> Error:\n>>> ",
 	"\n$ ",
-	"\n\r",
+	"\n",
 	"<param-date>",
 	"<param-time>",
 	"<param-float>",

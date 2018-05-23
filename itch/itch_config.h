@@ -13,7 +13,7 @@
 
 //#define IDENTIFIER_REGEX "^[a-zA-Z0-9_]{1,31}$"
 
-//#define ITCH_DEBUG
+#define ITCH_DEBUG
 
 #include "common_config.h"
 

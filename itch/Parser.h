@@ -27,9 +27,9 @@ extern void M(char * strn);
 extern char g_itch_replay_buff[MAX_INPUT_LINE_SIZE];
 
 extern OutputBuffer g_itch_output_buff;		// General output buffer
-extern char g_out_str[MAX_OUTPUT_LINE_SIZE];	// Strings being assembled for output
-extern char g_temp_str[MAX_OUTPUT_LINE_SIZE];	// Generl string temp
-extern ASTA g_temp_asta;						// Temp asta node (and for the Progmem working copy)
+//extern char g_out_str[MAX_OUTPUT_LINE_SIZE];	// Strings being assembled for output
+//extern char g_temp_str[MAX_OUTPUT_LINE_SIZE];	// Generl string temp
+//extern ASTA g_temp_asta;						// Temp asta node (and for the Progmem working copy)
 
 /******************************************************************************
  * Structs and typdefs

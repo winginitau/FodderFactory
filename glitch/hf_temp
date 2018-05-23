@@ -10,15 +10,15 @@
 #define OUT_H_
 
 #define MAX_ENUM_STRING_ARRAY_STRING_SIZE 18
-#define MAX_IDENTIFIER_LABEL_SIZE 34
+#define MAX_IDENTIFIER_LABEL_SIZE 24
 #define MAX_AST_LABEL_SIZE 16
-#define MAX_AST_ACTION_SIZE 34
-#define AST_NODE_COUNT 28
+#define MAX_AST_ACTION_SIZE 24
+#define AST_NODE_COUNT 18
 #define MAX_PARAM_COUNT 2
 
 #define XLAT_IDENT_MAP_COUNT 2
 #define XLAT_LOOKUP_MAP_COUNT 2
-#define XLAT_FUNC_MAP_COUNT 15
+#define XLAT_FUNC_MAP_COUNT 11
 
 #define MAX_INPUT_LINE_SIZE 80
 #define MAX_OUTPUT_LINE_SIZE 150
@@ -126,10 +126,6 @@ void ShowBlockByLabel(char* block_label);
 void ShowBlockByID(int16_t param1_int);
 void SendCommandToBlockLabel(char* block_label, uint16_t command);
 void SendCommandToBlockID(int16_t param1_int, uint16_t command);
-void SimIntDataMessageFromBlockLabel(char* block_label, int16_t param2_int);
-void SimFloatDataMessageFromBlockLabel(char* block_label, float param2_float);
-void SimIntDataMessageFromBlockID(int16_t param1_int, int16_t param2_int);
-void SimFloatDataMessageFromBlockID(int16_t param1_int, float param2_float);
 void ShowTime(void);
 void SetTime(char* param1_time);
 void ShowDate(void);
@@ -137,38 +133,28 @@ void SetDate(char* param1_date);
 void SystemReboot(void);
 
 #ifdef USE_PROGMEM
-static const ASTA asta [28] PROGMEM = {
+static const ASTA asta [18] PROGMEM = {
 #else
-static const ASTA asta [28] = {
+static const ASTA asta [18] = {
 #endif
 	1, 1, "SHOW", 0, 0, 2, 6, "",
 	2, 1, "BLOCKS", 1, 1, 0, 3, "SHOW_BLOCKS",
 	3, 1, "SYSTEM", 1, 1, 0, 4, "SHOW_SYSTEM",
 	4, 3, "block_label", 1, 1, 0, 5, "SHOW_BLOCK_LABEL",
 	5, 6, "param-integer", 1, 1, 0, 0, "SHOW_BLOCK_ID",
-	6, 1, "MESSAGE", 0, 0, 7, 22, "",
+	6, 1, "MESSAGE", 0, 0, 7, 12, "",
 	7, 1, "COMMAND", 0, 6, 8, 0, "",
 	8, 3, "block_label", 0, 7, 9, 10, "",
 	9, 2, "command_strings", 1, 8, 0, 0, "COMMAND_BLOCK_LABEL",
-	10, 6, "param-integer", 0, 7, 11, 12, "",
+	10, 6, "param-integer", 0, 7, 11, 0, "",
 	11, 2, "command_strings", 1, 10, 0, 0, "COMMAND_BLOCK_ID",
-	12, 3, "block_label", 0, 7, 13, 17, "",
-	13, 1, "INT", 0, 12, 14, 15, "",
-	14, 6, "param-integer", 1, 13, 0, 0, "MESSAGE_DATA_LABEL_INT",
-	15, 1, "FLOAT", 0, 12, 16, 0, "",
-	16, 7, "param-float", 1, 15, 0, 0, "MESSAGE_DATA_LABEL_FLOAT",
-	17, 6, "param-integer", 0, 7, 18, 0, "",
-	18, 1, "INT", 0, 17, 19, 20, "",
-	19, 6, "param-integer", 1, 18, 0, 0, "MESSAGE_DATA_BLOCK_ID_INT",
-	20, 1, "FLOAT", 0, 17, 21, 0, "",
-	21, 7, "param-float", 1, 20, 0, 0, "MESSAGE_DATA_BLOCK_ID_FLOAT",
-	22, 1, "TIME", 1, 0, 23, 25, "SHOW_TIME",
-	23, 1, "SET", 0, 22, 24, 0, "",
-	24, 5, "param-time", 1, 23, 0, 0, "SET_TIME",
-	25, 1, "DATE", 1, 0, 26, 28, "SHOW_DATE",
-	26, 1, "SET", 0, 25, 27, 0, "",
-	27, 4, "param-date", 1, 26, 0, 0, "SET_DATE",
-	28, 1, "REBOOT", 1, 0, 0, 0, "REBOOT",
+	12, 1, "TIME", 1, 0, 13, 15, "SHOW_TIME",
+	13, 1, "SET", 0, 12, 14, 0, "",
+	14, 5, "param-time", 1, 13, 0, 0, "SET_TIME",
+	15, 1, "DATE", 1, 0, 16, 18, "SHOW_DATE",
+	16, 1, "SET", 0, 15, 17, 0, "",
+	17, 4, "param-date", 1, 16, 0, 0, "SET_DATE",
+	18, 1, "REBOOT", 1, 0, 0, 0, "REBOOT",
 };
 
 #ifdef USE_PROGMEM
@@ -185,14 +171,14 @@ static const XLATMap lookup_map [2] PROGMEM = {
 #else
 static const XLATMap lookup_map [2] = {
 #endif
-	"LookupBlockLabel", 0,
-	"LookupOtherList", 1,
+	"block_label", 0,
+	"some_other_lookup_list", 0,
 };
 
 #ifdef USE_PROGMEM
-static const XLATMap func_map [15] PROGMEM = {
+static const XLATMap func_map [11] PROGMEM = {
 #else
-static const XLATMap func_map [15] = {
+static const XLATMap func_map [11] = {
 #endif
 	"SHOW_BLOCKS", 0,
 	"SHOW_SYSTEM", 1,
@@ -200,15 +186,11 @@ static const XLATMap func_map [15] = {
 	"SHOW_BLOCK_ID", 3,
 	"COMMAND_BLOCK_LABEL", 4,
 	"COMMAND_BLOCK_ID", 5,
-	"MESSAGE_DATA_LABEL_INT", 6,
-	"MESSAGE_DATA_LABEL_FLOAT", 7,
-	"MESSAGE_DATA_BLOCK_ID_INT", 8,
-	"MESSAGE_DATA_BLOCK_ID_FLOAT", 9,
-	"SHOW_TIME", 10,
-	"SET_TIME", 11,
-	"SHOW_DATE", 12,
-	"SET_DATE", 13,
-	"REBOOT", 14,
+	"SHOW_TIME", 6,
+	"SET_TIME", 7,
+	"SHOW_DATE", 8,
+	"SET_DATE", 9,
+	"REBOOT", 10,
 };
 
 uint16_t LookupIdentMap (char* key);

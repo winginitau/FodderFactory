@@ -41,30 +41,18 @@ uint16_t CallFunction(uint8_t func_xlat, ParamUnion params[]) {
 			SendCommandToBlockID(params[0].param_int16_t, params[1].param_uint16_t);
 			break;
 		case 6:
-			SimIntDataMessageFromBlockLabel(params[0].param_char_star, params[1].param_int16_t);
-			break;
-		case 7:
-			SimFloatDataMessageFromBlockLabel(params[0].param_char_star, params[1].param_float);
-			break;
-		case 8:
-			SimIntDataMessageFromBlockID(params[0].param_int16_t, params[1].param_int16_t);
-			break;
-		case 9:
-			SimFloatDataMessageFromBlockID(params[0].param_int16_t, params[1].param_float);
-			break;
-		case 10:
 			ShowTime();
 			break;
-		case 11:
+		case 7:
 			SetTime(params[0].param_char_star);
 			break;
-		case 12:
+		case 8:
 			ShowDate();
 			break;
-		case 13:
+		case 9:
 			SetDate(params[0].param_char_star);
 			break;
-		case 14:
+		case 10:
 			SystemReboot();
 			break;
 		default:
