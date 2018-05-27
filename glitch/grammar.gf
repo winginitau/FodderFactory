@@ -75,16 +75,27 @@
 #include "common_config.h"
 #include <stdint.h>
 #include <string.h>
+#include <ff_string_consts.h>
 
 //
 // Structs used by the parser 
 // 
 
+#ifdef USE_PROGMEM
 typedef struct SIMPLE_STRING_ARRAY_TYPE {
-    // Array of strings relating to enums
+    // Array of strings (usually labels and messages) relating to enums
+    // Inside this struct, extended intitaliser lists are ok
+    char text[MAX_MESSAGE_STRING_LENGTH];
+} SimpleStringArray;
+
+#else
+
+typedef struct SIMPLE_STRING_ARRAY_TYPE {
+    // Array of strings (usually labels and messages) relating to enums
     // Inside this struct, extended intitaliser lists are ok
     const char* text;
 } SimpleStringArray;
+#endif
 
 typedef struct AST_ARRAY {
     uint16_t id;
@@ -351,7 +362,7 @@ LAST_COMMAND
 %#  
 
 %lookup-list block_label LookupBlockLabel
-%lookup-list some_other_lookup_list LookupOtherList
+%#lookup-list some_other_lookup_list LookupOtherList
 
 %# 
 %#  Usage: %action-define <ACTION_IDENTIFIER> <FunctionName>

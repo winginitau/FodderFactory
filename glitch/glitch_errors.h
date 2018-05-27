@@ -58,6 +58,7 @@ enum {
 	E_DUPLICATE_KEYWORD_AT_LEVEL,
 	E_HEADER_WHILE_OTHER_ACTIVE,
 	E_HEADER_END_WITHOUT_START,
+	E_ESCAPE_SEQUENCE_ALREADY_DEFINED,
 	LAST_ERROR,
 };
 
@@ -107,6 +108,7 @@ static const EnumStringArray error_strings[LAST_ERROR] = {
 		"Duplication of keyword at this term level detected",
 		"%header-start encountered while other %code %header or %grammar section already active",
 		"%header-end encountered before %header-start",
+		"Duplicate definition of escape-sequence. Already defined."
 
 };
 

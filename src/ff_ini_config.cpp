@@ -576,9 +576,11 @@ void WriteRunningConfig(void) {
 
 #ifdef USE_PROGMEM
 char* GetINIError(uint8_t e, char* msg_buf) {
-	SimpleStringArray temp;
-	memcpy_P (&temp, &ini_error_strings[e], sizeof temp);
-	strcpy(msg_buf, temp.text);
+	//SimpleStringArray temp;
+	char temp[MAX_MESSAGE_STRING_LENGTH];
+	//XXX on review temp.text is unitialised and sizeof(temp) shouldn't get the string
+	strcpy_P (temp, ini_error_strings[e].text);
+	strcpy(msg_buf, temp);
 	return msg_buf;
 }
 #else

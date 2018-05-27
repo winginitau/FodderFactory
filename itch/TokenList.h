@@ -12,8 +12,10 @@
 
 
 #include "config.h"
-//#include "out.h"
+#include <out.h>
 #include <stdint.h>
+
+typedef struct AST_ARRAY ASTA;
 
 typedef struct TOKEN_NODE {
 	//char label[MAX_IDENTIFIER_LABEL_SIZE];

@@ -172,11 +172,11 @@ SERIAL_POLL_INTERVAL = 0.1          # Seconds
 UI_UPDATE_INTERVAL = 1.0            # Seconds
 
 STD_HEAT_BACK_PALLET = (
-    [-50, 12, FF_FREEZE_BLUE_LG ],       # Freeze Blue
-    [12, 19, FF_COLD_BLUE_LG ],    # Cold Blue
-    [19, 25, FF_GREEN_LG ],     # green - good
-    [25, 30, FF_YELLOW_LG ],    # yellow - warm
-    [30, 100, FF_RED_LG ]     # red - hot
+    [-50.00, 11.99, FF_FREEZE_BLUE_LG ],       # Freeze Blue
+    [12.00, 17.99, FF_COLD_BLUE_LG ],    # Cold Blue
+    [18.00, 22.00, FF_GREEN_LG ],     # green - good
+    [22.01, 25.00, FF_YELLOW_LG ],    # yellow - warm
+    [25.01, 100.00, FF_RED_LG ]     # red - hot
 )
     
 CABINET_HEAT_BACK_PALLET = (

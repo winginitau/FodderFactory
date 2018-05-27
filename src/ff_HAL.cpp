@@ -429,10 +429,10 @@ uint8_t HALEventSerialSend(EventNode* e, uint8_t port) {
 #ifdef USE_ITCH
 void HALInitItch(void) {
 	#ifdef ARDUINO
-		itch.Begin(ITCH_INTERACTIVE);
+		itch.Begin();
 		//itch.Poll();
 	#else
-		itch.Begin(stdin, stdout, ITCH_INTERACTIVE);
+		itch.Begin(stdin, stdout);
 	#endif
 }
 

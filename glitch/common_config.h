@@ -10,8 +10,6 @@
 #ifndef COMMON_CONFIG_H_
 #define COMMON_CONFIG_H_
 
-//#include "config.h"
-
 
 // Visitor pattern result codes
 

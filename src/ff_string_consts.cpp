@@ -40,9 +40,10 @@ uint8_t GetLanguage(void) {
 void GetMessageTypeString(char *str_buf, int message_type_enum) {
 	StringArray temp;
 #ifdef USE_PROGMEM
+	//XXX
 	memcpy_P(&temp, &message_type_strings[message_type_enum], sizeof(temp));
 #else
-	memcpy_P(&temp, &message_type_strings[message_type_enum], sizeof(temp));
+	memcpy(&temp, &message_type_strings[message_type_enum], sizeof(temp));
 #endif
 	strcpy(str_buf, temp.text[GetLanguage()]);
 	//return str_buf;
@@ -53,7 +54,7 @@ void GetMessageString(char *str_buf, int message_enum) {
 #ifdef USE_PROGMEM
 	memcpy_P(&temp, &message_strings[message_enum], sizeof(temp));
 #else
-	memcpy_P(&temp, &message_strings[message_enum], sizeof(temp));
+	memcpy(&temp, &message_strings[message_enum], sizeof(temp));
 #endif
 	strcpy(str_buf, temp.text[GetLanguage()]);
 	//return temp_pgm_string_msg;
@@ -205,9 +206,11 @@ char *strcpy_hal(char *dest, const char *src) {
 	return strcpy(dest, src);
 }
 
+#ifdef ARDUINO
 char *strcpy_hal(char *dest, const __FlashStringHelper *src) {
 	return strcpy_P(dest, (const char *)src);
 }
+#endif
 
 char *strcat_hal(char *dest, const char *src) {
 #ifdef ARDUINO

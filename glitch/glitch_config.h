@@ -19,7 +19,7 @@
 											// 	of the same name as the user_code_out function names
 											// 	with this string prepended to the function name
 											// 	passing all args plus the callback function pointer
-#define USER_CODE_EXTERNAL_CALL_COMMENTED	// Write the external calls but comment them out
+//#define USER_CODE_EXTERNAL_CALL_COMMENTED	// Write the external calls but comment them out
 
 //#define DEBUG
 

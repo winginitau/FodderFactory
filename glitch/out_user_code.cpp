@@ -6,6 +6,7 @@
 #include <stdlib.h>
 
 #include <ff_registry.h>
+
 extern ITCH itch;
 
 void ShowBlocks(void) {
@@ -57,14 +58,6 @@ uint8_t LookupBlockLabel(char* lookup_string) {
 	// prefixed to to the same name as this lookup function.
 
 	if (RegLookupBlockLabel(lookup_string) != 0) return 1;
-	return 0;
-}
-
-uint8_t LookupOtherList(char* lookup_string) {
-	// Modify to suit. Default: call through to a function with USER_CODE_EXTERNAL_CALL
-	// prefixed to to the same name as this lookup function.
-
-	//if (RegLookupOtherList(lookup_string) != 0) return 1;
 	return 0;
 }
 

@@ -156,9 +156,6 @@ uint8_t LookupLookupMembers(uint16_t ident_xlat, char* lookup_string) {
 		case 0:
 			return LookupBlockLabel(lookup_string);
 			break;
-		case 1:
-			return LookupOtherList(lookup_string);
-			break;
 		default:
 		return 0;
 	}

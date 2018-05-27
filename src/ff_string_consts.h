@@ -33,12 +33,13 @@
 #define SRC_FF_STRINGS_H_
 
 
-//#include "ff_sys_config.h"
+#include "ff_sys_config.h"
 //#include "ff_utils.h"
-
+#include <ff_global_defs.h>
 #include <stdint.h>
 #ifdef USE_ITCH
-#include "out.h"
+#include <itch.h>
+#include <out.h>
 #endif
 
 /**************************************************************
@@ -56,12 +57,15 @@
 // with an extra useless dimension.
 
 typedef enum LANG_TYPE {
-	ENGLISH = 0, GERMAN, LAST_LANGUAGE
+	ENGLISH = 0,
+	GERMAN,
+	LAST_LANGUAGE
 } LanguageType;
 
 /**************************************************************
  * String array typedefs
  **************************************************************/
+
 #ifdef USE_PROGMEM
 typedef struct STRING_ARRAY_TYPE {
 	// Longest length of this string in all languages
@@ -73,29 +77,13 @@ typedef struct STRING_ARRAY_TYPE {
 #else
 typedef struct STRING_ARRAY_TYPE {
 	// Longest length of this string in all languages
-	const int max_len;
+	int max_len;
 	// Array of pointers to each language-specific string of type
-	const char* const text[LAST_LANGUAGE];
+	//const char* const text[LAST_LANGUAGE];
+	char text[LAST_LANGUAGE][MAX_MESSAGE_STRING_LENGTH];
 } StringArray;
 #endif
 
-#ifndef USE_ITCH
-
-#ifdef USE_PROGMEM
-typedef struct SIMPLE_STRING_ARRAY_TYPE {
-	// Array of strings (usually labels and messages) relating to enums
-	// Inside this struct, extended intitaliser lists are ok
-	char text[MAX_MESSAGE_STRING_LENGTH];
-} SimpleStringArray;
-#else
-typedef struct SIMPLE_STRING_ARRAY_TYPE {
-	// Array of strings (usually labels and messages) relating to enums
-	// Inside this struct, extended intitaliser lists are ok
-	const char* text;
-} SimpleStringArray;
-#endif
-
-#endif
 
 typedef struct BLOCK_CATS {
 	const uint8_t cat_id;
@@ -103,6 +91,8 @@ typedef struct BLOCK_CATS {
 	const char conf_section_key_base[MAX_LABEL_LENGTH];
 	const char* const conf_keys[MAX_CONF_KEYS_PER_BLOCK];
 } BlockCatArray;
+
+
 
 /**************************************************************
  * Language Strings - Must Follow the typedef that defines it
@@ -115,6 +105,7 @@ static const SimpleStringArray language_strings[LAST_LANGUAGE] = {
 	"English",
 	"Deutsch",
 };
+
 
 #ifndef USE_ITCH
 /**************************************************************
@@ -657,12 +648,13 @@ typedef enum {
 	UNIT_ERROR,
 	CELSIUS,
 	FAHRENHEIT,
-//	KELVIN,
-//	REL_HUM,
-//	CUBIC_M,
-//	LITRES,
-//	PPM,
+	KELVIN,
+	REL_HUM,
+	CUBIC_M,
+	LITRES,
+	PPM,
 	ONOFF,
+	RPM,
 	LAST_UNIT
 } UnitsEnum;
 
@@ -674,12 +666,13 @@ static const SimpleStringArray unit_strings[LAST_UNIT] = {
 	"UnitTypeError",
 	"Celsius",
 	"Fahrenheit",
-//	"Kelvin",
-//	"Rel Hum",
-//	"Cubic Metres",
-//	"litres",
-//	"Parts per Milli
+	"Kelvin",
+	"Relative Humidity",
+	"Cubic Metres",
+	"litres",
+	"Parts per Million",
 	"ONOFF",
+	"Revolutions per Minute"
 };
 
 enum {				// TODO: Code presently assumes SUN = 0
@@ -799,13 +792,13 @@ enum {
 
 enum {						// Misc program strings
 	MISC_ERROR = 0,
-	LAST_MISC,
+	LAST_MISC_STRING,
 };
 
 #ifdef USE_PROGMEM
-static const SimpleStringArray misc_strings[LAST_MISC] PROGMEM = {
+static const SimpleStringArray misc_strings[LAST_MISC_STRING] PROGMEM = {
 #else
-static const SimpleStringArray misc_strings[LAST_MISC] = {
+static const SimpleStringArray misc_strings[LAST_MISC_STRING] = {
 #endif
 	"MISC_ERROR_STRING",
 };
@@ -835,7 +828,9 @@ uint8_t BlockTypeStringArrayIndex(const char* key);
 char *strcpy_misc(char *dest, uint8_t src);
 char *strcat_misc(char *dest, uint8_t src);
 char *strcpy_hal(char *dest, const char *src);
+#ifdef ARDUINO
 char *strcpy_hal(char *dest, const __FlashStringHelper *src);
+#endif
 char *strcat_hal(char *dest, const char *src);
 void *memcpy_hal(void *dest, const void *src, size_t sz);
 

@@ -71,8 +71,11 @@ FILE* osp;	// output stream pointer
  ******************************************************************************/
 
 ITCH::ITCH() {
-	iflags.mode = 0;
+	iflags.mode = ITCH_INIT;
 	iflags.replay = 0;
+	iflags.esc_idx = 0;
+	strcpy(iflags.esc_seq, ITCH_ESCAPE_SEQUENCE);
+
 	#ifndef ARDUINO
 	isp = NULL;
 	osp= NULL;
@@ -85,40 +88,41 @@ ITCH::~ITCH() {
 
 
 #ifdef ARDUINO
-void ITCH::Begin(int mode) {
-	iflags.mode = mode;
-
+void ITCH::Begin() {
+	iflags.mode = ITCH_TEXT_DATA;
 	ParserInit();
-
-	if (iflags.mode == ITCH_INTERACTIVE) {
-		//sprintf(prompt_base, "\n\r$ ");
-		strcpy_itch_hal(prompt_base, misc_itch_strings[ITCH_MISC_PROMPT_BASE].text);
-		WriteDirect(prompt_base);
-		strcpy(prompt_base, prompt);
-	};
-
 }
 
 #else
 
-void ITCH::Begin(FILE* input_stream, FILE* output_stream, int mode) {
+void ITCH::Begin(FILE* input_stream, FILE* output_stream) {
 	isp = input_stream;
 	osp = output_stream;
-	iflags.mode = mode;
 
-	ParserInit();
-
-	if (iflags.mode == ITCH_INTERACTIVE) {
-		//sprintf(prompt_base, "\n\r$ ");
-		strcpy_itch_hal(prompt_base, misc_itch_strings[ITCH_MISC_PROMPT_BASE].text);
-		WriteDirect(prompt_base);
-		strcpy(prompt_base, prompt);
-	};
-
+	iflags.mode = ITCH_TEXT_DATA;
 }
+#endif //else ARDUINO
 
-#endif
-
+void ITCH::SetMode(uint8_t mode) {
+	char out_str[MAX_OUTPUT_LINE_SIZE];
+	iflags.mode = mode;
+	switch (mode) {
+		case ITCH_TEXT_DATA:
+			break;
+		case ITCH_TERMINAL:
+			// ITCH Welcome
+			strcpy_itch_hal(out_str, misc_itch_strings[ITCH_TERMINAL_WELCOME].text);
+			WriteDirect(out_str);
+			// itch prompt
+			strcpy_itch_hal(prompt, misc_itch_strings[ITCH_MISC_PROMPT_BASE].text);
+			WriteDirect(prompt);
+			ParserResetLine();
+			break;
+		default:
+			break;
+			// ERROR
+	}
+}
 
 void ITCH::Poll(void) {
 	char out_str[MAX_OUTPUT_LINE_SIZE];	// Strings being assembled for output
@@ -134,16 +138,10 @@ void ITCH::Poll(void) {
 
 		#ifdef ARDUINO
 		if (Serial.available()) {
-			//delay(5);
 			ch = Serial.read();
 			// XXX deal with terminal modes - local echo?
-			//delay(5);
-			//Serial.flush();
-			//delay(5);
-			Serial.write(ch);
-			//delay(5);
-			//Serial.flush();
-			//delay(5);
+			// Moving "write" to be conditional on mode
+			//Serial.write(ch);
 		} else return;
 		#endif
 
@@ -158,7 +156,32 @@ void ITCH::Poll(void) {
 		}
 	}
 
+	// Process the ch
 	if (ch != EOF) {
+
+		// In non-terminal modes ? - Test for escape sequence
+		if (iflags.mode < ITCH_TERMINAL) {
+
+			// Test if ch is next in escape sequence
+			if (ch == iflags.esc_seq[iflags.esc_idx]) {
+				// matched - advance matching to next
+				iflags.esc_idx++;
+			} else {
+				// sequence broken, reset matching
+				iflags.esc_idx = 0;
+			}
+
+			// Fully matched?
+			if (iflags.esc_idx == ITCH_ESCAPE_SEQUENCE_SIZE) {
+				// Enter terminal mode
+				SetMode(ITCH_TERMINAL);
+				iflags.esc_idx = 0;
+				return;
+			}
+			// not in terminal mode - ignore input
+			//ParserResetLine();
+			return;
+		}
 
 		result = Parse(ch);
 

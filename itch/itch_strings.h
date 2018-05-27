@@ -68,6 +68,7 @@ enum {
 	ITCH_MISC_PARAM_FLOAT,
 	ITCH_MISC_PARAM_INTEGER,
 	ITCH_MISC_PARAM_STRING,
+	ITCH_TERMINAL_WELCOME,
 	LAST_ITCH_MISC_STRING
 };
 
@@ -80,13 +81,14 @@ static const EnumStringArray misc_itch_strings[LAST_ITCH_MISC_STRING] = {
 	"Command Help:\n",
 	"Try \"?\" or <command> ? for help.\n",
 	">>> Error:\n>>> ",
-	"\n$ ",
+	"\nitch:$ ",
 	"\n",
 	"<param-date>",
 	"<param-time>",
 	"<param-float>",
 	"<param-integer>",
 	"<param-string>",
+	"ITCH - Interactive Terminal Command sHell\n",
 };
 
 
@@ -131,7 +133,7 @@ static const EnumStringArray itch_debug_strings[LAST_ITCH_DEBUG_STRING] = {
 	"DEBUG (MapSelectMatchingNodes) Adding Possible Match: ID/Label/Action: ",
 	"DEBUG Fatal in (MatchReduce): size != 1 after iterative delete to unique node\n",
 	"DEBUG Fatal Error in (MatchReduce): unique lookup node passed to reducer\n",
-	"DEBUG (MatchReduce) Error Next parse step dependent on multiple user-param nodes which can't be distinguished\n",
+	"DEBUG (MatchReduce) Error Next parse step dependent on multiple, indistinguishable param nodes\n",
 	"DEBUG (MapAdvance)\n",
 	"DEBUG pf.escape is: ",
 	"DEBUG (P_EOL) **** Action matched and to be called is: ",

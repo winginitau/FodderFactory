@@ -162,7 +162,7 @@ private:
     StringList sub_section_closes;      //initialised in constructor
     bool redundant_close_as_comment;
     bool ignore_case;
-    StringList escape_sequences;            //initialised in constructor
+    char escape_sequence[MAX_BUFFER_WORD_LENGTH];            //initialised in constructor
     bool enum_terminating_member;
     bool enum_plus_list_array;
     char enum_start_value[MAX_BUFFER_WORD_LENGTH];

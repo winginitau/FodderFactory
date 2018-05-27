@@ -29,6 +29,7 @@ Lexer::Lexer() {
     term_level = 0;		// not in a term at all
     previous_directive = D_NONE;
     action_since_last_term = false;
+    escape_sequence[0] = '\0';
 
     max_enum_string_array_string_size = 0;
     max_identifier_label_size = 0;
@@ -307,14 +308,21 @@ void Lexer::Process_D_ESCAPE_SEQUENCE(void) {
         process_result = R_ERROR;
         error_type = E_ESCAPE_SEQUENCE_TOKEN_NULL;
     } else {
-        if (escape_sequences.AddString(token_str)) {
+        if (escape_sequence[0] == '\0') {
+            strcpy(escape_sequence, token_str);
+        	// write the #define to the header file
+        	sprintf(output_string, "#define ITCH_ESCAPE_SEQUENCE \"%s\"\n", token_str);
+        	header_output_queue.EnQueue(output_string);
+        	sprintf(output_string, "#define ITCH_ESCAPE_SEQUENCE_SIZE %d\n\n", (int)strlen(token_str));
+        	header_output_queue.EnQueue(output_string);
+
             process_result = R_COMPLETE;
 			sprintf(temp_string, "Registered \"%s\" as a terminal escape sequence\n", token_str);
 			user_output_queue.EnQueue(temp_string);
 			user_output_available = true;
         } else {
             process_result = R_ERROR;
-            error_type = E_INTERNAL_ERROR_ADDING_TO_SET;
+            error_type = E_ESCAPE_SEQUENCE_ALREADY_DEFINED;
         }
     }
 }
@@ -881,8 +889,6 @@ void Lexer::Process_D_GRAMMAR_END(void) {
 			idents.output.GetOutputAsString(output_string);
 			user_code_output_queue.EnQueue(output_string);
 		}
-
-
 
 		// Add the User Code Action Function Caller function prototype to the header
 		sprintf(output_string, "uint16_t CallFunction(uint8_t func_xlat, ParamUnion params[]);\n");

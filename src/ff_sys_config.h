@@ -31,7 +31,7 @@
 //#define FF_CONFIG
 
 // Optionally:
-#define FF_TEMPERATURE_SIM
+//#define FF_TEMPERATURE_SIM
 // OR with FF_ARDUINO
 //#define FF_TEMP_SIM_WITH_DALLAS
 
@@ -84,7 +84,7 @@
 #define PROGMEM_BLOCK_DEFS
 #endif
 
-#define IN_LOGRATE_OVERRIDE 15				// seconds. Override defined logging rate (for debug)
+//#define IN_LOGRATE_OVERRIDE 15				// seconds. Override defined logging rate (for debug)
 
 #define EXCLUDE_DESCRIPTION			// to save .data segment and heap space on arduino
 #define EXCLUDE_DISPLAYNAME			// to save .data segment and heap space on arduino
@@ -104,7 +104,7 @@
 /************************************************
  DEBUG Directives
  ************************************************/
-#define DEBUG			// Call debug output at all or not?
+//#define DEBUG			// Call debug output at all or not?
 
 #ifdef DEBUG
 //Optionallly:

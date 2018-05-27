@@ -13,7 +13,7 @@
 
 //#define IDENTIFIER_REGEX "^[a-zA-Z0-9_]{1,31}$"
 
-#define ITCH_DEBUG
+//#define ITCH_DEBUG
 
 #include "common_config.h"
 
@@ -24,7 +24,7 @@
 typedef struct ENUM_STRING_ARRAY_TYPE {
 	// Array of strings relating to enums
 	// Inside this struct, extended intitaliser lists are ok
-	char text[MAX_BUFFER_LENGTH];
+	char text[200];
 } EnumStringArray;
 
 

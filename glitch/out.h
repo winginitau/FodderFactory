@@ -17,7 +17,7 @@
 #define MAX_PARAM_COUNT 2
 
 #define XLAT_IDENT_MAP_COUNT 2
-#define XLAT_LOOKUP_MAP_COUNT 2
+#define XLAT_LOOKUP_MAP_COUNT 1
 #define XLAT_FUNC_MAP_COUNT 11
 
 #define MAX_INPUT_LINE_SIZE 80
@@ -36,16 +36,12 @@
 #include "common_config.h"
 #include <stdint.h>
 #include <string.h>
-
+#include <ff_global_defs.h>
 //
 // Structs used by the parser 
 // 
 
-typedef struct SIMPLE_STRING_ARRAY_TYPE {
-    // Array of strings relating to enums
-    // Inside this struct, extended intitaliser lists are ok
-    const char* text;
-} SimpleStringArray;
+
 
 typedef struct AST_ARRAY {
     uint16_t id;
@@ -71,6 +67,9 @@ typedef union {
 } ParamUnion;
 
 
+
+#define ITCH_ESCAPE_SEQUENCE "^^^"
+#define ITCH_ESCAPE_SEQUENCE_SIZE 3
 
 enum {
 	FF_ERROR_CAT = 0,
@@ -109,6 +108,8 @@ enum {
 	LAST_COMMAND,
 };
 
+
+
 #ifdef USE_PROGMEM
 static const SimpleStringArray command_strings [LAST_COMMAND] PROGMEM = {
 #else
@@ -119,6 +120,7 @@ static const SimpleStringArray command_strings [LAST_COMMAND] = {
 	"CMD_OUTPUT_ON",
 	"CMD_RESET_MIN_MAX",
 };
+
 
 void ShowBlocks(void);
 void ShowSystem(void);
@@ -167,12 +169,11 @@ static const XLATMap ident_map [2] = {
 };
 
 #ifdef USE_PROGMEM
-static const XLATMap lookup_map [2] PROGMEM = {
+static const XLATMap lookup_map [1] PROGMEM = {
 #else
-static const XLATMap lookup_map [2] = {
+static const XLATMap lookup_map [1] = {
 #endif
 	"block_label", 0,
-	"some_other_lookup_list", 0,
 };
 
 #ifdef USE_PROGMEM
@@ -199,7 +200,6 @@ uint16_t LookupFuncMap (char* key);
 uint16_t LookupIdentifierMembers(uint16_t ident_xlat, char* lookup_string);
 uint8_t LookupLookupMembers(uint16_t ident_xlat, char* lookup_string);
 uint8_t LookupBlockLabel(char* lookup_string);
-uint8_t LookupOtherList(char* lookup_string);
 uint16_t CallFunction(uint8_t func_xlat, ParamUnion params[]);
 
 #endif // OUT_H_

@@ -18,18 +18,26 @@
 #include "LineBuffer.h"
 #include "OutputBuffer.h"
 #include "Parser.h"
+//XXX hard coded:
+//#include "out.h"
 
 #include <stdio.h>
 
 enum ITCH_MODES {
 	ITCH_INIT,
-	ITCH_INTERACTIVE,
-	ITCH_FILE,
+	ITCH_TEXT_DATA,
+	ITCH_TEXT_PROTOCOL,
+	ITCH_TERMINAL,
+	ITCH_TERMINAL_CONFIG,
+	ITCH_FILE_CONFIG,
 };
 
 typedef struct ITCH_FLAGS {
 	uint8_t mode;
 	uint8_t replay;
+	// XXX
+	char esc_seq[4];
+	uint8_t esc_idx;
 } I_FLAGS;
 
 #ifndef ARDUINO
@@ -44,21 +52,19 @@ private:
 	I_FLAGS iflags;
 
 	// XXX Dynamically allocate prompt? Takes up a lot of static space for most of the time
-	//	For now - just used the base.
 	//char prompt[MAX_OUTPUT_LINE_SIZE];
-	char prompt[5];
-	//char prompt_replay[MAX_OUTPUT_LINE_SIZE];
-	char prompt_base[5];
+	char prompt[20];
 
 public:
 	ITCH();
 	virtual ~ITCH();
 
 	#ifdef ARDUINO
-	void Begin(int mode);
+	void Begin();
 	#else
-	void Begin(FILE* input_stream, FILE* output_stream, int mode);
+	void Begin(FILE* input_stream, FILE* output_stream);
 	#endif
+	void SetMode(uint8_t mode);
 
 	void Poll();
 	static void WriteLine(char* string);
