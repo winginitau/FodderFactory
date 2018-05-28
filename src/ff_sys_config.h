@@ -36,9 +36,9 @@
 //#define FF_TEMP_SIM_WITH_DALLAS
 
 // Optionally:
-//#define FF_RPI_START_DELAY 60000	// Start delay kludge to allow RPIs to get going
+#define FF_RPI_START_DELAY 60000	// Start delay to allow RPIs upstream to to get going
 
-#define USE_ITCH
+//#define USE_ITCH
 
 //#define UI_ATTACHED			// is there a directly attached UI? LCD? Console in sim?
 

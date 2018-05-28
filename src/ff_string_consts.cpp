@@ -202,15 +202,31 @@ char *strcat_misc(char *dest, uint8_t src) {
 	#endif
 }
 
+
+/**************************************************************************
+ * Properly formed Generic string function overloads accommodating PROGMEM
+ *************************************************************************/
 char *strcpy_hal(char *dest, const char *src) {
 	return strcpy(dest, src);
 }
 
+int strcmp_hal(char *dest, const char *src) {
+	return strcmp(dest, src);
+}
+
 #ifdef ARDUINO
+
 char *strcpy_hal(char *dest, const __FlashStringHelper *src) {
 	return strcpy_P(dest, (const char *)src);
 }
+
+int strcmp_hal(char *dest, const __FlashStringHelper *src) {
+	return strcmp_P(dest, (const char *)src);
+}
+
 #endif
+
+/**************************************************************************/
 
 char *strcat_hal(char *dest, const char *src) {
 #ifdef ARDUINO

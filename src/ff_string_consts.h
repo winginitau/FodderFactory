@@ -516,7 +516,16 @@ typedef enum {
 	M78,
 	M79,
 	M80,
-
+	M81,
+	M82,
+	M83,
+	M84,
+	M85,
+	M86,
+	M87,
+	M88,
+	M_HACK_RL_EXHAUST_IF_TOP_HOT_BOT_HOT,
+	M_HACK_RL_CIRC_IF_TOP_HOT_BOT_COLD,
 	LAST_MESSAGE
 } MessageEnum;
 
@@ -606,6 +615,16 @@ static const StringArray message_strings[LAST_MESSAGE] = {
 	14, { "M78",								"M78" },
 	14, { "M79",								"M79" },
 	14, { "M80",								"M80" },
+	14, { "M81",								"M81" },
+	14, { "M82",								"M82" },
+	14, { "M83",								"M83" },
+	14, { "M84",								"M84" },
+	14, { "M85",								"M85" },
+	14, { "M86",								"M86" },
+	14, { "M87",								"M87" },
+	14, { "M88",								"M88" },
+	14, { "HACK: RL_EXHAUST_IF_TOP_HOT_BOT_HOT Changed Type to RL_LOGIC_SINGLENOT",		"M89" },
+	14, { "HACK: RL_CIRC_IF_TOP_HOT_BOT_COLD Changed Type to RL_LOGIC_AND",				"M90" },
 
 };
 
@@ -827,10 +846,15 @@ uint8_t BlockTypeStringArrayIndex(const char* key);
 
 char *strcpy_misc(char *dest, uint8_t src);
 char *strcat_misc(char *dest, uint8_t src);
+
+/********* Properly Formed Overloaded Generics Accommodating PROGMEM **************/
 char *strcpy_hal(char *dest, const char *src);
+int strcmp_hal(char *dest, const char *src);
 #ifdef ARDUINO
 char *strcpy_hal(char *dest, const __FlashStringHelper *src);
+int strcmp_hal(char *dest, const __FlashStringHelper *src);
 #endif
+/**********************************************************************************/
 char *strcat_hal(char *dest, const char *src);
 void *memcpy_hal(void *dest, const void *src, size_t sz);
 

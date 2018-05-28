@@ -104,6 +104,8 @@ uint8_t HALVEDirectInit(void) {
 	if (Serial3) {
 		delay(500);
 		if(Serial3.available()) {
+			Serial3.flush();
+			Serial3.end();
 			return 1;
 		}
 	}

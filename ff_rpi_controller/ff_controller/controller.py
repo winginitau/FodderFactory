@@ -50,7 +50,7 @@ _FF_GREY = [128, 127, 128]
 _FF_SAND = [237, 235, 230]
 _FF_SLATE = [69, 72, 90]
 
-L_G = 0.3
+L_G = 0.2
 H_G = 0.8
 
 FF_BLACK = [x/255 for x in _FF_BLACK]
@@ -173,10 +173,10 @@ UI_UPDATE_INTERVAL = 1.0            # Seconds
 
 STD_HEAT_BACK_PALLET = (
     [-50.00, 11.99, FF_FREEZE_BLUE_LG ],       # Freeze Blue
-    [12.00, 17.99, FF_COLD_BLUE_LG ],    # Cold Blue
-    [18.00, 22.00, FF_GREEN_LG ],     # green - good
-    [22.01, 25.00, FF_YELLOW_LG ],    # yellow - warm
-    [25.01, 100.00, FF_RED_LG ]     # red - hot
+    [11.99, 17.99, FF_COLD_BLUE_LG ],    # Cold Blue
+    [17.99, 22.00, FF_GREEN_LG ],     # green - good
+    [22.00, 25.00, FF_YELLOW_LG ],    # yellow - warm
+    [25.00, 100.00, FF_RED_LG ]     # red - hot
 )
     
 CABINET_HEAT_BACK_PALLET = (
@@ -191,7 +191,7 @@ STD_HEAT_FORE_PALLET = (
     [-50, 12, FF_WHITE_HG ],       # Freeze Blue
     [12, 19, FF_WHITE_HG ],    # Cold Blue
     [19, 25, FF_WHITE_HG ],     # green - good
-    [25, 30, FF_BLACK_HG ],    # yellow - warm
+    [25, 30, FF_WHITE_HG ],    # yellow - warm
     [30, 100, FF_WHITE_HG ]     # red - hot
 )
     
@@ -451,10 +451,10 @@ class FFEnergyButton(FFButton):
             self.color = FF_WHITE_HG
         elif (self.soc > 60):
             self.background_color = FF_YELLOW_LG
-            self.color = FF_BLACK_HG
+            self.color = FF_WHITE
         elif (self.soc > 50):
             self.background_color = FF_RED_LG
-            self.color = FF_BLACK_HG
+            self.color = FF_WHITE
         
         self.text = "[b]Energy    "+"{:.1f}".format(self.soc)+" %     " + \
                     "{:.2f}".format(self.voltage)+" V     " + \

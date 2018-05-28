@@ -104,6 +104,7 @@ void Setup(BlockNode *b) {
 			VE_last_polled = TV_TYPE_INIT;
 			VE_log_rate = VE_LOG_RATE;
 			VE_poll_rate = VE_POLL_RATE;
+			VE_status = STATUS_ENABLED_INIT;
 			EventMsg(SSS, E_INFO, M_VE_INIT);
 		} else {
 			VE_status = STATUS_DISABLED_ERROR;
@@ -121,8 +122,25 @@ void Setup(BlockNode *b) {
 	case FF_SCHEDULE:
 		ScheduleSetup(b);
 		break;
-	case FF_RULE:
+	case FF_RULE: {
+
+		// XXX HACK to fix config error on RL_CIRC_IF_TOP_HOT_BOT_COLD
+		if (strcmp_hal(b->block_label, F("RL_CIRC_IF_TOP_HOT_BOT_COLD")) == 0) {
+			b->block_type = RL_LOGIC_AND;
+			b->settings.rl.param2 = GetBlockIDByLabel("MON_INSIDE_BOTTOM_TOO_COLD");
+			EventMsg(SSS, E_WARNING, M_HACK_RL_CIRC_IF_TOP_HOT_BOT_COLD);
+		}
+
+		// XXX HACK to make config change on RL_EXHAUST_IF_TOP_HOT_BOT_HOT
+		if (strcmp_hal(b->block_label, F("RL_EXHAUST_IF_TOP_HOT_BOT_HOT")) == 0) {
+			b->block_type = RL_LOGIC_SINGLENOT;
+			b->settings.rl.param1 = GetBlockIDByLabel("MON_INSIDE_TOP_TOO_HOT");
+			b->settings.rl.param_not = GetBlockIDByLabel("MON_INSIDE_BOTTOM_TOO_COLD");
+			EventMsg(SSS, E_WARNING, M_HACK_RL_EXHAUST_IF_TOP_HOT_BOT_HOT);
+		}
+
 		RuleSetup(b);
+	}
 		break;
 	case FF_CONTROLLER:
 		ControllerSetup(b);
@@ -195,6 +213,7 @@ void Operate(BlockNode *b) {
 				}
 				if (VE_now >= VE_next_log) {
 					VE_last_logged = TimeNow();
+					VE_status = STATUS_ENABLED_VALID_DATA;
 					EventMsg(SSS, E_DATA, M_VE_SOC, VE_soc, 0);
 					EventMsg(SSS, E_DATA, M_VE_VOLTAGE, VE_voltage, 0);
 					EventMsg(SSS, E_DATA, M_VE_POWER, VE_power, 0);
