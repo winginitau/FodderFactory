@@ -16,6 +16,7 @@
 #include "ff_utils.h"
 #include "ff_sys_config.h"
 #include "ff_string_consts.h"
+#include <stdlib.h>
 #include <string.h>
 
 #ifdef FF_SIMULATOR

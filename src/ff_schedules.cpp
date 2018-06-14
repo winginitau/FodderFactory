@@ -52,7 +52,7 @@ void ScheduleSetup(BlockNode *b) {
 
 		case SCH_ONE_SHOT:
 			// XXX set up Evnt Message Bus subscriber, publisher model
-			// XXX one-shot cludgy to implement using activation logic as the activation is instantaneous
+			// XXX one-shot kludgy to implement using activation logic as the activation is instantaneous
 			// it may not been seen by recipients unless it is held activated for a period
 			// in which case debounce logic would then need to be implemented.
 			b->active = 0;
@@ -205,6 +205,17 @@ void ScheduleOperate(BlockNode *b) {
 		}
 		case SCH_START_DURATION_REPEAT: {
 
+			// XXX HACK
+			if(strcmp_hal(b->block_label, F("SCH_WATERING_BOTTOM_SCHEDULE")) == 0) {
+				uint16_t mon_id;
+				mon_id = GetBlockIDByLabel("MON_INSIDE_BOTTOM_TOO_COLD");
+				if(IsActive(mon_id)) {
+					b->settings.sch.time_duration = 60;
+				} else {
+					b->settings.sch.time_duration = 20;
+				}
+			}
+
 			TV_TYPE last_start_time;
 			TV_TYPE sched_start;
 			TV_TYPE repeat;
@@ -252,11 +263,20 @@ void ScheduleOperate(BlockNode *b) {
 				b->active = 1;
 				b->last_update = now;
 				EventMsg(b->block_id, E_ACT);
+				//XXX HACK
+				if(strcmp_hal(b->block_label, F("SCH_WATERING_BOTTOM_SCHEDULE")) == 0) {
+					EventMsg(SSS, E_WARNING, M_HACK_SCH_WATERING_BOTTOM_SCHEDULE);
+				}
 			}
+
 			if (target_state == 0 && b->active == 1) { //deact
 				b->active = 0;
 				b->last_update = now;
 				EventMsg(b->block_id, E_DEACT);
+				//XXX HACK
+				if(strcmp_hal(b->block_label, F("SCH_WATERING_BOTTOM_SCHEDULE")) == 0) {
+					EventMsg(SSS, E_WARNING, M_HACK_SCH_WATERING_BOTTOM_SCHEDULE);
+				}
 			}
 			break;
 		}

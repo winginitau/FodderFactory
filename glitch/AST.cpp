@@ -223,7 +223,7 @@ void AST::DT(ASTNode* w, Identifiers* idents, bool print) {
 			case AST_LOOKUP:
 				sprintf(temp, "\"%s\", ", w->label);
 				break;
-			case AST_IDENTIFIER:
+			case AST_ENUM_ARRAY:
 
 				// output instance name rather than label
 				idents->GetInstanceName(w->label, instance_name);
@@ -295,6 +295,11 @@ void AST::AttachActionToCurrent(char* action_identifier) {
 	strcpy(current->action_identifier, action_identifier);
 }
 
+void AST::AttachModeChangeToCurrent(char* mode_change_identifier) {
+	current->mode_change = true;
+	strcpy(current->mode_change_identifier, mode_change_identifier);
+}
+
 
 int AST::BuildActionCode(Identifiers& idents) {
 	// While on the AST node that is action-able - "current", walk via
@@ -343,7 +348,7 @@ int AST::BuildActionCode(Identifiers& idents) {
 			case AST_KEYWORD:
 				// ignore - it got us to here anyway
 				break;
-			case AST_IDENTIFIER:
+			case AST_ENUM_ARRAY:
 				if (idents.Exists(walker->label)) {
 					sprintf(param_type, "uint16_t");
 					params.Add(walker->label, param_type);

@@ -154,6 +154,7 @@ int Lexer::ProcessLine(LineBuffer& line_buf) {
         case D_LOOKUP_LIST:					Process_D_LOOKUP_LIST();					break;
         case D_HEADER_START:				Process_D_HEADER_START();					break;
         case D_HEADER_END:					Process_D_HEADER_END();						break;
+        case D_CHANGE_MODE:					Process_D_CHANGE_MODE();					break;
     }
     previous_directive = directive;
     return process_result;
@@ -641,7 +642,7 @@ void Lexer::Process_D_TERM(void) {
 			// Present forms / types:
 			//
 			// <n> keyword <keyword>		// AST_KEYWORD
-			// <n> identifier <identifier>	// AST_IDENTIFIER
+			// <n> enum-array <enum-array-identifier>	// AST_ENUM_ARRAY
 			// <n> lookup <lookup-list>		// AST_LOOKUP
 			//
 			// <n> param-string				// AST_PARAM_STRING,
@@ -656,8 +657,8 @@ void Lexer::Process_D_TERM(void) {
 				error_type = ast.NewNode(term_level, tokens[1]);
 		    	RegisterSize(&max_ast_label_size, tokens[1]);
 			} else {
-				// it is a 3 token form (identifier or lookup)
-				if (   (strcmp(tokens[1], "identifier") == 0)
+				// it is a 3 token form (enum-array or lookup)
+				if (   (strcmp(tokens[1], "enum-array") == 0)
 					|| (strcmp(tokens[1], "lookup") == 0) ) {
 					// check that it has already been defined
 					if (idents.Exists(tokens[2])) {
@@ -718,6 +719,12 @@ void Lexer::Process_D_ACTION_DEFINE(void) {
 			    	RegisterSize(&max_identifier_label_size, tokens[1]);
 			    	RegisterSize(&max_identifier_label_size, tokens[2]);
 			    	RegisterSize(&max_ast_action_size, tokens[2]);
+
+				    // tell the user
+					sprintf(temp_string, "Registered Action: %s which will call function: %s\n", tokens[1], tokens[2]);
+					user_output_queue.EnQueue(temp_string);
+					user_output_available = true;
+
 					process_result = R_COMPLETE;
 				} else {
 					process_result = R_ERROR;
@@ -757,6 +764,11 @@ void Lexer::Process_D_ACTION(void) {
     			code_output_queue.EnQueue(output_string);
     			code_output_available = true;
     		}
+
+    		// Tell the user
+    		sprintf(temp_string, "Processed grammar and built user code for Action: %s\n", tokens[1]);
+			user_output_queue.EnQueue(temp_string);
+			user_output_available = true;
 
     		process_result = R_COMPLETE;
     		action_since_last_term = true;
@@ -818,7 +830,7 @@ void Lexer::Process_D_GRAMMAR_END(void) {
 			header_output_queue.EnQueue(output_string);
 		}
 
-		// write out the identifiers "XLAT map arrays" (idents, lookups, actions)
+		// write out the identifiers "XLAT map arrays" (enum-arrays, lookups, actions)
 		idents.WriteXLATMapArrays();
 		// and send it to the header file
 		while (idents.output.OutputAvailable()) {
@@ -1022,6 +1034,42 @@ void Lexer::Process_D_HEADER_END(void) {
 		error_type = E_HEADER_END_WITHOUT_START;
 	}
 }
+
+void Lexer::Process_D_CHANGE_MODE(void) {
+    if (line.GetTokenStr(tokens[1], 1) == NULL) {
+        process_result = R_ERROR;
+        error_type = E_MODE_CHANGE_WITHOUT_MODE;
+	} else {
+		ast.AttachModeChangeToCurrent(tokens[1]);
+		//ast.BuildActionCode(idents);
+		while (ast.header_output_queue.OutputAvailable()) {
+			ast.header_output_queue.GetOutputAsString(output_string);
+			header_output_queue.EnQueue(output_string);
+			header_output_available = true;
+		}
+		while (ast.user_code_output_queue.OutputAvailable()) {
+			ast.user_code_output_queue.GetOutputAsString(output_string);
+			user_code_output_queue.EnQueue(output_string);
+			user_code_output_available = true;
+		}
+		while (ast.code_output_queue.OutputAvailable()) {
+			ast.code_output_queue.GetOutputAsString(output_string);
+			code_output_queue.EnQueue(output_string);
+			code_output_available = true;
+		}
+
+		// Tell the user
+		sprintf(temp_string, "Processed grammar and built user code for Mode Change: %s\n", tokens[1]);
+		user_output_queue.EnQueue(temp_string);
+		user_output_available = true;
+
+		process_result = R_COMPLETE;
+		action_since_last_term = true;
+	}
+}
+
+
+/********************** OUTPUT HANDLING FUNCTIONS **********************************/
 
 bool Lexer::Header_OutputAvailable() {
     return header_output_available;

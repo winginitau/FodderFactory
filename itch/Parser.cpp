@@ -111,7 +111,7 @@ uint16_t ParserActionDispatcher(uint16_t action_asta_id) {
 		temp_str_ptr = TLGetCurrentLabelPtr(g_parser_param_list);
 		param_type = TLGetCurrentType(g_parser_param_list);
 		switch (param_type) {
-			case AST_IDENTIFIER:
+			case AST_ENUM_ARRAY:
 				uint16_t ident_xlat;
 				uint16_t ident_asta_id;
 				uint8_t member_id;

@@ -34,11 +34,11 @@
  Function Prototypes
 ************************************************/
 
-
+void DebugLog(const __FlashStringHelper *log_message);
 void DebugLog(const char* log_message);
 
-void DebugLog(uint16_t source, uint16_t destination, uint8_t msg_type, uint8_t msg_str, int16_t i_val, float f_val);
-void DebugLog(uint16_t source, uint8_t msg_type, uint8_t msg_str, int16_t i_val, float f_val);
+void DebugLog(uint16_t source, uint16_t destination, uint8_t msg_type, uint8_t msg_str, int32_t i_val, float f_val);
+void DebugLog(uint16_t source, uint8_t msg_type, uint8_t msg_str, int32_t i_val, float f_val);
 void DebugLog(uint16_t source, uint8_t msg_type, uint8_t msg_str);
 
 void D(char* tag, time_t t);

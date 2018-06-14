@@ -19,58 +19,55 @@
 							<builder buildPath="${workspace_loc:/ff_arduino}/Release" id="io.sloeber.sketch.builder.1170596505" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Arduino sketch builder" superClass="io.sloeber.sketch.builder"/>
 							<tool id="io.sloeber.tool.sketch.compiler.cpp.1420035103" name="Arduino C++ Compiler" superClass="io.sloeber.tool.sketch.compiler.cpp">
 								<option id="io.sloeber.compiler.cpp.sketch.option.incpath.1373175890" name="Include Paths (-I)" superClass="io.sloeber.compiler.cpp.sketch.option.incpath" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/core/core}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/core/variant}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/glitch}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/itch}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/DallasTemperature}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/Ethernet/src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/OneWire}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/RTClib}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/SD/utility}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/SD}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/Wire/src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/SPI/src}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/U8g2/src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/SD/src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/core/core}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/core/variant}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/SdFat/src}&quot;"/>
 								</option>
 								<inputType id="io.sloeber.compiler.cpp.sketch.input.1479664372" name="CPP source files" superClass="io.sloeber.compiler.cpp.sketch.input"/>
 							</tool>
 							<tool id="io.sloeber.tool.compiler.c.455928934" name="Arduino C Compiler" superClass="io.sloeber.tool.compiler.c">
 								<option id="io.sloeber.compiler.c.sketch.option.incpath.160198064" name="Include Paths (-I)" superClass="io.sloeber.compiler.c.sketch.option.incpath" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/core/core}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/core/variant}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/glitch}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/itch}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/DallasTemperature}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/Ethernet/src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/OneWire}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/RTClib}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/SD/utility}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/SD}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/Wire/src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/SPI/src}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/U8g2/src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/SD/src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/core/core}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/core/variant}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/SdFat/src}&quot;"/>
 								</option>
 								<inputType id="io.sloeber.compiler.c.sketch.input.951723203" name="C Source Files" superClass="io.sloeber.compiler.c.sketch.input"/>
 							</tool>
 							<tool id="io.sloeber.tool.sketch.compiler.s.1648884968" name="Arduino Assembler" superClass="io.sloeber.tool.sketch.compiler.s">
 								<option id="io.sloeber.compiler.asm.sketch.option.incpath.1170656612" name="Include Paths (-I)" superClass="io.sloeber.compiler.asm.sketch.option.incpath" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/core/core}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/core/variant}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/glitch}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/itch}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/DallasTemperature}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/Ethernet/src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/OneWire}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/RTClib}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/SD/utility}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/SD}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/Wire/src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/SPI/src}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/U8g2/src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/SD/src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/core/core}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/core/variant}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/SdFat/src}&quot;"/>
 								</option>
 								<inputType id="io.sloeber.compiler.S.sketch.input.1581110193" name="Assembly source files" superClass="io.sloeber.compiler.S.sketch.input"/>
 							</tool>
@@ -80,28 +77,24 @@
 							<tool id="io.sloeber.tool.size.1917893766" name="Arduino tool Print Size" superClass="io.sloeber.tool.size"/>
 						</toolChain>
 					</folderInfo>
-					<fileInfo id="io.sloeber.core.toolChain.release.1923527009.1127903390" name="conf_term_grammar_wip.txt" rcbsApplicability="disable" resourcePath="glitch/conf_term_grammar_wip.txt" toolsToInvoke=""/>
 					<fileInfo id="io.sloeber.core.toolChain.release.1923527009.231738945" name="AST.h" rcbsApplicability="disable" resourcePath="glitch/AST.h" toolsToInvoke=""/>
-					<fileInfo id="io.sloeber.core.toolChain.release.1923527009.1640949956" name="out_user_code2.cpp.bak" rcbsApplicability="disable" resourcePath="glitch/out_user_code2.cpp.bak" toolsToInvoke=""/>
 					<fileInfo id="io.sloeber.core.toolChain.release.1923527009.383968397" name="glitch_config.h" rcbsApplicability="disable" resourcePath="glitch/glitch_config.h" toolsToInvoke=""/>
 					<fileInfo id="io.sloeber.core.toolChain.release.1923527009.1182254279" name="gmon.out" rcbsApplicability="disable" resourcePath="glitch/gmon.out" toolsToInvoke=""/>
 					<fileInfo id="io.sloeber.core.toolChain.release.1923527009.1072261200" name="ASTNode.h" rcbsApplicability="disable" resourcePath="glitch/ASTNode.h" toolsToInvoke=""/>
 					<fileInfo id="io.sloeber.core.toolChain.release.1923527009.1493002534" name="grammar.gf" rcbsApplicability="disable" resourcePath="glitch/grammar.gf" toolsToInvoke=""/>
-					<fileInfo id="io.sloeber.core.toolChain.release.1923527009.1918937513" name="command_syntax.txt" rcbsApplicability="disable" resourcePath="glitch/command_syntax.txt" toolsToInvoke=""/>
 					<fileInfo id="io.sloeber.core.toolChain.release.1923527009.1223510076" name="bucket" rcbsApplicability="disable" resourcePath="glitch/bucket" toolsToInvoke=""/>
 					<fileInfo id="io.sloeber.core.toolChain.release.1923527009.1509380594" name="Debug.h" rcbsApplicability="disable" resourcePath="glitch/Debug.h" toolsToInvoke=""/>
 					<fileInfo id="io.sloeber.core.toolChain.release.1923527009.1380304696" name="Identifiers.h" rcbsApplicability="disable" resourcePath="glitch/Identifiers.h" toolsToInvoke=""/>
 					<fileInfo id="io.sloeber.core.toolChain.release.1923527009.1569458570" name="KeyValuePairList.h" rcbsApplicability="disable" resourcePath="glitch/KeyValuePairList.h" toolsToInvoke=""/>
-					<fileInfo id="io.sloeber.core.toolChain.release.1923527009.1901661724" name="hf_temp" rcbsApplicability="disable" resourcePath="glitch/hf_temp" toolsToInvoke=""/>
 					<fileInfo id="io.sloeber.core.toolChain.release.1923527009.859123229" name="LineBuffer.h" rcbsApplicability="disable" resourcePath="glitch/LineBuffer.h" toolsToInvoke=""/>
-					<fileInfo id="io.sloeber.core.toolChain.release.1923527009.1832243840" name="code_template.ct" rcbsApplicability="disable" resourcePath="glitch/code_template.ct" toolsToInvoke=""/>
 					<fileInfo id="io.sloeber.core.toolChain.release.1923527009.130194195" name="config.h" rcbsApplicability="disable" resourcePath="glitch/config.h" toolsToInvoke=""/>
 					<fileInfo id="io.sloeber.core.toolChain.release.1923527009.936208111" name="glitch_errors.h" rcbsApplicability="disable" resourcePath="glitch/glitch_errors.h" toolsToInvoke=""/>
 					<fileInfo id="io.sloeber.core.toolChain.release.1923527009.19893187" name="Identifier.h" rcbsApplicability="disable" resourcePath="glitch/Identifier.h" toolsToInvoke=""/>
 					<fileInfo id="io.sloeber.core.toolChain.release.1923527009.909800190" name="Lexer.h" rcbsApplicability="disable" resourcePath="glitch/Lexer.h" toolsToInvoke=""/>
+					<fileInfo id="io.sloeber.core.toolChain.release.1923527009.309059592" name="out.h" rcbsApplicability="disable" resourcePath="glitch/out.h" toolsToInvoke=""/>
 					<sourceEntries>
 						<entry excluding="libraries/SD/.github|libraries/OneWire/util|itch|glitch|src|libraries/?*/**/?xamples/**|libraries/?*/**/?xtras/**|libraries/?*/**/test*/**|libraries/?*/**/third-party/**|libraries/**/._*|libraries/?*/utility/*/*" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
-						<entry excluding="out.h|out_user_code2.cpp.bak|gmon.out|grammar.gf|conf_term_grammar_wip.txt|command_syntax.txt|code_template.ct|bucket|hf_temp|LineBuffer.h|LineBuffer.cpp|Lexer.h|KeyValuePairList.h|Lexer.cpp|KeyValuePairList.cpp|Identifiers.h|Identifiers.cpp|Identifier.h|glitch.cpp|Identifier.cpp|glitch_errors.h|glitch_config.h|Debug.h|Debug.cpp|config.h|ASTNode.h|ASTNode.cpp|AST.h|AST.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="glitch"/>
+						<entry excluding="out_user_code2.cpp.bak|gmon.out|grammar.gf|conf_term_grammar_wip.txt|command_syntax.txt|code_template.ct|bucket|hf_temp|LineBuffer.h|LineBuffer.cpp|Lexer.h|KeyValuePairList.h|Lexer.cpp|KeyValuePairList.cpp|Identifiers.h|Identifiers.cpp|Identifier.h|glitch.cpp|Identifier.cpp|glitch_errors.h|glitch_config.h|Debug.h|Debug.cpp|config.h|ASTNode.h|ASTNode.cpp|AST.h|AST.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="glitch"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="itch"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
 					</sourceEntries>

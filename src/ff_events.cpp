@@ -58,7 +58,7 @@ const char* FormatEventMessage (EventNode* e, char* e_str) {
 	char msg_type_str[MAX_MESSAGE_STRING_LENGTH];
 	char msg_str[MAX_MESSAGE_STRING_LENGTH];
 	char float_str[20];
-	char fmt_str[24];
+	char fmt_str[25];
 
 	strcpy_hal(fmt_str, F("%Y-%m-%d"));
 	strftime(ymd_str, 14, fmt_str, localtime(&(e->time_stamp)));
@@ -69,7 +69,7 @@ const char* FormatEventMessage (EventNode* e, char* e_str) {
 	GetMessageTypeString(msg_type_str, e->message_type);
 	GetMessageString(msg_str, e->message);
 	FFFloatToCString(float_str, e->float_val);
-	strcpy_hal(fmt_str, F("%s,%s,%s,%s,%s,%s,%d,%s"));
+	strcpy_hal(fmt_str, F("%s,%s,%s,%s,%s,%s,%ld,%s"));
 	sprintf(e_str, fmt_str, ymd_str, hms_str, source_str, destination_str, msg_type_str, msg_str, e->int_val, float_str);
 
 	return e_str;
@@ -169,8 +169,9 @@ void EventBufferPush(EventNode event) {
 
 //***** source and destination functions
 
-void EventMsg(uint16_t source, uint16_t destination, uint8_t msg_type, uint8_t msg_str, int16_t i_val, float f_val) {
+void EventMsg(uint16_t source, uint16_t destination, uint8_t msg_type, uint8_t msg_str, int32_t i_val, float f_val) {
 	// most developed message function - all fields
+	// Accepts 32 bit in value
 	if(event_buffer.init != 0) {
 		DebugLog(SSS, E_STOP, M_EVENTMSG_BEFORE_INIT);
 		while (1);
@@ -204,23 +205,24 @@ void EventMsg(uint16_t source, uint16_t destination, uint8_t msg_type, uint8_t m
 
 void EventMsg(uint16_t source, uint16_t destination, uint8_t msg_type, uint8_t msg_str) {
 	// simplified messages - no numerical data
-	EventMsg(source, destination, msg_type, msg_str, INT16_INIT, FLOAT_INIT);
+	EventMsg(source, destination, msg_type, msg_str, INT32_INIT, FLOAT_INIT);
 }
 
-//***** source only event functions - for backwards compatibility
+//***** source only event functions
 
-void EventMsg(uint16_t source, uint8_t msg_type, uint8_t msg_str, int16_t i_val, float f_val) {
+// 32 bit int, Standard "complete" source only message
+void EventMsg(uint16_t source, uint8_t msg_type, uint8_t msg_str, int32_t i_val, float f_val) {
 	EventMsg(source, BLOCK_ID_NA, msg_type, msg_str, i_val, f_val);
 }
 
 void EventMsg(uint16_t source, uint8_t msg_type) {
 	//source and type only
-	EventMsg(source, msg_type, M_NULL, UINT16_INIT, FLOAT_INIT);
+	EventMsg(source, msg_type, M_NULL, INT32_INIT, FLOAT_INIT);
 }
 
 void EventMsg(uint16_t source, uint8_t msg_type, uint8_t msg_str) {
 	//source, type, message string
-	EventMsg(source, msg_type, msg_str, UINT16_INIT, FLOAT_INIT);
+	EventMsg(source, msg_type, msg_str, INT32_INIT, FLOAT_INIT);
 }
 
 void EventBufferInit(void) {

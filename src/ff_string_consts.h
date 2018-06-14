@@ -32,6 +32,9 @@
 #ifndef SRC_FF_STRINGS_H_
 #define SRC_FF_STRINGS_H_
 
+#ifndef ARDUINO
+#include <stddef.h>
+#endif
 
 #include "ff_sys_config.h"
 //#include "ff_utils.h"
@@ -521,9 +524,9 @@ typedef enum {
 	M83,
 	M84,
 	M85,
-	M86,
-	M87,
-	M88,
+	M_HACK_MON_INSIDE_TOP_TOO_HOT,
+	M_HACK_SCH_WATERING_BOTTOM_SCHEDULE,
+	M_HACK_MON_INSIDE_BOTTOM_TOO_COLD,
 	M_HACK_RL_EXHAUST_IF_TOP_HOT_BOT_HOT,
 	M_HACK_RL_CIRC_IF_TOP_HOT_BOT_COLD,
 	LAST_MESSAGE
@@ -620,9 +623,9 @@ static const StringArray message_strings[LAST_MESSAGE] = {
 	14, { "M83",								"M83" },
 	14, { "M84",								"M84" },
 	14, { "M85",								"M85" },
-	14, { "M86",								"M86" },
-	14, { "M87",								"M87" },
-	14, { "M88",								"M88" },
+	14, { "HACK: MON_INSIDE_TOP_TOO_HOT deact value change",							"M86" },
+	14, { "HACK: Bottom Watering with duration override",								"M87" },
+	14, { "HACK: MON_INSIDE_BOTTOM_TOO_COLD deact value change",						"M88" },
 	14, { "HACK: RL_EXHAUST_IF_TOP_HOT_BOT_HOT Changed Type to RL_LOGIC_SINGLENOT",		"M89" },
 	14, { "HACK: RL_CIRC_IF_TOP_HOT_BOT_COLD Changed Type to RL_LOGIC_AND",				"M90" },
 
@@ -819,7 +822,7 @@ static const SimpleStringArray misc_strings[LAST_MISC_STRING] PROGMEM = {
 #else
 static const SimpleStringArray misc_strings[LAST_MISC_STRING] = {
 #endif
-	"MISC_ERROR_STRING",
+	"MISC_STRING_ERROR",
 };
 
 

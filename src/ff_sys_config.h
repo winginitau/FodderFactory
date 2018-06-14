@@ -104,7 +104,7 @@
 /************************************************
  DEBUG Directives
  ************************************************/
-//#define DEBUG			// Call debug output at all or not?
+#define DEBUG			// Call debug output at all or not?
 
 #ifdef DEBUG
 //Optionallly:
@@ -195,7 +195,8 @@
 #define UINT8_INIT 0xFF
 #define UINT16_INIT 0xFFFF
 #define UINT32_INIT 0xFFFFFFFF
-#define INT16_INIT 0xFFFF
+#define INT16_INIT (int16_t)0xFFFF
+#define INT32_INIT (int32_t)0xFFFFFFFF
 #define FLOAT_INIT 255.000000
 
 //Reserved block IDs

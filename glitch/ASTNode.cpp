@@ -17,12 +17,14 @@ ASTNode::ASTNode() {
 	help[0] = '\0';
 	type = AST_UNDEFINED;
 	action = false;
+	mode_change = false;
 	finish = false;
 	parent = NULL;
 	first_child = NULL;
 	next_sibling = NULL;
 
 	action_identifier[0] = '\0';
+	mode_change_identifier[0] = '\0';
 }
 
 ASTNode::~ASTNode() {

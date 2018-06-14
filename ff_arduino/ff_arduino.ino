@@ -118,6 +118,9 @@ int main(void) {
 	// TODO and sockets etc later
 	// Has to be first step in setup so that config processing can debug to serial
 	HALInitSerial(EVENT_SERIAL_PORT, EVENT_SERIAL_BAUDRATE);
+#ifdef DEBUG
+	DebugLog(F("HALInitSerial Passed"));
+#endif
 
 	// If using itch, init here because it proxies all comms on serial
 	#ifdef USE_ITCH

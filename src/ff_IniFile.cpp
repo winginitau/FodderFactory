@@ -20,8 +20,8 @@ IniFile::IniFile(const char* filename, uint8_t mode, bool caseSensitive)
   _caseSensitive = caseSensitive;
   _error = errorNoError;
   //_file = NULL;
-  SD.begin(10, 11, 12, 13);
-//  SD.begin(10);
+//  SD.begin(10, 11, 12, 13);
+  sd.begin(10);
 
 }
 #endif
@@ -230,7 +230,7 @@ bool IniFile::getValue(const char* section, const char* key,
   return false; 
 }
 
-
+/*
 bool IniFile::getIPAddress(const char* section, const char* key,
 			      char* buffer, size_t len, uint8_t* ip) const
 {
@@ -336,6 +336,8 @@ bool IniFile::getMACAddress(const char* section, const char* key,
   }
   return true;
 }
+
+*/
 
 #ifdef FF_ARDUINO
 //int8_t IniFile::readLine(File &file, char *buffer, size_t len, uint32_t &pos)

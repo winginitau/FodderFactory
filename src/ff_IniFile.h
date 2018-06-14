@@ -3,12 +3,15 @@
 
 #define INIFILE_VERSION "1.0.1 BM"
 
-#include "ff_sys_config.h"
-
+#include <ff_sys_config.h>
+#include <ff_HAL.h>
+#include <stdint.h>
+#include <stddef.h>
 
 #ifdef FF_ARDUINO
-#include "SD.h"
-#include "Ethernet.h"
+#include <SdFat.h>
+//#include "SD.h"
+//#include "Ethernet.h"
 #endif
 #ifdef FF_SIMULATOR
 #include <stdint.h>
@@ -101,7 +104,8 @@ public:
   // Get a float value
   bool getValue(const char* section, const char* key,
 		   char* buffer, size_t len, float& val) const;
-  
+
+/*
   bool getIPAddress(const char* section, const char* key,
 		       char* buffer, size_t len, uint8_t* ip) const;
   
@@ -112,6 +116,7 @@ public:
 
   bool getMACAddress(const char* section, const char* key,
 			char* buffer, size_t len, uint8_t mac[6]) const;
+*/
 
   // Utility function to read a line from a file, make available to all
   //static int8_t readLine(File &file, char *buffer, size_t len, uint32_t &pos);
@@ -164,7 +169,7 @@ bool IniFile::open(void)
   	  fclose(_file);  //used to be a problem here - now seems fixed
 #endif
 #ifdef FF_ARDUINO
-  _file = SD.open(_filename, _mode);
+  _file = sd.open(_filename, _mode);
 #endif
 #ifdef FF_SIMULATOR
   _file = fopen(_filename, _mode);
@@ -183,7 +188,8 @@ void IniFile::close(void) {
 #ifdef FF_ARDUINO
 	if (_file) {
 		_file.close();
-		SD.end();
+		//XXX
+		//SD.end();
 	}
 #endif
 #ifdef FF_SIMULATOR

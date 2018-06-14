@@ -22,6 +22,25 @@
 /************************************************
  Public and Forward Data Structure Declarations
 ************************************************/
+#include <SdFat.h>
+#if ENABLE_SOFTWARE_SPI_CLASS  // Must be set in SdFat/SdFatConfig.h
+//
+// Pin numbers in templates must be constants.
+const uint8_t SOFT_MISO_PIN = 12;
+const uint8_t SOFT_MOSI_PIN = 11;
+const uint8_t SOFT_SCK_PIN  = 13;
+//
+// Chip select may be constant or RAM variable.
+const uint8_t SD_CHIP_SELECT_PIN = 10;
+
+// SdFat software SPI template
+SdFatSoftSpi<SOFT_MISO_PIN, SOFT_MOSI_PIN, SOFT_SCK_PIN> sd;
+
+// Test file.
+//SdFile file;
+#else  // ENABLE_SOFTWARE_SPI_CLASS
+#error ENABLE_SOFTWARE_SPI_CLASS must be set non-zero in SdFat/SdFatConfig.h
+#endif  //ENABLE_SOFTWARE_SPI_CLASS
 
 
 /************************************************

@@ -30,12 +30,47 @@ void LineBuffer::Init() {
 }
 
 int LineBuffer::Tokenise() {
+	// Put the tokens present in the line into word_list[]
+	// Treat anything in double quotes ("...") as a single token
+	// Assumes: there is at most one single string designated by double quotes
+	// Assumes: that any quoted string is at the end of the line
+	// Any number of tokens may precede the quoted string.
+
+	char quoted_string_buf[MAX_BUFFER_LENGTH];
+
+	// Preserve the raw buffer for future use
     strcpy(buf_preserve, buf);
+
+    // Check if the buffer contains a "" delimited string
+    char *pre_quotes;
+    char *in_quotes;
+    bool quotes = false;
+
+    pre_quotes = strtok(buf, "\"");
+    if (pre_quotes != NULL) {
+    	// its not an empty string
+    	in_quotes = strtok(NULL, "\"");
+    	if(in_quotes != NULL) {
+    		// quoted string now pointed to by in_quotes
+    		// with either eol or the next " being null
+    		quotes = true;
+    		//strcpy(quoted_string_buf, in_quotes);
+    	}
+    }
+
+    // buf still points to the start of string
+    // now with the first " turned to null - ie end of string
+    // or unmodified if " couldnt be found.
     int i = 0;
     word_list[i] = strtok(buf, TOKEN_DELIM);
     while (word_list[i] != '\0') {
         i++;
         word_list[i] = strtok(0, TOKEN_DELIM);
+    }
+    if(quotes) {
+    	//strcpy(word_list[i], quoted_string_buf);
+    	word_list[i] = in_quotes;
+    	i++;
     }
     word_idx = i;
     word_count = i;

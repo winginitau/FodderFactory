@@ -23,9 +23,9 @@
 
 #include <stdio.h>
 
-enum ITCH_MODES {
+enum ITCH_SESSION_FLAGS {
 	ITCH_INIT,
-	ITCH_TEXT_DATA,
+	ITCH_TEXT_DATA ,
 	ITCH_TEXT_PROTOCOL,
 	ITCH_TERMINAL,
 	ITCH_TERMINAL_CONFIG,
@@ -40,10 +40,10 @@ typedef struct ITCH_FLAGS {
 	uint8_t esc_idx;
 } I_FLAGS;
 
-#ifndef ARDUINO
-#define strcpy_P(d, s) strcpy(d, s)
-#define strcat_P(d, c) strcat(d, c)
-#endif
+//#ifndef ARDUINO
+//#define strcpy_P(d, s) strcpy(d, s)
+//#define strcat_P(d, c) strcat(d, c)
+//#endif
 
 
 

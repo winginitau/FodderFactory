@@ -97,7 +97,7 @@ void Validate(BlockNode* b) {
 
 	//uint8_t int_val;
 		//init state
-	assert(b->int_val == UINT8_INIT);
+	assert(b->int_val == INT32_INIT);
 
 	//float f_val;
 		//init state

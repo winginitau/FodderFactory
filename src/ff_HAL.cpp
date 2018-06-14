@@ -29,7 +29,8 @@
 #include <U8x8lib.h>
 #endif // LCD_DISPLAY
 #include "RTClib.h"
-#include "SD.h"
+//#include <SD.h>
+//#include <SdFat.h>
 #include <time.h>
 #include "Wire.h"
 #include <avr/wdt.h>
@@ -93,6 +94,9 @@ ITCH itch;
 	int screen_refresh_counter = 0;
 #endif
 
+
+
+
 /************************************************
  Functions
 ************************************************/
@@ -115,7 +119,7 @@ uint8_t HALVEDirectInit(void) {
 int32_t HALReadVEData(uint16_t data_type) {
 	// XXX remove hard coding of serial port
 
-	int32_t ret = INT16_INIT;
+	int32_t ret = INT32_INIT;
 	char VE_line[MAX_LABEL_LENGTH];
 	//char temp_str[MAX_LABEL_LENGTH];
 	char* label;
@@ -177,25 +181,26 @@ int32_t HALReadVEData(uint16_t data_type) {
 				switch (data_type) {
 					case M_VE_SOC:
 						if (strcmp(label, "SOC") == 0) {
-							ret = atoi(value);
+							//ret = atoi(value);
+							sscanf(value, "%ld", &ret);
 							return ret;
 						}
 						break;
 					case M_VE_VOLTAGE:
 						if (strcmp(label, "V") == 0) {
-							ret = atoi(value);
+							sscanf(value, "%ld", &ret);
 							return ret;
 						}
 						break;
 					case M_VE_POWER:
 						if (strcmp(label, "P") == 0) {
-							ret = atoi(value);
+							sscanf(value, "%ld", &ret);
 							return ret;
 						}
 						break;
 					case M_VE_CURRENT:
 						if (strcmp(label, "I") == 0) {
-							ret = atoi(value);
+							sscanf(value, "%ld", &ret);
 							return ret;
 						}
 						break;
@@ -228,8 +233,8 @@ uint8_t HALSaveEventBuffer(void) {
 	// see if the card is present and can be initialized:
 
 	//try using updated library
-	if (SD.begin(10, 11, 12, 13)) {
-//	if (SD.begin(10)) {
+//	if (SD.begin(10, 11, 12, 13)) {
+	if (sd.begin(10)) {
 
 //		DebugLog("DEBUG INFO sd.begin"); //cant use EventMsg
 
@@ -237,7 +242,7 @@ uint8_t HALSaveEventBuffer(void) {
 		char e_str[MAX_LOG_LINE_LENGTH];
 
 		if (!EventBufferEmpty()) {
-			e_file = SD.open(EVENT_FILENAME, FILE_WRITE);
+			e_file = sd.open(EVENT_FILENAME, FILE_WRITE);
 			if (e_file) {
 //				DebugLog("DEBUG INFO SD.open");
 				while (!EventBufferEmpty()) {
@@ -258,7 +263,7 @@ uint8_t HALSaveEventBuffer(void) {
 			DebugLog(SSS, E_ERROR, M_ERROR_EVENTS_EMPTY);
 		}
 
-		SD.end();
+		//SD.end();
 //		DebugLog("DEBUG INFO SD.end");
 	} else {
 		DebugLog(SSS, E_ERROR, M_SD_BEGIN_FAIL);
@@ -290,7 +295,7 @@ uint8_t HALSaveEventBuffer(void) {
 				fprintf(e_file, "%s,", GetBlockLabelString(e->destination));
 				fprintf(e_file, "%s,", GetMessageTypeString(e->message_type));
 				fprintf(e_file, "%s,", GetMessageString(e->message));
-				fprintf(e_file, "%d,", e->int_val);
+				fprintf(e_file, "%ld,", e->int_val);
 				fprintf(e_file, "%f\n", e->float_val);
 				*/
 			}
@@ -994,6 +999,9 @@ void HALReboot(void) {
 	for(;;) {
 	  // do nothing and wait for the eventual...
 	}
-#endif
+	#else
+		exit(0);
+	#endif
+
 }
 

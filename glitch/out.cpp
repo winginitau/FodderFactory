@@ -14,12 +14,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-
-// Code inserted from the grammar file
-// between %code-start and %code-end
-// written as is to the code output file
-
-
 uint16_t CallFunction(uint8_t func_xlat, ParamUnion params[]) {
 	switch (func_xlat) {
 		case 0:
@@ -54,6 +48,12 @@ uint16_t CallFunction(uint8_t func_xlat, ParamUnion params[]) {
 			break;
 		case 10:
 			SystemReboot();
+			break;
+		case 11:
+			BlockIDOn(params[0].param_int16_t);
+			break;
+		case 12:
+			BlockIDOff(params[0].param_int16_t);
 			break;
 		default:
 			return PE_FUNC_XLAT_NOT_MATCHED_IN_CALLFUNCTION;

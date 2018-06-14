@@ -60,6 +60,8 @@ public:
 	int GetASTTypeString(char* return_string, int type);
 
 	void AttachActionToCurrent(char* action_identifier);
+	void AttachModeChangeToCurrent(char* mode_change_identifier);
+
 	int BuildActionCode(Identifiers& idents);
 	int DetermineUnique(void);
 };

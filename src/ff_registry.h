@@ -105,7 +105,7 @@ struct BLOCK_NODE {
 	// not tied to config, though must be initialised in AddNewBlock()
 	uint8_t active;		// boolean flag - is the block activated or deactivated TODO consider renaming
 	uint8_t bool_val;	// generic holder for a boolean value (representing some real world status)
-	uint8_t int_val;	// generic holder of an int value (representing some real world status)
+	int32_t int_val;	// generic holder of an int value (representing some real world status)
 	float f_val;		// generic holder of a float value (representing some real world status)
 	time_t last_update;	// the time the block was last updated / operated / etc
 	uint8_t status;		// generic status flag (eg for MON cat to indicate of the last input read was valid)
@@ -181,6 +181,9 @@ void RegSetTime(char* time_str, void(*Callback)(char*));
 void RegShowDate(void(*Callback)(char*));
 void RegSetDate(char* date_str, void(*Callback)(char*));
 void RegSystemReboot(void(*Callback)(char*));
+void RegBlockIDOn(uint16_t block_id, void(*Callback)(char*));
+void RegBlockIDOff(uint16_t block_id, void(*Callback)(char*));
+
 
 void UpdateStateRegister(uint16_t source, uint8_t msg_type, uint8_t msg_str, int i_val, float f_val);
 UIDataSet* GetUIDataSet(void);

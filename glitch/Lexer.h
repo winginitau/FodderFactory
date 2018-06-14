@@ -72,6 +72,7 @@ enum {
 	D_LOOKUP_LIST,
 	D_HEADER_START,
 	D_HEADER_END,
+	D_CHANGE_MODE,
 	LAST_DIRECTIVE,
 };
 
@@ -121,6 +122,7 @@ static const EnumStringArray grammar_directives[LAST_DIRECTIVE] = {
 		"%lookup-list",
 		"%header-start",
 		"%header-end",
+		"%change-mode",
 };
 
 enum {
@@ -256,6 +258,7 @@ protected:
 	void Process_D_LOOKUP_LIST(void);
 	void Process_D_HEADER_START(void);
 	void Process_D_HEADER_END(void);
+	void Process_D_CHANGE_MODE(void);
 };
 
 #endif /* LEXER_H_ */

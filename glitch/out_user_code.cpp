@@ -5,8 +5,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <ff_registry.h>
-
 extern ITCH itch;
 
 void ShowBlocks(void) {
@@ -17,20 +15,20 @@ void ShowSystem(void) {
 	RegShowSystem(itch.WriteLine);
 }
 
-void ShowBlockByLabel(char* block_label) {
-	RegShowBlockByLabel(block_label, itch.WriteLine);
+void ShowBlockByLabel(char* BLOCK_LABEL) {
+	RegShowBlockByLabel(BLOCK_LABEL, itch.WriteLine);
 }
 
 void ShowBlockByID(int16_t param1_int) {
 	RegShowBlockByID(param1_int, itch.WriteLine);
 }
 
-void SendCommandToBlockLabel(char* block_label, uint16_t command) {
-	RegSendCommandToBlockLabel(block_label, command, itch.WriteLine);
+void SendCommandToBlockLabel(char* BLOCK_LABEL, uint16_t COMMAND_STRING) {
+	RegSendCommandToBlockLabel(BLOCK_LABEL, COMMAND_STRING, itch.WriteLine);
 }
 
-void SendCommandToBlockID(int16_t param1_int, uint16_t command) {
-	RegSendCommandToBlockID(param1_int, command, itch.WriteLine);
+void SendCommandToBlockID(int16_t param1_int, uint16_t COMMAND_STRING) {
+	RegSendCommandToBlockID(param1_int, COMMAND_STRING, itch.WriteLine);
 }
 
 void ShowTime(void) {
@@ -51,6 +49,14 @@ void SetDate(char* param1_date) {
 
 void SystemReboot(void) {
 	RegSystemReboot(itch.WriteLine);
+}
+
+void BlockIDOn(int16_t param1_int) {
+	RegBlockIDOn(param1_int, itch.WriteLine);
+}
+
+void BlockIDOff(int16_t param1_int) {
+	RegBlockIDOff(param1_int, itch.WriteLine);
 }
 
 uint8_t LookupBlockLabel(char* lookup_string) {

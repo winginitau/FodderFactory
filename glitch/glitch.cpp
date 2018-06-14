@@ -92,6 +92,7 @@ void ProcessGrammarFile() {
 	LineBuffer line;		// A custom class that allows char by char build up,
 							//	tokenisation, indexable tokens, and preservation of original,
 							//	smart handling of \r \n, EOL flagging etc
+							// 	Strings enclosed in double quotes ("...") are treated as a single token
 
 	char ch;				// used to read the grammar file char by char
 

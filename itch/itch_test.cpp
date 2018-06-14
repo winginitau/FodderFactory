@@ -35,21 +35,6 @@ itch_test.cpp
 
 ITCH itch;
 
-/*
-extern void M(char strn[]) {
-	char str[MAX_OUTPUT_LINE_SIZE];
-	strncpy(str, strn, MAX_OUTPUT_LINE_SIZE);
-	printf("%s", str);
-
-}
-
-
-extern void ITCHWriteLine(char *str) {
-	char cb_str[MAX_BUFFER_LENGTH];
-	strcpy(cb_str, str);
-	itch.WriteLine(cb_str);
-}
-*/
 
 /****************************************************************************
    Main Calling Routine

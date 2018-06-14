@@ -86,6 +86,7 @@ void MonitorOperate(BlockNode *b) {
 				// nothing more to do
 			} else {
 				b->status = STATUS_ENABLED_VALID_DATA;
+
 				if (fval <= b->settings.mon.act_val) {
 					if (b->active == 0) {
 						b->active = 1;
@@ -93,6 +94,7 @@ void MonitorOperate(BlockNode *b) {
 						EventMsg(b->block_id, E_ACT);
 					}
 				}
+
 				if (fval >= b->settings.mon.deact_val) {
 					if (b->active == 1) {
 						b->active = 0;

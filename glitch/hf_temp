@@ -13,12 +13,12 @@
 #define MAX_IDENTIFIER_LABEL_SIZE 24
 #define MAX_AST_LABEL_SIZE 16
 #define MAX_AST_ACTION_SIZE 24
-#define AST_NODE_COUNT 18
+#define AST_NODE_COUNT 23
 #define MAX_PARAM_COUNT 2
 
 #define XLAT_IDENT_MAP_COUNT 2
 #define XLAT_LOOKUP_MAP_COUNT 1
-#define XLAT_FUNC_MAP_COUNT 11
+#define XLAT_FUNC_MAP_COUNT 13
 
 #define MAX_INPUT_LINE_SIZE 80
 #define MAX_OUTPUT_LINE_SIZE 150
@@ -36,27 +36,13 @@
 #include "common_config.h"
 #include <stdint.h>
 #include <string.h>
-#include <ff_string_consts.h>
+#include <ff_global_defs.h>
+#include <ff_registry.h>
+//#include <ff_string_consts.h>
 
 //
 // Structs used by the parser 
 // 
-
-#ifdef USE_PROGMEM
-typedef struct SIMPLE_STRING_ARRAY_TYPE {
-    // Array of strings (usually labels and messages) relating to enums
-    // Inside this struct, extended intitaliser lists are ok
-    char text[MAX_MESSAGE_STRING_LENGTH];
-} SimpleStringArray;
-
-#else
-
-typedef struct SIMPLE_STRING_ARRAY_TYPE {
-    // Array of strings (usually labels and messages) relating to enums
-    // Inside this struct, extended intitaliser lists are ok
-    const char* text;
-} SimpleStringArray;
-#endif
 
 typedef struct AST_ARRAY {
     uint16_t id;
@@ -80,8 +66,6 @@ typedef union {
 	float param_float;
 	char* param_char_star;
 } ParamUnion;
-
-
 
 #define ITCH_ESCAPE_SEQUENCE "^^^"
 #define ITCH_ESCAPE_SEQUENCE_SIZE 3
@@ -136,29 +120,31 @@ static const SimpleStringArray command_strings [LAST_COMMAND] = {
 
 void ShowBlocks(void);
 void ShowSystem(void);
-void ShowBlockByLabel(char* block_label);
+void ShowBlockByLabel(char* BLOCK_LABEL);
 void ShowBlockByID(int16_t param1_int);
-void SendCommandToBlockLabel(char* block_label, uint16_t command);
-void SendCommandToBlockID(int16_t param1_int, uint16_t command);
+void SendCommandToBlockLabel(char* BLOCK_LABEL, uint16_t COMMAND_STRING);
+void SendCommandToBlockID(int16_t param1_int, uint16_t COMMAND_STRING);
 void ShowTime(void);
 void SetTime(char* param1_time);
 void ShowDate(void);
 void SetDate(char* param1_date);
 void SystemReboot(void);
+void BlockIDOn(int16_t param1_int);
+void BlockIDOff(int16_t param1_int);
 
 #ifdef USE_PROGMEM
-static const ASTA asta [18] PROGMEM = {
+static const ASTA asta [23] PROGMEM = {
 #else
-static const ASTA asta [18] = {
+static const ASTA asta [23] = {
 #endif
 	1, 1, "SHOW", 0, 0, 2, 6, "",
 	2, 1, "BLOCKS", 1, 1, 0, 3, "SHOW_BLOCKS",
 	3, 1, "SYSTEM", 1, 1, 0, 4, "SHOW_SYSTEM",
-	4, 3, "block_label", 1, 1, 0, 5, "SHOW_BLOCK_LABEL",
+	4, 3, "BLOCK_LABEL", 1, 1, 0, 5, "SHOW_BLOCK_LABEL",
 	5, 6, "param-integer", 1, 1, 0, 0, "SHOW_BLOCK_ID",
 	6, 1, "MESSAGE", 0, 0, 7, 12, "",
 	7, 1, "COMMAND", 0, 6, 8, 0, "",
-	8, 3, "block_label", 0, 7, 9, 10, "",
+	8, 3, "BLOCK_LABEL", 0, 7, 9, 10, "",
 	9, 2, "command_strings", 1, 8, 0, 0, "COMMAND_BLOCK_LABEL",
 	10, 6, "param-integer", 0, 7, 11, 0, "",
 	11, 2, "command_strings", 1, 10, 0, 0, "COMMAND_BLOCK_ID",
@@ -168,7 +154,12 @@ static const ASTA asta [18] = {
 	15, 1, "DATE", 1, 0, 16, 18, "SHOW_DATE",
 	16, 1, "SET", 0, 15, 17, 0, "",
 	17, 4, "param-date", 1, 16, 0, 0, "SET_DATE",
-	18, 1, "REBOOT", 1, 0, 0, 0, "REBOOT",
+	18, 1, "CONFIGURE", 0, 0, 19, 20, "",
+	19, 1, "TERMINAL", 0, 18, 0, 0, "",
+	20, 1, "REBOOT", 1, 0, 0, 21, "REBOOT",
+	21, 6, "param-integer", 0, 0, 22, 0, "",
+	22, 1, "ON", 1, 21, 0, 23, "BLOCK_ID_ON",
+	23, 1, "OFF", 1, 21, 0, 0, "BLOCK_ID_OFF",
 };
 
 #ifdef USE_PROGMEM
@@ -185,13 +176,13 @@ static const XLATMap lookup_map [1] PROGMEM = {
 #else
 static const XLATMap lookup_map [1] = {
 #endif
-	"block_label", 0,
+	"BLOCK_LABEL", 0,
 };
 
 #ifdef USE_PROGMEM
-static const XLATMap func_map [11] PROGMEM = {
+static const XLATMap func_map [13] PROGMEM = {
 #else
-static const XLATMap func_map [11] = {
+static const XLATMap func_map [13] = {
 #endif
 	"SHOW_BLOCKS", 0,
 	"SHOW_SYSTEM", 1,
@@ -204,6 +195,8 @@ static const XLATMap func_map [11] = {
 	"SHOW_DATE", 8,
 	"SET_DATE", 9,
 	"REBOOT", 10,
+	"BLOCK_ID_ON", 11,
+	"BLOCK_ID_OFF", 12,
 };
 
 uint16_t LookupIdentMap (char* key);

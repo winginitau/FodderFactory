@@ -348,7 +348,7 @@ void MapSelectMatchingNodes(char* token, TokenList* matched_list) {
 			case AST_PARAM_INTEGER:	cr = Compare_N_PARAM_INTEGER(token, &temp_asta);	break;
 			case AST_PARAM_STRING:	cr = Compare_N_PARAM_STRING(token, &temp_asta);	break;
 			case AST_LOOKUP:		cr = Compare_N_LOOKUP(token, &temp_asta);			break;
-			case AST_IDENTIFIER:	cr = Compare_N_IDENTIFIER(token, &temp_asta);		break;
+			case AST_ENUM_ARRAY:	cr = Compare_N_IDENTIFIER(token, &temp_asta);		break;
 			case AST_KEYWORD:		cr = Compare_N_KEYWORD(token, &temp_asta);			break;
 		};
 
@@ -485,10 +485,10 @@ uint16_t MapMatchReduce(TokenList* list) {
 	// check keywords
 	// if 2 or more keywords, return multi
 	// if single keyword - drop rest, return unique
-	// else (0 keywords,  check identifier
-	// if 2 or more identifier, return multi
-	// if 1 identifier drop rest (would have been looked up in matching process), return uinique
-	// if 0 identifier check lookup
+	// else (0 keywords,  check enum-array
+	// if 2 or more enum-array, return multi
+	// if 1 enum-array drop rest (would have been looked up in matching process), return uinique
+	// if 0 enum-array check lookup
 	// if 2 or more lookup, return multi
 	// if 1 lookup and no others - would have been caught as unique and dealt with in MatchEvaluate
 	//		return error XXX (when implemented)
@@ -503,7 +503,7 @@ uint16_t MapMatchReduce(TokenList* list) {
 
 	// Work through the types in order of precedence - one by one
 	// Starting with the two that have values known to the parser
-	for (type = AST_KEYWORD; type <= AST_IDENTIFIER; type++) {
+	for (type = AST_KEYWORD; type <= AST_ENUM_ARRAY; type++) {
 		count = TLCountByType(list, type);
 		if (count > 1) {
 			// return > 1 - still need more chars to determine uniqueness

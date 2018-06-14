@@ -107,6 +107,11 @@ void DebugConsole (const char* str) {
 }
 #endif //DEBUG_CONSOLE
 
+void DebugLog(const __FlashStringHelper *log_message) {
+	char log_entry[MAX_DEBUG_LENGTH];
+	strcpy_P(log_entry, (char *)log_message);
+	DebugLog(log_entry);
+}
 
 void DebugLog(const char* log_message) {
 	//Base function - add date and time to a string and send to defined debug destinations
@@ -147,8 +152,8 @@ void DebugLog(const char* log_message) {
 }
 
 
-void DebugLog(uint16_t source, uint16_t destination, uint8_t msg_type, uint8_t msg_str, int16_t i_val, float f_val) {
-	char fmt_str[27];
+void DebugLog(uint16_t source, uint16_t destination, uint8_t msg_type, uint8_t msg_str, int32_t i_val, float f_val) {
+	char fmt_str[28];
 	char msg_type_string[MAX_MESSAGE_STRING_LENGTH];
 	char msg_string[MAX_MESSAGE_STRING_LENGTH];
 	// Full version - mirrors event message format
@@ -160,19 +165,19 @@ void DebugLog(uint16_t source, uint16_t destination, uint8_t msg_type, uint8_t m
 
 		if (destination != UINT16_INIT) {
 			FFFloatToCString(f_str, f_val);
-			strcpy_hal(fmt_str, F("[%s]->[%s], %s, %s, %d, %s"));
+			strcpy_hal(fmt_str, F("[%s]->[%s], %s, %s, %ld, %s"));
 			sprintf(debug_log_message, fmt_str, GetBlockLabelString(source), GetBlockLabelString(destination), msg_type_string, msg_string, i_val, f_str);
 		} else {
 			if (msg_str == M_NULL) {
 				strcpy_hal(fmt_str, F("[%s] %s"));
 				sprintf(debug_log_message, fmt_str, GetBlockLabelString(source), msg_type_string);
 			} else {
-				if (i_val == (int16_t)INT16_INIT) {
+				if (i_val == (int32_t)INT32_INIT) {
 					strcpy_hal(fmt_str, F("[%s], %s, %s"));
 					sprintf(debug_log_message, fmt_str, GetBlockLabelString(source), msg_type_string, msg_string);
 				} else {
 					FFFloatToCString(f_str, f_val);
-					strcpy_hal(fmt_str, F("[%s], %s, %s, %d, %s"));
+					strcpy_hal(fmt_str, F("[%s], %s, %s, %ld, %s"));
 					sprintf(debug_log_message, fmt_str, GetBlockLabelString(source), msg_type_string, msg_string, i_val, f_str);
 				}
 			}
@@ -181,7 +186,7 @@ void DebugLog(uint16_t source, uint16_t destination, uint8_t msg_type, uint8_t m
 	}
 }
 
-void DebugLog(uint16_t source, uint8_t msg_type, uint8_t msg_str, int16_t i_val, float f_val) {
+void DebugLog(uint16_t source, uint8_t msg_type, uint8_t msg_str, int32_t i_val, float f_val) {
 	//full version without destination
 	DebugLog(source, UINT16_INIT, msg_type, msg_str, i_val, f_val);
 }
@@ -257,8 +262,8 @@ void Dump(BlockNode *b, char* tag) {
 
 void DebugLog(const char* log_message) {};
 
-void DebugLog(uint16_t source, uint16_t destination, uint8_t msg_type, uint8_t msg_str, int16_t i_val, float f_val) {};
-void DebugLog(uint16_t source, uint8_t msg_type, uint8_t msg_str, int16_t i_val, float f_val) {};
+void DebugLog(uint16_t source, uint16_t destination, uint8_t msg_type, uint8_t msg_str, int32_t i_val, float f_val) {};
+void DebugLog(uint16_t source, uint8_t msg_type, uint8_t msg_str, int32_t i_val, float f_val) {};
 void DebugLog(uint16_t source, uint8_t msg_type, uint8_t msg_str) {};
 
 

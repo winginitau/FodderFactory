@@ -69,7 +69,7 @@ static FFStateRegister sr;
 static uint16_t block_count = 0;
 static BlockNode *bll = NULL;		//Block Linked List - variant record block list
 
-// XXX VE Direct Hack
+// XXX HACK VE Direct
 time_t VE_last_polled;
 time_t VE_last_logged;
 TV_TYPE VE_log_rate;
@@ -117,6 +117,20 @@ void Setup(BlockNode *b) {
 		InputSetup(b);
 		break;
 	case FF_MONITOR:
+
+		// Hack to tweak MON_INSIDE_BOTTOM_TOO_COLD deact from 19 to 21
+		if(strcmp_hal(b->block_label, F("MON_INSIDE_BOTTOM_TOO_COLD")) == 0) {
+			b->settings.mon.deact_val = 21;
+			EventMsg(SSS, E_WARNING, M_HACK_MON_INSIDE_BOTTOM_TOO_COLD);
+		}
+
+		// Hack to tweak MON_INSIDE_TOP_TOO_HOT deact from 21 to 21.x to stop circ exh race
+		if(strcmp_hal(b->block_label, F("MON_INSIDE_TOP_TOO_HOT")) == 0) {
+			b->settings.mon.deact_val = 21.6;
+			EventMsg(SSS, E_WARNING, M_HACK_MON_INSIDE_TOP_TOO_HOT);
+		}
+
+
 		MonitorSetup(b);
 		break;
 	case FF_SCHEDULE:
@@ -424,7 +438,7 @@ BlockNode* AddBlockNode(BlockNode** head_ref, uint8_t block_cat, const char *blo
 		// initialise operational, run-time block data
 		new_block->active = 0;
 		new_block->bool_val = 0;
-		new_block->int_val = UINT8_INIT;
+		new_block->int_val = INT32_INIT;
 		new_block->f_val = FLOAT_INIT;
 		new_block->last_update = UINT32_INIT;
 		new_block->status = STATUS_ENABLED_INIT;
@@ -679,7 +693,7 @@ void RegShowBlockByID(uint16_t id, void (*Callback)(char *)) {
 		strcpy_hal(fmt_str, F(" bool_val:     %d"));
 		sprintf(out_str, fmt_str, b->bool_val);
 		Callback(out_str);
-		strcpy_hal(fmt_str, F(" int_val:      %d"));
+		strcpy_hal(fmt_str, F(" int_val:      %ld"));
 		sprintf(out_str, fmt_str, b->int_val);
 		Callback(out_str);
 		FFFloatToCString(temp_str, b->f_val);
@@ -756,8 +770,7 @@ void RegShowBlockByID(uint16_t id, void (*Callback)(char *)) {
 			case FF_SCHEDULE: {
 				strcpy_hal(out_str, F("Schedule:"));
 				Callback(out_str);
-				strcpy_hal(fmt_str, F(" days          "));
-				sprintf(out_str, fmt_str);
+				strcpy_hal(out_str, F(" days          "));
 				for (uint8_t i = 0; i < 7; i++) {
 					strcpy_hal(fmt_str, F("%d "));
 					sprintf(temp_str, fmt_str, b->settings.sch.days[i]);
@@ -1018,6 +1031,14 @@ void RegSystemReboot(void(*Callback)(char*)) {
 	Callback(NULL); //stop compiler complaining
 }
 
+void RegBlockIDOn(uint16_t block_id, void(*Callback)(char*)) {
+	RegSendCommandToBlockID(block_id, CMD_OUTPUT_ON, Callback);
+}
+
+void RegBlockIDOff(uint16_t block_id, void(*Callback)(char*)) {
+	RegSendCommandToBlockID(block_id, CMD_OUTPUT_OFF, Callback);
+}
+
 /********************************************************************************************
  * State Register and UI Data Set Functions
  ********************************************************************************************/
@@ -1027,7 +1048,7 @@ UIDataSet* GetUIDataSet(void) {
 	return &sr.ui_data;
 }
 
-void UpdateStateRegister(uint16_t source, uint8_t msg_type, uint8_t msg_str, int i_val, float f_val) {
+void UpdateStateRegister(uint16_t source, uint8_t msg_type, uint8_t msg_str, int32_t i_val, float f_val) {
 
 	//TODO include further registry block logic update here
 

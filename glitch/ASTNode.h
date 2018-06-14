@@ -17,11 +17,16 @@
 static const EnumStringArray ast_type_strings[LAST_AST_TYPE] = {
 		"undefined",
 		"keyword",
-		"identifier",
+		"enum-array",
 		"lookup",
 		"param-date",
 		"param-time",
 		"param-integer",
+		"param-uint8",
+		"param-uint16",
+		"param-uint32",
+		"param-int16",
+		"param-int32",
 		"param-float",
 		"param-string",
 
@@ -45,12 +50,14 @@ public:
 	int term_level;
 	int type;
 	bool action;
+	bool mode_change;
 	bool finish;
 	ASTNode* parent;
 	ASTNode* next_sibling;
 	ASTNode* first_child;
 
 	char action_identifier[MAX_BUFFER_WORD_LENGTH];
+	char mode_change_identifier[MAX_BUFFER_WORD_LENGTH];
 
 	ASTNode();
 	virtual ~ASTNode();

@@ -98,8 +98,8 @@ void ITCH::Begin() {
 void ITCH::Begin(FILE* input_stream, FILE* output_stream) {
 	isp = input_stream;
 	osp = output_stream;
-
 	iflags.mode = ITCH_TEXT_DATA;
+	ParserInit();
 }
 #endif //else ARDUINO
 
@@ -275,8 +275,10 @@ void ITCH::Poll(void) {
 }
 
 void ITCH::WriteLine(char* string) {
-	g_itch_output_buff.AddString(string);
-	g_itch_output_buff.SetOutputAvailable();
+	if(string != NULL) {
+		g_itch_output_buff.AddString(string);
+		g_itch_output_buff.SetOutputAvailable();
+	}
 }
 
 void ITCH::WriteLineDirect(char* string) {

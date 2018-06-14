@@ -55,7 +55,15 @@ void InputSetup(BlockNode *b) {
 				b->f_val = temp;
 				EventMsg(b->block_id, E_DATA, M_F_READ, 0, b->f_val);
 			} else {
-				EventMsg(b->block_id, E_WARNING, M_BAD_TEMPERATURE_READ, 0, b->f_val);
+				// Try again
+				temp = GetTemperature(b->settings.in.if_num);
+				if ( (temp > (float) -20) && temp < (float)80) {
+					// reasonable value, update the block and report
+					b->f_val = temp;
+					EventMsg(b->block_id, E_DATA, M_F_READ, 0, b->f_val);
+				} else {
+					EventMsg(b->block_id, E_WARNING, M_BAD_TEMPERATURE_READ, 0, b->f_val);
+				}
 			}
 			#ifdef IN_LOGRATE_OVERRIDE
 			b->settings.in.log_rate = IN_LOGRATE_OVERRIDE;
@@ -99,7 +107,15 @@ void InputOperate(BlockNode *b) {
 					b->f_val = temp;
 					EventMsg(b->block_id, E_DATA, M_F_READ, 0, b->f_val);
 				} else {
-					EventMsg(b->block_id, E_WARNING, M_BAD_TEMPERATURE_READ, 0, b->f_val);
+					// Try again
+					temp = GetTemperature(b->settings.in.if_num);
+					if ( (temp > (float) -20) && temp < (float)80) {
+						// reasonable value, update the block and report
+						b->f_val = temp;
+						EventMsg(b->block_id, E_DATA, M_F_READ, 0, b->f_val);
+					} else {
+						EventMsg(b->block_id, E_WARNING, M_BAD_TEMPERATURE_READ, 0, b->f_val);
+					}
 				}
 				//EventMsg(b->block_id, E_DATA, M_F_READ, 0, b->f_val);
 			}
