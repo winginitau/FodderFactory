@@ -9,6 +9,7 @@
 
 const uint8_t IniFile::maxFilenameLen = INI_FILE_MAX_FILENAME_LEN;
 
+
 #ifdef FF_ARDUINO
 IniFile::IniFile(const char* filename, uint8_t mode, bool caseSensitive)
 {
@@ -20,8 +21,8 @@ IniFile::IniFile(const char* filename, uint8_t mode, bool caseSensitive)
   _caseSensitive = caseSensitive;
   _error = errorNoError;
   //_file = NULL;
-//  SD.begin(10, 11, 12, 13);
-  sd.begin(10);
+  SD.begin(10, 11, 12, 13);
+//  SD.begin(10);
 
 }
 #endif

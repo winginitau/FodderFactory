@@ -7,99 +7,9 @@
 %# ... or if prexisiting
 %# rule 1025
 
-
-
-
-%1 enum-array-member BLOCK_CATEGORY FF_INPUT  
-%2 lookup BLOCK_LABEL
-
-%schema-define FF_INPUT_SETTINGS InputSettings
-label   %param-string %inherit %2    label           char*       %required
-type    %enum-array BLOCK_TYPE_INPUT block_type      uint16_t    %optional-disable
-int     %enum-array INTERFACE        interface       uint8_t     %optional-disable
-subint  %param-uint8                 if_num          uint8_t     %optional-disbale
-log     %param-time                  log_rate        TV_TYPE     %optional-disbale
-%#    uint8_t data_units;
-%#    uint8_t data_type;      // float, int
-%schema-end
-
-%1 enum-array-member BLOCK_CATEGORY FF_MONITOR  
-%2 lookup BLOCK_LABEL
-
-
-typedef struct FF_MONITOR_SETTINGS {
-    uint16_t input1;
-    uint16_t input2;
-    uint16_t input3;
-    uint16_t input4;
-    float act_val;
-    float deact_val;
-} MonitorSettings;
-
-
-
-%1 enum-array-member BLOCK_CATEGORY FF_RULE 
-%2 lookup BLOCK_LABEL
-
-%schema-define FF_RULE_SETTINGS RuleSettings    
-%#<keyword>  <%grammar-term> <param-to-term> <field-name> <ANSI-C-type> <%options>       
-label   %param-string %inherit %2    label           char*       %required
-type    %enum-array BLOCK_TYPE_RULE  block_type      uint16_t    %optional-disable
-disp    %param-string                display_name    char*       %optional-exclude EXCLUDE_DISPLAYNAME
-descr   %param-string                description     char*       %optional-exclude EXCLUDE_DESCRIPTION
-p1      %lookup BLOCK_LABEL          param1          uint16_t    %optional-disable 
-p2      %lookup BLOCK_LABEL          param2          uint16_t    %optional 
-p3      %lookup BLOCK_LABEL          param3          uint16_t    %optional 
-pn      %lookup BLOCK_LABEL          param4          uint16_t    %optional 
-%schema-end
-
-%1 enum-array-member BLOCK_CATEGORY FF_SCHED 
-%2 lookup BLOCK_LABEL
-
-%schema-parser-define FF_SCHED_SETTINGS SchedSettings
-label    %param-string %inherit %2    label           char*       %required
-type     %enum-array BLOCK_TYPE_SCHED block_type      uint16_t    %optional-disable
-days     %param-day-list              days[7]         uint8_t     %optional-disable
-start    %param-time                  time_start      time_t      %optional-disable
-end      %param-time                  time_end        time_t      %optional
-duration %param-time                  time_duration   TV_TYPE     %optional
-repeat   %param-time                  time_repeat     TV_TYPE     %optional
-%schema-end
-
-
-
-
-
-typedef struct FF_CONTROLLER_SETTINGS {
-    uint16_t rule;
-    uint16_t output;
-    uint8_t act_cmd;
-    uint8_t deact_cmd;
-} ControllerSettings;
-
-typedef struct FF_OUTPUT_SETTINGS {
-    uint8_t interface;
-    uint8_t if_num;
-    uint8_t command;
-} OutputSettings;
-
-
-typedef union BLOCK_SETTINGS {
-    SystemSettings sys;
-    InputSettings in;
-    MonitorSettings mon;
-    ScheduleSettings sch;
-    RuleSettings rl;
-    ControllerSettings con;
-    OutputSettings out;
-} BlockSettings;
-
-struct BLOCK_NODE {
-    // common configuration data
-    // note: these types are locked to config file keys strings
-    // see ff_string_consts.h
-    struct BLOCK_NODE *next_block;
-    uint8_t block_cat;
+%typedef-struct-parse BLOCK_NODE BlockNode
+%sys            struct BLOCK_NODE *next_block   NULL
+%inherit %1     uint8_t block_cat;
     uint16_t block_type;
     uint16_t block_id;
     char *block_label;
@@ -122,9 +32,100 @@ struct BLOCK_NODE {
     // union of block_type specific settings
     // also tied to config file key strings
     BlockSettings settings;
-};
+%end-typedef-struct
 
-typedef struct BLOCK_NODE BlockNode;
+
+
+%1 enum-array-member BLOCK_CATEGORY FF_INPUT  
+%2 lookup BLOCK_LABEL
+
+%schema-parser-define FF_INPUT_SETTINGS InputSettings
+label   %param-string %inherit %2    label           char*       %required
+type    %enum-array BLOCK_TYPE_INPUT block_type      uint16_t    %optional-disable
+int     %enum-array INTERFACE        interface       uint8_t     %optional-disable
+subint  %param-uint8                 if_num          uint8_t     %optional-disbale
+log     %param-time                  log_rate        TV_TYPE     %optional-disbale
+%#    uint8_t data_units;
+%#    uint8_t data_type;      // float, int
+%schema-end
+
+%1 enum-array-member BLOCK_CATEGORY FF_MONITOR  
+%2 lookup BLOCK_LABEL
+
+%schema-parser-define FF_MONITOR_SETTINGS MonitorSettings    
+%#<keyword>  <%grammar-term> <param-to-term> <field-name> <ANSI-C-type> <%options>       
+label   %param-string %inherit %2       label           char*       %required
+type    %enum-array BLOCK_TYPE_MONITOR  block_type      uint16_t    %optional-disable
+in1     %lookup BLOCK_LABEL             input1          uint16_t    %optional-disable
+in2     %lookup BLOCK_LABEL             input2          uint16_t    %optional
+in3     %lookup BLOCK_LABEL             input3          uint16_t    %optional
+in4     %lookup BLOCK_LABEL             input4          uint16_t    %optional
+act     %param-float                    act_val         float       %optional-disable
+deact   %param-float                    deact_val       float%      optional-disable
+%schema-end
+
+%1 enum-array-member BLOCK_CATEGORY FF_RULE 
+%2 lookup BLOCK_LABEL
+
+%schema-parser-define FF_RULE_SETTINGS RuleSettings    
+%#<keyword>  <%grammar-term> <param-to-term> <field-name> <ANSI-C-type> <%options>       
+label   %param-string %inherit %2    label           char*       %required
+type    %enum-array BLOCK_TYPE_RULE  block_type      uint16_t    %optional-disable
+disp    %param-string                display_name    char*       %optional-exclude EXCLUDE_DISPLAYNAME
+descr   %param-string                description     char*       %optional-exclude EXCLUDE_DESCRIPTION
+p1      %lookup BLOCK_LABEL          param1          uint16_t    %optional-disable 
+p2      %lookup BLOCK_LABEL          param2          uint16_t    %optional 
+p3      %lookup BLOCK_LABEL          param3          uint16_t    %optional 
+pn      %lookup BLOCK_LABEL          param4          uint16_t    %optional 
+%schema-end
+
+%1 enum-array-member BLOCK_CATEGORY FF_SCHEDULE 
+%2 lookup BLOCK_LABEL
+
+%schema-parser-define FF_SCHED_SETTINGS ScheduleSettings
+label    %param-string %inherit %2          label           char*       %required
+type     %enum-array BLOCK_TYPE_SCHEDULE    block_type      uint16_t    %optional-disable
+days     %param-day-list                    days[7]         uint8_t     %optional-disable
+start    %param-time                        time_start      time_t      %optional-disable
+end      %param-time                        time_end        time_t      %optional
+duration %param-time                        time_duration   TV_TYPE     %optional
+repeat   %param-time                        time_repeat     TV_TYPE     %optional
+%schema-end
+
+%1 enum-array-member BLOCK_CATEGORY FF_CONTROLLER 
+%2 lookup BLOCK_LABEL
+
+%schema-parser-define FF_CONTROLLER_SETTINGS ControllerSettings
+label    %param-string %inherit %2          label           char*       %required
+type     %enum-array BLOCK_TYPE_CONTROLLER  block_type      uint16_t    %optional-disable
+rule     %lookup BLOCK_LABEL                rule            uint16_t    %optional-disable
+output   %lookup BLOCK_LABEL                output          uint16_t    %optional-disable
+actcmd   %enum-arrary COMMAND_STRING        act_cmd         uint8_t     %optional-disable
+deactcmd %enum-arrary COMMAND_STRING        deact_cmd       uint8_t     %optional-disable
+%echema-end
+
+%1 enum-array-member BLOCK_CATEGORY FF_OUTPUT 
+%2 lookup BLOCK_LABEL
+
+%schema-parser-define FF_OUTPUT_SETTINGS OutputSettings
+label   %param-string %inherit %2    label           char*       %required
+int     %enum-array INTERFACE        interface       uint8_t     %optional-disable
+subint  %param-uint8                 if_num          uint8_t     %optional-disbale
+%schema-end
+
+typedef union BLOCK_SETTINGS {
+    SystemSettings sys;
+    InputSettings in;
+    MonitorSettings mon;
+    ScheduleSettings sch;
+    RuleSettings rl;
+    ControllerSettings con;
+    OutputSettings out;
+} BlockSettings;
+
+
+
+
 
 
 %#keyword BLOCK

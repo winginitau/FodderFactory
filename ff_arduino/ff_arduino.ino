@@ -40,7 +40,7 @@
 //			Touch screen for fodder - or should it be an app? or both?
 //			Genericising the user app - Design process also deploys an app?
 //	Immediate needs (fodder and frustrations)
-//		XXX *current sensor dropout bug
+//		<done> current sensor dropout bug
 //		Fodder assurance
 //		Arduinos and RPIs
 //			Serial interaction model

@@ -26,7 +26,8 @@
 #include "ff_HAL.h"
 
 #ifdef FF_ARDUINO
-//#include "SD.h"
+//#include <SdFat.h>
+#include <SD.h>
 #endif
 
 #ifdef USE_ITCH
@@ -51,6 +52,8 @@
 //#ifdef USE_ITCH
 //extern ITCH itch;
 //#endif
+
+
 
 /************************************************
   Functions
@@ -178,11 +181,11 @@ void ReadProcessedConfig(void) {
 
 	#ifdef FF_ARDUINO
 	// see if the card is present and can be initialized:
-//	if (SD.begin(10, 11, 12, 13)) {
-	if (sd.begin(10)) {
+	if (SD.begin(10, 11, 12, 13)) {
+//	if (SD.begin(10)) {
 		//strcpy_hal(temp_label, F("DEBUG INFO sd.begin"));
 		//DebugLog(temp_label);
-		f = sd.open(BIN_CONFIG_FILENAME, FILE_READ);
+		f = SD.open(BIN_CONFIG_FILENAME, FILE_READ);
 		if (!f) {
 			strcpy_hal(temp_label, F("NO CONFIG"));
 			DebugLog(temp_label);
@@ -296,7 +299,7 @@ void ReadProcessedConfig(void) {
 //	DebugLog("Prior f.close");
 	f.close();
 //	DebugLog("After f.close, prior SD.end");
-	//SD.end();
+	SD.end();
 //	DebugLog("After SD.end");
 #endif
 }

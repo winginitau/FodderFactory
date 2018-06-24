@@ -631,8 +631,8 @@ static const StringArray message_strings[LAST_MESSAGE] = {
 
 };
 
+/*
 // INI Error enum defined in IniFile Class per following
-
 enum {
 	errorNoError = 0,
 	errorFileNotFound,
@@ -644,6 +644,7 @@ enum {
 	errorEndOfFile,
 	errorUnknownError,
 };
+*/
 
 #ifdef USE_PROGMEM
 static const SimpleStringArray ini_error_strings[INI_ERROR_TYPES] PROGMEM = {

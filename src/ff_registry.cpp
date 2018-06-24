@@ -130,7 +130,6 @@ void Setup(BlockNode *b) {
 			EventMsg(SSS, E_WARNING, M_HACK_MON_INSIDE_TOP_TOO_HOT);
 		}
 
-
 		MonitorSetup(b);
 		break;
 	case FF_SCHEDULE:

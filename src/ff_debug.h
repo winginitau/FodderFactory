@@ -34,7 +34,10 @@
  Function Prototypes
 ************************************************/
 
+#ifdef ARDUINO
 void DebugLog(const __FlashStringHelper *log_message);
+#endif
+
 void DebugLog(const char* log_message);
 
 void DebugLog(uint16_t source, uint16_t destination, uint8_t msg_type, uint8_t msg_str, int32_t i_val, float f_val);

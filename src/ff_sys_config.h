@@ -104,7 +104,7 @@
 /************************************************
  DEBUG Directives
  ************************************************/
-#define DEBUG			// Call debug output at all or not?
+//#define DEBUG			// Call debug output at all or not?
 
 #ifdef DEBUG
 //Optionallly:

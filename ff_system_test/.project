@@ -44,17 +44,17 @@
 		<link>
 			<name>libraries/DallasTemperature</name>
 			<type>2</type>
-			<location>/home/brendan/Arduino/libraries/DallasTemperature</location>
+			<locationURI>ECLIPSE_HOME/arduinoPlugin/libraries/DallasTemperature/3.7.6</locationURI>
 		</link>
 		<link>
 			<name>libraries/OneWire</name>
 			<type>2</type>
-			<location>/home/brendan/Arduino/libraries/OneWire</location>
+			<locationURI>ECLIPSE_HOME/arduinoPlugin/libraries/OneWire/2.3.3</locationURI>
 		</link>
 		<link>
 			<name>libraries/RTClib</name>
 			<type>2</type>
-			<location>/home/brendan/Arduino/libraries/RTClib</location>
+			<locationURI>ECLIPSE_HOME/arduinoPlugin/libraries/RTClib/1.2.0</locationURI>
 		</link>
 		<link>
 			<name>libraries/Wire</name>

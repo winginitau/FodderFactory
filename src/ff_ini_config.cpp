@@ -46,7 +46,7 @@
 uint8_t GetConfKeyIndex(uint8_t block_cat, const char* key_str) {
 
 	uint8_t last_key = UINT8_INIT;
-	uint8_t key_idx = 0; //see "string_consts.h" Zero is error.
+	uint8_t key_idx = 0; 			//see "string_consts.h" Zero is error.
 
 	//lock the last key index to the appropriate block category
 
@@ -382,8 +382,8 @@ uint8_t ConfigureOUTSetting(BlockNode* block_ptr, uint8_t key_idx, const char* v
 
 uint8_t ConfigureBlock(uint8_t block_cat, const char *block_label, const char *key_str, const char *value_str) {
 	BlockNode *block_ptr;
-	uint8_t return_value = 1;  //error by exception
-	uint8_t key_idx = 0; //see "string_consts.h" Zero is error.
+	uint8_t return_value = 1;  	//error by exception
+	uint8_t key_idx = 0; 		//see "string_consts.h" Zero is error.
 
 	// First search for an existing block with that label
 	block_ptr = GetBlockByLabel(block_label);
@@ -594,6 +594,7 @@ char* GetINIError(uint8_t e, char* msg_buf) {
 
 void InitConfFile(IniFile* cf) {
 	char key_value[INI_FILE_MAX_LINE_LENGTH];
+
 	if (!cf->open()) {
 		DebugLog(SSS, E_STOP, M_NO_CONFIG);
 		// Cannot do anything else
@@ -659,7 +660,7 @@ void ReadAndParseConfig(void) {
 				DebugLog(debug_msg);
 			}
 		} else {
-			if( cf.getError() != errorKeyNotFound) {
+			if( cf.getError() != IniFile::errorKeyNotFound) {
 				sprintf(debug_msg, "ERROR [CONFIG][SYSTEM][%s]: %s ", block_section_key, GetINIError(cf.getError(), ini_error_string));
 				DebugLog(debug_msg);
 				//handle error - could be ok if key not required for that block sub type
@@ -716,13 +717,13 @@ void ReadAndParseConfig(void) {
 
 			} else {
 				#ifdef PROGMEM_BLOCK_DEFS
-				if( cf.getError() == errorKeyNotFound) {  // this is expected once key list end is found
+				if( cf.getError() == IniFile::errorKeyNotFound) {  // this is expected once key list end is found
 					sprintf_P(debug_msg, "[CONFIG] Registered %d [%S]", bl-1, block_cat_defs[block_cat].conf_section_label);
 				} else {
 					sprintf_P(debug_msg, "[CONFIG] LAST [%s] REACHED - [%S]: %s ", block_cat_defs[block_cat].conf_section_label, list_section_key, GetINIError(cf.getError(), ini_error_string));
 				}
 				#else
-				if( cf.getError() == errorKeyNotFound) {  // this is expected once key list end is found
+				if( cf.getError() == IniFile::errorKeyNotFound) {  // this is expected once key list end is found
 					sprintf(debug_msg, "[CONFIG] Registered %d [%s]", bl-1, block_cat_defs[block_cat].conf_section_label);
 				} else {
 					sprintf(debug_msg, "[CONFIG] LAST [%s] REACHED - [%s]: %s ", block_cat_defs[block_cat].conf_section_label, list_section_key, GetINIError(cf.getError(), ini_error_string));
@@ -804,7 +805,7 @@ void ReadAndParseConfig(void) {
 						}
 
 					} else {
-						if( cf.getError() != errorKeyNotFound) {
+						if( cf.getError() != IniFile::errorKeyNotFound) {
 							sprintf(debug_msg, "[CONFIG] ERROR [%s][%s][%s][%s]: %s ", list_section, list_section_key, block_section, block_section_key, GetINIError(cf.getError(), ini_error_string));
 							DebugLog(debug_msg);
 							//handle error - could be ok if key not required for that block sub type
@@ -816,13 +817,13 @@ void ReadAndParseConfig(void) {
 
 			} else {
 				#ifdef PROGMEM_BLOCK_DEFS
-				if( cf.getError() == errorKeyNotFound) {
+				if( cf.getError() == IniFile::errorKeyNotFound) {
 					sprintf_P(debug_msg, "[CONFIG] Processed %d [%S]", bl-1, block_cat_defs[block_cat].conf_section_label);
 				} else {
 					sprintf_P(debug_msg, "[CONFIG] LAST [%S] REACHED - [%s]: %s ", block_cat_defs[block_cat].conf_section_label, list_section_key, GetINIError(cf.getError(), ini_error_string));
 				}
 				#else
-				if( cf.getError() == errorKeyNotFound) {
+				if( cf.getError() == IniFile::errorKeyNotFound) {
 					sprintf(debug_msg, "[CONFIG] Processed %d [%s]", bl-1, block_cat_defs[block_cat].conf_section_label);
 				} else {
 					sprintf(debug_msg, "[CONFIG] LAST [%s] REACHED - [%s]: %s ", block_cat_defs[block_cat].conf_section_label, list_section_key, GetINIError(cf.getError(), ini_error_string));

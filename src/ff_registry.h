@@ -83,7 +83,7 @@ typedef union BLOCK_SETTINGS {
 	OutputSettings out;
 } BlockSettings;
 
-struct BLOCK_NODE {
+typedef struct BLOCK_NODE {
 	// common configuration data
 	// note: these types are locked to config file keys strings
 	// see ff_string_consts.h
@@ -113,9 +113,9 @@ struct BLOCK_NODE {
 	// union of block_type specific settings
 	// also tied to config file key strings
 	BlockSettings settings;
-};
+} BlockNode;
 
-typedef struct BLOCK_NODE BlockNode;
+//typedef struct BLOCK_NODE BlockNode;
 
 
 typedef struct UI_DATA_SET {

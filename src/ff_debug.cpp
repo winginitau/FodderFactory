@@ -107,11 +107,13 @@ void DebugConsole (const char* str) {
 }
 #endif //DEBUG_CONSOLE
 
+#ifdef ARDUINO
 void DebugLog(const __FlashStringHelper *log_message) {
 	char log_entry[MAX_DEBUG_LENGTH];
 	strcpy_P(log_entry, (char *)log_message);
 	DebugLog(log_entry);
 }
+#endif
 
 void DebugLog(const char* log_message) {
 	//Base function - add date and time to a string and send to defined debug destinations

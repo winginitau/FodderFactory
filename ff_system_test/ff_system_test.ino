@@ -130,7 +130,7 @@ void TestTempSensors(uint8_t bus) {
 	//Serial.write("Dallas Temperature Sensors Debug\n");
 
 	temp_sensors.begin();
-
+	delay(1000);
 	d_count = temp_sensors.getDeviceCount();
 
 	sprintf(str, "Bus %d Device Count: %d\n", bus, d_count);
@@ -138,14 +138,18 @@ void TestTempSensors(uint8_t bus) {
 
 	for (uint8_t d_index = 0; d_index < d_count; d_index++) {
 		temp_sensors.getAddress(d_addr, d_index);
+		delay(200);
 		temp_sensors.requestTemperaturesByIndex(d_index);
+		delay(500);
 		d_temp = temp_sensors.getTempCByIndex(d_index);
+		delay(200);
 		d_res = temp_sensors.getResolution(d_addr);
 
 		FFFloatToCString(f_str, d_temp);
 
 		sprintf(str, "Bus:%d Count:%d, Device:%d, Addr %.2X:%.2X:%.2X:%.2X:%.2X:%.2X:%.2X:%.2X, d_res: %d, d_temp: %s\n", bus, d_count, d_index, d_addr[0], d_addr[1], d_addr[2], d_addr[3], d_addr[4], d_addr[5], d_addr[6], d_addr[7], d_res, f_str);
 		Serial.write(str);
+		delay(500);
 	}
 
 }

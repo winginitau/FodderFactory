@@ -22,18 +22,18 @@
 
 #ifdef FF_ARDUINO
 #include <Arduino.h>
-#include <OneWire.h>                  // comms to Dallas temprature sensors
+#include <OneWire.h>                // comms to Dallas temprature sensors
 #include <DallasTemperature.h>
 #ifdef LCD_DISPLAY
-#include <U8g2lib.h>                  // LCD display library
+#include <U8g2lib.h>				// LCD display library
 #include <U8x8lib.h>
 #endif // LCD_DISPLAY
-#include "RTClib.h"
-//#include <SD.h>
+#include <RTClib.h>
+#include <SD.h>
 //#include <SdFat.h>
 #include <time.h>
-#include "Wire.h"
-#include <avr/wdt.h>
+#include "Wire.h"					// RTC talks ober i2c "Wire"
+#include <avr/wdt.h>				// Watchdog timer for reboot routine
 #endif // FF_ARDUINO
 
 #ifdef USE_ITCH
@@ -93,7 +93,6 @@ ITCH itch;
 #ifdef FF_SIMULATOR
 	int screen_refresh_counter = 0;
 #endif
-
 
 
 
@@ -233,18 +232,21 @@ uint8_t HALSaveEventBuffer(void) {
 	// see if the card is present and can be initialized:
 
 	//try using updated library
-//	if (SD.begin(10, 11, 12, 13)) {
-	if (sd.begin(10)) {
+	if (SD.begin(10, 11, 12, 13)) {
+//	if (SD.begin(10)) {
 
-//		DebugLog("DEBUG INFO sd.begin"); //cant use EventMsg
-
+#ifdef DEBUG
+		DebugLog(F("(HALSaveEventBuffer) DEBUG INFO sd.begin successful")); //cant use EventMsg
+#endif
 		EventNode* e;
 		char e_str[MAX_LOG_LINE_LENGTH];
 
 		if (!EventBufferEmpty()) {
-			e_file = sd.open(EVENT_FILENAME, FILE_WRITE);
+			e_file = SD.open(EVENT_FILENAME, FILE_WRITE);
 			if (e_file) {
-//				DebugLog("DEBUG INFO SD.open");
+				#ifdef DEBUG
+				DebugLog(F("(HALSaveEventBuffer) DEBUG INFO SD.open successful"));
+				#endif
 				while (!EventBufferEmpty()) {
 					e = EventBufferPop();
 					FormatEventMessage(e, e_str);
@@ -263,7 +265,7 @@ uint8_t HALSaveEventBuffer(void) {
 			DebugLog(SSS, E_ERROR, M_ERROR_EVENTS_EMPTY);
 		}
 
-		//SD.end();
+		SD.end();
 //		DebugLog("DEBUG INFO SD.end");
 	} else {
 		DebugLog(SSS, E_ERROR, M_SD_BEGIN_FAIL);

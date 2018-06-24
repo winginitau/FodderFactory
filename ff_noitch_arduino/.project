@@ -49,27 +49,22 @@
 		<link>
 			<name>libraries/DallasTemperature</name>
 			<type>2</type>
-			<location>/home/brendan/Arduino/libraries/DallasTemperature</location>
-		</link>
-		<link>
-			<name>libraries/Ethernet</name>
-			<type>2</type>
-			<locationURI>ECLIPSE_HOME/arduinoPlugin/libraries/Ethernet/1.1.2</locationURI>
+			<location>/home/brendan/git/FodderFactory/arduino.priv/libraries/DallasTemperature</location>
 		</link>
 		<link>
 			<name>libraries/OneWire</name>
 			<type>2</type>
-			<location>/home/brendan/Arduino/libraries/OneWire</location>
+			<locationURI>ECLIPSE_HOME/arduinoPlugin/libraries/OneWire/2.3.3</locationURI>
 		</link>
 		<link>
 			<name>libraries/RTClib</name>
 			<type>2</type>
-			<location>/home/brendan/Arduino/libraries/RTClib</location>
+			<location>/home/brendan/git/FodderFactory/arduino.priv/libraries/RTClib</location>
 		</link>
 		<link>
 			<name>libraries/SD</name>
 			<type>2</type>
-			<location>/home/brendan/Arduino/libraries/SD</location>
+			<location>/home/brendan/git/FodderFactory/arduino.priv/libraries/SD</location>
 		</link>
 		<link>
 			<name>libraries/SPI</name>

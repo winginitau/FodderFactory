@@ -9,8 +9,8 @@
 #include <stddef.h>
 
 #ifdef FF_ARDUINO
-#include <SdFat.h>
-//#include "SD.h"
+//#include <SdFat.h>
+#include "SD.h"
 //#include "Ethernet.h"
 #endif
 #ifdef FF_SIMULATOR
@@ -19,11 +19,17 @@
 #include <stdio.h>
 #endif
 
+
+
+
+
+
 class IniFileState;
 
 class IniFile {
 public:
   enum error_t {
+  //enum {
     errorNoError = 0,
     errorFileNotFound,
     errorFileNotOpen,
@@ -169,7 +175,7 @@ bool IniFile::open(void)
   	  fclose(_file);  //used to be a problem here - now seems fixed
 #endif
 #ifdef FF_ARDUINO
-  _file = sd.open(_filename, _mode);
+  _file = SD.open(_filename, _mode);
 #endif
 #ifdef FF_SIMULATOR
   _file = fopen(_filename, _mode);
@@ -188,8 +194,7 @@ void IniFile::close(void) {
 #ifdef FF_ARDUINO
 	if (_file) {
 		_file.close();
-		//XXX
-		//SD.end();
+		SD.end();
 	}
 #endif
 #ifdef FF_SIMULATOR

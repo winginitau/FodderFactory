@@ -225,10 +225,8 @@ void ScheduleOperate(BlockNode *b) {
 //			secs_today_now = (now_tm->tm_sec) + (now_tm->tm_min * 60) + (now_tm->tm_hour * 60 * 60);
 			secs_today_now = now - zero_today;
 
-
 			sched_start = b->settings.sch.time_start;
 			repeat = b->settings.sch.time_repeat;
-
 
 			last_start_num = (secs_today_now - sched_start) / repeat;
 			last_start_time = sched_start + (last_start_num * repeat);
