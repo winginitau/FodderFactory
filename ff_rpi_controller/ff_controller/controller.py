@@ -42,7 +42,7 @@ from math import sin, cos
 from graph import Graph
 from graph import MeshLinePlot
 
-from kivy.base import runTouchApp
+#from kivy.base import runTouchApp
 
 
 # Constants
@@ -269,23 +269,31 @@ def iter_row(cursor, size=10):
         for row in rows:
             yield row
 
-def db_last24_by_block_label(block_label):
+def db_last24_by_block_label(block_label, result):
+    
     try:
         dbconfig = read_db_config()
         conn = MySQLConnection(**dbconfig)
         cursor = conn.cursor()
  
-        query = "select * from message_log " \
-                "where source = '%s' " \
-                "and date = '2018-06-20' " \
-                "and time <= '00:07:00'"
+        #datetime.datetime.strptime(string_list[0], '%Y-%m-%d')
+
+        query = "SELECT time, float_val from message_log " \
+                "where source = %s" \
+                "and date = %s " 
+                #"and time <= '00:07:00'"
             
-        args = (block_label)
+        args = (block_label, '2018-06-20')
         
         cursor.execute(query, args)
 
+        #result = list()
+        i=0
+
         for row in iter_row(cursor, 10):
-            print(row)
+            result.append( (i, int(row[1])) )
+            i = i + 1
+            print(result)
  
     except Error as e:
         print(e)
@@ -293,7 +301,9 @@ def db_last24_by_block_label(block_label):
     finally:
         cursor.close()
         conn.close()
-
+    
+    return row
+        
 def db_add_log_entry(date, time, source, destination, msg_type, message, int_val, float_val):
     query = "INSERT INTO message_log(date, time, source, destination, msg_type, message, int_val, float_val) " \
             "VALUES(%s,%s,%s,%s,%s,%s,%s,%s)"
@@ -841,18 +851,19 @@ class ZoomDataGrid(BoxLayout):
 
         self.source = zoom_source
         self.type = zoom_type
-        self.graph = Graph(xlabel='Time', ylabel='Temperature', x_ticks_minor=5, \
-                           x_ticks_major=25, y_ticks_major=10, \
+        self.graph = Graph(xlabel='Time', ylabel='Temperature', x_ticks_minor=60, \
+                           x_ticks_major=180, y_ticks_major=10, \
                            y_grid_label=True, x_grid_label=True, padding=0, \
-                           x_grid=True, y_grid=True, xmin=-0, xmax=15, ymin=-10, ymax=40,
+                           x_grid=True, y_grid=True, xmin=-0, xmax=1440, ymin=-10, ymax=40,
                            _with_stencilbuffer=False)
         
         self.add_widget(self.graph)
 
-        self.plot = MeshLinePlot(color=FF_WHITE_HG)
-        self.plot.points = [(x, (cos(x) * 10) + 0) for x in range(0, 15)]
+        self.plot = MeshLinePlot(color=FF_WHITE_LG)
+        #self.plot.points = [(x, (cos(x) * 10) + 0) for x in range(0, 15)]
         self.graph.add_plot(self.plot)
-        db_last24_by_block_label('IN_INSIDE_TOP_TEMP')  
+        self.plot.points = db_last24_by_block_label(self.source, self.plot.points)
+        #db_last24_by_block_label('IN_INSIDE_TOP_TEMP')  
 
     def update(self):
         self.graph.remove_plot(self.plot)

@@ -119,16 +119,16 @@ void Setup(BlockNode *b) {
 	case FF_MONITOR:
 
 		// Hack to tweak MON_INSIDE_BOTTOM_TOO_COLD deact from 19 to 21
-		if(strcmp_hal(b->block_label, F("MON_INSIDE_BOTTOM_TOO_COLD")) == 0) {
-			b->settings.mon.deact_val = 21;
-			EventMsg(SSS, E_WARNING, M_HACK_MON_INSIDE_BOTTOM_TOO_COLD);
-		}
+		//if(strcmp_hal(b->block_label, F("MON_INSIDE_BOTTOM_TOO_COLD")) == 0) {
+		//	b->settings.mon.deact_val = 21;
+		//	EventMsg(SSS, E_WARNING, M_HACK_MON_INSIDE_BOTTOM_TOO_COLD);
+		//}
 
 		// Hack to tweak MON_INSIDE_TOP_TOO_HOT deact from 21 to 21.x to stop circ exh race
-		if(strcmp_hal(b->block_label, F("MON_INSIDE_TOP_TOO_HOT")) == 0) {
-			b->settings.mon.deact_val = 21.6;
-			EventMsg(SSS, E_WARNING, M_HACK_MON_INSIDE_TOP_TOO_HOT);
-		}
+		//if(strcmp_hal(b->block_label, F("MON_INSIDE_TOP_TOO_HOT")) == 0) {
+		//	b->settings.mon.deact_val = 21.6;
+		//	EventMsg(SSS, E_WARNING, M_HACK_MON_INSIDE_TOP_TOO_HOT);
+		//}
 
 		MonitorSetup(b);
 		break;
@@ -138,19 +138,19 @@ void Setup(BlockNode *b) {
 	case FF_RULE: {
 
 		// XXX HACK to fix config error on RL_CIRC_IF_TOP_HOT_BOT_COLD
-		if (strcmp_hal(b->block_label, F("RL_CIRC_IF_TOP_HOT_BOT_COLD")) == 0) {
-			b->block_type = RL_LOGIC_AND;
-			b->settings.rl.param2 = GetBlockIDByLabel("MON_INSIDE_BOTTOM_TOO_COLD");
-			EventMsg(SSS, E_WARNING, M_HACK_RL_CIRC_IF_TOP_HOT_BOT_COLD);
-		}
+		//if (strcmp_hal(b->block_label, F("RL_CIRC_IF_TOP_HOT_BOT_COLD")) == 0) {
+		//	b->block_type = RL_LOGIC_AND;
+		//	b->settings.rl.param2 = GetBlockIDByLabel("MON_INSIDE_BOTTOM_TOO_COLD");
+		//	EventMsg(SSS, E_WARNING, M_HACK_RL_CIRC_IF_TOP_HOT_BOT_COLD);
+		//}
 
 		// XXX HACK to make config change on RL_EXHAUST_IF_TOP_HOT_BOT_HOT
-		if (strcmp_hal(b->block_label, F("RL_EXHAUST_IF_TOP_HOT_BOT_HOT")) == 0) {
-			b->block_type = RL_LOGIC_SINGLENOT;
-			b->settings.rl.param1 = GetBlockIDByLabel("MON_INSIDE_TOP_TOO_HOT");
-			b->settings.rl.param_not = GetBlockIDByLabel("MON_INSIDE_BOTTOM_TOO_COLD");
-			EventMsg(SSS, E_WARNING, M_HACK_RL_EXHAUST_IF_TOP_HOT_BOT_HOT);
-		}
+		//if (strcmp_hal(b->block_label, F("RL_EXHAUST_IF_TOP_HOT_BOT_HOT")) == 0) {
+		//	b->block_type = RL_LOGIC_SINGLENOT;
+		//	b->settings.rl.param1 = GetBlockIDByLabel("MON_INSIDE_TOP_TOO_HOT");
+		//	b->settings.rl.param_not = GetBlockIDByLabel("MON_INSIDE_BOTTOM_TOO_COLD");
+		//	EventMsg(SSS, E_WARNING, M_HACK_RL_EXHAUST_IF_TOP_HOT_BOT_HOT);
+		//}
 
 		RuleSetup(b);
 	}

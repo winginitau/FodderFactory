@@ -31,12 +31,12 @@
 //#define FF_CONFIG
 
 // Optionally:
-//#define FF_TEMPERATURE_SIM
+#define FF_TEMPERATURE_SIM
 // OR with FF_ARDUINO
 //#define FF_TEMP_SIM_WITH_DALLAS
 
 // Optionally:
-#define FF_RPI_START_DELAY 60000	// Start delay to allow RPIs upstream to to get going
+//#define FF_RPI_START_DELAY 60000	// Start delay to allow RPIs upstream to to get going
 
 //#define USE_ITCH
 
@@ -56,13 +56,18 @@
 
 #ifdef FF_TEMPERATURE_SIM
 
-#define FF_DEFINED_TEMP_SIM
+//#define FF_DEFINED_TEMP_SIM
 // OR
-//#define FF_RANDOM_TEMP_SIM
+#define FF_RANDOM_TEMP_SIM
 
 // Optionally:
 //#define RANDOM_TEMP_SIM_DELAY
 //#define TEMP_SIM_EXTRA_DELAY
+
+#ifdef FF_RANDOM_TEMP_SIM
+#define FF_RANDOM_TEMP_MIN 5.01
+#define FF_RANDOM_TEMP_MAX 28.00
+#endif
 
 #ifdef RANDOM_TEMP_SIM_DELAY
 #define TEMP_SIM_MIN_DELAY	600		//msec
@@ -84,8 +89,6 @@
 #define PROGMEM_BLOCK_DEFS
 #endif
 
-//#define IN_LOGRATE_OVERRIDE 15				// seconds. Override defined logging rate (for debug)
-
 #define EXCLUDE_DESCRIPTION			// to save .data segment and heap space on arduino
 #define EXCLUDE_DISPLAYNAME			// to save .data segment and heap space on arduino
 
@@ -104,11 +107,13 @@
 /************************************************
  DEBUG Directives
  ************************************************/
-//#define DEBUG			// Call debug output at all or not?
+#define DEBUG			// Call debug output at all or not?
 
 #ifdef DEBUG
 //Optionallly:
 #define SUPRESS_EVENT_MESSAGES
+
+#define IN_LOGRATE_OVERRIDE 30				// seconds. Override defined logging rate (for debug)
 
 #define DEBUG_LEVEL 1	// level and higher will be sent to debug log
 /*

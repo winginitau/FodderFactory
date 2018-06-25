@@ -45,6 +45,7 @@ File::File(void) {
 
 File::~File(void) {
   //  Serial.print("Deleted file object");
+	// XXX BM what about free(_file)?
 }
 
 // returns a pointer to the file name

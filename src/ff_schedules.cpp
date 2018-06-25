@@ -206,15 +206,15 @@ void ScheduleOperate(BlockNode *b) {
 		case SCH_START_DURATION_REPEAT: {
 
 			// XXX HACK
-			if(strcmp_hal(b->block_label, F("SCH_WATERING_BOTTOM_SCHEDULE")) == 0) {
-				uint16_t mon_id;
-				mon_id = GetBlockIDByLabel("MON_INSIDE_BOTTOM_TOO_COLD");
-				if(IsActive(mon_id)) {
-					b->settings.sch.time_duration = 60;
-				} else {
-					b->settings.sch.time_duration = 20;
-				}
-			}
+			//if(strcmp_hal(b->block_label, F("SCH_WATERING_BOTTOM_SCHEDULE")) == 0) {
+			//	uint16_t mon_id;
+			//	mon_id = GetBlockIDByLabel("MON_INSIDE_BOTTOM_TOO_COLD");
+			//	if(IsActive(mon_id)) {
+			//		b->settings.sch.time_duration = 60;
+			//	} else {
+			//		b->settings.sch.time_duration = 20;
+			//	}
+			//}
 
 			TV_TYPE last_start_time;
 			TV_TYPE sched_start;
@@ -234,22 +234,6 @@ void ScheduleOperate(BlockNode *b) {
 			start = last_start_time + zero_today;
 			end = start + b->settings.sch.time_duration;
 
-//			D("secs_today_now", secs_today_now);
-//			D("sched_start", sched_start);
-//			D("repeat", repeat);
-
-//			D("zero_today", zero_today);
-//			D("last_start_num", last_start_num);
-//			D("last_start_time", last_start_time);
-
-//			D("start", start);
-//			D("end", end);
-
-//			D("now", now);
-//			D("now_tm", now_tm);
-
-
-			//D("last_start_num", last_start_num);
 
 			if (b->settings.sch.days[today_num] == 1) {
 				if (start <= now && end > now) {
@@ -262,9 +246,9 @@ void ScheduleOperate(BlockNode *b) {
 				b->last_update = now;
 				EventMsg(b->block_id, E_ACT);
 				//XXX HACK
-				if(strcmp_hal(b->block_label, F("SCH_WATERING_BOTTOM_SCHEDULE")) == 0) {
-					EventMsg(SSS, E_WARNING, M_HACK_SCH_WATERING_BOTTOM_SCHEDULE);
-				}
+				//if(strcmp_hal(b->block_label, F("SCH_WATERING_BOTTOM_SCHEDULE")) == 0) {
+				//	EventMsg(SSS, E_WARNING, M_HACK_SCH_WATERING_BOTTOM_SCHEDULE);
+				//}
 			}
 
 			if (target_state == 0 && b->active == 1) { //deact
@@ -272,9 +256,9 @@ void ScheduleOperate(BlockNode *b) {
 				b->last_update = now;
 				EventMsg(b->block_id, E_DEACT);
 				//XXX HACK
-				if(strcmp_hal(b->block_label, F("SCH_WATERING_BOTTOM_SCHEDULE")) == 0) {
-					EventMsg(SSS, E_WARNING, M_HACK_SCH_WATERING_BOTTOM_SCHEDULE);
-				}
+				//if(strcmp_hal(b->block_label, F("SCH_WATERING_BOTTOM_SCHEDULE")) == 0) {
+				//	EventMsg(SSS, E_WARNING, M_HACK_SCH_WATERING_BOTTOM_SCHEDULE);
+				//}
 			}
 			break;
 		}

@@ -236,7 +236,7 @@ uint8_t HALSaveEventBuffer(void) {
 //	if (SD.begin(10)) {
 
 #ifdef DEBUG
-		DebugLog(F("(HALSaveEventBuffer) DEBUG INFO sd.begin successful")); //cant use EventMsg
+		//DebugLog(F("(HALSaveEventBuffer) DEBUG INFO sd.begin successful")); //cant use EventMsg
 #endif
 		EventNode* e;
 		char e_str[MAX_LOG_LINE_LENGTH];
@@ -245,7 +245,7 @@ uint8_t HALSaveEventBuffer(void) {
 			e_file = SD.open(EVENT_FILENAME, FILE_WRITE);
 			if (e_file) {
 				#ifdef DEBUG
-				DebugLog(F("(HALSaveEventBuffer) DEBUG INFO SD.open successful"));
+				//DebugLog(F("(HALSaveEventBuffer) DEBUG INFO SD.open successful"));
 				#endif
 				while (!EventBufferEmpty()) {
 					e = EventBufferPop();
@@ -580,7 +580,7 @@ float GetTemperature(int if_num) {
 #ifdef FF_TEMPERATURE_SIM
 #ifdef FF_RANDOM_TEMP_SIM
 #ifdef FF_SIMULATOR
-	temp_c = (float)-5 + ((float)((rand() % 4000)) / 100);
+	temp_c = (float)FF_RANDOM_TEMP_MIN + ((float)((rand() % ((FF_RANDOM_TEMP_MAX - FF_RANDOM_TEMP_MIN) *100))) / 100);
 #endif
 #endif
 #endif
@@ -631,7 +631,7 @@ float GetTemperature(int if_num) {
 #ifdef FF_TEMPERATURE_SIM
 #ifdef FF_RANDOM_TEMP_SIM
 #ifdef FF_ARDUINO
-	temp_c = random(5.01, 39.99);
+	temp_c = random(FF_RANDOM_TEMP_MIN, FF_RANDOM_TEMP_MAX);
 #endif //FF_ARDUINO
 #endif //FF_RANDOM_TEMP_SIM
 #endif //FF_TEMPERATURE_SIM
