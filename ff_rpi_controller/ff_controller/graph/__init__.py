@@ -135,7 +135,7 @@ class Graph(Widget):
     # the mesh which draws the surrounding rectangle
     _mesh_rect = ObjectProperty(None)
     # a list of locations of major and minor ticks. The values are not
-    # but is in the axis min - max range
+    # but is in the axis min_temp - max_temp range
     _ticks_majorx = ListProperty([])
     _ticks_minorx = ListProperty([])
     _ticks_majory = ListProperty([])
@@ -228,7 +228,7 @@ class Graph(Widget):
             if log:
                 s_min = log10(s_min)
                 s_max = log10(s_max)
-                # count the decades in min - max. This is in actual decades,
+                # count the decades in min_temp - max_temp. This is in actual decades,
                 # not logs.
                 n_decades = floor(s_max - s_min)
                 # for the fractional part of the last decade, we need to
@@ -508,19 +508,19 @@ class Graph(Widget):
         if axis == 0:
             return self.xlog, self.xmin, self.xmax
         info = self.x_axis[axis]
-        return (info["log"], info["min"], info["max"])
+        return (info["log"], info["min_temp"], info["max_temp"])
 
     def get_y_axis(self, axis=0):
         if axis == 0:
             return self.ylog, self.ymin, self.ymax
         info = self.y_axis[axis]
-        return (info["log"], info["min"], info["max"])
+        return (info["log"], info["min_temp"], info["max_temp"])
 
     def add_x_axis(self, xmin, xmax, xlog=False):
         data = {
             "log": xlog,
-            "min": xmin,
-            "max": xmax
+            "min_temp": xmin,
+            "max_temp": xmax
         }
         self.x_axis.append(data)
         return data
@@ -528,8 +528,8 @@ class Graph(Widget):
     def add_y_axis(self, ymin, ymax, ylog=False):
         data = {
             "log": ylog,
-            "min": ymin,
-            "max": ymax
+            "min_temp": ymin,
+            "max_temp": ymax
         }
         self.y_axis.append(data)
         return data
@@ -775,11 +775,11 @@ class Graph(Widget):
     to False.
     '''
 
-    x_ticks_major = BoundedNumericProperty(0, min=0)
+    x_ticks_major = BoundedNumericProperty(0, min_temp=0)
     '''Distance between major tick marks on the x-axis.
 
     Determines the distance between the major tick marks. Major tick marks
-    start from min and re-occur at every ticks_major until :data:`xmax`.
+    start from min_temp and re-occur at every ticks_major until :data:`xmax`.
     If :data:`xmax` doesn't overlap with a integer multiple of ticks_major,
     no tick will occur at :data:`xmax`. Zero indicates no tick marks.
 
@@ -798,7 +798,7 @@ class Graph(Widget):
     :class:`~kivy.properties.BoundedNumericProperty`, defaults to 0.
     '''
 
-    x_ticks_minor = BoundedNumericProperty(0, min=0)
+    x_ticks_minor = BoundedNumericProperty(0, min_temp=0)
     '''The number of sub-intervals that divide x_ticks_major.
 
     Determines the number of sub-intervals into which ticks_major is divided,
@@ -868,14 +868,14 @@ class Graph(Widget):
     to False.
     '''
 
-    y_ticks_major = BoundedNumericProperty(0, min=0)
+    y_ticks_major = BoundedNumericProperty(0, min_temp=0)
     '''Distance between major tick marks. See :data:`x_ticks_major`.
 
     :data:`y_ticks_major` is a
     :class:`~kivy.properties.BoundedNumericProperty`, defaults to 0.
     '''
 
-    y_ticks_minor = BoundedNumericProperty(0, min=0)
+    y_ticks_minor = BoundedNumericProperty(0, min_temp=0)
     '''The number of sub-intervals that divide ticks_major.
     See :data:`x_ticks_minor`.
 
@@ -1084,7 +1084,7 @@ class Plot(EventDispatcher):
     def update(self, xlog, xmin, xmax, ylog, ymin, ymax, size):
         '''Called by graph whenever any of the parameters
         change. The plot should be recalculated then.
-        log, min, max indicate the axis settings.
+        log, min_temp, max_temp indicate the axis settings.
         size a 4-tuple describing the bounding box in which we can draw
         graphs, it's (x0, y0, x1, y1), which correspond with the bottom left
         and top right corner locations, respectively.
@@ -1304,13 +1304,13 @@ class SmoothLinePlot(Plot):
 class ContourPlot(Plot):
     """
     ContourPlot visualizes 3 dimensional data as an intensity map image.
-    The user must first specify 'xrange' and 'yrange' (tuples of min,max) and
+    The user must first specify 'xrange' and 'yrange' (tuples of min_temp,max_temp) and
     then 'data', the intensity values.
     `data`, is a MxN matrix, where the first dimension of size M specifies the
     `y` values, and the second dimension of size N specifies the `x` values.
     Axis Y and X values are assumed to be linearly spaced values from
     xrange/yrange and the dimensions of 'data', `MxN`, respectively.
-    The color values are automatically scaled to the min and max z range of the
+    The color values are automatically scaled to the min_temp and max_temp z range of the
     data set.
     """
     _image = ObjectProperty(None)
@@ -1335,8 +1335,8 @@ class ContourPlot(Plot):
         xdim, ydim = data.shape
 
         # Find the minimum and maximum z values
-        zmax = data.max()
-        zmin = data.min()
+        zmax = data.max_temp()
+        zmin = data.min_temp()
         rgb_scale_factor = 1.0 / (zmax - zmin) * 255
         # Scale the z values into RGB data
         buf = np.array(data, dtype=float, copy=True)
