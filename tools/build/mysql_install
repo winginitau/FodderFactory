@@ -1,0 +1,7 @@
+apt-get install mysql-server
+pip3 install mysql-connector-python
+mysql -u root
+ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '';
+quit
+apt-get install mysql-workbench
+mysql --defaults-file="/tmp/tmp4eN44A/extraparams.cnf"  --protocol=tcp --host=localhost --user=root --port=3306 --default-character-set=utf8 --comments  < "/home/brendan/Dropbox/Dev/ff_data_dump.sql"
