@@ -48,6 +48,7 @@
 
 # Working Files
 FFEVENTS.TXT
-
+message.log
+*/__pycache__/*
 
 /sloeber.ino.cpp

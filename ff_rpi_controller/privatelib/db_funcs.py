@@ -99,7 +99,7 @@ def db_device_data(block_label, endDT=datetime.now(), \
         
         cursor.execute(query, args)
 
-        db_result_list = []
+        #db_result_list = []
         for row in iter_row(cursor, 10):
             #print (row)
             td = row[0] - startDT
@@ -224,14 +224,19 @@ def read_db_config(filename='controller_config.ini', section='mysql'):
 def DBConnectTest():
     """ Connect to MySQL database """
  
+    result = False
+    
     db_config = read_db_config()
  
+    print (db_config)
+    
     try:
         print('Connecting to MySQL database...')
         conn = MySQLConnection(**db_config)
  
         if conn.is_connected():
             print('Database Connection Tested OK')
+            result = True
         else:
             print('Database Connection Failed.')
             exit()
@@ -242,4 +247,4 @@ def DBConnectTest():
     finally:
         conn.close()
         #print('Connection closed.')
-
+    return result
