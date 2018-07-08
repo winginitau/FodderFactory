@@ -1,7 +1,29 @@
 apt-get install mysql-server
-pip3 install mysql-connector-python
+
+# no - pip3 install mysql-connector-python
+
+apt-get install python3-mysql.connector 
+
 mysql -u root
 ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '';
+
+use mysql;
+update user set password=PASSWORD("NEWPASSWORD") where User='root';
+flush privileges;
+
+select user, host, password from mysql.user;
+
+CREATE USER 'brendan'@'mbpumdev.fritz.box' IDENTIFIED BY '';
+
+
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY '' WITH GRANT OPTION;
+
+GRANT ALL PRIVILEGES ON *.* TO 'brendan'@'mbpumdev.fritz.box' IDENTIFIED BY '' WITH GRANT OPTION;
+FLUSH PRIVILEGES;
+ 
+mbpumdev.fritz.box
+ 
+ 
 quit
 apt-get install mysql-workbench
 mysql --defaults-file="/tmp/tmp4eN44A/extraparams.cnf"  --protocol=tcp --host=localhost --user=root --port=3306 --default-character-set=utf8 --comments  < "/home/brendan/Dropbox/Dev/ff_data_dump.sql"
