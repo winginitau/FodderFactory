@@ -21,7 +21,8 @@ def iter_row(cursor, size=10):
         for row in rows:
             yield row
 
-def db_energy_data(energy_message, endDT=datetime.now(), periodTD=timedelta(days=3), db_result_list = []):    
+def db_energy_data(energy_message, endDT=datetime.now(), \
+                   periodTD=timedelta(days=3), db_result_list = []):    
     #global db_result_list
     
     try:
@@ -54,10 +55,12 @@ def db_energy_data(energy_message, endDT=datetime.now(), periodTD=timedelta(days
             tds = td.total_seconds()
             tdsi = int(tds)
             if energy_message == "VE_DATA_VOLTAGE":
-                db_result_list.append( (tdsi, row[1]/100, ) )
+                db_result_list.append( (tdsi, row[1]/1000, ) )
             elif energy_message == "VE_DATA_CURRENT":
-                db_result_list.append( (tdsi, row[1]/100, ) )
-            else:
+                db_result_list.append( (tdsi, row[1]/1000, ) )
+            elif energy_message == "VE_DATA_SOC":
+                db_result_list.append( (tdsi, row[1]/10, ) )
+            elif energy_message == "VE_DATA_POWER":
                 db_result_list.append( (tdsi, row[1], ) )
                                        
         #print(db_result_list)
@@ -72,19 +75,18 @@ def db_energy_data(energy_message, endDT=datetime.now(), periodTD=timedelta(days
     return db_result_list
 
 
-def db_last24_device_by_block_label(block_label, db_result_list = []):
+def db_device_data(block_label, endDT=datetime.now(), \
+                   periodTD=timedelta(days=1), db_result_list = []):
     #global db_result_list
     try:
         dbconfig = read_db_config()
         conn = MySQLConnection(**dbconfig)
         cursor = conn.cursor()
  
-        period = timedelta(hours=24)
-        nowDT = datetime.now()
-        startDT = nowDT - period
+        startDT = endDT - periodTD
         
         startDTstr = startDT.strftime("%Y-%m-%d %H:%M:%S")
-        nowDTstr = nowDT.strftime("%Y-%m-%d %H:%M:%S")
+        endDTstr = endDT.strftime("%Y-%m-%d %H:%M:%S")
         
         query = "SELECT datetime, msg_type from message_log " \
                 "WHERE source = %s " \
@@ -93,7 +95,7 @@ def db_last24_device_by_block_label(block_label, db_result_list = []):
                 #"and time <= '00:07:00'"
             
         #args = (block_label,)
-        args = (block_label, startDTstr, nowDTstr)
+        args = (block_label, startDTstr, endDTstr)
         
         cursor.execute(query, args)
 
@@ -122,7 +124,8 @@ def db_last24_device_by_block_label(block_label, db_result_list = []):
     return db_result_list
 
 
-def db_last24_temps_by_block_label(block_label, db_result_list = []):
+def db_temperature_data(block_label, endDT=datetime.now(), \
+                   periodTD=timedelta(days=1), db_result_list = []):
     
     #global db_result_list
     try:
@@ -130,12 +133,10 @@ def db_last24_temps_by_block_label(block_label, db_result_list = []):
         conn = MySQLConnection(**dbconfig)
         cursor = conn.cursor()
  
-        period = timedelta(hours=24)
-        nowDT = datetime.now()
-        startDT = nowDT - period
+        startDT = endDT - periodTD
         
         startDTstr = startDT.strftime("%Y-%m-%d %H:%M:%S")
-        nowDTstr = nowDT.strftime("%Y-%m-%d %H:%M:%S")
+        endDTstr = endDT.strftime("%Y-%m-%d %H:%M:%S")
         
         query = "SELECT datetime, float_val from message_log " \
                 "WHERE source = %s " \
@@ -144,7 +145,7 @@ def db_last24_temps_by_block_label(block_label, db_result_list = []):
                 #"and time <= '00:07:00'"
             
         #args = (block_label,)
-        args = (block_label, startDTstr, nowDTstr)
+        args = (block_label, startDTstr, endDTstr)
         
         cursor.execute(query, args)
 

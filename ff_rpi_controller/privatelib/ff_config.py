@@ -4,7 +4,43 @@ Created on 2 Jul. 2018
 @author: brendan
 '''
 
-from privatelib.palette import *
+#from privatelib.msg_parser import MessageSystem
+
+from privatelib.palette import \
+FF_WHITE_HG, \
+FF_RED_LG, \
+FF_GREEN_LG, \
+FF_COLD_BLUE_LG, \
+FF_FREEZE_BLUE_LG, \
+FF_YELLOW_LG
+#FF_BLACK_LG, \
+#FF_BLACK_MG, \
+#FF_BLACK_HG, \
+#FF_BLACK, \
+#FF_WHITE_LG, \
+#FF_WHITE, \
+#FF_RED_HG, \
+#FF_RED, \
+#FF_GREEN_HG, \
+#FF_GREEN, \
+#FF_BLUE_LG, \
+#FF_BLUE_HG, \
+#FF_BLUE, \
+#FF_COLD_BLUE_HG, \
+#FF_COLD_BLUE, \
+#FF_FREEZE_BLUE_HG, \
+#FF_FREEZE_BLUE, \
+#FF_YELLOW_HG, \
+#FF_YELLOW, \
+#FF_GREY_LG, \
+#FF_GREY_HG, \
+#FF_GREY, \
+#FF_SAND_LG, \
+#FF_SAND_HG, \
+#FF_SAND, \
+#FF_SLATE_LG, \
+#FF_SLATE_HG, \
+#FF_SLATE
 
 
 #########################################################
@@ -36,15 +72,23 @@ DB_INPUT_LOW_HIGH = (
     ["IN_INSIDE_BOTTOM_TEMP", 18, 22],
     ["IN_OUTSIDE_TEMP", 18, 22],
     ["IN_WATER_TEMP", 18, 22],
-    ["IN_CABINET_TEMP", 4, 50],
-    ["IN_LONGRUN_TEMP", 4, 22]
+    ["IN_CABINET_TEMP", 18, 22],
+    ["IN_LONGRUN_TEMP", 18, 22]
 )
 
 ENERGY_LIST = (
     ["VE_DATA_SOC", "State of Charge"],
-    ["VE_DATA_VOLTAGE", "Voltage"], 
-    ["VE_DATA_POWER", "Power"],
-    ["VE_DATA_CURRENT", "Current"],
+    ["VE_DATA_VOLTAGE", "Battery Voltage"], 
+    ["VE_DATA_POWER", "Power Flow"],
+    ["VE_DATA_CURRENT", "Battery Current"],
+)
+
+DB_ENERGY_GRAPH_PARAMS = (
+    # SOURCE, Y-LABEL, Y-LOW-LINE, Y-HIGH-LINE, Y-TICS
+    ["VE_DATA_SOC", "% of Full Capacity", 50, 100, 10],
+    ["VE_DATA_VOLTAGE", "Volts", 23.4, 28, 1], 
+    ["VE_DATA_POWER", "Watts", 0, 0, 200],
+    ["VE_DATA_CURRENT", "Amps", 0, 0, 5],        
 )
 ########################################################
 INT8_INIT = -127
@@ -60,8 +104,12 @@ MODEM_SERIAL_PORT = "/dev/ttyV0"
 MODEM_SERIAL_SPEED = 9600
 
 SERIAL_POLL_INTERVAL = 0.1          # Seconds
-DATA_PARSE_INTERVAL = 1.0            # Seconds
+DATA_PARSE_INTERVAL = 1.0          # Seconds
+GRAPH_UPDATE_INTERVAL = 5.0         #seconds
 
+DB_WRITE_DATA = True
+
+#########################################################
 
 STD_HEAT_BACK_PALLET = (
     [-50.00, 11.99, FF_FREEZE_BLUE_LG ],       # Freeze Blue
@@ -100,7 +148,6 @@ STATE_ON = 1
 STATE_OFF = 0
 
 # Global Variables
-
 
 ui_inputs_values = [
     FLOAT_INIT, 
