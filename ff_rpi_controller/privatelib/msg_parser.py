@@ -7,12 +7,16 @@ Created on 7 Jul. 2018
 import serial
 from datetime import datetime, date, time
 from collections import deque
-from kivy.clock import Clock
+#from kivy.clock import Clock
 from privatelib.ff_config import UINT16_INIT, FLOAT_INIT, SERIAL_POLL_INTERVAL, DATA_PARSE_INTERVAL, MESSAGE_FILENAME, \
                                  INPUTS_LIST, OUTPUTS_LIST, STATE_ON, STATE_OFF, DB_WRITE_DATA, \
-                                 ui_inputs_values, ui_outputs_values, ui_energy_values
+                                 ui_inputs_values, ui_outputs_values, ui_energy_values, \
+                                 MAX_MESSAGE_QUEUE
 
 from privatelib.db_funcs import db_add_log_entry
+from threading import Thread
+from time import sleep
+
 
 #msg_sys = MessageSystem();
 
@@ -59,8 +63,12 @@ class MessageSystem():
                 self.serial_port=serial_port
                 self.serial_speed=serial_speed
                 if self.serial_open(self.serial_port, self.serial_speed):
-                    Clock.schedule_interval(self.serial_read_line, SERIAL_POLL_INTERVAL)
-                    print("Serial poll clock added")
+                    #Clock.schedule_interval(self.serial_read_line, SERIAL_POLL_INTERVAL)
+                    #print("Serial poll clock added")
+                    self.serial_thread = Thread(target=self.serial_read_line, args=(0,))
+                    self.serial_thread.setDaemon(True)
+                    self.serial_thread.start()
+                    print("Serial thread started")
                 else: print("Serial Port Not Opened - why??")
             else:
                 print("ERROR Configure serial called without valid port and speed")
@@ -69,8 +77,12 @@ class MessageSystem():
         if (not self.tcp) and (not self.serial):
             print("WARNING: No Message Source Configured - Live Data will Not be Displayed")
 
-        Clock.schedule_interval(self.parse_and_update, DATA_PARSE_INTERVAL)
-        print("Message parsing loop added on clock")            
+        self.parse_thread = Thread(target=self.parse_and_update, args=(0,))
+        self.parse_thread.setDaemon(True)
+        self.parse_thread.start()
+        print("Message parsing thread started")            
+        #Clock.schedule_interval(self.parse_and_update, DATA_PARSE_INTERVAL)
+        #print("Message parsing loop added on clock")            
 
     def end(self):
         if self.serial:
@@ -92,7 +104,7 @@ class MessageSystem():
                 self.good_decode = True
             except:
                 print("Bad message decode")
-                print("Raw Message: " + raw_msg_string)
+                print("Raw Message: " + str(raw_msg_string))
             
         if (self.good_decode):
             try:
@@ -101,7 +113,8 @@ class MessageSystem():
             except:
                 self.good_dt = False
                 print ("Bad date or time format in message")
-                print (self.string_list[0] + " " + self.string_list[1])
+                print("Raw Message: " + str(raw_msg_string))
+                #print (self.string_list[0] + " " + self.string_list[1])
                  
         if (self.good_length and self.good_decode and self.good_dt):
             if not("DEBUG" in self.string_list):
@@ -117,7 +130,8 @@ class MessageSystem():
                     self.parsed_message.time_rx = datetime.now()
                 except:
                     print("Error: Exception raised assigning decoded message to struct")
-                
+                    print("Raw Message: " + str(raw_msg_string))
+
                 if self.parsed_message.valid:    
                     with open(MESSAGE_FILENAME, "a") as msg_log_file:
                         print(raw_msg_string, file=msg_log_file)
@@ -131,33 +145,40 @@ class MessageSystem():
 
 
     def parse_and_update(self, _dt):
-        while (len(self.message_queue) > 0):
-            #self.parsed_message = ParsedMessage()
-            self.parsed_message = self.parse(self.message_queue.popleft())
-            if (self.parsed_message.valid == True):
-                try:
-                    for i, source, _disp in INPUTS_LIST:
-                        if (self.parsed_message.source_block_string == source):
-                            ui_inputs_values[i] = self.parsed_message.float_val
-                    for i, source, _disp in OUTPUTS_LIST:
-                        if (self.parsed_message.source_block_string == source):
-                            if (self.parsed_message.msg_type_string == "ACTIVATED"):        
-                                ui_outputs_values[i] = STATE_ON
-                            elif (self.parsed_message.msg_type_string == "DEACTIVATED"):        
-                                ui_outputs_values[i] = STATE_OFF
-                    if (self.parsed_message.msg_string == "VE_DATA_SOC"):
-                        ui_energy_values[0] = float(self.parsed_message.int_val) / 10
-                    if (self.parsed_message.msg_string == "VE_DATA_VOLTAGE"):
-                        ui_energy_values[1] = float(self.parsed_message.int_val) / 1000
-                    if (self.parsed_message.msg_string == "VE_DATA_POWER"):
-                        ui_energy_values[2] = float(self.parsed_message.int_val)
-                    if (self.parsed_message.msg_string == "VE_DATA_CURRENT"):
-                        ui_energy_values[3] = float(self.parsed_message.int_val) / 1000
-                    self.last_message_time = datetime.now()
-                    self.message_ever_received = True
-                except:
-                    print("Error: Exception parsing message after sucessful decode")
-
+        self.message_count = 0
+        while True:
+            if (len(self.message_queue) > 0):
+                #self.parsed_message = ParsedMessage()
+                self.parsed_message = self.parse(self.message_queue.popleft())
+                if (self.parsed_message.valid == True):
+                    try:
+                        for i, source, _disp in INPUTS_LIST:
+                            if (self.parsed_message.source_block_string == source):
+                                ui_inputs_values[i] = self.parsed_message.float_val
+                        for i, source, _disp in OUTPUTS_LIST:
+                            if (self.parsed_message.source_block_string == source):
+                                if (self.parsed_message.msg_type_string == "ACTIVATED"):        
+                                    ui_outputs_values[i] = STATE_ON
+                                elif (self.parsed_message.msg_type_string == "DEACTIVATED"):        
+                                    ui_outputs_values[i] = STATE_OFF
+                        if (self.parsed_message.msg_string == "VE_DATA_SOC"):
+                            ui_energy_values[0] = float(self.parsed_message.int_val) / 10
+                        if (self.parsed_message.msg_string == "VE_DATA_VOLTAGE"):
+                            ui_energy_values[1] = float(self.parsed_message.int_val) / 1000
+                        if (self.parsed_message.msg_string == "VE_DATA_POWER"):
+                            ui_energy_values[2] = float(self.parsed_message.int_val)
+                        if (self.parsed_message.msg_string == "VE_DATA_CURRENT"):
+                            ui_energy_values[3] = float(self.parsed_message.int_val) / 1000
+                        self.last_message_time = datetime.now()
+                        self.message_ever_received = True
+                        self.message_count = self.message_count + 1
+                        if (self.message_count % 1000 == 0):
+                            print("Message Count: " + str(self.message_count))
+                    except:
+                        print("Error: Exception parsing message after sucessful decode")
+            else:
+                sleep(DATA_PARSE_INTERVAL)
+                
     def serial_open(self, port, speed):
         # Connect to serial port first
         try:
@@ -176,12 +197,15 @@ class MessageSystem():
         self.serial_connection.close()
 
     def serial_read_line(self, _dt):
-        if (self.serial_connection.inWaiting() > 0):
-            try:
-                self.message_queue.append(self.serial_connection.readline())
-            except:
-                print ("Error reading from serial port")
-                self.serial = False
-                exit()
-
+        while True:
+            if (self.serial_connection.inWaiting() > 0):
+                if (len(self.message_queue) < MAX_MESSAGE_QUEUE):
+                    try:
+                        self.message_queue.append(self.serial_connection.readline())
+                    except:
+                        print ("Error reading from serial port")
+                        self.serial = False
+                        exit()
+            else:
+                sleep(SERIAL_POLL_INTERVAL)
 

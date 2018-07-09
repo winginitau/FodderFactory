@@ -4,6 +4,48 @@ Created on 1 Jul. 2018
 @author: Brendan McLearie
 '''
 
+###################################################
+# IMPORT TEMPLATE - Note Last line, No Comma
+###################################################
+
+#from privatelib.palette import \
+#FF_WHITE, \
+#FF_GREY_HG, \
+#FF_GREEN, \
+#FF_BLACK_MG, \
+#FF_WHITE_LG, \
+#FF_RED, \
+#FF_BLUE, \
+#FF_GREY_LG, \
+#FF_BLUE_LG, \
+#FF_SLATE_LG, \
+#FF_WHITE_HG, \
+#FF_RED_LG, \
+#FF_GREEN_LG, \
+#FF_YELLOW_LG, \
+#FF_COLD_BLUE_LG, \
+#FF_FREEZE_BLUE_LG, \
+#FF_BLACK_LG, \
+#FF_BLACK_HG, \
+#FF_BLACK, \
+#FF_RED_HG, \
+#FF_GREEN_HG, \
+#FF_BLUE_HG, \
+#FF_COLD_BLUE_HG, \
+#FF_COLD_BLUE, \
+#FF_FREEZE_BLUE_HG, \
+#FF_FREEZE_BLUE, \
+#FF_YELLOW_HG, \
+#FF_YELLOW, \
+#FF_GREY, \
+#FF_SAND_LG, \
+#FF_SAND_HG, \
+#FF_SAND, \
+#FF_SLATE_HG, \
+#FF_SLATE
+
+
+
 ################################################### 
 #Colours
 ###################################################
