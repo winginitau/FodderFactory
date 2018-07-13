@@ -8,7 +8,6 @@
 '''
 
 import kivy
-from kivy.uix.label import Label
 #from _socket import TCP_CORK
 kivy.require('1.10.0') # replace with your current kivy version !
 from kivy.config import Config
@@ -16,13 +15,20 @@ from kivy.app import App
 #from kivy.clock import Clock
 from kivy.uix.screenmanager import Screen
 
-from privatelib.palette import FF_WHITE, FF_GREY_HG
+#from privatelib.palette import FF_WHITE, FF_GREY_HG
 
 from privatelib.ff_config import INPUTS_LIST, OUTPUTS_LIST, ENERGY_LIST, \
-                                 MODEM_SERIAL_PORT, MODEM_SERIAL_SPEED                                
+                                 MODEM_SERIAL_PORT, MODEM_SERIAL_SPEED, \
+                                 PROCESS_MESSAGES, UI_UPDATE_FROM_LOCAL_DB, \
+                                 UI_UPDATE_FROM_MESSAGES, UI_UPDATE_FROM_CLOUD_DB, \
+                                 DB_LOCAL_CONFIG, DB_CLOUD_CONFIG, \
+                                 DB_WRITE_LOCAL, DB_WRITE_CLOUD, \
+                                 GRAPH_UPDATE_FROM_LOCAL_DB, GRAPH_UPDATE_FROM_CLOUD_DB
+
+                                                                 
 from privatelib.db_funcs import DBConnectTest
 from privatelib.global_vars import msg_sys, sm
-from privatelib.grids import MainParentGrid, DataParentGrid
+from privatelib.grids import MainParentGrid, DataParentGrid, SystemParentGrid
                                 
 
 ##### Globals Variables###############
@@ -31,29 +37,8 @@ from privatelib.grids import MainParentGrid, DataParentGrid
 # Global Functions
 
 
-class BasicLabel(Label):
-    def __init__(self, **kwargs):
-        super(BasicLabel, self).__init__(**kwargs)
-        #self.text_size = self.size
-        self.halign = "center"
-        self.valign = "middle"
-        self.background_normal = ''
-        #self.background_color = FF_GREY
-        self.font_size = '28sp'
-        #self.spacing = 10
-        #self.padding = (10, 10)   
-        #self.color = FF_WHITE
-        self.name = ''
-        self.text = self.name    
-        
-        self.background_color = FF_GREY_HG
-        self.color = FF_WHITE
-        self.text = "\n[b]" + self.text + "[/b]"
-    def set_name(self, name_str):
-        self.name = name_str
-        self.text = name_str    
 
-            
+
        
 # Declare screens
 class MainScreen(Screen):
@@ -66,42 +51,55 @@ class DataScreen(Screen):
     def __init__(self, **kwargs):
         super(DataScreen, self).__init__(**kwargs)
         #self.screen_layout = MainParentGrid()
-    def setup(self, disp_name="", data_source="", data_type=""):
+    def setup(self, disp_name="", data_source="", data_type="", init_period=1):
         self.disp_name = disp_name
         self.data_source = data_source
         self.data_type = data_type
-
-        #self.screen_layout = DataParentGrid()
-        #self.screen_layout.setup(disp_name=disp_name, data_source=data_source, \
-        #                         data_type=data_type) 
-        #self.add_widget(self.screen_layout)
+        self.init_period = init_period
 
     def on_enter(self, *args):
         Screen.on_enter(self, *args)       
         self.screen_layout = DataParentGrid()
         self.screen_layout.setup(disp_name=self.disp_name, data_source=self.data_source, \
-                                 data_type=self.data_type) 
+                                 data_type=self.data_type, init_period=self.init_period) 
         self.add_widget(self.screen_layout)
         
     def on_leave(self, *args):
         Screen.on_leave(self, *args)
+        #def on_leave(self):
+        for widget in self.walk(restrict=True):
+            if hasattr(widget, 'destroy'):
+                widget.destroy()
         self.remove_widget(self.screen_layout)
 
+class SystemScreen(Screen):
+    def __init__(self, **kwargs):
+        super(SystemScreen, self).__init__(**kwargs)
+    def on_enter(self, *args):
+        Screen.on_enter(self, *args)       
+        self.system_grid = SystemParentGrid()
+        self.add_widget(self.system_grid)
+                
+    def on_leave(self, *args):
+        Screen.on_leave(self, *args)
+        self.remove_widget(self.system_grid)
+    
 
 #sm = ScreenManager()
 sm.add_widget(MainScreen(name='main'))
-for i, source, disp in INPUTS_LIST:
+for i, source, disp, graph_period in INPUTS_LIST:
     scr = DataScreen(name=disp)
-    scr.setup(disp_name=disp, data_source=source, data_type="INPUT")
+    scr.setup(disp_name=disp, data_source=source, data_type="INPUT", init_period=graph_period)
     sm.add_widget(scr)
-for i, source, disp in OUTPUTS_LIST:
+for i, source, disp, graph_period in OUTPUTS_LIST:
     scr = DataScreen(name=disp)
-    scr.setup(disp_name=disp, data_source=source, data_type="OUTPUT")
+    scr.setup(disp_name=disp, data_source=source, data_type="OUTPUT", init_period=graph_period)
     sm.add_widget(scr)
-for source, disp in ENERGY_LIST:
+for source, disp, graph_period in ENERGY_LIST:
     scr = DataScreen(name=disp)
-    scr.setup(disp_name=disp, data_source=source, data_type="ENERGY")
+    scr.setup(disp_name=disp, data_source=source, data_type="ENERGY", init_period=graph_period)
     sm.add_widget(scr)
+#sm.add_widget(SystemScreen(name='system'))
     
 # Top Level App                                      
 class MyApp(App):
@@ -122,13 +120,30 @@ class MyApp(App):
 ############################################################################
 if __name__ == '__main__':
        
-    DBConnectTest()
-
+    
+    
     # Set Up Data Processing
-    msg_sys.configure(tcp=False, serial=True, \
+    n_ui_sources = [UI_UPDATE_FROM_MESSAGES, UI_UPDATE_FROM_LOCAL_DB, UI_UPDATE_FROM_CLOUD_DB].count(True)
+    n_graph_sources = [GRAPH_UPDATE_FROM_LOCAL_DB, GRAPH_UPDATE_FROM_CLOUD_DB].count(True)
+
+    if (n_ui_sources > 1) or (n_graph_sources > 1):
+        print("ERROR: UI and Graphs can only be updated from one source. ")
+        print(str(n_ui_sources) + " UI sources configured")
+        print(str(n_graph_sources) + " Graph sources configured")       
+        exit(1)
+    if PROCESS_MESSAGES:
+        msg_sys.configure(tcp=False, serial=True, \
                       serial_port=MODEM_SERIAL_PORT, serial_speed=MODEM_SERIAL_SPEED, \
                       tcp_address="192.168.5.253", tcp_port="3333")
-    
+
+    if UI_UPDATE_FROM_LOCAL_DB or DB_WRITE_LOCAL or GRAPH_UPDATE_FROM_LOCAL_DB:
+        DBConnectTest(db=DB_LOCAL_CONFIG)
+
+    if UI_UPDATE_FROM_CLOUD_DB or DB_WRITE_CLOUD or GRAPH_UPDATE_FROM_CLOUD_DB:
+        DBConnectTest(db=DB_CLOUD_CONFIG)
+
+    if UI_UPDATE_FROM_LOCAL_DB or UI_UPDATE_FROM_CLOUD_DB:
+        msg_sys.setup_db_ui_source()
 
     # Launch the app
     MyApp().run()

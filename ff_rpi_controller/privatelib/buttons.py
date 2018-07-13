@@ -9,51 +9,17 @@ from kivy.uix.screenmanager import SlideTransition, SwapTransition
 
 from datetime import datetime, timedelta
 
-from privatelib.palette import \
-FF_WHITE_HG, \
-FF_RED_LG, \
-FF_GREEN_LG, \
-FF_YELLOW_LG, \
-FF_WHITE_LG, \
-FF_WHITE, \
-FF_BLUE_LG, \
-FF_GREY_LG, \
-FF_SLATE_LG
-#FF_BLACK_MG, \
-#FF_BLUE, \
-#FF_RED, \
-#FF_GREY_HG, \
-#FF_GREEN, \
-#FF_COLD_BLUE_LG, \
-#FF_FREEZE_BLUE_LG, \
-#FF_BLACK_LG, \
-#FF_BLACK_HG, \
-#FF_BLACK, \
-#FF_RED_HG, \
-#FF_GREEN_HG, \
-#FF_BLUE_HG, \
-#FF_COLD_BLUE_HG, \
-#FF_COLD_BLUE, \
-#FF_FREEZE_BLUE_HG, \
-#FF_FREEZE_BLUE, \
-#FF_YELLOW_HG, \
-#FF_YELLOW, \
-#FF_GREY, \
-#FF_SAND_LG, \
-#FF_SAND_HG, \
-#FF_SAND, \
-#FF_SLATE_HG, \
-#FF_SLATE
-
+from privatelib.palette import FF_WHITE_HG, FF_RED_LG, FF_GREEN_LG, FF_YELLOW_LG, \
+                               FF_WHITE_LG, FF_WHITE, FF_BLUE_LG, FF_GREY_LG, FF_SLATE_LG
 
 from privatelib.ff_config import FLOAT_INIT, \
                                  INPUTS_LIST, OUTPUTS_LIST, \
                                  STATE_ON, STATE_OFF, STATE_UNKNOWN, \
                                  ui_inputs_values, ui_outputs_values, ui_energy_values, \
-                                 GetBackColorByTemp, GetForeColorByTemp
+                                 GetBackColorByTemp, GetForeColorByTemp, active_rules
 
 
-from privatelib.global_vars import msg_sys, sm
+from privatelib.global_vars import msg_sys, sm 
 
 class BasicButton(Button):
     def __init__(self, **kwargs):
@@ -74,12 +40,39 @@ class BasicButton(Button):
         
         self.background_color = FF_GREY_LG
         self.color = FF_WHITE_LG
+        #self.border = [self.size[1]+30,self.size[0]+30,self.size[1]+30,self.size[0]+30]
         #self.text = "\n[b]" + self.text + "[/b]"
         self.text = ""
     def set_name(self, name_str):
         self.name = name_str
         self.text = name_str    
 
+class RuleButton(BasicButton):
+    def __init__(self, **kwargs):
+        super(RuleButton, self).__init__(**kwargs)
+        self.background_color = FF_BLUE_LG
+        self.color = FF_WHITE_HG
+        self.text=""
+        self.font_size = '22sp'
+#self.valign = "bottom"
+        #self.size_hint_x = None
+        #self.size_hint_y = None
+        #self.height = 120
+        #self.width = 150
+    def update(self, _dt):                   # dt passed in kivy callback - not used
+        self.rule_count = 0
+        self.text = ""
+        if len(active_rules) == 0:
+            self.background_color = FF_SLATE_LG
+            self.color = FF_WHITE_HG
+            self.text = "No Active Rules"
+        else:
+            self.background_color = FF_GREEN_LG
+            self.color = FF_WHITE_HG
+            self.text = active_rules[0]
+        for n in range(1, len(active_rules)):
+            self.text = self.text + "\n" + active_rules[n]
+            
 class NavigationButton(BasicButton):
     def __init__(self, **kwargs):
         super(NavigationButton, self).__init__(**kwargs)
@@ -238,7 +231,11 @@ class TimeButton(BasicButton):
         self.background_color = FF_SLATE_LG
         self.color = FF_WHITE_HG
         self.text = "[b]--:--:--[/b]"
-                    
+    def on_press(self):
+        pass
+        #BasicButton.on_press(self)
+        #sm.transition = SwapTransition()
+        #sm.current = 'system'                                
     def set_name(self, name_str):
         self.name = name_str
     def update(self, _dt):
@@ -260,7 +257,11 @@ class MessageIndicatorButton(BasicButton):
         self.delta = timedelta()
     def set_name(self, name_str):
         self.name = name_str
-        
+    def on_press(self):
+        pass
+        #BasicButton.on_press(self)
+        #sm.transition = SwapTransition()
+        #sm.current = 'system'            
     def update(self, _dt):
         #global message_ever_received
         #global last_message_time

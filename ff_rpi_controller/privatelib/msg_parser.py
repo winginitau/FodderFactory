@@ -8,32 +8,26 @@ import serial
 from datetime import datetime, date, time
 from collections import deque
 #from kivy.clock import Clock
-from privatelib.ff_config import UINT16_INIT, FLOAT_INIT, SERIAL_POLL_INTERVAL, DATA_PARSE_INTERVAL, MESSAGE_FILENAME, \
-                                 INPUTS_LIST, OUTPUTS_LIST, STATE_ON, STATE_OFF, DB_WRITE_DATA, \
-                                 ui_inputs_values, ui_outputs_values, ui_energy_values, \
-                                 MAX_MESSAGE_QUEUE
+from privatelib.ff_config import UINT16_INIT, FLOAT_INIT, STATE_ON, STATE_OFF, ParsedMessage, \
+                                 SERIAL_POLL_INTERVAL, DATA_PARSE_INTERVAL, \
+                                 MESSAGE_FILENAME, MAX_MESSAGE_QUEUE, MYSQL_POLL_INTERVAL, \
+                                 INPUTS_LIST, OUTPUTS_LIST, ENERGY_LIST, RULES_TO_CATCH, \
+                                 DB_WRITE_LOCAL, DB_WRITE_CLOUD, \
+                                 DB_LOCAL_CONFIG, DB_CLOUD_CONFIG, \
+                                 ui_inputs_values, ui_outputs_values, ui_energy_values, active_rules, \
+                                 UI_UPDATE_FROM_MESSAGES, \
+                                 UI_UPDATE_FROM_LOCAL_DB, UI_UPDATE_FROM_CLOUD_DB
 
-from privatelib.db_funcs import db_add_log_entry
+#from privatelib.global_vars import active_rules
+from privatelib.db_funcs import db_add_log_entry, db_get_last_message_by_source, \
+                                db_get_last_energy_message_by_string
 from threading import Thread
 from time import sleep
+from kivy.clock import Clock
 
 
 #msg_sys = MessageSystem();
 
-class ParsedMessage():
-    def __init__(self, **kwargs):
-        super(ParsedMessage, self).__init__(**kwargs)
-        self.date = date.today()
-        self.time = time()
-        self.dt = datetime(1980,1,1)
-        self.source_block_string = ""
-        self.dest_block_string = ""
-        self.msg_type_string = ""
-        self.msg_string = ""
-        self.int_val = UINT16_INIT
-        self.float_val = FLOAT_INIT
-        self.valid = False
-        self.time_rx = datetime.now()
 
 class MessageSystem():
     def __init__(self, **kwargs):
@@ -81,13 +75,98 @@ class MessageSystem():
         self.parse_thread.setDaemon(True)
         self.parse_thread.start()
         print("Message parsing thread started")            
-        #Clock.schedule_interval(self.parse_and_update, DATA_PARSE_INTERVAL)
-        #print("Message parsing loop added on clock")            
 
     def end(self):
         if self.serial:
             self.serial_close()
             #self.serial_connection.close()
+    def setup_db_ui_source(self):
+        self.ui_from_mysql_thread = Thread(target=self.get_db_ui_data, args=(0,))
+        self.ui_from_mysql_thread.setDaemon(True)
+        self.ui_from_mysql_thread.start()
+    def get_db_ui_data(self, _dt):
+        if UI_UPDATE_FROM_LOCAL_DB and UI_UPDATE_FROM_CLOUD_DB:
+            print("ERROR: Multiple DBs configured for UI update")
+            exit(1)
+        if UI_UPDATE_FROM_LOCAL_DB:
+            db_source = DB_LOCAL_CONFIG
+        elif UI_UPDATE_FROM_CLOUD_DB:
+            db_source = DB_CLOUD_CONFIG
+        else:
+            print("ERROR: Attempting to start DB UI thread with no valid sources")
+            exit(1)
+        print("DB UI polling thread starting")            
+        while True:
+            any_valid_query = False
+            message = ParsedMessage()
+            try:
+                for i, source, _disp, _period in INPUTS_LIST: 
+                    message.valid = False
+                    message = db_get_last_message_by_source(source, message, 5, db=db_source)
+                    if message.valid:
+                        ui_inputs_values[i] = message.float_val
+                        any_valid_query = True
+                    else:
+                        print("WARNING: DB query for: " + source + " Returned no valid messages")
+    
+                for i, source, _disp, _period in OUTPUTS_LIST:
+                    message.valid = False
+                    message = db_get_last_message_by_source(source, message, 24*60, db=db_source)
+                    if message.valid:
+                        if (message.msg_type_string == "ACTIVATED"):        
+                            ui_outputs_values[i] = STATE_ON
+                        elif (message.msg_type_string == "DEACTIVATED"):        
+                            ui_outputs_values[i] = STATE_OFF
+                        any_valid_query = True
+                    else:
+                        print("WARNING: DB query for: " + source + " Returned no valid messages")
+    
+                for source, _disp, _period in ENERGY_LIST:
+                    message.valid = False
+                    message = db_get_last_energy_message_by_string(source, message, 5, db=db_source)
+                    if message.valid:
+                        if (message.msg_string == "VE_DATA_SOC"):
+                            ui_energy_values[0] = float(message.int_val) / 10
+                        if (message.msg_string == "VE_DATA_VOLTAGE"):
+                            ui_energy_values[1] = float(message.int_val) / 1000
+                        if (message.msg_string == "VE_DATA_CURRENT"):
+                            ui_energy_values[3] = float(message.int_val) / 1000
+                        if (message.msg_string == "VE_DATA_POWER"):
+                            ui_energy_values[2] = float(message.int_val)
+                        any_valid_query = True
+                    else:
+                        print("WARNING: DB query for: " + source + " Returned no valid messages")
+                
+                for rule, disp in RULES_TO_CATCH:
+                    message.valid = False
+                    message = db_get_last_message_by_source(rule, message, 24*60, db=db_source)
+                    if message.valid:
+                        if (message.source_block_string == rule):
+                            if (message.msg_type_string == "ACTIVATED"):
+                                if not(disp in active_rules):
+                                    active_rules.append(disp)
+                            if (message.msg_type_string == "DEACTIVATED"):
+                                try:
+                                    active_rules.remove(disp)
+                                except:
+                                    pass
+                                    #print("Attempted to Remove Non-Active Rule")
+                        any_valid_query = True
+                    else:
+                        print("WARNING: DB query for: " + rule + " Returned no valid messages")
+
+                if any_valid_query:                                
+                    self.last_message_time = datetime.now()
+                    self.message_ever_received = True
+                    self.message_count = self.message_count + 1
+                    if (self.message_count % 1000 == 0):
+                        print("Message Count: " + str(self.message_count))
+                else:
+                    print("No valid message returned by db for for any UI queries")
+            except:
+                print("Error: Exception Raised Getting and Processing Mmessages from MySQL")
+            sleep(MYSQL_POLL_INTERVAL)
+
             
     def parse(self, raw_msg_string):
         self.parsed_message = ParsedMessage()
@@ -139,8 +218,10 @@ class MessageSystem():
                           self.parsed_message.source_block_string, self.parsed_message.dest_block_string, \
                           self.parsed_message.msg_type_string, self.parsed_message.msg_string, \
                           self.parsed_message.int_val, self.parsed_message.float_val)
-                    if DB_WRITE_DATA:
-                        db_add_log_entry(self.parsed_message)    
+                    if DB_WRITE_LOCAL:
+                        db_add_log_entry(self.parsed_message, db=DB_LOCAL_CONFIG)    
+                    if DB_WRITE_CLOUD:
+                        db_add_log_entry(self.parsed_message, db=DB_CLOUD_CONFIG)    
         return self.parsed_message
 
 
@@ -150,32 +231,47 @@ class MessageSystem():
             if (len(self.message_queue) > 0):
                 #self.parsed_message = ParsedMessage()
                 self.parsed_message = self.parse(self.message_queue.popleft())
-                if (self.parsed_message.valid == True):
-                    try:
-                        for i, source, _disp in INPUTS_LIST:
-                            if (self.parsed_message.source_block_string == source):
-                                ui_inputs_values[i] = self.parsed_message.float_val
-                        for i, source, _disp in OUTPUTS_LIST:
-                            if (self.parsed_message.source_block_string == source):
-                                if (self.parsed_message.msg_type_string == "ACTIVATED"):        
-                                    ui_outputs_values[i] = STATE_ON
-                                elif (self.parsed_message.msg_type_string == "DEACTIVATED"):        
-                                    ui_outputs_values[i] = STATE_OFF
-                        if (self.parsed_message.msg_string == "VE_DATA_SOC"):
-                            ui_energy_values[0] = float(self.parsed_message.int_val) / 10
-                        if (self.parsed_message.msg_string == "VE_DATA_VOLTAGE"):
-                            ui_energy_values[1] = float(self.parsed_message.int_val) / 1000
-                        if (self.parsed_message.msg_string == "VE_DATA_POWER"):
-                            ui_energy_values[2] = float(self.parsed_message.int_val)
-                        if (self.parsed_message.msg_string == "VE_DATA_CURRENT"):
-                            ui_energy_values[3] = float(self.parsed_message.int_val) / 1000
-                        self.last_message_time = datetime.now()
-                        self.message_ever_received = True
-                        self.message_count = self.message_count + 1
-                        if (self.message_count % 1000 == 0):
-                            print("Message Count: " + str(self.message_count))
-                    except:
-                        print("Error: Exception parsing message after sucessful decode")
+                if UI_UPDATE_FROM_MESSAGES:
+                    if (self.parsed_message.valid == True):
+                        try:
+                            for i, source, _disp, _period in INPUTS_LIST:
+                                if (self.parsed_message.source_block_string == source):
+                                    ui_inputs_values[i] = self.parsed_message.float_val
+                            for i, source, _disp, _period in OUTPUTS_LIST:
+                                if (self.parsed_message.source_block_string == source):
+                                    if (self.parsed_message.msg_type_string == "ACTIVATED"):        
+                                        ui_outputs_values[i] = STATE_ON
+                                    elif (self.parsed_message.msg_type_string == "DEACTIVATED"):        
+                                        ui_outputs_values[i] = STATE_OFF
+                            
+                            if (self.parsed_message.msg_string == "VE_DATA_SOC"):
+                                ui_energy_values[0] = float(self.parsed_message.int_val) / 10
+                            if (self.parsed_message.msg_string == "VE_DATA_VOLTAGE"):
+                                ui_energy_values[1] = float(self.parsed_message.int_val) / 1000
+                            if (self.parsed_message.msg_string == "VE_DATA_POWER"):
+                                ui_energy_values[2] = float(self.parsed_message.int_val)
+                            if (self.parsed_message.msg_string == "VE_DATA_CURRENT"):
+                                ui_energy_values[3] = float(self.parsed_message.int_val) / 1000
+                            
+                            for rule, disp in RULES_TO_CATCH:
+                                if (self.parsed_message.source_block_string == rule):
+                                    if (self.parsed_message.msg_type_string == "ACTIVATED"):
+                                        if not(disp in active_rules):
+                                            active_rules.append(disp)
+                                    if (self.parsed_message.msg_type_string == "DEACTIVATED"):
+                                        try:
+                                            active_rules.remove(disp)
+                                        except:
+                                            print("Attempted to Remove Non-Active Rule")
+                                                            
+                            
+                            self.last_message_time = datetime.now()
+                            self.message_ever_received = True
+                            self.message_count = self.message_count + 1
+                            if (self.message_count % 1000 == 0):
+                                print("Message Count: " + str(self.message_count))
+                        except:
+                            print("Error: Exception parsing message after sucessful decode")
             else:
                 sleep(DATA_PARSE_INTERVAL)
                 

@@ -5,58 +5,36 @@ Created on 9 Jul. 2018
 '''
 
 from kivy.uix.gridlayout import GridLayout
+from kivy.uix.label import Label
+from kivy.lang import Builder
+from kivy.graphics.instructions import InstructionGroup
+
 from privatelib.ff_config import INPUTS_LIST, OUTPUTS_LIST, CLOCK_UPDATE_INTERVAL,\
-                                 DATA_PARSE_INTERVAL, GRAPH_UPDATE_INTERVAL, \
-                                 DB_INPUT_LOW_HIGH, DB_ENERGY_GRAPH_PARAMS
+                                 UI_REFRESH_INTERVAL, GRAPH_UPDATE_INTERVAL, \
+                                 DB_INPUT_LOW_HIGH, DB_ENERGY_GRAPH_PARAMS, \
+                                 DB_LOCAL_CONFIG, DB_CLOUD_CONFIG, \
+                                 GRAPH_UPDATE_FROM_LOCAL_DB, GRAPH_UPDATE_FROM_CLOUD_DB
+                                 
+                                 
 from kivy.clock import Clock
 from graph import Graph
 from graph import MeshLinePlot
 from kivy.graphics import Rectangle
 from datetime import datetime, timedelta
 
+import math
 
 from privatelib.buttons import FFTempButton, FFDeviceButton, FFEnergyButton, \
                                 TimeButton, MessageIndicatorButton, \
                                 NavPrevButton, NavZoomButton, NavCloseToMainButton, \
-                                NavNextButton
+                                NavNextButton, RuleButton
 from privatelib.db_funcs import db_temperature_data ,db_device_data, \
-                                db_energy_data
+                                db_energy_data, db_log_history
                                
-from privatelib.palette import \
-FF_WHITE, \
-FF_BLACK_MG, \
-FF_WHITE_LG, \
-FF_RED, \
-FF_GREEN, \
-FF_BLUE
-#FF_GREY_HG, \
-#FF_GREY_LG, \
-#FF_BLUE_LG, \
-#FF_SLATE_LG, \
-#FF_WHITE_HG, \
-#FF_RED_LG, \
-#FF_GREEN_LG, \
-#FF_YELLOW_LG, \
-#FF_COLD_BLUE_LG, \
-#FF_FREEZE_BLUE_LG, \
-#FF_BLACK_LG, \
-#FF_BLACK_HG, \
-#FF_BLACK, \
-#FF_RED_HG, \
-#FF_GREEN_HG, \
-#FF_BLUE_HG, \
-#FF_COLD_BLUE_HG, \
-#FF_COLD_BLUE, \
-#FF_FREEZE_BLUE_HG, \
-#FF_FREEZE_BLUE, \
-#FF_YELLOW_HG, \
-#FF_YELLOW, \
-#FF_GREY, \
-#FF_SAND_LG, \
-#FF_SAND_HG, \
-#FF_SAND, \
-#FF_SLATE_HG, \
-#FF_SLATE
+from privatelib.palette import FF_WHITE, FF_BLACK_MG, FF_WHITE_LG, FF_SLATE_HG, \
+                               FF_RED, FF_GREEN, FF_BLUE, FF_SLATE_LG, FF_BLUE_LG
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.textinput import TextInput
                                 
 
 
@@ -75,20 +53,24 @@ class MainTopGrid(GridLayout):
         self.output_buttons = []
                 
         # add the input buttons
-        for i, _l, d in INPUTS_LIST:
+        for i, _l, d, _p in INPUTS_LIST:
             self.input_buttons.append(FFTempButton(markup=True))
             self.input_buttons[i].set_name(d)
             self.input_buttons[i].set_source_by_index(i)
             self.add_widget(self.input_buttons[i])
-            Clock.schedule_interval(self.input_buttons[i].update, DATA_PARSE_INTERVAL)
+            Clock.schedule_interval(self.input_buttons[i].update, UI_REFRESH_INTERVAL)
         
         # add the device buttons
-        for i, _l, d in OUTPUTS_LIST:
+        for i, _l, d, _p in OUTPUTS_LIST:
             self.output_buttons.append(FFDeviceButton(markup=True))
             self.output_buttons[i].set_name(d)
             self.output_buttons[i].set_source_by_index(i)
             self.add_widget(self.output_buttons[i])
-            Clock.schedule_interval(self.output_buttons[i].update, DATA_PARSE_INTERVAL)
+            Clock.schedule_interval(self.output_buttons[i].update, UI_REFRESH_INTERVAL)
+        
+        self.rule_button = RuleButton(markup=True)
+        self.add_widget(self.rule_button)
+        Clock.schedule_interval(self.rule_button.update, UI_REFRESH_INTERVAL)
 
 class MainMiddleGrid(GridLayout):
     def __init__(self, **kwargs):
@@ -101,7 +83,7 @@ class MainMiddleGrid(GridLayout):
         self.energy_button.set_name("Energy")
         self.add_widget(self.energy_button)
         
-        Clock.schedule_interval(self.energy_button.update, DATA_PARSE_INTERVAL)
+        Clock.schedule_interval(self.energy_button.update, UI_REFRESH_INTERVAL)
 
 class MainBottomGrid(GridLayout):
     def __init__(self, **kwargs):
@@ -119,7 +101,7 @@ class MainBottomGrid(GridLayout):
         self.add_widget(self.last_rx_status)
         
         Clock.schedule_interval(self.current_time.update, CLOCK_UPDATE_INTERVAL)
-        Clock.schedule_interval(self.last_rx_status.update, DATA_PARSE_INTERVAL)
+        Clock.schedule_interval(self.last_rx_status.update, UI_REFRESH_INTERVAL)
 
 class MainParentGrid(GridLayout):
     def __init__(self, **kwargs):
@@ -182,6 +164,16 @@ class GraphGrid(GridLayout):
         self.cols = 1
         self.spacing = 0
         self.padding = [10, 0, 10, 10]
+        if GRAPH_UPDATE_FROM_LOCAL_DB and GRAPH_UPDATE_FROM_CLOUD_DB:
+            print("ERROR: (GraphGrid) Multiple DBs configured for UI update")
+            exit(1)
+        if GRAPH_UPDATE_FROM_LOCAL_DB:
+            self.db_source = DB_LOCAL_CONFIG
+        elif GRAPH_UPDATE_FROM_CLOUD_DB:
+            self.db_source = DB_CLOUD_CONFIG
+        else:
+            print("ERROR: (GraphGrid) __init__ called no valid DB sources")
+            exit(1)
         #self.size_hint_min_y = 200
     def setup(self, disp_name="", data_source="", data_type="", \
               ylabel="", y_ticks_major=2, period_in_days=1):
@@ -208,7 +200,7 @@ class GraphGrid(GridLayout):
         if self.draw_low_line:
             self.low_line_values = []
         self.data_line_values = []
-        self.refresh_data()        
+        #self.refresh_data()        
         self.graph = Graph(xlabel=self.disp_name, ylabel=self.ylabel, \
                            x_grid_label=False, \
                            x_grid=True, \
@@ -235,8 +227,11 @@ class GraphGrid(GridLayout):
         self.plot_data = MeshLinePlot(color=FF_WHITE)        
         self.plot_data.points = self.data_line_values.copy()
         self.graph.add_plot(self.plot_data)
-        self.update(0)
-        Clock.schedule_interval(self.update, GRAPH_UPDATE_INTERVAL)
+        #self.update(0)
+        Clock.schedule_once(self.update, 0.2)
+        self.update_event = Clock.schedule_interval(self.update, GRAPH_UPDATE_INTERVAL)    
+    def destroy(self):
+        Clock.unschedule(self.update_event)
     def update(self, _dt):
         self.refresh_data()     
         self.graph.xlabel=(self.disp_name + " - " + str(self.period.days) + " Days")                
@@ -284,8 +279,8 @@ class TemperatureGraphGrid(GraphGrid):
         self.db_result_list = []
         self.db_result_list = db_temperature_data(block_label = self.data_source, \
                                                   periodTD = self.period, \
-                                                  db_result_list = self.db_result_list) 
-        
+                                                  db_result_list = self.db_result_list, \
+                                                  db=self.db_source) 
         if self.draw_high_line:
             self.high_line_values = []
         if self.draw_low_line:
@@ -323,7 +318,8 @@ class DeviceGraphGrid(GraphGrid):
         self.db_result_list = []
         self.db_result_list = db_device_data(block_label = self.data_source, \
                                              periodTD = self.period, \
-                                             db_result_list = self.db_result_list)  
+                                             db_result_list = self.db_result_list, \
+                                             db=self.db_source)  
         self.data_line_values = []
         nowDT = datetime.now()
         now_min = nowDT.minute
@@ -343,7 +339,8 @@ class EnergyGraphGrid(GraphGrid):
         self.db_result_list = []
         self.db_result_list = db_energy_data(energy_message = self.data_source, \
                                              periodTD = self.period, \
-                                             db_result_list = self.db_result_list)         
+                                             db_result_list = self.db_result_list, \
+                                             db=self.db_source)         
         if self.draw_high_line:
             self.high_line_values = []
         if self.draw_low_line:
@@ -363,9 +360,9 @@ class EnergyGraphGrid(GraphGrid):
                 
         for t, v in self.db_result_list:
             if v > self.max_y:
-                self.max_y = v
+                self.max_y = math.ceil(v)
             if v < self.min_y:
-                self.min_y = v
+                self.min_y = math.floor(v)
             t_mod = t + self.x_offset
             self.data_line_values.append((t_mod,v))      
             self.high_line_values.append((t_mod,self.high_line)) 
@@ -426,13 +423,13 @@ class DataParentGrid(GridLayout):
 
         #self.title_section = ZoomHeaderGrid()
         #self.data_type = data_type
-    def setup(self, disp_name="", data_source="", data_type=""):
+    def setup(self, disp_name="", data_source="", data_type="", init_period=1):
         if data_type == "INPUT":
             self.data_section = TemperatureGraphGrid()
             self.data_section.setup(disp_name=disp_name, data_source=data_source, \
                                     ylabel="Temperature", \
                                     y_ticks_major=2, \
-                                    period_in_days=1)
+                                    period_in_days=init_period)
             self.data_section.add_graph(draw_high_line=True, draw_low_line=True)
         
         elif data_type == "OUTPUT":
@@ -440,13 +437,19 @@ class DataParentGrid(GridLayout):
             self.data_section.setup(disp_name=disp_name, data_source=data_source, \
                                     ylabel="OFF                                                    ON", \
                                     y_ticks_major=2, \
-                                    period_in_days=1)
+                                    period_in_days=init_period)
             self.data_section.add_graph()
         
         elif data_type == "ENERGY":
             self.data_section = EnergyGraphGrid()
+            
+            ylabel, _low_line, _high_line, \
+                y_ticks_major = get_energy_graph_params(data_source)
+
             self.data_section.setup(disp_name=disp_name, data_source=data_source, \
-                                    ylabel="Energy", period_in_days=5)
+                                    ylabel=ylabel, \
+                                    y_ticks_major=y_ticks_major, \
+                                    period_in_days=init_period)
             self.data_section.add_graph(draw_high_line=True, high_colour=FF_GREEN, \
                                         draw_low_line=True, low_colour=FF_RED)
         
@@ -456,3 +459,160 @@ class DataParentGrid(GridLayout):
         
         self.add_widget(self.nav_section)
         self.add_widget(self.data_section) 
+
+
+
+class BasicLabel(Label):
+    def __init__(self, **kwargs):
+        super(BasicLabel, self).__init__(**kwargs)
+        #self.text_size = self.size
+        self.halign = "center"
+        self.valign = "middle"
+        self.background_normal = ''
+        #self.background_color = FF_GREY
+        self.font_size = '28sp'
+        #self.spacing = 10
+        #self.padding = (10, 10)   
+        #self.color = FF_WHITE
+        self.name = ''
+        self.text = self.name    
+        
+        self.background_color = FF_SLATE_LG
+        self.color = FF_WHITE
+        self.text = "\n[b]" + self.text + "[/b]"
+    def set_name(self, name_str):
+        self.name = name_str
+        self.text = name_str    
+
+class TextDisplayLabelBox(Label):
+    def __init__(self, **kwargs):
+        super(TextDisplayLabelBox, self).__init__(**kwargs)
+        #self.text_size = self.size
+        self.halign = "left"
+        self.valign = "bottom"
+        self.background_normal = ''
+        #self.background_color = FF_GREY
+        self.font_size = '14sp'
+        #self.spacing = 10
+        #self.padding = (10, 10)   
+        #self.color = FF_WHITE
+        self.name = ''
+        self.text = self.name    
+        
+        self.background_color = FF_SLATE_LG
+        self.color = FF_WHITE
+        #self.text = "\n[b]" + self.text + "[/b]"
+    def set_name(self, name_str):
+        self.name = name_str
+        self.text = name_str    
+
+
+
+Builder.load_string('''
+<SystemParentGrid>:    
+    BoxLayout:
+        orientation: "horizontal"
+        height: 480
+        width: 800
+        spacing: 0
+        padding: [0, 0, 0, 0]
+        canvas.before:
+            #source: 'cows.png'
+            Color: 
+                rgba: 0,0,0,1
+            Rectangle:
+                size: 800, 480
+        ScrollView:
+            MessageLogBox:
+                size_hint: None, None
+                size: self.texture_size 
+        GridLayout:
+            cols: 1
+            NavCloseToMainButton:
+                set_name: 'Close'
+                text: 'Close'
+                size_hint_y: 0.2
+            ListTextField:    
+            ScrollView:
+                MessageLogBox:
+                    size_hint: None, None
+                    size: self.texture_size 
+<ListTextField>:
+    #halign = "left"
+    #self.valign = "bottom"
+    #self.background_normal = ''
+    #self.background_color = FF_GREY
+    font_size: '14sp'
+    #spacing: 3
+    #self.padding = (10, 10)   
+    #self.color = FF_WHITE        
+    #background_color: FF_SLATE_LG
+    #color: FF_WHITE
+    text: "ListTextField"
+    
+    
+        
+''')
+
+'''
+<Controller>:
+    label_wid: my_custom_label
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 20
+
+        Button:
+            text: 'My controller info is: ' + root.info
+            on_press: root.do_action()
+
+        Label:
+            id: my_custom_label
+            text: 'My label before button press'
+'''
+
+class SystemParentGrid(BoxLayout):
+    def __init__(self, **kwargs):
+        super(SystemParentGrid, self).__init__(**kwargs)
+
+        #def build(self):
+        #    return self
+        
+
+        #self.message_log = TextInput(size_hint = (1, None))
+        #self.message_log = TextDisplayLabelBox()
+class ListTextField(Label):
+    def __init__(self, **kwargs):
+        super(ListTextField, self).__init__(**kwargs)
+        self.background_color = FF_BLUE_LG
+        self.color = FF_WHITE
+        self.canvas.before.clear()
+        #self.canvas.before:
+        #self.canvas.before.Color(FF_BLUE_LG)
+        #self.canvas.before.Rectangle(pos=self.pos, size=self.size)
+        #self.background_color = FF_BLUE_LG
+        #canvas_back = InstructionGroup()        
+        #canvas_back.add(Color(0, 0, 1, 0.2))
+        #canvas_back.add(Rectangle(pos=self.pos, size=(100, 100)))        
+        #with self.canvas:
+        #self.canvas.add(canvas_back)
+        #    Rectangle(pos=self.pos, size=self.size)
+            
+
+class MessageLogBox(TextDisplayLabelBox):
+    def __init__(self, **kwargs):
+        super(MessageLogBox, self).__init__(**kwargs)
+        self.log_result = []
+        # add DB sources checks
+        self.log_result = db_log_history(db_result_list=self.log_result)
+        self.text = "TBA"
+        self.lines = []
+        #for row in self.log_result:
+        #    self.text = self.text + "\n" + row
+        
+        #self.add_widget(self.message_log)
+
+        
+        
+
+    

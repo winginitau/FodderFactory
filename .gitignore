@@ -49,6 +49,9 @@
 # Working Files
 FFEVENTS.TXT
 message.log
-*/__pycache__/*
+
+# python byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
 
 /sloeber.ino.cpp
