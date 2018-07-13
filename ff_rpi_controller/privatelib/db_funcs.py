@@ -5,7 +5,7 @@ Created on 2 Jul. 2018
 '''
 
 from configparser import ConfigParser
- 
+from collections import deque
 #import mysql.connector
 from mysql.connector import MySQLConnection, Error
 from datetime import datetime, timedelta
@@ -274,18 +274,9 @@ def db_temperature_data(block_label, endDT=datetime.now(), \
         print(error)
     return db_result_list
         
-def db_add_log_entry(parsed_message, db='mysql'):  
-    log_data = {
-        'datetime': parsed_message.dt.strftime("%Y-%m-%d %H:%M:%S"),
-        'date': parsed_message.dt.strftime("%Y-%m-%d"),
-        'time': parsed_message.dt.strftime("%H:%M:%S"),
-        'source': parsed_message.source_block_string,
-        'destination': parsed_message.dest_block_string,
-        'msg_type': parsed_message.msg_type_string,
-        'message': parsed_message.msg_string,
-        'int_val': parsed_message.int_val,
-        'float_val': parsed_message.float_val,
-        }
+def db_add_log_entry(message_buffer: deque, db='mysql'):  
+    
+    
     query = "INSERT INTO message_log " \
             "(datetime, date, time, source, destination, msg_type, message, int_val, float_val) " \
             "VALUES" \
@@ -298,7 +289,22 @@ def db_add_log_entry(parsed_message, db='mysql'):
         if conn.is_connected(): 
             good_conn = True
             cursor = conn.cursor()
-            cursor.execute(query, log_data)
+            records = 0
+            while len(message_buffer) > 0:
+                parsed_message = message_buffer.popleft()
+                log_data = {
+                    'datetime': parsed_message.dt.strftime("%Y-%m-%d %H:%M:%S"),
+                    'date': parsed_message.dt.strftime("%Y-%m-%d"),
+                    'time': parsed_message.dt.strftime("%H:%M:%S"),
+                    'source': parsed_message.source_block_string,
+                    'destination': parsed_message.dest_block_string,
+                    'msg_type': parsed_message.msg_type_string,
+                    'message': parsed_message.msg_string,
+                    'int_val': parsed_message.int_val,
+                    'float_val': parsed_message.float_val,
+                    }
+                cursor.execute(query, log_data)
+                records += 1
             conn.commit()
     except Error as error:
         print(error) 
@@ -309,6 +315,8 @@ def db_add_log_entry(parsed_message, db='mysql'):
             print(error)
         try:
             conn.close()
+            if records > 1:
+                print("(db_add_log_entry) sucessfully wrote " + str(records) + " records")
         except Error as error:
             print(error)
     pass

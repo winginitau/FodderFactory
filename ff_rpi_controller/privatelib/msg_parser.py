@@ -16,7 +16,8 @@ from privatelib.ff_config import UINT16_INIT, FLOAT_INIT, STATE_ON, STATE_OFF, P
                                  DB_LOCAL_CONFIG, DB_CLOUD_CONFIG, \
                                  ui_inputs_values, ui_outputs_values, ui_energy_values, active_rules, \
                                  UI_UPDATE_FROM_MESSAGES, \
-                                 UI_UPDATE_FROM_LOCAL_DB, UI_UPDATE_FROM_CLOUD_DB
+                                 UI_UPDATE_FROM_LOCAL_DB, UI_UPDATE_FROM_CLOUD_DB, \
+                                 DB_CLOUD_BUFFER_SIZE
 
 #from privatelib.global_vars import active_rules
 from privatelib.db_funcs import db_add_log_entry, db_get_last_message_by_source, \
@@ -37,7 +38,10 @@ class MessageSystem():
         self.message_queue = deque()
         self.valid_config = False
         self.tcp = False
-        self.serial = False    
+        self.serial = False  
+        self.db_local_buffer = deque()
+        self.db_cloud_buffer = deque()
+         
         
     def configure(self, tcp=False, serial=False, serial_port='', serial_speed='', tcp_address='', tcp_port=''):
         if(tcp and serial):
@@ -219,9 +223,13 @@ class MessageSystem():
                           self.parsed_message.msg_type_string, self.parsed_message.msg_string, \
                           self.parsed_message.int_val, self.parsed_message.float_val)
                     if DB_WRITE_LOCAL:
-                        db_add_log_entry(self.parsed_message, db=DB_LOCAL_CONFIG)    
+                        self.db_local_buffer.append(self.parsed_message)
+                        if len(self.db_local_buffer) > 0:
+                            db_add_log_entry(self.db_local_buffer, db=DB_LOCAL_CONFIG)    
                     if DB_WRITE_CLOUD:
-                        db_add_log_entry(self.parsed_message, db=DB_CLOUD_CONFIG)    
+                        self.db_cloud_buffer.append(self.parsed_message)
+                        if len(self.db_cloud_buffer) > DB_CLOUD_BUFFER_SIZE:
+                            db_add_log_entry(self.db_cloud_buffer, db=DB_CLOUD_CONFIG)    
         return self.parsed_message
 
 

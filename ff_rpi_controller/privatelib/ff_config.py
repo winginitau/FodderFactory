@@ -141,6 +141,8 @@ DB_WRITE_CLOUD = True
 DB_LOCAL_CONFIG = 'mysql.local'
 DB_CLOUD_CONFIG = 'mysql.cloud'
 
+DB_CLOUD_BUFFER_SIZE = 20
+
 
 #########################################################
 
