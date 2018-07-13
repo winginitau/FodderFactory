@@ -291,22 +291,27 @@ def db_add_log_entry(parsed_message, db='mysql'):
             "VALUES" \
             "(%(datetime)s, %(date)s, %(time)s, %(source)s,%(destination)s, " \
             "%(msg_type)s, %(message)s, %(int_val)s, %(float_val)s)"
+    good_conn = False
     try:
         db_config = read_db_config(db=db)
         conn = MySQLConnection(**db_config) 
-        cursor = conn.cursor()
-        cursor.execute(query, log_data)
-        conn.commit()
+        if conn.is_connected(): 
+            good_conn = True
+            cursor = conn.cursor()
+            cursor.execute(query, log_data)
+            conn.commit()
     except Error as error:
         print(error) 
-    try:
-        cursor.close()
-    except Error as error:
-        print(error)
-    try:
-        conn.close()
-    except Error as error:
-        print(error)
+    if good_conn:
+        try:
+            cursor.close()
+        except Error as error:
+            print(error)
+        try:
+            conn.close()
+        except Error as error:
+            print(error)
+    pass
 
 def read_db_config(filename='controller_config.ini', db='mysql'):
     """ Read database configuration file and return a dictionary object
