@@ -133,6 +133,95 @@ def db_log_history(endDT=datetime.now(), limit=100, \
         print(error)
     return db_result_list
 
+def db_energy_data_new(energy_message, endDT=datetime.now(), \
+                   periodTD=timedelta(days=3), db_result_list = [], db='mysql'):    
+    try:
+        dbconfig = read_db_config(db=db)
+        conn = MySQLConnection(**dbconfig)
+        cursor = conn.cursor()
+        startDT = endDT - periodTD
+        startDTstr = startDT.strftime("%Y-%m-%d %H:%M:%S")
+        endDTstr = endDT.strftime("%Y-%m-%d %H:%M:%S")
+        sample_mod = periodTD.days
+        if sample_mod == 3: sample_mod = 6
+        elif sample_mod == 4: sample_mod = 14
+        elif sample_mod >= 5:
+            sample_mod = sample_mod * 5   
+            
+        drop_tmp1 = "DROP TEMPORARY TABLE IF EXISTS tmp1;"
+        drop_tmp2 = "DROP TEMPORARY TABLE IF EXISTS tmp2;"
+        drop_tmp3 = "DROP TEMPORARY TABLE IF EXISTS tmp3;"
+
+        create_tmp1 =   "CREATE TEMPORARY TABLE tmp1 (id INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY) " \
+                        "SELECT datetime, int_val " \
+                        "FROM message_log " \
+                        "WHERE source = 'system' " \
+                        "AND msg_type = 'DATA' " \
+                        "AND message = %s " \
+                        "AND datetime BETWEEN %s and %s " \
+                        "ORDER BY datetime; " 
+        create_tmp1_args = (energy_message, startDTstr, endDTstr)
+
+        create_tmp2 =   "CREATE TEMPORARY TABLE tmp2 " \
+                        "SELECT * FROM tmp1; "
+
+        create_tmp3 =   "CREATE TEMPORARY TABLE tmp3 " \
+                        "SELECT * FROM tmp1; "
+
+        main_query =    "SELECT A.datetime, A.int_val " \
+                        "FROM tmp1 A, tmp2 P, tmp3 N " \
+                        "WHERE A.id = P.id + 1 " \
+                        "AND A.id = N.id - 1 " \
+                        "AND ( " \
+                        "        ( " \
+                        "        A.int_val > P.int_val " \
+                        "        AND A.int_val > N.int_val " \
+                        "        ) " \
+                        "    OR  ( " \
+                        "        A.int_val < P.int_val " \
+                        "        AND A.int_val < N.int_val " \
+                        "        ) " \
+                        "    OR A.id mod %s = 0 " \
+                        ") " \
+                        "ORDER BY A.datetime; "
+        main_query_args = (sample_mod, )
+                 
+        cursor.execute(drop_tmp1)
+        cursor.execute(drop_tmp2)
+        cursor.execute(drop_tmp3)
+        cursor.execute(create_tmp1, create_tmp1_args)
+        cursor.execute(create_tmp2)
+        cursor.execute(create_tmp3)
+        cursor.execute(main_query, main_query_args)
+        
+        db_result_list = []
+        record_count = 0
+        for row in iter_row(cursor, 10):
+            record_count += 1
+            td = row[0] - startDT
+            tds = td.total_seconds()
+            tdsi = int(tds)
+            if energy_message == "VE_DATA_VOLTAGE":
+                db_result_list.append( (tdsi, row[1]/1000, row[0], ) )
+            elif energy_message == "VE_DATA_CURRENT":
+                db_result_list.append( (tdsi, row[1]/1000, row[0], ) )
+            elif energy_message == "VE_DATA_SOC":
+                db_result_list.append( (tdsi, row[1]/10, row[0], ) )
+            elif energy_message == "VE_DATA_POWER":
+                db_result_list.append( (tdsi, row[1], row[0], ) )
+        print("Records retrieved = " + str(record_count))
+    except Error as e:
+        print(e)
+    try:
+        cursor.close()
+    except Error as error:
+        print(error)
+    try:
+        conn.close()
+    except Error as error:
+        print(error)
+    return db_result_list
+
 def db_energy_data(energy_message, endDT=datetime.now(), \
                    periodTD=timedelta(days=3), db_result_list = [], db='mysql'):    
     try:
@@ -164,13 +253,13 @@ def db_energy_data(energy_message, endDT=datetime.now(), \
             tds = td.total_seconds()
             tdsi = int(tds)
             if energy_message == "VE_DATA_VOLTAGE":
-                db_result_list.append( (tdsi, row[1]/1000, ) )
+                db_result_list.append( (tdsi, row[1]/1000, row[0], ) )
             elif energy_message == "VE_DATA_CURRENT":
-                db_result_list.append( (tdsi, row[1]/1000, ) )
+                db_result_list.append( (tdsi, row[1]/1000, row[0], ) )
             elif energy_message == "VE_DATA_SOC":
-                db_result_list.append( (tdsi, row[1]/10, ) )
+                db_result_list.append( (tdsi, row[1]/10, row[0], ) )
             elif energy_message == "VE_DATA_POWER":
-                db_result_list.append( (tdsi, row[1], ) )
+                db_result_list.append( (tdsi, row[1], row[0], ) )
         print("Records retrieved = " + str(record_count))
     except Error as e:
         print(e)
@@ -217,6 +306,90 @@ def db_device_data(block_label, endDT=datetime.now(), \
         print("Records retrieved = " + str(record_count))
     except Error as e:
         print(e)
+    try:
+        cursor.close()
+    except Error as error:
+        print(error)
+    try:
+        conn.close()
+    except Error as error:
+        print(error)
+    return db_result_list
+
+
+def db_temperature_data_new(block_label, endDT=datetime.now(), \
+                   periodTD=timedelta(days=1), db_result_list = [], db='mysql.local'):
+    try:
+        dbconfig = read_db_config(db=db)
+        conn = MySQLConnection(**dbconfig)
+        cursor = conn.cursor()
+        startDT = endDT - periodTD
+        startDTstr = startDT.strftime("%Y-%m-%d %H:%M:%S")
+        endDTstr = endDT.strftime("%Y-%m-%d %H:%M:%S")
+        sample_mod = periodTD.days
+        if sample_mod == 2: sample_mod = 1
+        elif sample_mod == 3: sample_mod = 5
+        elif sample_mod == 4: sample_mod = sample_mod * 2
+        elif sample_mod >= 5:
+            sample_mod = sample_mod * 3
+
+        drop_tmp1 = "DROP TEMPORARY TABLE IF EXISTS tmp1;"
+        drop_tmp2 = "DROP TEMPORARY TABLE IF EXISTS tmp2;"
+        drop_tmp3 = "DROP TEMPORARY TABLE IF EXISTS tmp3;"
+
+        create_tmp1 =   "CREATE TEMPORARY TABLE tmp1 (id INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY) " \
+                        "SELECT datetime, float_val " \
+                        "FROM message_log " \
+                        "WHERE source = %s " \
+                        "AND datetime BETWEEN %s and %s " \
+                        "ORDER BY datetime; " 
+        create_tmp1_args = (block_label, startDTstr, endDTstr)
+
+        create_tmp2 =   "CREATE TEMPORARY TABLE tmp2 " \
+                        "SELECT * FROM tmp1; "
+
+        create_tmp3 =   "CREATE TEMPORARY TABLE tmp3 " \
+                        "SELECT * FROM tmp1; "
+
+        main_query =    "SELECT A.datetime, A.float_val " \
+                        "FROM tmp1 A, tmp2 P, tmp3 N " \
+                        "WHERE A.id = P.id + 1 " \
+                        "AND A.id = N.id - 1 " \
+                        "AND ( " \
+                        "        ( " \
+                        "        A.float_val > P.float_val " \
+                        "        AND A.float_val > N.float_val " \
+                        "        ) " \
+                        "    OR  ( " \
+                        "        A.float_val < P.float_val " \
+                        "        AND A.float_val < N.float_val " \
+                        "        ) " \
+                        "    OR A.id mod %s = 0 " \
+                        ") " \
+                        "ORDER BY A.datetime; "
+        main_query_args = (sample_mod, )
+                 
+        cursor.execute(drop_tmp1)
+        cursor.execute(drop_tmp2)
+        cursor.execute(drop_tmp3)
+        cursor.execute(create_tmp1, create_tmp1_args)
+        cursor.execute(create_tmp2)
+        cursor.execute(create_tmp3)
+        cursor.execute(main_query, main_query_args)
+               
+        db_result_list = []
+        record_count = 0
+        for row in iter_row(cursor, 10):
+            record_count += 1
+            #print (row)
+            td = row[0] - startDT
+            tds = td.total_seconds()
+            tdsi = int(tds)
+            db_result_list.append( (tdsi, row[1]), )
+        #print(db_result_list)
+        print("Records retrieved = " + str(record_count))
+    except Error as e:
+        print(e) 
     try:
         cursor.close()
     except Error as error:

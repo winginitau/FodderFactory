@@ -19,26 +19,21 @@ from kivy.uix.screenmanager import Screen
 
 from privatelib.ff_config import INPUTS_LIST, OUTPUTS_LIST, ENERGY_LIST, \
                                  MODEM_SERIAL_PORT, MODEM_SERIAL_SPEED, \
-                                 PROCESS_MESSAGES, UI_UPDATE_FROM_LOCAL_DB, \
+                                 PROCESS_SERIAL_MESSAGES, UI_UPDATE_FROM_LOCAL_DB, \
                                  UI_UPDATE_FROM_MESSAGES, UI_UPDATE_FROM_CLOUD_DB, \
                                  DB_LOCAL_CONFIG, DB_CLOUD_CONFIG, \
                                  DB_WRITE_LOCAL, DB_WRITE_CLOUD, \
-                                 GRAPH_UPDATE_FROM_LOCAL_DB, GRAPH_UPDATE_FROM_CLOUD_DB
+                                 GRAPH_UPDATE_FROM_LOCAL_DB, GRAPH_UPDATE_FROM_CLOUD_DB, \
+                                 DEBUG_WIDGET
 
                                                                  
 from privatelib.db_funcs import DBConnectTest
 from privatelib.global_vars import msg_sys, sm
 from privatelib.grids import MainParentGrid, DataParentGrid, SystemParentGrid
                                 
-
 ##### Globals Variables###############
 
-
 # Global Functions
-
-
-
-
        
 # Declare screens
 class MainScreen(Screen):
@@ -46,6 +41,8 @@ class MainScreen(Screen):
         super(MainScreen, self).__init__(**kwargs)
         self.screen_layout = MainParentGrid()
         self.add_widget(self.screen_layout)
+        if DEBUG_WIDGET:
+            print (self, self.size)
 
 class DataScreen(Screen):
     def __init__(self, **kwargs):
@@ -84,7 +81,6 @@ class SystemScreen(Screen):
         Screen.on_leave(self, *args)
         self.remove_widget(self.system_grid)
     
-
 #sm = ScreenManager()
 sm.add_widget(MainScreen(name='main'))
 for i, source, disp, graph_period in INPUTS_LIST:
@@ -112,7 +108,6 @@ class MyApp(App):
         #return MainParentGrid()
         return sm   
 
-
 #msg_sys = MessageSystem();
 
 ############################################################################
@@ -120,8 +115,6 @@ class MyApp(App):
 ############################################################################
 if __name__ == '__main__':
        
-    
-    
     # Set Up Data Processing
     n_ui_sources = [UI_UPDATE_FROM_MESSAGES, UI_UPDATE_FROM_LOCAL_DB, UI_UPDATE_FROM_CLOUD_DB].count(True)
     n_graph_sources = [GRAPH_UPDATE_FROM_LOCAL_DB, GRAPH_UPDATE_FROM_CLOUD_DB].count(True)
@@ -131,7 +124,7 @@ if __name__ == '__main__':
         print(str(n_ui_sources) + " UI sources configured")
         print(str(n_graph_sources) + " Graph sources configured")       
         exit(1)
-    if PROCESS_MESSAGES:
+    if PROCESS_SERIAL_MESSAGES:
         msg_sys.configure(tcp=False, serial=True, \
                       serial_port=MODEM_SERIAL_PORT, serial_speed=MODEM_SERIAL_SPEED, \
                       tcp_address="192.168.5.253", tcp_port="3333")
@@ -148,7 +141,7 @@ if __name__ == '__main__':
     # Launch the app
     MyApp().run()
     #runTouchApp(sm)
-    print("Closing data connection")
+    print("(main) Closing data connections:")
     msg_sys.end()
     
 #import RPi.GPIO as GPIO

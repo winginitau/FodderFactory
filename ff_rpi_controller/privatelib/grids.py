@@ -7,7 +7,7 @@ Created on 9 Jul. 2018
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
 from kivy.lang import Builder
-from kivy.graphics.instructions import InstructionGroup
+#from kivy.graphics.instructions import InstructionGroup
 
 from privatelib.ff_config import INPUTS_LIST, OUTPUTS_LIST, CLOCK_UPDATE_INTERVAL,\
                                  UI_REFRESH_INTERVAL, GRAPH_UPDATE_INTERVAL, \
@@ -18,6 +18,7 @@ from privatelib.ff_config import INPUTS_LIST, OUTPUTS_LIST, CLOCK_UPDATE_INTERVA
                                  
 from kivy.clock import Clock
 from graph import Graph
+#from timeseries.TimeSeriesGraph import TimeSeriesGraph
 from graph import MeshLinePlot
 from kivy.graphics import Rectangle
 from datetime import datetime, timedelta
@@ -29,7 +30,8 @@ from privatelib.buttons import FFTempButton, FFDeviceButton, FFEnergyButton, \
                                 NavPrevButton, NavZoomButton, NavCloseToMainButton, \
                                 NavNextButton, RuleButton
 from privatelib.db_funcs import db_temperature_data ,db_device_data, \
-                                db_energy_data, db_log_history
+                                db_energy_data, db_log_history, \
+                                db_energy_data_new, db_temperature_data_new
                                
 from privatelib.palette import FF_WHITE, FF_BLACK_MG, FF_WHITE_LG, FF_SLATE_HG, \
                                FF_RED, FF_GREEN, FF_BLUE, FF_SLATE_LG, FF_BLUE_LG
@@ -107,9 +109,8 @@ class MainParentGrid(GridLayout):
     def __init__(self, **kwargs):
         super(MainParentGrid, self).__init__(**kwargs)
         self.cols = 1
-        with self.canvas.before:
-            self.rect = Rectangle(size=(800, 480), pos=self.pos, source='cows.png')
-
+            
+        self.bind(size=self.update_size)
         self.temperature_section = MainTopGrid()
         self.energy_section = MainMiddleGrid()
         self.nav_section = MainBottomGrid()
@@ -117,7 +118,11 @@ class MainParentGrid(GridLayout):
         self.add_widget(self.temperature_section)
         self.add_widget(self.energy_section)
         self.add_widget(self.nav_section)
-        
+    def update_size(self, _w ,_h):
+        #print (self.size)  
+        with self.canvas.before:
+            #self.rect = Rectangle(size=(800, 480), pos=self.pos, source='cows.png')
+            self.rect = Rectangle(size=self.size, pos=self.pos, source='cows.png')
 
 #### NOT USED ##############
 class ZoomHeaderGrid(GridLayout):
@@ -192,13 +197,17 @@ class GraphGrid(GridLayout):
         if self.period.days < 1:
             self.period = timedelta(days=1)
         self.update(0)
-    def add_graph(self, draw_high_line=False, high_colour=FF_RED, draw_low_line=False, low_colour=FF_BLUE):
+    def add_graph(self, draw_high_line=False, high_colour=FF_RED, \
+                  draw_low_line=False, low_colour=FF_BLUE, day_night=False):
         self.draw_high_line = draw_high_line
         self.draw_low_line = draw_low_line
+        self.draw_day_night = day_night
         if self.draw_high_line:
             self.high_line_values = []
         if self.draw_low_line:
             self.low_line_values = []
+        if self.draw_day_night:
+            self.day_night_values = []
         self.data_line_values = []
         #self.refresh_data()        
         self.graph = Graph(xlabel=self.disp_name, ylabel=self.ylabel, \
@@ -224,6 +233,10 @@ class GraphGrid(GridLayout):
             self.plot_low = MeshLinePlot(color=low_colour)
             self.plot_low.points = self.low_line_values.copy()  
             self.graph.add_plot(self.plot_low)
+        if self.draw_day_night:
+            self.day_night_plot = MeshLinePlot(color=FF_WHITE_LG)
+            self.day_night_plot.points = self.day_night_values.copy()
+            self.graph.add_plot(self.day_night_plot)
         self.plot_data = MeshLinePlot(color=FF_WHITE)        
         self.plot_data.points = self.data_line_values.copy()
         self.graph.add_plot(self.plot_data)
@@ -232,13 +245,16 @@ class GraphGrid(GridLayout):
         self.update_event = Clock.schedule_interval(self.update, GRAPH_UPDATE_INTERVAL)    
     def destroy(self):
         Clock.unschedule(self.update_event)
-    def update(self, _dt):
-        self.refresh_data()     
-        self.graph.xlabel=(self.disp_name + " - " + str(self.period.days) + " Days")                
-        self.graph.xmax=(self.period.total_seconds() + self.x_offset)
-        
+    def update(self, _dt):        
         if self.period.days == 1:
             self.graph.x_ticks_major=3600   # 1 per 1 hours = 24 lines
+            #for child in self.children:
+            #    print(child._ticks_majorx)
+            #    for i in range(0, len (child._ticks_majorx)):
+            #        child._ticks_majorx[i] = float(i)
+            #    print(child._ticks_majorx)
+            #self.graph._update_labels()
+                    
         elif self.period.days == 2:          
             self.graph.x_ticks_major=7200   # 1 per 1.5 hours = 36 lines
         elif self.period.days == 3:
@@ -262,12 +278,18 @@ class GraphGrid(GridLayout):
         elif (self.period.days > 730):
             self.graph.x_ticks_major=31536000
         
+        self.refresh_data()     
+        self.graph.xlabel=(self.disp_name + " - " + str(self.period.days) + " Days")                
+        self.graph.xmax=(self.period.total_seconds() + self.x_offset)
+
         self.graph.ymin=self.min_y
         self.graph.ymax=self.max_y
         if self.draw_high_line:
             self.plot_high.points = self.high_line_values.copy()  
         if self.draw_low_line:
-            self.plot_low.points = self.low_line_values.copy()  
+            self.plot_low.points = self.low_line_values.copy()
+        if self.draw_day_night:
+            self.day_night_plot.points = self.day_night_values.copy()  
         self.plot_data.points = self.data_line_values.copy()        
         self.graph._redraw_all()   
             
@@ -276,8 +298,13 @@ class TemperatureGraphGrid(GraphGrid):
         super(TemperatureGraphGrid, self).__init__(**kwargs)
     
     def refresh_data(self):         
+        nowDT = datetime.now()
+        now_min = nowDT.minute
+        now_sec = nowDT.second
+
         self.db_result_list = []
-        self.db_result_list = db_temperature_data(block_label = self.data_source, \
+        self.db_result_list = db_temperature_data_new(block_label = self.data_source, \
+                                                  endDT = nowDT, \
                                                   periodTD = self.period, \
                                                   db_result_list = self.db_result_list, \
                                                   db=self.db_source) 
@@ -286,10 +313,6 @@ class TemperatureGraphGrid(GraphGrid):
         if self.draw_low_line:
             self.low_line_values = []
         self.data_line_values = []
-
-        nowDT = datetime.now()
-        now_min = nowDT.minute
-        now_sec = nowDT.second
         
         self.x_offset = (now_min * 60) + now_sec
         
@@ -315,15 +338,17 @@ class DeviceGraphGrid(GraphGrid):
         super(DeviceGraphGrid, self).__init__(**kwargs)
 
     def refresh_data(self):        
+        nowDT = datetime.now()
+        now_min = nowDT.minute
+        now_sec = nowDT.second
+
         self.db_result_list = []
         self.db_result_list = db_device_data(block_label = self.data_source, \
+                                             endDT = nowDT, \
                                              periodTD = self.period, \
                                              db_result_list = self.db_result_list, \
                                              db=self.db_source)  
         self.data_line_values = []
-        nowDT = datetime.now()
-        now_min = nowDT.minute
-        now_sec = nowDT.second
         self.x_offset = (now_min * 60) + now_sec
         self.min_y = -0.2
         self.max_y = 1.2
@@ -335,9 +360,14 @@ class EnergyGraphGrid(GraphGrid):
     def __init__(self, **kwargs):
         super(EnergyGraphGrid, self).__init__(**kwargs)
 
-    def refresh_data(self):            
+    def refresh_data(self):
+        nowDT = datetime.now()
+        now_min = nowDT.minute
+        now_sec = nowDT.second
+                    
         self.db_result_list = []
         self.db_result_list = db_energy_data(energy_message = self.data_source, \
+                                             endDT = nowDT, \
                                              periodTD = self.period, \
                                              db_result_list = self.db_result_list, \
                                              db=self.db_source)         
@@ -345,11 +375,10 @@ class EnergyGraphGrid(GraphGrid):
             self.high_line_values = []
         if self.draw_low_line:
             self.low_line_values = []
+        if self.draw_day_night:
+            self.day_night_values = []
         self.data_line_values = []
         
-        nowDT = datetime.now()
-        now_min = nowDT.minute
-        now_sec = nowDT.second
         
         self.x_offset = (now_min * 60) + now_sec
         
@@ -358,20 +387,53 @@ class EnergyGraphGrid(GraphGrid):
         self.ylabel, self.low_line, self.high_line, \
             self.y_ticks_major = get_energy_graph_params(self.data_source)
                 
-        for t, v in self.db_result_list:
+        for t_index, v, _dt in self.db_result_list:
             if v > self.max_y:
                 self.max_y = math.ceil(v)
             if v < self.min_y:
                 self.min_y = math.floor(v)
-            t_mod = t + self.x_offset
+            t_mod = t_index + self.x_offset
             self.data_line_values.append((t_mod,v))      
             self.high_line_values.append((t_mod,self.high_line)) 
             self.low_line_values.append((t_mod,self.low_line))
-                     
-        #self.min_y, self.max_y = calc_temp_graph_y_grid(self.min_y, self.max_y, 2)
         
         if self.min_y >= self.low_line: self.min_y = self.low_line - (self.y_ticks_major / 2)
         if self.max_y <= self.high_line: self.max_y = self.high_line + (self.y_ticks_major / 2)
+        
+        if self.draw_day_night:
+            last_point_was_daylight = False
+            last_daylight_t_mod = 0
+            draw_up = True
+            for t_index, _v, dt in self.db_result_list:
+                if (dt.hour >= 6) and (dt.hour < 18):
+                    t_mod = t_index + self.x_offset
+                    if last_point_was_daylight:
+                        #step = int(self.graph.x_ticks_major * 24 / 800)
+                        #day_light_pixel_width = 800 / self.period / 2
+                        total_period_in_seconds = self.period.total_seconds()
+                        seconds_in_one_pixel = total_period_in_seconds / 730
+                        step =int(seconds_in_one_pixel)
+                         
+                        for t in range(last_daylight_t_mod, t_mod, step):
+                            if draw_up:
+                                self.day_night_values.append((t, self.min_y))
+                                self.day_night_values.append((t, self.max_y))
+                                #self.day_night_values.append((t, self.min_y))
+                                draw_up = False
+                            else:
+                                self.day_night_values.append((t, self.max_y))
+                                self.day_night_values.append((t, self.min_y))
+                                #self.day_night_values.append((t, self.min_y))
+                                draw_up = True
+                    #self.day_night_values.append((t_mod, self.min_y))
+                    #self.day_night_values.append((t_mod, self.max_y))
+                    #self.day_night_values.append((t_mod, self.min_y))
+                    last_point_was_daylight = True
+                    last_daylight_t_mod = t_mod
+                else: 
+                    last_point_was_daylight = False
+                    draw_up = True   
+
                      
 class DataNavigationGrid(GridLayout):
     def __init__(self, **kwargs):
@@ -418,8 +480,11 @@ class DataParentGrid(GridLayout):
         self.spacing = 0
         self.padding = [0, 0, 0, 0]
      
+        self.bind(size=self.update_size)
+    def update_size(self, _w, _h):
         with self.canvas.before:
-            self.rect = Rectangle(size=(800, 480), pos=self.pos, source='cows.png')
+            #self.rect = Rectangle(size=(800, 480), pos=self.pos, source='cows.png')
+            self.rect = Rectangle(size=self.size, pos=self.pos, source='cows.png')
 
         #self.title_section = ZoomHeaderGrid()
         #self.data_type = data_type

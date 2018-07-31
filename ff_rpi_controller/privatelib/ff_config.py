@@ -85,10 +85,15 @@ ENERGY_LIST = (
 )
 
 
+# Battery stats
+# C10 Low 1.8v / cell
+# C8 Low 1.75c / cell
+#  never below 1.6 for more than 2 minutes
+# Charge at 2.25 - 2.28 @ 25c 
 DB_ENERGY_GRAPH_PARAMS = (
     # SOURCE, Y-LABEL, Y-LOW-LINE, Y-HIGH-LINE, Y-TICS
     ["VE_DATA_SOC", "% of Full Capacity", 50, 100, 10],
-    ["VE_DATA_VOLTAGE", "Volts", 23.4, 28, 1], 
+    ["VE_DATA_VOLTAGE", "Volts", 21.6, 27.36, 1], 
     ["VE_DATA_POWER", "Watts", 0, 0, 200],
     ["VE_DATA_CURRENT", "Amps", 0, 0, 5],        
 )
@@ -118,15 +123,16 @@ MODEM_SERIAL_PORT = "/dev/ttyV0"
 MODEM_SERIAL_SPEED = 9600
 
 SERIAL_POLL_INTERVAL = 0.1          # Seconds
-DATA_PARSE_INTERVAL = 2.0          # Seconds
+MESSAGE_PARSE_INTERVAL = 0.3          # Seconds
+MESSAGE_BROKER_INTERVAL = 0.3
+DB_WORKER_INTERVAL = 5.0
 UI_REFRESH_INTERVAL = 2.0
 GRAPH_UPDATE_INTERVAL = 30.0         #seconds
 CLOCK_UPDATE_INTERVAL = 1.0
-MAX_MESSAGE_QUEUE = 100
 
-MYSQL_POLL_INTERVAL = 15
+MYSQL_POLL_INTERVAL = 10
 
-PROCESS_MESSAGES = True
+PROCESS_SERIAL_MESSAGES = True
 
 UI_UPDATE_FROM_MESSAGES = True
 UI_UPDATE_FROM_LOCAL_DB = False
@@ -141,9 +147,15 @@ DB_WRITE_CLOUD = True
 DB_LOCAL_CONFIG = 'mysql.local'
 DB_CLOUD_CONFIG = 'mysql.cloud'
 
-DB_CLOUD_BUFFER_SIZE = 20
+DB_CLOUD_QUEUE_TRIGGER_LEN = 1
+DB_CLOUD_QUEUE_MAX_LEN = 10000   # should be larger than local
+DB_LOCAL_QUEUE_TRIGGER_LEN = 1
+DB_LOCAL_QUEUE_MAX_LEN = 1000
+PARSED_MESSAGE_QUEUE_MAX_LEN = 2000
+SERIAL_MESSAGE_QUEUE_MAX_LEN = 2000
 
-
+DEBUG_WIDGET = False
+ERROR_REPEAT_WINDOW = 3
 #########################################################
 
 STD_HEAT_BACK_PALLET = (
@@ -246,6 +258,7 @@ def GetForeColorByTemp(temp_val, src_index):
 class ParsedMessage():
     def __init__(self, **kwargs):
         super(ParsedMessage, self).__init__(**kwargs)
+        self.raw_message_string = ""
         self.date = date.today()
         self.time = time()
         self.dt = datetime(1980,1,1)
