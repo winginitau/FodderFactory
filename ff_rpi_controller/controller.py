@@ -141,7 +141,7 @@ if __name__ == '__main__':
     # Launch the app
     MyApp().run()
     #runTouchApp(sm)
-    print("(main) Closing data connections:")
+    
     msg_sys.end()
     
 #import RPi.GPIO as GPIO

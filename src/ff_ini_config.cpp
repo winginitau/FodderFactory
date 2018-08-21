@@ -699,7 +699,7 @@ void ReadAndParseConfig(void) {
 			if (cf.getValue(list_section, list_section_key, key_value,
 			INI_FILE_MAX_LINE_LENGTH)) {
 
-				sprintf(debug_msg, "[%s][%s] = %s", list_section, list_section_key, key_value);
+				sprintf(debug_msg, "Registered [%s][%s] = %s", list_section, list_section_key, key_value);
 				DebugLog(debug_msg);
 
 				//////////////////// label registration only to allow block cross references when registering the settings later

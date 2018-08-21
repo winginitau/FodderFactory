@@ -31,12 +31,12 @@
 //#define FF_CONFIG
 
 // Optionally:
-#define FF_TEMPERATURE_SIM
+//#define FF_TEMPERATURE_SIM
 // OR with FF_ARDUINO
 //#define FF_TEMP_SIM_WITH_DALLAS
 
 // Optionally:
-//#define FF_RPI_START_DELAY 60000	// Start delay to allow RPIs upstream to to get going
+#define FF_RPI_START_DELAY 30000	// Start delay to allow RPIs upstream to to get going
 
 //#define USE_ITCH
 
@@ -55,7 +55,6 @@
 #endif
 
 #ifdef FF_TEMPERATURE_SIM
-
 //#define FF_DEFINED_TEMP_SIM
 // OR
 #define FF_RANDOM_TEMP_SIM
@@ -107,13 +106,13 @@
 /************************************************
  DEBUG Directives
  ************************************************/
-#define DEBUG			// Call debug output at all or not?
+//#define DEBUG			// Call debug output at all or not?
 
 #ifdef DEBUG
 //Optionallly:
 #define SUPRESS_EVENT_MESSAGES
 
-#define IN_LOGRATE_OVERRIDE 30				// seconds. Override defined logging rate (for debug)
+//#define IN_LOGRATE_OVERRIDE 30				// seconds. Override defined logging rate (for debug)
 
 #define DEBUG_LEVEL 1	// level and higher will be sent to debug log
 /*

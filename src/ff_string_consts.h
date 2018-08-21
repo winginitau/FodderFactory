@@ -232,7 +232,7 @@ static const BlockCatArray block_cat_defs[LAST_BLOCK_CAT] = {
 	"\0",
 	{
 		"",					// not used - dummy to skip error enum = 0
-		"type",				// Block Tpye - See block_type_strings
+		"type",				// Block Type - See block_type_strings
 		"display_name",		// Short user friendly display label (TODO: needs limit)
 		"description",		// Optional descriptive for design stage
 	},
@@ -524,7 +524,7 @@ typedef enum {
 	M83,
 	M84,
 	M85,
-	M_HACK_MON_INSIDE_TOP_TOO_HOT,
+	M_HACK_MON_TOP_HOT,
 	M_HACK_SCH_WATERING_BOTTOM_SCHEDULE,
 	M_HACK_MON_INSIDE_BOTTOM_TOO_COLD,
 	M_HACK_RL_EXHAUST_IF_TOP_HOT_BOT_HOT,
@@ -623,7 +623,7 @@ static const StringArray message_strings[LAST_MESSAGE] = {
 	14, { "M83",								"M83" },
 	14, { "M84",								"M84" },
 	14, { "M85",								"M85" },
-	14, { "HACK: MON_INSIDE_TOP_TOO_HOT deact value change",							"M86" },
+	14, { "HACK: MON_TOP_HOT deact value change",										"M86" },
 	14, { "HACK: Bottom Watering with duration override",								"M87" },
 	14, { "HACK: MON_INSIDE_BOTTOM_TOO_COLD deact value change",						"M88" },
 	14, { "HACK: RL_EXHAUST_IF_TOP_HOT_BOT_HOT Changed Type to RL_LOGIC_SINGLENOT",		"M89" },

@@ -48,9 +48,9 @@ from datetime import datetime, date, time
 # [Index, "SOURCE BLOCK", "Display Label", initial_graph_period_days]
 #########################################################
 INPUTS_LIST = (
-    [0, "IN_INSIDE_TOP_TEMP", "Top", 1],
-    [1, "IN_INSIDE_BOTTOM_TEMP", "Bottom", 1],
-    [2, "IN_OUTSIDE_TEMP", "Outside", 10],
+    [0, "IN_TOP_TEMP", "Top", 1],
+    [1, "IN_BOT_TEMP", "Bottom", 1],
+    [2, "IN_OUT_TEMP", "Outside", 3],
     #[3, "IN_WATER_TEMP", "Water"],
     #[4, "IN_CABINET_TEMP", "Cabinet"],
     #[5, "IN_LONGRUN_TEMP", "Main Tank"]
@@ -59,29 +59,30 @@ INPUTS_LIST = (
 # [Index, "SOURCE BLOCK", "Display Label"]
 
 OUTPUTS_LIST = (
-    [0, "OUT_END_LIGHTS", "Lights", 5], 
-    #[1, "OUT_WATER_HEATER", "Heater"],
-#    [2, "OUT_FRESH_AIR_FAN", "Inlet Fan"],
-    [1, "OUT_CIRCULATION_FAN", "Circulation", 1],
-    [2, "OUT_EXHAUST_FAN", "Exhaust", 1],
-    [3, "OUT_WATERING_SOLENOID_TOP", "Top Spray", 1],
-    [4, "OUT_WATERING_SOLENOID_BOTTOM", "Bottom Spray", 1]
+    [0, "OUT_LIGHTS", "Lights", 5], 
+    #[1, "OUT_WATER_HEAT", "Heater"],
+#    [2, "OUT_COLD_FAN", "Cooling Fan"],
+    [1, "OUT_CIRC_FAN", "Circulation", 1],
+    [2, "OUT_EXH_FAN", "Exhaust", 1],
+#    [3, "OUT_COLD_WATER", "Cold Water Select", 1],
+    [3, "OUT_WATER_TOP", "Top Spray", 1],
+    [4, "OUT_WATER_BOT", "Bottom Spray", 1]
 )
 
 DB_INPUT_LOW_HIGH = (
-    ["IN_INSIDE_TOP_TEMP", 18, 22],
-    ["IN_INSIDE_BOTTOM_TEMP", 18, 22],
-    ["IN_OUTSIDE_TEMP", 18, 22],
+    ["IN_TOP_TEMP", 18, 22],
+    ["IN_BOT_TEMP", 18, 22],
+    ["IN_OUT_TEMP", 18, 22],
     ["IN_WATER_TEMP", 18, 22],
-    ["IN_CABINET_TEMP", 18, 22],
-    ["IN_LONGRUN_TEMP", 18, 22]
+    ["IN_CAB_TEMP", 18, 22],
+    ["IN_TANK_TEMP", 18, 22]
 )
 
 ENERGY_LIST = (
     ["VE_DATA_SOC", "State of Charge", 10],
-    ["VE_DATA_VOLTAGE", "Battery Voltage", 10], 
-    ["VE_DATA_POWER", "Power Flow", 5],
-    ["VE_DATA_CURRENT", "Battery Current", 5],
+    ["VE_DATA_VOLTAGE", "Battery Voltage", 5], 
+    ["VE_DATA_POWER", "Power Flow", 2],
+    ["VE_DATA_CURRENT", "Battery Current", 2],
 )
 
 
@@ -99,14 +100,17 @@ DB_ENERGY_GRAPH_PARAMS = (
 )
 
 RULES_TO_CATCH = (
-    ["RL_WATER_BOT_COLD", "Bottom Boost"],
-    ["RL_WATER_TOP_COLD", "Top Boost"],
-    ["RL_LIGHTS", "Run Lights"],
+    ["RL_LIGHTS", "Lights"],
+    ["RL_COLD_FAN", "Active Cooling Fan"], 
+    ["RL_CIRC_FAN", "Circulate"], 
+    ["RL_EXH_FAN", "Exhaust"],
+    ["RL_COLD_WATER_TOP", "Cold Water Top"],
+    ["RL_COLD_WATER_BOT", "Cold Water Bottom"],
     ["RL_WATER_TOP", "Water Top"],
     ["RL_WATER_BOT", "Water Bottom"],
-    ["RL_CIRC_TOPHOT_BOTCOLD", "Top Hot Bot Cold"], 
-    ["RL_EXH_TOPHOT_BOTNOTCOLD", "Top Hot Bot not Cold"],
-    ["RL_BOTANDOUT_COLD", "Bot and Out Cold"],
+    ["RL_BOOST", "Cold Boost"],
+    ["RL_TOP_BOOST", "Top Boost"],
+    ["RL_BOT_BOOST", "Bottom Boost"],
 )
     
 ########################################################
@@ -115,6 +119,9 @@ UINT8_INIT = 255
 
 UINT16_INIT = 65535
 FLOAT_INIT = 255.255
+
+TEMPERATURE_SANITY_HIGH = 79.0
+TEMPERATURE_SANITY_LOW = -60.0
 
 ########################################################
 #MESSAGE_FILENAME = "message_dev.log"
@@ -132,14 +139,14 @@ CLOCK_UPDATE_INTERVAL = 1.0
 
 MYSQL_POLL_INTERVAL = 10
 
-PROCESS_SERIAL_MESSAGES = True
+PROCESS_SERIAL_MESSAGES = False
 
-UI_UPDATE_FROM_MESSAGES = True
+UI_UPDATE_FROM_MESSAGES = False
 UI_UPDATE_FROM_LOCAL_DB = False
-UI_UPDATE_FROM_CLOUD_DB = False
+UI_UPDATE_FROM_CLOUD_DB = True
 
-GRAPH_UPDATE_FROM_LOCAL_DB = True
-GRAPH_UPDATE_FROM_CLOUD_DB = False
+GRAPH_UPDATE_FROM_LOCAL_DB = False
+GRAPH_UPDATE_FROM_CLOUD_DB = True
 
 DB_WRITE_LOCAL = True
 DB_WRITE_CLOUD = True

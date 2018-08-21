@@ -24,7 +24,8 @@ from privatelib.ff_config import STATE_ON, STATE_OFF, ParsedMessage, \
                                  PARSED_MESSAGE_QUEUE_MAX_LEN, \
                                  SERIAL_MESSAGE_QUEUE_MAX_LEN, \
                                  ERROR_REPEAT_WINDOW, \
-                                 DB_WORKER_INTERVAL
+                                 DB_WORKER_INTERVAL, \
+                                 TEMPERATURE_SANITY_HIGH, TEMPERATURE_SANITY_LOW
 
 #from privatelib.global_vars import active_rules
 from privatelib.db_funcs import db_add_log_entry, db_get_last_message_by_source, \
@@ -171,6 +172,7 @@ class MessageSystem():
 
     def end(self):
         if self.serial:
+            print("(msg_parser.end) Closing serial data connection")
             self.serial_close()
             #self.serial_connection.close()
     def setup_db_ui_source(self):
@@ -198,8 +200,12 @@ class MessageSystem():
                     message.valid = False
                     message = db_get_last_message_by_source(source, message, 10, db=db_source)
                     if message.valid:
-                        ui_inputs_values[i] = message.float_val
-                        any_valid_query = True
+                        if message.float_val < TEMPERATURE_SANITY_HIGH \
+                           and message.float_val > TEMPERATURE_SANITY_LOW: 
+                            ui_inputs_values[i] = message.float_val
+                            any_valid_query = True
+                        else:
+                            self.error.errorLog("WARNING: Temperature value out of sanity range")
                     else:
                         self.error.errorLog("WARNING: DB query for: " + source + " Returned no valid messages")
     

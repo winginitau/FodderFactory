@@ -13,7 +13,8 @@ from privatelib.ff_config import INPUTS_LIST, OUTPUTS_LIST, CLOCK_UPDATE_INTERVA
                                  UI_REFRESH_INTERVAL, GRAPH_UPDATE_INTERVAL, \
                                  DB_INPUT_LOW_HIGH, DB_ENERGY_GRAPH_PARAMS, \
                                  DB_LOCAL_CONFIG, DB_CLOUD_CONFIG, \
-                                 GRAPH_UPDATE_FROM_LOCAL_DB, GRAPH_UPDATE_FROM_CLOUD_DB
+                                 GRAPH_UPDATE_FROM_LOCAL_DB, GRAPH_UPDATE_FROM_CLOUD_DB, \
+                                 TEMPERATURE_SANITY_HIGH, TEMPERATURE_SANITY_LOW
                                  
                                  
 from kivy.clock import Clock
@@ -321,14 +322,17 @@ class TemperatureGraphGrid(GraphGrid):
         self.low_line, self.high_line = get_temp_graph_low_high(self.data_source)
         
         for t, v in self.db_result_list:
-            if v > self.max_y:
-                self.max_y = v
-            if v < self.min_y:
-                self.min_y = v
-            t_mod = t + self.x_offset
-            self.data_line_values.append((t_mod,v))      
-            self.high_line_values.append((t_mod,self.high_line)) 
-            self.low_line_values.append((t_mod,self.low_line))            
+            if v < TEMPERATURE_SANITY_HIGH and v > TEMPERATURE_SANITY_LOW:
+                if v > self.max_y:
+                    self.max_y = v
+                if v < self.min_y:
+                    self.min_y = v
+                t_mod = t + self.x_offset
+                self.data_line_values.append((t_mod,v))      
+                self.high_line_values.append((t_mod,self.high_line)) 
+                self.low_line_values.append((t_mod,self.low_line))
+            else:
+                print("(TemperatureGraphGrid.refreh_data) WARNING: Temperature value out of sanity range")            
         self.min_y, self.max_y = calc_temp_graph_y_grid(self.min_y, self.max_y, 2)
         if self.min_y >= self.low_line: self.min_y = self.low_line - 1
         if self.max_y <= self.high_line: self.max_y = self.high_line + 1

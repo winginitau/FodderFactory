@@ -448,8 +448,6 @@ def db_temperature_data(block_label, endDT=datetime.now(), \
     return db_result_list
         
 def db_add_log_entry(message_buffer: deque, db='mysql'):  
-    
-    
     query = "INSERT INTO message_log " \
             "(datetime, date, time, source, destination, msg_type, message, int_val, float_val) " \
             "VALUES" \

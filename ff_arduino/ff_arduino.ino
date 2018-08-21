@@ -79,6 +79,15 @@ using namespace std;
 #include <stdio.h>
 #include <ff_HAL.h>
 
+#ifdef FF_CONFIG
+#include <ff_ini_config.h>
+#endif
+
+#ifdef FF_SIM_PARSECONFIG
+#include <ff_ini_config.h>
+#endif
+
+
 /************************************************
  Main Functions
  ************************************************/
@@ -127,6 +136,9 @@ int main(void) {
 	HALInitItch();
 	#endif
 
+	// Set up the run-time environment
+	InitSystem();
+	//TODO set up remote control / data feed / radio link
 
 	// Read the config file, parse it and create a block list in memory
 	#ifdef FF_SIM_PARSECONFIG
@@ -143,10 +155,6 @@ int main(void) {
 	#endif
 	#endif
 
-	// Set up the run-time environment
-	InitSystem();
-	//TODO set up remote control / data feed / radio link
-
 	// Run the Validate function on each block
 	// currently uses assert() - which will bomb the run if failed on embedded
 	ProcessDispatcher(Validate);
@@ -158,7 +166,7 @@ int main(void) {
 	//Write out a binary config file (for consumption by ReadProcessedConfig() in embedded builds
 	WriteRunningConfig();
 	DebugLog("Created Binary Configuration File. Done.");
-	return 0
+	return 0;
 	#endif
 
 	// 1. make sure each block is in an appropriate state to start execution

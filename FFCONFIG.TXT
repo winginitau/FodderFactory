@@ -31,14 +31,14 @@ week_start = SUN
 # Inputs
 #************************************************/
 [inputs]
-input1 = IN_INSIDE_TOP_TEMP
-input2 = IN_INSIDE_BOTTOM_TEMP
-input3 = IN_OUTSIDE_TEMP
+input1 = IN_TOP_TEMP
+input2 = IN_BOT_TEMP
+input3 = IN_OUT_TEMP
 input4 = IN_WATER_TEMP
-input5 = IN_CABINET_TEMP
-input6 = IN_LONGRUN_TEMP
+input5 = IN_CAB_TEMP
+input6 = IN_TANK_TEMP
 
-[IN_INSIDE_TOP_TEMP]
+[IN_TOP_TEMP]
 type = IN_ONEWIRE
 display_name = Inside Top
 description = Dallas sensor inside the top of the fodder factory
@@ -48,9 +48,9 @@ log_rate = 00:02:00
 data_units = Celsius
 data_type = float
 
-[IN_INSIDE_BOTTOM_TEMP]
+[IN_BOT_TEMP]
 type = IN_ONEWIRE
-display_name = Inside Bot
+display_name = Inside Bottom
 description = Dallas sensor inside the bottom of the fodder factory
 interface = ONEWIRE
 if_num = 1
@@ -58,7 +58,7 @@ log_rate = 00:02:00
 data_units = Celsius
 data_type = float
 
-[IN_OUTSIDE_TEMP]
+[IN_OUT_TEMP]
 type = IN_ONEWIRE
 display_name = Outside
 description = Dallas sensor for outside air temprature
@@ -70,7 +70,7 @@ data_type = float
 
 [IN_WATER_TEMP]
 type = IN_ONEWIRE
-display_name = Water
+display_name = Header Water
 description = Dallas sensor in the header tank
 interface = ONEWIRE
 if_num = 2
@@ -78,20 +78,20 @@ log_rate = 00:02:00
 data_units = Celsius
 data_type = float
 
-[IN_CABINET_TEMP]
+[IN_CAB_TEMP]
 type = IN_ONEWIRE
-display_name = Aux Temp 1
-description = Dallas sensor
+display_name = Cabinet
+description = Dallas sensor in the electrical cabinet
 interface = ONEWIRE
 if_num = 3
 log_rate = 00:02:00
 data_units = Celsius
 data_type = float
 
-[IN_LONGRUN_TEMP]
+[IN_TANK_TEMP]
 type = IN_ONEWIRE
-display_name = Aux Temp 1
-description = Dallas sensor
+display_name = Main Tank
+description = Dallas sensor in the main water tank
 interface = ONEWIRE
 if_num = 5
 log_rate = 00:02:00
@@ -108,12 +108,13 @@ monitor3 = MON_BOT_COLD
 monitor4 = MON_BOT_HOT
 monitor5 = MON_BOT_VERY_COLD
 monitor6 = MON_OUT_VERY_COLD
+monitor7 = MON_OUT_WARM
 
 [MON_TOP_COLD]
 type = MON_CONDITION_LOW
 display_name = Inside Top Too Cold
 description =  
-input1 = IN_INSIDE_TOP_TEMP
+input1 = IN_TOP_TEMP
 act_val	= 18.00
 deact_val = 19.00
 
@@ -121,41 +122,49 @@ deact_val = 19.00
 type = MON_CONDITION_HIGH
 display_name = Inside Top Too Hot
 description = 
-input1 = IN_INSIDE_TOP_TEMP
-act_val	= 22.00
-deact_val = 21.60
+input1 = IN_TOP_TEMP
+act_val	= 21.60
+deact_val = 20.60
 
 [MON_BOT_COLD]
 type = MON_CONDITION_LOW
 display_name = Inside Bottom Too Cold
 description =  
-input1 = IN_INSIDE_BOTTOM_TEMP
+input1 = IN_BOT_TEMP
 act_val	= 18.00
-deact_val = 21.00
+deact_val = 20.60
 
 [MON_BOT_HOT]
 type = MON_CONDITION_HIGH
 display_name = Inside Bottom Too Hot
 description = 
-input1 = IN_INSIDE_BOTTOM_TEMP
-act_val	= 22.00
-deact_val = 21.00
+input1 = IN_BOT_TEMP
+act_val	= 21.60
+deact_val = 20.60
 
 [MON_BOT_VERY_COLD]
 type = MON_CONDITION_LOW
 display_name = Bottom Very Cold
 description = Bottom Temprature Very Cold
-input1 = IN_INSIDE_BOTTOM_TEMP
-act_val	= 16.50
-deact_val = 18.50
+input1 = IN_BOT_TEMP
+act_val	= 16.00
+deact_val = 18.00
 
 [MON_OUT_VERY_COLD]
 type = MON_CONDITION_LOW
 display_name = Outside Cold
 description = Outside Temprature Very Cold
-input1 = IN_OUTSIDE_TEMP
+input1 = IN_OUT_TEMP
 act_val	= 16.00
 deact_val = 18.00
+
+[MON_OUT_WARM]
+type = MON_CONDITION_HIGH
+display_name = Outside HOT
+description = Outside Temprature Hot
+input1 = IN_OUT_TEMP
+act_val = 21.00
+deact_val = 20.90
 
 #************************************************
 # Schedules
@@ -183,7 +192,7 @@ description =
 # ALL, MON, TUE, WED, THU, FRI, SAT, SUN
 days = ALL
 time_start = 00:00:00
-time_duration = 00:00:20
+time_duration = 00:00:15
 time_repeat = 00:45:00
 
 [SCH_WATER_BOT]
@@ -193,7 +202,7 @@ description =
 # ALL, MON, TUE, WED, THU, FRI, SAT, SUN
 days = ALL
 time_start = 00:00:30
-time_duration = 00:00:30
+time_duration = 00:00:20
 time_repeat = 00:45:00
 
 [SCH_WATER_TOP_COLD]
@@ -203,7 +212,7 @@ description =
 # ALL, MON, TUE, WED, THU, FRI, SAT, SUN
 days = ALL
 time_start = 00:00:00
-time_duration = 00:00:45
+time_duration = 00:00:20
 time_repeat = 00:10:00
 
 [SCH_WATER_BOT_COLD]
@@ -213,22 +222,24 @@ description =
 # ALL, MON, TUE, WED, THU, FRI, SAT, SUN
 days = ALL
 time_start = 00:01:00
-time_duration = 00:02:00
+time_duration = 00:00:30
 time_repeat = 00:10:00
-
 
 #************************************************
 # Rules
 #************************************************/
 [rules]
 rule1 = RL_LIGHTS
-rule2 = RL_WATER_TOP
-rule3 = RL_WATER_BOT
-rule4 = RL_CIRC_TOPHOT_BOTCOLD 
-rule5 = RL_EXH_TOPHOT_BOTNOTCOLD
-rule6 = RL_BOTANDOUT_COLD
-rule7 = RL_WATER_TOP_COLD
-rule8 = RL_WATER_BOT_COLD
+rule2 = RL_COLD_FAN
+rule3 = RL_CIRC_FAN 
+rule4 = RL_EXH_FAN
+rule5 = RL_COLD_WATER_TOP
+rule6 = RL_COLD_WATER_BOT
+rule7 = RL_WATER_TOP
+rule8 = RL_WATER_BOT
+rule9 = RL_BOOST
+rule10 = RL_TOP_BOOST
+rule11 = RL_BOT_BOOST
 
 [RL_LIGHTS]
 type = RL_LOGIC_SINGLE
@@ -237,45 +248,15 @@ description = Operate Lights According to Schedule
 param1 = SCH_LIGHTS
 #param_not = 
 
-[RL_WATER_TOP]
-type = RL_LOGIC_SINGLENOT
-display_name = Water Cycle Top
-description =
-param1 = SCH_WATER_TOP
-param_not = RL_WATER_TOP_COLD
+[RL_COLD_FAN]
+type = RL_LOGIC_ANDNOT
+display_name = Cold Fan Rule
+description = Cold Fan if Top Hot, Out Hot, Bot not Cold
+param1 = MON_TOP_HOT
+param2 = MON_OUT_WARM
+param_not = MON_BOT_COLD
 
-[RL_WATER_BOT]
-type = RL_LOGIC_SINGLENOT
-display_name = Water Cycle Bottom
-description =
-param1 = SCH_WATER_BOT
-param_not = RL_WATER_BOT_COLD
-
-[RL_BOTANDOUT_COLD]
-type = RL_LOGIC_AND
-display_name = Cold Bottom and Out - Bootstrap
-description =
-param1 = MON_BOT_VERY_COLD
-param2 = MON_OUT_VERY_COLD
-#param_not = 
-
-[RL_WATER_TOP_COLD]
-type = RL_LOGIC_AND
-display_name = Water Cycle Top
-description =
-param1 = SCH_WATER_TOP_COLD
-param2 = RL_BOTANDOUT_COLD
-#param_not = 
-
-[RL_WATER_BOT_COLD]
-type = RL_LOGIC_AND
-display_name = Water Cycle Bottom
-description =
-param1 = SCH_WATER_BOT_COLD
-param2 = RL_BOTANDOUT_COLD
-#param_not = 
-
-[RL_CIRC_TOPHOT_BOTCOLD]
+[RL_CIRC_FAN]
 type = RL_LOGIC_AND
 display_name = Circulate Rule
 description = Circulate if Top is Hot and Bot is Cold
@@ -283,7 +264,8 @@ param1 = MON_TOP_HOT
 param2 = MON_BOT_COLD
 #param_not = 
 
-[RL_EXH_TOPHOT_BOTNOTCOLD]
+[RL_EXH_FAN]
+# Change when COLD_FAN actually installed
 type = RL_LOGIC_SINGLENOT
 display_name = Exhaust Fan Rule
 description = Exhaust if Top Hot and Bot Not Cold
@@ -291,24 +273,126 @@ param1 = MON_TOP_HOT
 #param2 = 
 param_not = MON_BOT_COLD
 
+[RL_COLD_WATER_TOP]
+type = RL_LOGIC_ANDNOT
+display_name = Cold Water Selected
+description =
+param1 = SCH_WATER_TOP
+param2 = MON_OUT_WARM
+param_not = MON_BOT_COLD
+
+[RL_COLD_WATER_BOT]
+type = RL_LOGIC_ANDNOT
+display_name = Cold Water Selected
+description =
+param1 = SCH_WATER_BOT
+param2 = MON_OUT_WARM
+param_not = MON_BOT_COLD
+
+[RL_WATER_TOP]
+type = RL_LOGIC_SINGLENOT
+display_name = Water Cycle Top
+description =
+param1 = SCH_WATER_TOP
+param_not = RL_TOP_BOOST
+
+[RL_WATER_BOT]
+type = RL_LOGIC_SINGLENOT
+display_name = Water Cycle Bottom
+description =
+param1 = SCH_WATER_BOT
+param_not = RL_BOT_BOOST
+
+[RL_BOOST]
+type = RL_LOGIC_AND
+display_name = Cold Bottom and Out - Bootstrap
+description =
+param1 = MON_BOT_VERY_COLD
+param2 = MON_OUT_VERY_COLD
+#param_not = 
+
+[RL_TOP_BOOST]
+type = RL_LOGIC_AND
+display_name = Water Boost Top
+description =
+param1 = SCH_WATER_TOP_COLD
+param2 = RL_BOOST
+#param_not = 
+
+[RL_BOT_BOOST]
+type = RL_LOGIC_AND
+display_name = Water Boost Bottom
+description =
+param1 = SCH_WATER_BOT_COLD
+param2 = RL_BOOST
+#param_not = 
+
 #************************************************
 # Controllers
 #************************************************/
 [controllers]
 controller1 = CON_LIGHTS
-controller2 = CON_WATER_TOP
-controller3 = CON_WATER_BOT
-controller4 = CON_CIRC_FAN
-controller5 = CON_EXH_FAN
-controller6 = CON_WATER_TOP_COLD
-controller7 = CON_WATER_BOT_COLD
+controller2 = CON_COLD_FAN
+controller3 = CON_CIRC_FAN
+controller4 = CON_EXH_FAN
+controller5 = CON_COLD_WATER_TOP
+controller6 = CON_COLD_WATER_BOT
+controller7 = CON_WATER_TOP
+controller8 = CON_WATER_BOT
+controller9 = CON_TOP_BOOST
+controller10 = CON_BOT_BOOST
 
 [CON_LIGHTS]
 type = CON_ONOFF
 display_name = End Lights Controller
 description = 
 rule = RL_LIGHTS
-output = OUT_END_LIGHTS
+output = OUT_LIGHTS
+act_cmd = CMD_OUTPUT_ON
+deact_cmd = CMD_OUTPUT_OFF
+
+[CON_COLD_FAN]
+type = CON_ONOFF
+display_name = Circulation Fan Controller
+description = 
+rule = RL_COLD_FAN
+output = OUT_COLD_FAN
+act_cmd = CMD_OUTPUT_ON
+deact_cmd = CMD_OUTPUT_OFF
+
+[CON_CIRC_FAN]
+type = CON_ONOFF
+display_name = Circulation Fan Controller
+description = 
+rule = RL_CIRC_FAN
+output = OUT_CIRC_FAN
+act_cmd = CMD_OUTPUT_ON
+deact_cmd = CMD_OUTPUT_OFF
+
+[CON_EXH_FAN]
+type = CON_ONOFF
+display_name = Exhaust Fan Controller
+description = 
+rule = RL_EXH_FAN
+output = OUT_EXH_FAN
+act_cmd = CMD_OUTPUT_ON
+deact_cmd = CMD_OUTPUT_OFF
+
+[CON_COLD_WATER_TOP]
+type = CON_ONOFF
+display_name = Cold Water Solenoid Controller
+description = 
+rule = RL_COLD_WATER_TOP
+output = OUT_COLD_WATER
+act_cmd = CMD_OUTPUT_ON
+deact_cmd = CMD_OUTPUT_OFF
+
+[CON_COLD_WATER_BOT]
+type = CON_ONOFF
+display_name = Cold Water Solenoid Controller
+description = 
+rule = RL_COLD_WATER_BOT
+output = OUT_COLD_WATER
 act_cmd = CMD_OUTPUT_ON
 deact_cmd = CMD_OUTPUT_OFF
 
@@ -317,7 +401,7 @@ type = CON_ONOFF
 display_name = Top Sprinklers Solenoid Controller
 description = 
 rule = RL_WATER_TOP
-output = OUT_WATERING_SOLENOID_TOP
+output = OUT_WATER_TOP
 act_cmd = CMD_OUTPUT_ON
 deact_cmd = CMD_OUTPUT_OFF
 
@@ -326,107 +410,97 @@ type = CON_ONOFF
 display_name = Bottom Sprinklers Solenoid Controller
 description = 
 rule = RL_WATER_BOT
-output = OUT_WATERING_SOLENOID_BOTTOM
+output = OUT_WATER_BOT
 act_cmd = CMD_OUTPUT_ON
 deact_cmd = CMD_OUTPUT_OFF
 
-[CON_WATER_TOP_COLD]
+[CON_TOP_BOOST]
 type = CON_ONOFF
 display_name = Top Sprinklers Solenoid Controller
 description = 
-rule = RL_WATER_TOP_COLD
-output = OUT_WATERING_SOLENOID_TOP
+rule = RL_TOP_BOOST
+output = OUT_WATER_TOP
 act_cmd = CMD_OUTPUT_ON
 deact_cmd = CMD_OUTPUT_OFF
 
-[CON_WATER_BOT_COLD]
+[CON_BOT_BOOST]
 type = CON_ONOFF
 display_name = Bottom Sprinklers Solenoid Controller
 description = 
-rule = RL_WATER_BOT_COLD
-output = OUT_WATERING_SOLENOID_BOTTOM
+rule = RL_BOT_BOOST
+output = OUT_WATER_BOT
 act_cmd = CMD_OUTPUT_ON
 deact_cmd = CMD_OUTPUT_OFF
 
-[CON_CIRC_FAN]
-type = CON_ONOFF
-display_name = Circulation Fan Controller
-description = 
-rule = RL_CIRC_TOPHOT_BOTCOLD
-output = OUT_CIRCULATION_FAN
-act_cmd = CMD_OUTPUT_ON
-deact_cmd = CMD_OUTPUT_OFF
-
-[CON_EXH_FAN]
-type = CON_ONOFF
-display_name = Exhaust Fan Controller
-description = 
-rule = RL_EXH_TOPHOT_BOTNOTCOLD
-output = OUT_EXHAUST_FAN
-act_cmd = CMD_OUTPUT_ON
-deact_cmd = CMD_OUTPUT_OFF
 
 #************************************************
 # Outputs
 #************************************************
 [outputs]
-output1 = OUT_END_LIGHTS
-output2 = OUT_WATER_HEATER
-output3 = OUT_WATERING_SOLENOID_TOP
-output4 = OUT_WATERING_SOLENOID_BOTTOM
-output5 = OUT_CIRCULATION_FAN
-output6 = OUT_EXHAUST_FAN
+output1 = OUT_LIGHTS
+output2 = OUT_WATER_HEAT
+output3 = OUT_COLD_FAN
+output4 = OUT_CIRC_FAN
+output5 = OUT_EXH_FAN
+output6 = OUT_COLD_WATER
+output7 = OUT_WATER_TOP
+output8 = OUT_WATER_BOT
 
 #PINS 8  7  6  4  4  3  2  1
 #PINS 1  2  3  4  5  6  7  8
-#PINS 53 51 49 47 45 43 41 39
 #PINS 22 24 26 28 30 32 34 36
-#PINS LT WH IF CF EF -- S1 S2 
-#PINS S2 S1 -- EF CF IF WH LT 
+#PINS LT WH CF IF EF CW S1 S2 
 
-[OUT_END_LIGHTS]
+[OUT_LIGHTS]
 type = OUT_DIGITAL
 display_name = Fluro Lights
 description = Relay to Control Fluro End Lights
 interface = DIG_PIN_OUT
 if_num = 22
 
-[OUT_WATER_HEATER]
+[OUT_WATER_HEAT]
 type = OUT_DIGITAL
 display_name = Header Tank Heater
 description = Relay to Control Header Tank Water Heater
 interface = DIG_PIN_OUT
 if_num = 24
 
-[OUT_FRESH_AIR_FAN]
+[OUT_COLD_FAN]
 type = OUT_DIGITAL
-display_name = Fresh Air Fan
-description = Relay to Control Fresh Air Fan
+display_name = Cold Air Fan
+description = Relay to Control the Cold Air Fan
 interface = DIG_PIN_OUT
 if_num = 26
 
-[OUT_CIRCULATION_FAN]
+[OUT_CIRC_FAN]
 type = OUT_DIGITAL
 display_name = Circulation Fan
 description = Relay to Control the Circulation Fan
 interface = DIG_PIN_OUT
 if_num = 28
 
-[OUT_EXHAUST_FAN]
+[OUT_EXH_FAN]
 type = OUT_DIGITAL
 display_name = Exhaust Fan
 description = Relay to Control the Exhaust Fan
 interface = DIG_PIN_OUT
 if_num = 30
 
-[OUT_WATERING_SOLENOID_TOP]
+[OUT_COLD_WATER]
+type = OUT_DIGITAL
+display_name = Cold Water Value
+description = Relay to Control the Cold Water Solenoid
+interface = DIG_PIN_OUT
+if_num = 32
+
+[OUT_WATER_TOP]
 type = OUT_DIGITAL
 display_name = Water Value Top
 description = Relay to Control the Top Watering Solenoid
 interface = DIG_PIN_OUT
 if_num = 34
 
-[OUT_WATERING_SOLENOID_BOTTOM]
+[OUT_WATER_BOT]
 type = OUT_DIGITAL
 display_name = Water Value Bottom
 description = Relay to Control the Bottom Watering Solenoid

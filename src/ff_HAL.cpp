@@ -357,7 +357,7 @@ uint8_t HALEventSerialSend(EventNode* e, uint8_t port) {
 	// Serial begin now in InitSerial, so that when ITCH is in use
 	// it can be open listening all the time
 
-	int loop = 2000;
+	int loop = 5000;
 	int check = 0;
     while (loop > 0) {
     	loop--;
@@ -580,7 +580,7 @@ float GetTemperature(int if_num) {
 #ifdef FF_TEMPERATURE_SIM
 #ifdef FF_RANDOM_TEMP_SIM
 #ifdef FF_SIMULATOR
-	temp_c = (float)FF_RANDOM_TEMP_MIN + ((float)((rand() % ((FF_RANDOM_TEMP_MAX - FF_RANDOM_TEMP_MIN) *100))) / 100);
+	temp_c = (float)FF_RANDOM_TEMP_MIN + ((float)((rand() % (((int)FF_RANDOM_TEMP_MAX - (int)FF_RANDOM_TEMP_MIN) *100))) / 100);
 #endif
 #endif
 #endif

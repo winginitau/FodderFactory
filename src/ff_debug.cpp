@@ -83,7 +83,7 @@ void DebugSerial(char *log_entry) {
 #ifdef USE_ITCH
 	HALItchWriteLnImmediate(log_entry);
 #else
-    int loop = 2000;
+    int loop = 5000;
     while (loop > 0) {
       loop--;
       if (Serial) {

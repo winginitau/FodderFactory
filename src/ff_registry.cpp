@@ -130,6 +130,16 @@ void Setup(BlockNode *b) {
 		//	EventMsg(SSS, E_WARNING, M_HACK_MON_INSIDE_TOP_TOO_HOT);
 		//}
 
+		// Hack to tweak MON_TOP_HOT
+		// 	deact from 21.4 to 20.5 to bring cold night time bottom up via circ
+		//	act from 21.8 to 21.5 to bring top down overall
+		// ***watch for exh race condition
+		//if(strcmp_hal(b->block_label, F("MON_TOP_HOT")) == 0) {
+		//	b->settings.mon.deact_val = 20.5;
+		//	b->settings.mon.act_val = 21.5;
+		//	EventMsg(SSS, E_WARNING, M_HACK_MON_TOP_HOT);
+		//}
+
 		MonitorSetup(b);
 		break;
 	case FF_SCHEDULE:
@@ -404,6 +414,11 @@ char const* GetBlockLabelString(uint16_t block_id) {
 				temp = temp->next_block;
 			}
 		}
+		// Block Label not found
+		if (block_id == SSS) {
+			// Possibly pre-config message
+			return "SYSTEM-NOCONFIG";
+		}
 		char msg_str[30];
 		strcpy_hal(msg_str, F("ERROR: B-ID Not Found: [%d]"));
 		sprintf(debug_msg, msg_str, block_id);
@@ -583,7 +598,7 @@ BlockNode* GetBlockNodeByLabel(BlockNode *head, const char *block_label) {
 	BlockNode* walker;
 	walker = head;
 	while(walker != NULL) {
-		if (strcmp(head->block_label, block_label) == 0) {
+		if (strcmp(walker->block_label, block_label) == 0) {
 			return walker;
 		} else {
 			walker = walker->next_block;
@@ -1051,7 +1066,7 @@ void UpdateStateRegister(uint16_t source, uint8_t msg_type, uint8_t msg_str, int
 
 	//TODO include further registry block logic update here
 
-	//TODO redo - remove hard coding perhaps
+	//TODO redo - remove hard coding perhaps **** INDEED
 	const char* src_label;
 	src_label = GetBlockLabelString(source);
 

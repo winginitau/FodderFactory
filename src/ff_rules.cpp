@@ -49,24 +49,28 @@ void RuleSetup(BlockNode *b) {
 		case RL_LOGIC_ANDNOT: {
 			b->active = 0;
 			b->last_update = TimeNow();
+			EventMsg(b->block_id, E_DEACT);
 			break;
 		}
 
 		case RL_LOGIC_SINGLE: {
 			b->active = 0;
 			b->last_update = TimeNow();
+			EventMsg(b->block_id, E_DEACT);
 			break;
 		}
 
 		case RL_LOGIC_AND: {
 			b->active = 0;
 			b->last_update = TimeNow();
+			EventMsg(b->block_id, E_DEACT);
 			break;
 		}
 
 		case RL_LOGIC_SINGLENOT: {
 			b->active = 0;
 			b->last_update = TimeNow();
+			EventMsg(b->block_id, E_DEACT);
 			break;
 		}
 		default:
