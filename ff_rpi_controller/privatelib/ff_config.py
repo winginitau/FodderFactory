@@ -52,21 +52,21 @@ INPUTS_LIST = (
     [1, "IN_BOT_TEMP", "Bottom", 1],
     [2, "IN_OUT_TEMP", "Outside", 3],
     #[3, "IN_WATER_TEMP", "Water"],
-    #[4, "IN_CABINET_TEMP", "Cabinet"],
-    #[5, "IN_LONGRUN_TEMP", "Main Tank"]
+    #[4, "IN_CAB_TEMP", "Cabinet"],
+    [3, "IN_TANK_TEMP", "Tank", 10]
 )
 
 # [Index, "SOURCE BLOCK", "Display Label"]
 
 OUTPUTS_LIST = (
-    [0, "OUT_LIGHTS", "Lights", 5], 
+    [0, "OUT_CIRC_FAN", "Circulation", 1],
+    [1, "OUT_EXH_FAN", "Exhaust", 1],
+    [2, "OUT_COLD_FAN", "Cooling", 1],
+    [3, "OUT_LIGHTS", "Lights", 5], 
+    [4, "OUT_WATER_TOP", "Top Spray", 1],
+    [5, "OUT_WATER_BOT", "Bottom Spray", 1],
+    [6, "OUT_COLD_WATER", "Cold Water", 1],
     #[1, "OUT_WATER_HEAT", "Heater"],
-#    [2, "OUT_COLD_FAN", "Cooling Fan"],
-    [1, "OUT_CIRC_FAN", "Circulation", 1],
-    [2, "OUT_EXH_FAN", "Exhaust", 1],
-#    [3, "OUT_COLD_WATER", "Cold Water Select", 1],
-    [3, "OUT_WATER_TOP", "Top Spray", 1],
-    [4, "OUT_WATER_BOT", "Bottom Spray", 1]
 )
 
 DB_INPUT_LOW_HIGH = (
@@ -101,16 +101,16 @@ DB_ENERGY_GRAPH_PARAMS = (
 
 RULES_TO_CATCH = (
     ["RL_LIGHTS", "Lights"],
-    ["RL_COLD_FAN", "Active Cooling Fan"], 
+    ["RL_COLD_FAN", "Cooling"], 
     ["RL_CIRC_FAN", "Circulate"], 
     ["RL_EXH_FAN", "Exhaust"],
     ["RL_COLD_WATER_TOP", "Cold Water Top"],
     ["RL_COLD_WATER_BOT", "Cold Water Bottom"],
     ["RL_WATER_TOP", "Water Top"],
     ["RL_WATER_BOT", "Water Bottom"],
-    ["RL_BOOST", "Cold Boost"],
-    ["RL_TOP_BOOST", "Top Boost"],
-    ["RL_BOT_BOOST", "Bottom Boost"],
+    ["RL_BOOST", "Boost"],
+    ["RL_TOP_BOOST", "Boost Top"],
+    ["RL_BOT_BOOST", "Boost Bottom"],
 )
     
 ########################################################
@@ -129,24 +129,24 @@ MESSAGE_FILENAME = "message.log"
 MODEM_SERIAL_PORT = "/dev/ttyV0"
 MODEM_SERIAL_SPEED = 9600
 
-SERIAL_POLL_INTERVAL = 0.1          # Seconds
-MESSAGE_PARSE_INTERVAL = 0.3          # Seconds
-MESSAGE_BROKER_INTERVAL = 0.3
-DB_WORKER_INTERVAL = 5.0
-UI_REFRESH_INTERVAL = 2.0
-GRAPH_UPDATE_INTERVAL = 30.0         #seconds
-CLOCK_UPDATE_INTERVAL = 1.0
+SERIAL_POLL_INTERVAL = 0.1      # Seconds between hardware serial polls pushing to serial queue
+MESSAGE_PARSE_INTERVAL = 1.0    # clearning serial queue and pushing to parse queue and updating UI data set
+MESSAGE_BROKER_INTERVAL = 4.0   # clearing parse queue and pushing to DB and file queues
+DB_WORKER_INTERVAL = 45.0       # Seconds between write attempts to the DBs 
+UI_REFRESH_INTERVAL = 3.0       # Seconds wait between updating display from UI data
+GRAPH_UPDATE_INTERVAL = 120.0    # Seconds - to re-request graph data from DB and update
+CLOCK_UPDATE_INTERVAL = 1.0     # Literally the clock display update
 
-MYSQL_POLL_INTERVAL = 10
+MYSQL_POLL_INTERVAL = 10        # If enabled, how often UI data set is refreshed from the DB
 
-PROCESS_SERIAL_MESSAGES = False
+PROCESS_SERIAL_MESSAGES = True
 
-UI_UPDATE_FROM_MESSAGES = False
+UI_UPDATE_FROM_MESSAGES = True
 UI_UPDATE_FROM_LOCAL_DB = False
-UI_UPDATE_FROM_CLOUD_DB = True
+UI_UPDATE_FROM_CLOUD_DB = False
 
-GRAPH_UPDATE_FROM_LOCAL_DB = False
-GRAPH_UPDATE_FROM_CLOUD_DB = True
+GRAPH_UPDATE_FROM_LOCAL_DB = True
+GRAPH_UPDATE_FROM_CLOUD_DB = False
 
 DB_WRITE_LOCAL = True
 DB_WRITE_CLOUD = True
@@ -217,7 +217,7 @@ ui_inputs_values = [
 ui_outputs_values = [ 
     STATE_UNKNOWN,
     STATE_UNKNOWN,
-#    STATE_UNKNOWN,
+    STATE_UNKNOWN,
     STATE_UNKNOWN,
     STATE_UNKNOWN,
     STATE_UNKNOWN,

@@ -118,18 +118,6 @@ void Setup(BlockNode *b) {
 		break;
 	case FF_MONITOR:
 
-		// Hack to tweak MON_INSIDE_BOTTOM_TOO_COLD deact from 19 to 21
-		//if(strcmp_hal(b->block_label, F("MON_INSIDE_BOTTOM_TOO_COLD")) == 0) {
-		//	b->settings.mon.deact_val = 21;
-		//	EventMsg(SSS, E_WARNING, M_HACK_MON_INSIDE_BOTTOM_TOO_COLD);
-		//}
-
-		// Hack to tweak MON_INSIDE_TOP_TOO_HOT deact from 21 to 21.x to stop circ exh race
-		//if(strcmp_hal(b->block_label, F("MON_INSIDE_TOP_TOO_HOT")) == 0) {
-		//	b->settings.mon.deact_val = 21.6;
-		//	EventMsg(SSS, E_WARNING, M_HACK_MON_INSIDE_TOP_TOO_HOT);
-		//}
-
 		// Hack to tweak MON_TOP_HOT
 		// 	deact from 21.4 to 20.5 to bring cold night time bottom up via circ
 		//	act from 21.8 to 21.5 to bring top down overall
@@ -139,6 +127,15 @@ void Setup(BlockNode *b) {
 		//	b->settings.mon.act_val = 21.5;
 		//	EventMsg(SSS, E_WARNING, M_HACK_MON_TOP_HOT);
 		//}
+
+		// Hack to tweak MON_OUT_WARM
+		//	act from 21.00 to 18.00 to limit top overheat during day
+		// 	deact from 20.90 to 17.90
+		if(strcmp_hal(b->block_label, F("MON_OUT_WARM")) == 0) {
+			b->settings.mon.deact_val = 17.90;
+			b->settings.mon.act_val = 18.00;
+			EventMsg(SSS, E_WARNING, M_HACK_MON_OUT_WARM);
+		}
 
 		MonitorSetup(b);
 		break;

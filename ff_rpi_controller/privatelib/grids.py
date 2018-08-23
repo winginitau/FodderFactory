@@ -44,7 +44,7 @@ from kivy.uix.textinput import TextInput
 class MainTopGrid(GridLayout):
     def __init__(self, **kwargs):
         super(MainTopGrid, self).__init__(**kwargs)
-        self.cols = 3
+        self.cols = 4
         self.spacing = 15
         self.padding = 15
         #self.row_default_height = 30

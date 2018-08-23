@@ -175,7 +175,7 @@ class FFDeviceButton(BasicButton):
         self.FF_state = ui_outputs_values[self.source_index]
         #self.background_color = GetBackColorByTemp(self.temperature)
         if (self.FF_state == STATE_UNKNOWN):
-            self.state_str = "\nState Unknown"
+            self.state_str = "\nUnknown"
             self.background_color = FF_GREY_LG
             self.color = FF_WHITE_LG            
         elif (self.FF_state == STATE_OFF):
