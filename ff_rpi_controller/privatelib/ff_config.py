@@ -85,7 +85,6 @@ ENERGY_LIST = (
     ["VE_DATA_CURRENT", "Battery Current", 2],
 )
 
-
 # Battery stats
 # C10 Low 1.8v / cell
 # C8 Low 1.75c / cell
@@ -131,13 +130,13 @@ MODEM_SERIAL_SPEED = 9600
 
 SERIAL_POLL_INTERVAL = 0.1      # Seconds between hardware serial polls pushing to serial queue
 MESSAGE_PARSE_INTERVAL = 1.0    # clearning serial queue and pushing to parse queue and updating UI data set
-MESSAGE_BROKER_INTERVAL = 4.0   # clearing parse queue and pushing to DB and file queues
-DB_WORKER_INTERVAL = 45.0       # Seconds between write attempts to the DBs 
-UI_REFRESH_INTERVAL = 3.0       # Seconds wait between updating display from UI data
-GRAPH_UPDATE_INTERVAL = 120.0    # Seconds - to re-request graph data from DB and update
+MESSAGE_BROKER_INTERVAL = 1.0   # clearing parse queue and pushing to DB and file queues
+DB_WORKER_INTERVAL = 5.0        # Seconds between write attempts to the DBs 
+UI_REFRESH_INTERVAL = 2.0       # Seconds wait between updating display from UI data
+GRAPH_UPDATE_INTERVAL = 120.0   # Seconds - to re-request graph data from DB and update
 CLOCK_UPDATE_INTERVAL = 1.0     # Literally the clock display update
 
-MYSQL_POLL_INTERVAL = 10        # If enabled, how often UI data set is refreshed from the DB
+MYSQL_POLL_INTERVAL = 5        # If enabled, how often UI data set is refreshed from the DB
 
 PROCESS_SERIAL_MESSAGES = True
 
