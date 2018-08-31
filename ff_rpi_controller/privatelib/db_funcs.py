@@ -477,19 +477,21 @@ def db_add_log_entry(message_buffer: deque, db='mysql'):
                 cursor.execute(query, log_data)
                 records += 1
             conn.commit()
+        else: 
+            print("Error: (db_add_log_entry) (conn.is_conntected == False)")
     except Error as error:
-        print(error) 
+        print("Error: (db_add_log_entry) (cursor.execute)" + error) 
     if good_conn:
         try:
             cursor.close()
         except Error as error:
-            print(error)
+            print("Error: (db_add_log_entry) (cursor.close) " + error)
         try:
             conn.close()
-            if records > 1:
-                print("(db_add_log_entry) sucessfully wrote " + str(records) + " records")
+            if records > 0:
+                print("Error: (db_add_log_entry) sucessfully wrote " + str(records) + " records to " + db)
         except Error as error:
-            print(error)
+            print("Error: (db_add_log_entry) (cursor.close rec > 0" + error)
     pass
 
 def read_db_config(filename='controller_config.ini', db='mysql'):

@@ -128,19 +128,40 @@ void Setup(BlockNode *b) {
 		//	EventMsg(SSS, E_WARNING, M_HACK_MON_TOP_HOT);
 		//}
 
-		// Hack to tweak MON_OUT_WARM
-		//	act from 21.00 to 18.00 to limit top overheat during day
-		// 	deact from 20.90 to 17.90
+		// Hack to tweak MON_OUT_WARM to activate cold water
+		//	act from 21.00 to 16.50 to limit top overheat during day
+		// 	deact from 20.90 to 16.40
 		if(strcmp_hal(b->block_label, F("MON_OUT_WARM")) == 0) {
-			b->settings.mon.deact_val = 17.90;
-			b->settings.mon.act_val = 18.00;
+			b->settings.mon.act_val = 16.50;
+			b->settings.mon.deact_val = 16.40;
 			EventMsg(SSS, E_WARNING, M_HACK_MON_OUT_WARM);
+		}
+
+		// Hack to tweak MON_BOT_COLD
+		// deact from 20.60 to 19.50
+		// fix CIRC running too long while top stays too hot
+		if(strcmp_hal(b->block_label, F("MON_BOT_COLD")) == 0) {
+			b->settings.mon.deact_val = 19.50;
+			//b->settings.mon.act_val = 18.00;
+			EventMsg(SSS, E_WARNING, M_HACK_MON_BOT_COLD);
 		}
 
 		MonitorSetup(b);
 		break;
-	case FF_SCHEDULE:
+	case FF_SCHEDULE: {
+
+		//Hack to adjust boost run time
+		if(strcmp_hal(b->block_label, F("SCH_WATER_TOP_COLD")) == 0) {
+			b->settings.sch.time_duration = 30;
+			EventMsg(SSS, E_WARNING, M_HACK_SCH_WATER_TOP_COLD);
+		}
+		if(strcmp_hal(b->block_label, F("SCH_WATER_BOT_COLD")) == 0) {
+			b->settings.sch.time_duration = 60;
+			EventMsg(SSS, E_WARNING, M_HACK_SCH_WATER_BOT_COLD);
+		}
+
 		ScheduleSetup(b);
+	}
 		break;
 	case FF_RULE: {
 

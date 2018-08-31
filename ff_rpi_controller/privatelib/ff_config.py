@@ -162,6 +162,7 @@ SERIAL_MESSAGE_QUEUE_MAX_LEN = 2000
 
 DEBUG_WIDGET = False
 ERROR_REPEAT_WINDOW = 3
+
 #########################################################
 
 STD_HEAT_BACK_PALLET = (

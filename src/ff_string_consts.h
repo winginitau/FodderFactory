@@ -526,9 +526,11 @@ typedef enum {
 	M85,
 	M_HACK_MON_OUT_WARM,
 	M_HACK_SCH_WATERING_BOTTOM_SCHEDULE,
-	M_HACK_MON_INSIDE_BOTTOM_TOO_COLD,
+	M_HACK_MON_BOT_COLD,
 	M_HACK_RL_EXHAUST_IF_TOP_HOT_BOT_HOT,
 	M_HACK_RL_CIRC_IF_TOP_HOT_BOT_COLD,
+	M_HACK_SCH_WATER_TOP_COLD,
+	M_HACK_SCH_WATER_BOT_COLD,
 	LAST_MESSAGE
 } MessageEnum;
 
@@ -625,9 +627,11 @@ static const StringArray message_strings[LAST_MESSAGE] = {
 	14, { "M85",								"M85" },
 	14, { "HACK: MON_OUT_WARM Value Hacks Applied",										"M86" },
 	14, { "HACK: Bottom Watering with duration override",								"M87" },
-	14, { "HACK: MON_INSIDE_BOTTOM_TOO_COLD deact value change",						"M88" },
+	14, { "HACK: MON_BOT_COLD Value Hacks Applied",										"M88" },
 	14, { "HACK: RL_EXHAUST_IF_TOP_HOT_BOT_HOT Changed Type to RL_LOGIC_SINGLENOT",		"M89" },
 	14, { "HACK: RL_CIRC_IF_TOP_HOT_BOT_COLD Changed Type to RL_LOGIC_AND",				"M90" },
+	14, { "HACK: SCH_WATER_TOP_COLD Duration Hack Applied",								"M91" },
+	14, { "HACK: SCH_WATER_BOT_COLD Duration Hack Applied",								"M92" },
 
 };
 
