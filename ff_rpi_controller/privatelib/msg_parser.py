@@ -24,7 +24,7 @@ from privatelib.ff_config import STATE_ON, STATE_OFF, ParsedMessage, \
                                  PARSED_MESSAGE_QUEUE_MAX_LEN, \
                                  SERIAL_MESSAGE_QUEUE_MAX_LEN, \
                                  ERROR_REPEAT_WINDOW, \
-                                 DB_WORKER_INTERVAL, \
+                                 DB_CLOUD_WORKER_INTERVAL, DB_LOCAL_WORKER_INTERVAL, \
                                  TEMPERATURE_SANITY_HIGH, TEMPERATURE_SANITY_LOW
 
 #from privatelib.global_vars import active_rules
@@ -420,13 +420,13 @@ class MessageSystem():
         while True:            
             if len(self.db_cloud_queue) > DB_CLOUD_QUEUE_TRIGGER_LEN:
                 db_add_log_entry(self.db_cloud_queue, db=DB_CLOUD_CONFIG)
-            sleep(DB_WORKER_INTERVAL)    
+            sleep(DB_CLOUD_WORKER_INTERVAL)    
 
     def db_local_worker(self, _dt):
         while True:
             if len(self.db_local_queue) > DB_LOCAL_QUEUE_TRIGGER_LEN:
                 db_add_log_entry(self.db_local_queue, db=DB_LOCAL_CONFIG)    
-            sleep(DB_WORKER_INTERVAL)
+            sleep(DB_LOCAL_WORKER_INTERVAL)
                             
     def serial_open(self, port, speed):
         # Connect to serial port first

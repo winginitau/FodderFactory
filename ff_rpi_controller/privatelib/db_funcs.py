@@ -9,7 +9,7 @@ from collections import deque
 #import mysql.connector
 from mysql.connector import MySQLConnection, Error
 from datetime import datetime, timedelta
-from privatelib.ff_config import ParsedMessage
+from privatelib.ff_config import ParsedMessage, DB_CLOUD_CONFIG
 
 
 def iter_row(cursor, size=10):
@@ -453,6 +453,8 @@ def db_add_log_entry(message_buffer: deque, db='mysql'):
             "VALUES" \
             "(%(datetime)s, %(date)s, %(time)s, %(source)s,%(destination)s, " \
             "%(msg_type)s, %(message)s, %(int_val)s, %(float_val)s)"
+    if db == DB_CLOUD_CONFIG:
+        print("(db_add_log_entry) called from (db_cloud_worker) thread")
     good_conn = False
     try:
         db_config = read_db_config(db=db)
@@ -489,7 +491,7 @@ def db_add_log_entry(message_buffer: deque, db='mysql'):
         try:
             conn.close()
             if records > 0:
-                print("Error: (db_add_log_entry) sucessfully wrote " + str(records) + " records to " + db)
+                print("(db_add_log_entry) sucessfully wrote " + str(records) + " records to " + db)
         except Error as error:
             print("Error: (db_add_log_entry) (cursor.close rec > 0" + error)
     pass
