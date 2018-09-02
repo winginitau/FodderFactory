@@ -419,7 +419,11 @@ class MessageSystem():
     def db_cloud_worker(self, _dt):
         while True:            
             if len(self.db_cloud_queue) > DB_CLOUD_QUEUE_TRIGGER_LEN:
-                db_add_log_entry(self.db_cloud_queue, db=DB_CLOUD_CONFIG)
+                try:
+                    db_add_log_entry(self.db_cloud_queue, db=DB_CLOUD_CONFIG)
+                except Exception as e:
+                    print("Error (db_cloud_worker) calling (db_add_log_entry)")
+                    print("Exception: " + str(e))
             sleep(DB_CLOUD_WORKER_INTERVAL)    
 
     def db_local_worker(self, _dt):
