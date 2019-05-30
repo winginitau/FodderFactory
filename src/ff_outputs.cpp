@@ -46,7 +46,11 @@ void OutputSetup(BlockNode *b) {
 			b->settings.out.command = UINT8_INIT;
 			HALInitDigitalOutput(b->settings.out.if_num);
 			EventMsg(b->block_id, E_DEACT);
-			HALDigitalWrite (b->settings.out.if_num, DIG_LOW);
+			#ifdef DISABLE_OUTPUTS
+				EventMsg(b->block_id, E_WARNING, M_OUTPUT_DISABLED);
+			#else
+				HALDigitalWrite (b->settings.out.if_num, DIG_LOW);
+			#endif
 			break;
 		}
 		case OUT_SYSTEM_CALL: {
@@ -69,14 +73,22 @@ void OutputOperate(BlockNode *b) {
 					b->active = 1;
 					b->last_update = TimeNow();
 					EventMsg(b->block_id, E_ACT);
-					HALDigitalWrite (b->settings.out.if_num, DIG_HIGH);
+					#ifdef DISABLE_OUTPUTS
+						EventMsg(b->block_id, E_WARNING, M_OUTPUT_DISABLED);
+					#else
+						HALDigitalWrite (b->settings.out.if_num, DIG_HIGH);
+					#endif
 				}
 			} else {
 				if (b->active == 1) {
 					b->active = 0;
 					b->last_update = TimeNow();
 					EventMsg(b->block_id, E_DEACT);
-					HALDigitalWrite (b->settings.out.if_num, DIG_LOW);
+					#ifdef DISABLE_OUTPUTS
+						EventMsg(b->block_id, E_WARNING, M_OUTPUT_DISABLED);
+					#else
+						HALDigitalWrite (b->settings.out.if_num, DIG_LOW);
+					#endif
 				}
 			}
 

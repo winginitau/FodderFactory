@@ -104,6 +104,7 @@ class MyApp(App):
         Config.set('graphics', 'width', '800')
         Config.set('graphics', 'height', '480')
         Config.write()
+        self.title = 'Fodder Control'
         #return MainTopGrid()
         #return MainParentGrid()
         return sm   

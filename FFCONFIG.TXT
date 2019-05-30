@@ -34,9 +34,9 @@ week_start = SUN
 input1 = IN_TOP_TEMP
 input2 = IN_BOT_TEMP
 input3 = IN_OUT_TEMP
-input4 = IN_WATER_TEMP
-input5 = IN_CAB_TEMP
-input6 = IN_TANK_TEMP
+#input4 = IN_WATER_TEMP
+input4 = IN_CAB_TEMP
+input5 = IN_TANK_TEMP
 
 [IN_TOP_TEMP]
 type = IN_ONEWIRE
@@ -58,30 +58,20 @@ log_rate = 00:02:00
 data_units = Celsius
 data_type = float
 
-[IN_OUT_TEMP]
+[IN_CAB_TEMP]
 type = IN_ONEWIRE
-display_name = Outside
-description = Dallas sensor for outside air temprature
-interface = ONEWIRE
-if_num = 4
-log_rate = 00:02:00
-data_units = Celsius
-data_type = float
-
-[IN_WATER_TEMP]
-type = IN_ONEWIRE
-display_name = Header Water
-description = Dallas sensor in the header tank
+display_name = Cabinet
+description = Dallas sensor in the electrical cabinet
 interface = ONEWIRE
 if_num = 2
 log_rate = 00:02:00
 data_units = Celsius
 data_type = float
 
-[IN_CAB_TEMP]
+[IN_OUT_TEMP]
 type = IN_ONEWIRE
-display_name = Cabinet
-description = Dallas sensor in the electrical cabinet
+display_name = Outside
+description = Dallas sensor for outside air temprature
 interface = ONEWIRE
 if_num = 3
 log_rate = 00:02:00
@@ -93,10 +83,21 @@ type = IN_ONEWIRE
 display_name = Main Tank
 description = Dallas sensor in the main water tank
 interface = ONEWIRE
-if_num = 5
+if_num = 4
 log_rate = 00:02:00
 data_units = Celsius
 data_type = float
+
+#[IN_WATER_TEMP]
+#type = IN_ONEWIRE
+#display_name = Header Water
+#description = Dallas sensor in the header tank
+#interface = ONEWIRE
+#if_num = 2
+#log_rate = 00:02:00
+#data_units = Celsius
+#data_type = float
+
 
 #************************************************
 # Monitors

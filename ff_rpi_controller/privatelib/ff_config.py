@@ -124,6 +124,8 @@ TEMPERATURE_SANITY_LOW = -60.0
 
 ########################################################
 #MESSAGE_FILENAME = "message_dev.log"
+#BACKGROUND_IMAGE = 'cows.png'
+BACKGROUND_IMAGE = 'night3.jpg'
 MESSAGE_FILENAME = "message.log"
 MODEM_SERIAL_PORT = "/dev/ttyV0"
 MODEM_SERIAL_SPEED = 9600
@@ -133,14 +135,15 @@ MESSAGE_PARSE_INTERVAL = 1.0    # clearning serial queue and pushing to parse qu
 MESSAGE_BROKER_INTERVAL = 1.0   # clearing parse queue and pushing to DB and file queues
 DB_LOCAL_WORKER_INTERVAL = 5.0        # Seconds between write attempts to the DBs 
 DB_CLOUD_WORKER_INTERVAL = 15.0
-UI_REFRESH_INTERVAL = 3.0       # Seconds wait between updating display from UI data
+UI_REFRESH_INTERVAL = 1.0       # Seconds wait between updating display from UI data
 GRAPH_UPDATE_INTERVAL = 120.0   # Seconds - to re-request graph data from DB and update
 CLOCK_UPDATE_INTERVAL = 1.0     # Literally the clock display update
 
-MYSQL_POLL_INTERVAL = 5        # If enabled, how often UI data set is refreshed from the DB
+MYSQL_POLL_INTERVAL = 3.0        # If enabled, how often UI data set is refreshed from the DB
 
 INTERNET_PC = 0
 RPI_CONTROLLER = 1
+SERIAL_MONITOR = 2
 
 GLOBAL_CONFIG = RPI_CONTROLLER
 
@@ -163,6 +166,17 @@ if GLOBAL_CONFIG == RPI_CONTROLLER:
     GRAPH_UPDATE_FROM_CLOUD_DB = False
     DB_WRITE_LOCAL = True
     DB_WRITE_CLOUD = True
+    
+if GLOBAL_CONFIG == SERIAL_MONITOR:
+    PROCESS_SERIAL_MESSAGES = True
+    UI_UPDATE_FROM_MESSAGES = True
+    UI_UPDATE_FROM_LOCAL_DB = False
+    UI_UPDATE_FROM_CLOUD_DB = False
+    GRAPH_UPDATE_FROM_LOCAL_DB = True
+    GRAPH_UPDATE_FROM_CLOUD_DB = False
+    DB_WRITE_LOCAL = True
+    DB_WRITE_CLOUD = False
+    
 
 DB_LOCAL_CONFIG = 'mysql.local'
 DB_CLOUD_CONFIG = 'mysql.cloud'

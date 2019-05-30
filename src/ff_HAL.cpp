@@ -510,33 +510,51 @@ void HALDebugLCD(String log_entry) {
 //XXX Temporary hard coding of device addresses until itch can support
 // device addresses as part of config processing
 
-//Bus 1 Device Count: 3
-//0 WAT    Count:3, Device:0, Addr 28:74:AB:03:00:00:80:1D, d_res: 12, d_temp: 18.38
-//1 INT    Count:3, Device:1, Addr 28:FF:F0:8D:93:16:05:1F, d_res: 12, d_temp: 21.88
-//2 INB    Count:3, Device:2, Addr 28:FF:EA:32:85:16:03:93, d_res: 12, d_temp: 19.56
-// Bus 2 Device Count: 2
-//3 TAN    Count:3, Device:0, Addr 28:FF:20:34:85:16:03:05, d_res: 12, d_temp: 20.06
-//4 CAB    Count:3, Device:1, Addr 28:FF:68:23:85:16:03:6C, d_res: 9, d_temp: 23.50
-//5 OUT    Count:3, Device:2, Addr 28:FF:B7:2C:85:16:03:C7, d_res: 12, d_temp: 22.44
+
+// 2018-09-18 - Swapped Water heat into Top Temp after top temp gurney damage.
+//Bus 5 Device Count: 2
+//	TOP 	Bus:5 Count:2, Device:0, Addr 28:74:AB:03:00:00:80:1D, d_res: 12, d_temp: 19.13
+//	BOT		Bus:5 Count:2, Device:1, Addr 28:FF:EA:32:85:16:03:93, d_res: 12, d_temp: 15.19
+//Bus 6 Device Count: 2
+//	CAB		Bus:6 Count:2, Device:0, Addr 28:FF:68:23:85:16:03:6C, d_res: 9, d_temp: 22.00
+//	OUT		Bus:6 Count:2, Device:1, Addr 28:FF:B7:2C:85:16:03:C7, d_res: 12, d_temp: 85.00
+//Bus 7 Device Count: 1
+//	TANK	Bus:7 Count:1, Device:0, Addr 28:FF:20:34:85:16:03:05, d_res: 12, d_temp: 16.50
+
+//2019-05-28 New Top Sensor Installed
+
+// Bus 5 Device Count: 2
+// 	TOP		Bus:5 Count:2, Device:0, Addr 28:C7:F9:45:92:11:02:C3, d_res: 12, d_temp: 17.75
+// 	BOT		Bus:5 Count:2, Device:1, Addr 28:FF:EA:32:85:16:03:93, d_res: 12, d_temp: 16.25
+// Bus 6 Device Count: 2
+// 	CAB		Bus:6 Count:2, Device:0, Addr 28:FF:68:23:85:16:03:6C, d_res: 9, d_temp: 17.50
+// 	OUT		Bus:6 Count:2, Device:1, Addr 28:FF:B7:2C:85:16:03:C7, d_res: 12, d_temp: 15.56
+// Bus 7 Device Count: 1
+// 	TANK	Bus:7 Count:1, Device:0, Addr 28:FF:B7:2C:85:16:03:C7, d_res: 0, d_temp: 11.25
+
+//input1 = IN_TOP_TEMP    0
+//input2 = IN_BOT_TEMP    1
+//input3 = IN_OUT_TEMP    4
+//input4 = IN_WATER_TEMP  2
+//input5 = IN_CAB_TEMP    3
+//input6 = IN_TANK_TEMP   5
 
 //Bus 5 Device Count: 2
-//0 INT Bus:5 Count:2, Device:0, Addr 28:FF:F0:8D:93:16:05:1F, d_res: 12, d_temp: 18.56
-//1 INB Bus:5 Count:2, Device:1, Addr 28:FF:EA:32:85:16:03:93, d_res: 12, d_temp: 17.31
-//Bus 6 Device Count: 3
-//2 WAT Bus:6 Count:3, Device:0, Addr 28:74:AB:03:00:00:80:1D, d_res: 12, d_temp: 21.38
-//3 CAB Bus:6 Count:3, Device:1, Addr 28:FF:68:23:85:16:03:6C, d_res: 9, d_temp: 23.00
-//4 OUT Bus:6 Count:3, Device:2, Addr 28:FF:B7:2C:85:16:03:C7, d_res: 12, d_temp: 20.56
+//	TOP		Bus:5 Count:2, Device:0, Addr 28:C7:F9:45:92:11:02:C3, d_res: 12, d_temp: 7.88
+//	BOT		Bus:5 Count:2, Device:1, Addr 28:FF:EA:32:85:16:03:93, d_res: 12, d_temp: 6.44
+//Bus 6 Device Count: 2
+//	CAB		Bus:6 Count:2, Device:0, Addr 28:FF:68:23:85:16:03:6C, d_res: 9, d_temp: 12.50
+//	OUT		Bus:6 Count:2, Device:1, Addr 28:FF:B7:2C:85:16:03:C7, d_res: 12, d_temp: 9.00
 //Bus 7 Device Count: 1
-//5 TAN Bus:7 Count:1, Device:0, Addr 28:FF:20:34:85:16:03:05, d_res: 12, d_temp: 19.38
+//	TANK	Bus:7 Count:1, Device:0, Addr 28:FF:20:34:85:16:03:05, d_res: 12, d_temp: 11.13
 
 #ifdef ARDUINO
-const DeviceAddress devices[6] PROGMEM = {
-		0x28,0xFF,0xF0,0x8D,0x93,0x16,0x05,0x1F,
-		0x28,0xFF,0xEA,0x32,0x85,0x16,0x03,0x93,
-		0x28,0x74,0xAB,0x03,0x00,0x00,0x80,0x1D,
-		0x28,0xFF,0x68,0x23,0x85,0x16,0x03,0x6C,
-		0x28,0xFF,0xB7,0x2C,0x85,0x16,0x03,0xC7,
-		0x28,0xFF,0x20,0x34,0x85,0x16,0x03,0x05
+const DeviceAddress devices[5] PROGMEM = {
+		0x28,0xC7,0xF9,0x45,0x92,0x11,0x02,0xC3,	// 0 TOP
+		0x28,0xFF,0xEA,0x32,0x85,0x16,0x03,0x93,	// 1 BOT
+		0x28,0xFF,0x68,0x23,0x85,0x16,0x03,0x6C,	// 2 CAB
+		0x28,0xFF,0xB7,0x2C,0x85,0x16,0x03,0xC7,	// 3 OUT
+		0x28,0xFF,0x20,0x34,0x85,0x16,0x03,0x05		// 4 TANK
 };
 
 #endif

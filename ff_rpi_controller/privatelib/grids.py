@@ -14,7 +14,8 @@ from privatelib.ff_config import INPUTS_LIST, OUTPUTS_LIST, CLOCK_UPDATE_INTERVA
                                  DB_INPUT_LOW_HIGH, DB_ENERGY_GRAPH_PARAMS, \
                                  DB_LOCAL_CONFIG, DB_CLOUD_CONFIG, \
                                  GRAPH_UPDATE_FROM_LOCAL_DB, GRAPH_UPDATE_FROM_CLOUD_DB, \
-                                 TEMPERATURE_SANITY_HIGH, TEMPERATURE_SANITY_LOW
+                                 TEMPERATURE_SANITY_HIGH, TEMPERATURE_SANITY_LOW, \
+                                 BACKGROUND_IMAGE
                                  
                                  
 from kivy.clock import Clock
@@ -123,7 +124,7 @@ class MainParentGrid(GridLayout):
         #print (self.size)  
         with self.canvas.before:
             #self.rect = Rectangle(size=(800, 480), pos=self.pos, source='cows.png')
-            self.rect = Rectangle(size=self.size, pos=self.pos, source='cows.png')
+            self.rect = Rectangle(size=self.size, pos=self.pos, source=BACKGROUND_IMAGE)
 
 #### NOT USED ##############
 class ZoomHeaderGrid(GridLayout):
@@ -488,7 +489,7 @@ class DataParentGrid(GridLayout):
     def update_size(self, _w, _h):
         with self.canvas.before:
             #self.rect = Rectangle(size=(800, 480), pos=self.pos, source='cows.png')
-            self.rect = Rectangle(size=self.size, pos=self.pos, source='cows.png')
+            self.rect = Rectangle(size=self.size, pos=self.pos, source=BACKGROUND_IMAGE)
 
         #self.title_section = ZoomHeaderGrid()
         #self.data_type = data_type

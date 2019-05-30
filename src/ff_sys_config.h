@@ -106,6 +106,12 @@
 /************************************************
  DEBUG Directives
  ************************************************/
+//#define SET_RTC YES				// WARNING - This hard codes the time on restart to the compile time
+									// as the set time on device restart - use once to set then exclude
+									// and immediately reflash with it disabled.
+
+//#define DISABLE_OUTPUTS				// Allows full operation but the output relays don't activate
+
 //#define DEBUG			// Call debug output at all or not?
 
 #ifdef DEBUG
@@ -151,9 +157,6 @@
 
 #endif //DEBUG
 
-//#define SET_RTC YES				// WARNING - This hard codes the time on restart to the compile time
-									// as the set time on device restart - use once to set then exclude
-									// and immediately reflash with it disabled.
 
 /************************************************
  System, Hardware, PINS and Initialisation
@@ -165,7 +168,7 @@
 #define ONE_WIRE_BUS_2 6                			//for Dallas temp signals
 #define ONE_WIRE_BUS_3 7                			//for Dallas temp signals
 #define OWB1_SENSOR_COUNT 2
-#define OWB2_SENSOR_COUNT 3
+#define OWB2_SENSOR_COUNT 2
 #define OWB3_SENSOR_COUNT 1
 
 #define EVENT_SERIAL							//send event messages over a serial link

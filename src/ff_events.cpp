@@ -216,12 +216,12 @@ void EventMsg(uint16_t source, uint8_t msg_type, uint8_t msg_str, int32_t i_val,
 }
 
 void EventMsg(uint16_t source, uint8_t msg_type) {
-	//source and type only
+	//source and type enum only
 	EventMsg(source, msg_type, M_NULL, INT32_INIT, FLOAT_INIT);
 }
 
 void EventMsg(uint16_t source, uint8_t msg_type, uint8_t msg_str) {
-	//source, type, message string
+	//source, type enum, message enum
 	EventMsg(source, msg_type, msg_str, INT32_INIT, FLOAT_INIT);
 }
 

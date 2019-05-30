@@ -130,7 +130,7 @@ void TestTempSensors(uint8_t bus) {
 	//Serial.write("Dallas Temperature Sensors Debug\n");
 
 	temp_sensors.begin();
-	delay(1000);
+	//delay(1000);
 	d_count = temp_sensors.getDeviceCount();
 
 	sprintf(str, "Bus %d Device Count: %d\n", bus, d_count);
@@ -170,8 +170,10 @@ void Operate(void) {
 	while (c != 'x') {
 		sprintf(buf, "0   1   2   3   4   5   6   7 \n");
 		Serial.write(buf);
-		sprintf(buf, "LT  WH  NA  FC  FE  NA  WT  WB\n");
+		Serial.flush();
+		sprintf(buf, "LT  WH  NA  FC  FE  CW  WT  WB\n");
 		Serial.write(buf);
+		Serial.flush();
 		buf[0] = '\0';
 		for (i = 0; i < 8; i++) {
 			if (status[i] == 0) {
@@ -495,7 +497,9 @@ void loop() {
 	char c;
 
 	Serial.write("Main Menu\n");
+	Serial.flush();
 	Serial.write(" (use x to exit each sub-routine)\n");
+	Serial.flush();
 	Serial.write(" (r) Relays\n (t) Temps\n (o) Operate\n (s) Serial3 dump\n (x) Reset Relays\n (v) VE Test\n");
 	Serial.flush();
 
@@ -518,9 +522,11 @@ void loop() {
 	if(c == 'x') {
 		ResetRelays();
 		Serial.write("\nRelays reset\n\n");
+		Serial.flush();
 	}
 	if(c == 'v') {
 		TestVEDirect();
 		Serial.write("\nVE Poll Done\n\n");
+		Serial.flush();
 	}
 	Serial.flush();}

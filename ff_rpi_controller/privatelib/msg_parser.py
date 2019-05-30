@@ -193,6 +193,9 @@ class MessageSystem():
         print("DB UI polling thread starting")            
         self.message_count = 0        
         while True:
+            if self.message_count > 65000:
+                self.message_count = 0
+                print("Message Count > 65000, Reset to 0")
             any_valid_query = False
             message = ParsedMessage()
             try:
