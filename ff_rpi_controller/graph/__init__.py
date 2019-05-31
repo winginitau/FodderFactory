@@ -1410,7 +1410,7 @@ class BarPlot(Plot):
 
         # The mesh only supports (2^16) - 1 indices, so...
         if len(points) * 6 > 65535:
-            Logger.error(
+            Logger.appMessage(
                 "BarPlot: cannot support more than 10922 points. "
                 "Ignoring extra points.")
             points = points[:10922]
@@ -1652,7 +1652,7 @@ if __name__ == '__main__':
             # values of the arry and do not change the object.
             # However, we cannot do "...data = make_contour_data()" as
             # kivy will try to check for the identity of the new and
-            # old values.  In numpy, 'nd1 == nd2' leads to an error
+            # old values.  In numpy, 'nd1 == nd2' leads to an appMessage
             # (you have to use np.all).  Ideally, property should be patched
             # for this.
             self.contourplot.ask_draw()

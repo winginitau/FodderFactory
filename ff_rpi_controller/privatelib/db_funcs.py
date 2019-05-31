@@ -10,7 +10,10 @@ from collections import deque
 from mysql.connector import MySQLConnection, Error
 from datetime import datetime, timedelta
 from privatelib.ff_config import ParsedMessage, DB_CLOUD_CONFIG
+from privatelib.app_msg_handler import AppMessageHandler
 
+
+dbMsg = AppMessageHandler()
 
 def iter_row(cursor, size=10):
     while True:
@@ -49,14 +52,20 @@ def db_get_last_energy_message_by_string(msg_string, message: ParsedMessage, loo
             message.valid = True
             message.time_rx = row[0]
     except Error as e:
+        dbMsg.appMessage("db_get_last_energy_message_by_string()", dbMsg.EXCEPT, \
+                              "Exception occurred in query execution")
         print(e)
     try:
         cursor.close()
     except Error as error:
+        dbMsg.appMessage("db_get_last_energy_message_by_string()", dbMsg.EXCEPT, \
+                         "Exception occurred closing cursor")
         print(error)
     try:
         conn.close()
     except Error as error:
+        dbMsg.appMessage("db_get_last_energy_message_by_string()", dbMsg.EXCEPT, \
+                         "Exception occurred closing connection")
         print(error)
     return message
 
@@ -88,14 +97,20 @@ def db_get_last_message_by_source(source, message: ParsedMessage, look_back_mins
             message.valid = True
             message.time_rx = row[0]
     except Error as e:
+        dbMsg.appMessage("db_get_last_message_by_source()", dbMsg.EXCEPT, \
+                         "Exception occurred in query execution")
         print(e)
     try:
         cursor.close()
     except Error as error:
+        dbMsg.appMessage("db_get_last_message_by_source()", dbMsg.EXCEPT, \
+                         "Exception occurred closing cursor")
         print(error)
     try:
         conn.close()
     except Error as error:
+        dbMsg.appMessage("db_get_last_message_by_source()", dbMsg.EXCEPT, \
+                        "Exception occurred closing connection")
         print(error)
     return message
     
@@ -122,14 +137,20 @@ def db_log_history(endDT=datetime.now(), limit=100, \
             db_result_list.append(row,)
         db_result_list.reverse()
     except Error as e:
+        dbMsg.appMessage("db_log_history()", dbMsg.EXCEPT, \
+                         "Exception occurred in query execution")
         print(e)
     try:
         cursor.close()
     except Error as error:
+        dbMsg.appMessage("db_log_history()", dbMsg.EXCEPT, \
+                         "Exception occurred closing cursor")
         print(error)
     try:
         conn.close()
     except Error as error:
+        dbMsg.appMessage("db_log_history()", dbMsg.EXCEPT, \
+                         "Exception occurred closing connection")
         print(error)
     return db_result_list
 
@@ -209,16 +230,23 @@ def db_energy_data_new(energy_message, endDT=datetime.now(), \
                 db_result_list.append( (tdsi, row[1]/10, row[0], ) )
             elif energy_message == "VE_DATA_POWER":
                 db_result_list.append( (tdsi, row[1], row[0], ) )
-        print("Records retrieved = " + str(record_count))
+        dbMsg.appMessage("db_energy_data_new()", dbMsg.INFO, \
+                         "Records retrieved = " + str(record_count))
     except Error as e:
+        dbMsg.appMessage("db_energy_data_new()", dbMsg.EXCEPT, \
+                         "Exception occurred in query execution")
         print(e)
     try:
         cursor.close()
     except Error as error:
+        dbMsg.appMessage("db_energy_data_new()", dbMsg.EXCEPT, \
+                         "Exception occurred closing cursor")
         print(error)
     try:
         conn.close()
     except Error as error:
+        dbMsg.appMessage("db_energy_data_new()", dbMsg.EXCEPT, \
+                         "Exception occurred closing connection")
         print(error)
     return db_result_list
 
@@ -260,16 +288,23 @@ def db_energy_data(energy_message, endDT=datetime.now(), \
                 db_result_list.append( (tdsi, row[1]/10, row[0], ) )
             elif energy_message == "VE_DATA_POWER":
                 db_result_list.append( (tdsi, row[1], row[0], ) )
-        print("Records retrieved = " + str(record_count))
+        dbMsg.appMessage("db_energy_data()", dbMsg.INFO, \
+                         "Records retrieved = " + str(record_count))
     except Error as e:
+        dbMsg.appMessage("db_energy_data()", dbMsg.EXCEPT, \
+                         "Exception occurred in query execution")
         print(e)
     try:
         cursor.close()
     except Error as error:
+        dbMsg.appMessage("db_energy_data()", dbMsg.EXCEPT, \
+                         "Exception occurred in closing cursor")
         print(error)
     try:
         conn.close()
     except Error as error:
+        dbMsg.appMessage("db_energy_data()", dbMsg.EXCEPT, \
+                         "Exception occurred closing connection")
         print(error)
     return db_result_list
 
@@ -303,16 +338,23 @@ def db_device_data(block_label, endDT=datetime.now(), \
             if row[1] == "DEACTIVATED":
                 db_result_list.append( (tdsi, 1, ) )
                 db_result_list.append( (tdsi, 0, ) )
-        print("Records retrieved = " + str(record_count))
+        dbMsg.appMessage("db_device_data()", dbMsg.INFO, \
+                         "Records retrieved = " + str(record_count))
     except Error as e:
+        dbMsg.appMessage("db_device_data()", dbMsg.EXCEPT, \
+                         "Exception occurred in query execution")
         print(e)
     try:
         cursor.close()
     except Error as error:
+        dbMsg.appMessage("db_device_data()", dbMsg.EXCEPT, \
+                         "Exception occurred closing cursor")
         print(error)
     try:
         conn.close()
     except Error as error:
+        dbMsg.appMessage("db_device_data()", dbMsg.EXCEPT, \
+                         "Exception occurred closing connection")
         print(error)
     return db_result_list
 
@@ -387,16 +429,23 @@ def db_temperature_data_new(block_label, endDT=datetime.now(), \
             tdsi = int(tds)
             db_result_list.append( (tdsi, row[1]), )
         #print(db_result_list)
-        print("Records retrieved = " + str(record_count))
+        dbMsg.appMessage("db_temperature_data_new()", dbMsg.INFO, \
+                         "Records retrieved = " + str(record_count))
     except Error as e:
+        dbMsg.appMessage("db_temperature_data_new()", dbMsg.EXCEPT, \
+                         "Exception occurred in query execution")
         print(e) 
     try:
         cursor.close()
     except Error as error:
+        dbMsg.appMessage("db_temperature_data_new()", dbMsg.EXCEPT, \
+                         "Exception occurred closing cursor")
         print(error)
     try:
         conn.close()
     except Error as error:
+        dbMsg.appMessage("db_temperature_data_new()", dbMsg.EXCEPT, \
+                         "Exception occurred closing connection")
         print(error)
     return db_result_list
 
@@ -434,16 +483,23 @@ def db_temperature_data(block_label, endDT=datetime.now(), \
             tdsi = int(tds)
             db_result_list.append( (tdsi, row[1]), )
         #print(db_result_list)
-        print("Records retrieved = " + str(record_count))
+        dbMsg.appMessage("db_temperature_data()", dbMsg.INFO, \
+                         "Records retrieved = " + str(record_count))
     except Error as e:
+        dbMsg.appMessage("db_temperature_data()", dbMsg.EXCEPT, \
+                         "Exception occurred in query execution")
         print(e) 
     try:
         cursor.close()
     except Error as error:
+        dbMsg.appMessage("db_temperature_data()", dbMsg.EXCEPT, \
+                         "Exception occurred closing cursor")
         print(error)
     try:
         conn.close()
     except Error as error:
+        dbMsg.appMessage("db_temperature_data()", dbMsg.EXCEPT, \
+                         "Exception occurred closing connection")
         print(error)
     return db_result_list
         
@@ -454,7 +510,8 @@ def db_add_log_entry(message_buffer: deque, db='mysql'):
             "(%(datetime)s, %(date)s, %(time)s, %(source)s,%(destination)s, " \
             "%(msg_type)s, %(message)s, %(int_val)s, %(float_val)s)"
     if db == DB_CLOUD_CONFIG:
-        print("(db_add_log_entry) called from (db_cloud_worker) thread")
+        dbMsg.appMessage("db_add_log_entry()", dbMsg.INFO, \
+                         "(db_add_log_entry) called from (db_cloud_worker) thread")
     good_conn = False
     try:
         db_config = read_db_config(db=db)
@@ -480,20 +537,25 @@ def db_add_log_entry(message_buffer: deque, db='mysql'):
                 records += 1
             conn.commit()
         else: 
-            print("Error: (db_add_log_entry) (conn.is_conntected == False)")
+            dbMsg.appMessage("db_add_log_entry()", dbMsg.ERROR, \
+                             "conn.is_conntected == False")
     except Error as error:
-        print("Error: (db_add_log_entry) (cursor.execute)" + str(error)) 
+        dbMsg.appMessage("db_add_log_entry()", dbMsg.EXCEPT, \
+                         "(cursor.execute)" + str(error)) 
     if good_conn:
         try:
             cursor.close()
         except Error as error:
-            print("Error: (db_add_log_entry) (cursor.close) " + str(error))
+            dbMsg.appMessage("db_add_log_entry()", dbMsg.EXCEPT, \
+                             "(cursor.close) " + str(error))
         try:
             conn.close()
             if records > 0:
-                print("(db_add_log_entry) sucessfully wrote " + str(records) + " records to " + db)
+                dbMsg.appMessage("db_add_log_entry()", dbMsg.INFO, \
+                                 "sucessfully wrote " + str(records) + " records to " + db)
         except Error as error:
-            print("Error: (db_add_log_entry) (cursor.close rec > 0" + str(error))
+            dbMsg.appMessage("db_add_log_entry()", dbMsg.EXCEPT, \
+                             "cursor.close rec > 0" + str(error))
     pass
 
 def read_db_config(filename='controller_config.ini', db='mysql'):
@@ -513,6 +575,8 @@ def read_db_config(filename='controller_config.ini', db='mysql'):
         for item in items:
             db_config[item[0]] = item[1]
     else:
+        dbMsg.appMessage("read_db_config()", dbMsg.EXCEPT, \
+                         "Databse config not found")
         raise Exception('{0} not found in the {1} file'.format(db, filename))
  
     return db_config
@@ -523,15 +587,20 @@ def DBConnectTest(db='mysql'):
     db_config = read_db_config(db=db)
     #print (db_config)
     try:
-        print('Testing connection to MySQL database: ' + db)
+        dbMsg.appMessage("DBConnectTest()", dbMsg.INFO, \
+                         'Testing connection to MySQL database: ' + db)
         conn = MySQLConnection(**db_config)
         if conn.is_connected():
-            print('Database Connection Tested OK')
+            dbMsg.appMessage("DBConnectTest()", dbMsg.INFO, \
+                             'Database Connection Tested OK')
             result = True
         else:
-            print('Database Connection Failed.')
+            dbMsg.appMessage("DBConnectTest()", dbMsg.FATAL, \
+                             'Database Connection Failed.')
             exit(1)
     except Error as error:
+        dbMsg.appMessage("DBConnectTest()", dbMsg.EXCEPT, \
+                         "Exception ocurred testing connection")
         print(error)
     finally:
         conn.close()
