@@ -145,7 +145,7 @@ INTERNET_PC = 0
 RPI_CONTROLLER = 1
 SERIAL_MONITOR = 2
 
-GLOBAL_CONFIG = RPI_CONTROLLER
+GLOBAL_CONFIG = SERIAL_MONITOR
 
 if GLOBAL_CONFIG == INTERNET_PC:
     PROCESS_SERIAL_MESSAGES = False
@@ -157,6 +157,7 @@ if GLOBAL_CONFIG == INTERNET_PC:
     DB_WRITE_LOCAL = False
     DB_WRITE_CLOUD = False
     PRINT_MESSAGES = True
+    DB_CONFIG_FILE = '/home/brendan/controller_config.ini'
 
 if GLOBAL_CONFIG == RPI_CONTROLLER:
     PROCESS_SERIAL_MESSAGES = True
@@ -168,6 +169,7 @@ if GLOBAL_CONFIG == RPI_CONTROLLER:
     DB_WRITE_LOCAL = True
     DB_WRITE_CLOUD = True
     PRINT_MESSAGES = False
+    DB_CONFIG_FILE = '/root/controller_config.ini'
     
 if GLOBAL_CONFIG == SERIAL_MONITOR:
     PROCESS_SERIAL_MESSAGES = True
@@ -177,12 +179,15 @@ if GLOBAL_CONFIG == SERIAL_MONITOR:
     GRAPH_UPDATE_FROM_LOCAL_DB = True
     GRAPH_UPDATE_FROM_CLOUD_DB = False
     DB_WRITE_LOCAL = True
-    DB_WRITE_CLOUD = False
+    DB_WRITE_CLOUD = True
     PRINT_MESSAGES = True
+    DB_CONFIG_FILE = '/home/brendan/controller_config.ini'
 
 
 DB_LOCAL_CONFIG = 'mysql.local'
-DB_CLOUD_CONFIG = 'mysql.cloud'
+#DB_CLOUD_CONFIG = 'mysql.cloud'
+DB_CLOUD_CONFIG = 'mysql.wusdutu'
+
 
 DB_CLOUD_QUEUE_TRIGGER_LEN = 1
 DB_CLOUD_QUEUE_MAX_LEN = 10000   # should be larger than local

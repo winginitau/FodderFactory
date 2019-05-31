@@ -9,7 +9,7 @@ from collections import deque
 #import mysql.connector
 from mysql.connector import MySQLConnection, Error
 from datetime import datetime, timedelta
-from privatelib.ff_config import ParsedMessage, DB_CLOUD_CONFIG
+from privatelib.ff_config import ParsedMessage, DB_CLOUD_CONFIG, DB_CONFIG_FILE
 from privatelib.app_msg_handler import AppMessageHandler
 
 
@@ -558,7 +558,7 @@ def db_add_log_entry(message_buffer: deque, db='mysql'):
                              "cursor.close rec > 0" + str(error))
     pass
 
-def read_db_config(filename='controller_config.ini', db='mysql'):
+def read_db_config(filename=DB_CONFIG_FILE, db='mysql'):
     """ Read database configuration file and return a dictionary object
     :param filename: name of the configuration file
     :param db: db of database configuration
