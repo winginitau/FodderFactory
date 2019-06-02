@@ -24,9 +24,9 @@
 #include "common_config.h"
 #include <stdint.h>
 #include <string.h>
-#include <ff_global_defs.h>
-#include <ff_registry.h>
-//#include <ff_string_consts.h>
+#include <global_defs.h>
+#include <registry.h>
+//#include <string_consts.h>
 
 //
 // Structs used by the parser 
@@ -172,31 +172,272 @@ LAST_COMMAND
 %3 param-date
 %action SET_DATE
 
-%#action-define CONF_CLEAR_BLOCKS ConfClearBlocks
-%#action-define CONF_CLEAR_ALL ConfClearAll
-%#action-define CONF_FILE_DEFAULT ConfReadDefaultFile
-%#action-define CONF_FILE_FILENAME ConfReadFilename
+%action-define CONFIG_RESET ConfigReset
+%action-define CONFIG_LOAD ConfigLoad
+%action-define CONFIG_LOAD_BINARY ConfigLoadBinary
+%action-define CONFIG_LOAD_INI ConfigLoadINI
+%action-define CONFIG_SAVE ConfigSave
+%action-define CONFIG_SAVE_BINARY ConfigSaveBinary
 
-%# CONFIGURE CLEAR BLOCKS        // drop all block config except SYSTEM
-%# CONFIGURE CLEAR ALL           // drop all config
-%# CONFIGURE TERMINAL            // read configurtion statements from the terminal
-%# CONFIGURE FILE                // read the default file into the running config
-%# CONFIGURE FILE filename       // read a specified file into the running config
+%action-define CONFIG_BLOCK_SYSTEM ConfigBlockSystem
+%action-define CONFIG_BLOCK_INPUT ConfigBlockInput 
+%action-define CONFIG_BLOCK_MONITOR ConfigBlockMonitor
+%action-define CONFIG_BLOCK_SCHEDULE ConfigBlockSchedule
+%action-define CONFIG_BLOCK_RULE ConfigBlockRule
+%action-define CONFIG_BLOCK_CONTROLLER ConfigBlockController
+%action-define CONFIG_BLOCK_OUTPUT ConfigBlockOutput
+ 
+%1 keyword CONFIG
+%2 keyword RESET
+%action CONFIG_RESET
+%2 keyword LOAD
+%action CONFIG_LOAD
+%3 keyword BINARY
+%action CONFIG_LOAD_BINARY
+%3 keyword INI
+%action CONFIG_LOAD_INI
+%2 keyword SAVE
+%action CONFIG_SAVE
+%3 keyword BINARY
+%action CONFIG_SAVE_BINARY
 
-%1 keyword CONFIGURE
-%2 keyword TERMINAL
-%change-mode CONFIG_INTERACTIVE
+%# ---------------------------------------------------------
 
-%#2 keyword CLEAR
-%#3 keyword BLOCKS
-%#action CONF_CLEAR_BLOCKS
-%#3 keyword ALL
-%#action CONF_CLEAR_ALL
+%2 keyword system
+%3 param-string
 
-%#2 keyword FILE
-%#action CONF_FILE_DEFAULT
-%#3 param-string
-%#action CONF_FILE_FILENAME
+%4 keyword type
+%5 param-string
+%action CONFIG_BLOCK_SYSTEM
+
+%4 keyword display_name
+%5 param-string
+%action CONFIG_BLOCK_SYSTEM
+
+%4 keyword description
+%5 param-string
+%action CONFIG_BLOCK_SYSTEM
+
+%4 keyword temp_scale
+%5 param-string
+%action CONFIG_BLOCK_SYSTEM
+
+%4 keyword language
+%5 param-string
+%action CONFIG_BLOCK_SYSTEM
+
+%4 keyword week_start
+%5 param-string
+%action CONFIG_BLOCK_SYSTEM
+
+%# ---------------------------------------------------------
+
+%2 keyword input
+%3 param-string
+
+%4 keyword type
+%5 param-string
+%action CONFIG_BLOCK_INPUT
+
+%4 keyword display_name
+%5 param-string
+%action CONFIG_BLOCK_INPUT
+
+%4 keyword description
+%5 param-string
+%action CONFIG_BLOCK_INPUT
+
+%4 keyword interface
+%5 param-string
+%action CONFIG_BLOCK_INPUT
+
+%4 keyword if_num
+%5 param-string
+%action CONFIG_BLOCK_INPUT
+
+%4 keyword log_rate
+%5 param-string
+%action CONFIG_BLOCK_INPUT
+
+%4 keyword data_units
+%5 param-string
+%action CONFIG_BLOCK_INPUT
+
+%# ---------------------------------------------------------
+
+%2 keyword monitor
+%3 param-string
+
+%4 keyword type
+%5 param-string
+%action CONFIG_BLOCK_MONITOR
+
+%4 keyword display_name
+%5 param-string
+%action CONFIG_BLOCK_MONITOR
+
+%4 keyword description
+%5 param-string
+%action CONFIG_BLOCK_MONITOR
+
+%4 keyword input1
+%5 param-string
+%action CONFIG_BLOCK_MONITOR
+
+%4 keyword input2
+%5 param-string
+%action CONFIG_BLOCK_MONITOR
+
+%4 keyword input3
+%5 param-string
+%action CONFIG_BLOCK_MONITOR
+
+%4 keyword input4
+%5 param-string
+%action CONFIG_BLOCK_MONITOR
+
+%4 keyword act_val
+%5 param-string
+%action CONFIG_BLOCK_MONITOR
+
+%4 keyword deact_val
+%5 param-string
+%action CONFIG_BLOCK_MONITOR
+
+%# ---------------------------------------------------------
+
+%2 keyword schedule
+%3 param-string
+
+%4 keyword type
+%5 param-string
+%action CONFIG_BLOCK_SCHEDULE
+
+%4 keyword display_name
+%5 param-string
+%action CONFIG_BLOCK_SCHEDULE
+
+%4 keyword description
+%5 param-string
+%action CONFIG_BLOCK_SCHEDULE
+
+%4 keyword days
+%5 param-string
+%action CONFIG_BLOCK_SCHEDULE
+
+%4 keyword time_start
+%5 param-string
+%action CONFIG_BLOCK_SCHEDULE
+
+%4 keyword time_end
+%5 param-string
+%action CONFIG_BLOCK_SCHEDULE
+
+%4 keyword time_duration
+%5 param-string
+%action CONFIG_BLOCK_SCHEDULE
+
+%4 keyword time_repeat
+%5 param-string
+%action CONFIG_BLOCK_SCHEDULE
+
+%# ---------------------------------------------------------
+
+%2 keyword rule
+%3 param-string
+
+%4 keyword type
+%5 param-string
+%action CONFIG_BLOCK_RULE
+
+%4 keyword display_name
+%5 param-string
+%action CONFIG_BLOCK_RULE
+
+%4 keyword description
+%5 param-string
+%action CONFIG_BLOCK_RULE
+
+%4 keyword param1
+%5 param-string
+%action CONFIG_BLOCK_RULE
+
+%4 keyword param2
+%5 param-string
+%action CONFIG_BLOCK_RULE
+
+%4 keyword param3
+%5 param-string
+%action CONFIG_BLOCK_RULE
+
+%4 keyword param_not
+%5 param-string
+%action CONFIG_BLOCK_RULE
+
+%# ---------------------------------------------------------
+
+%2 keyword controller
+%3 param-string
+
+%4 keyword type
+%5 param-string
+%action CONFIG_BLOCK_CONTROLLER
+
+%4 keyword display_name
+%5 param-string
+%action CONFIG_BLOCK_CONTROLLER
+
+%4 keyword description
+%5 param-string
+%action CONFIG_BLOCK_CONTROLLER
+
+%4 keyword rule
+%5 param-string
+%action CONFIG_BLOCK_CONTROLLER
+
+%4 keyword output
+%5 param-string
+%action CONFIG_BLOCK_CONTROLLER
+
+%4 keyword act_cmd
+%5 param-string
+%action CONFIG_BLOCK_CONTROLLER
+
+%4 keyword deact_cmd
+%5 param-string
+%action CONFIG_BLOCK_CONTROLLER
+
+%# ---------------------------------------------------------
+
+%2 keyword output
+%3 param-string
+
+%4 keyword type
+%5 param-string
+%action CONFIG_BLOCK_OUTPUT
+
+%4 keyword display_name
+%5 param-string
+%action CONFIG_BLOCK_OUTPUT
+
+%4 keyword description
+%5 param-string
+%action CONFIG_BLOCK_OUTPUT
+
+%4 keyword interface
+%5 param-string
+%action CONFIG_BLOCK_OUTPUT
+
+%4 keyword if_num
+%5 param-string
+%action CONFIG_BLOCK_OUTPUT
+
+%# ---------------------------------------------------------
+
+%#1 keyword CONFIGURE
+%#2 keyword TERMINAL
+%#change-mode CONFIG_INTERACTIVE
+
 
 %#action-define WRITE_DEFAULT WriteToDefaultConfigFile
 %#action-define WRITE_INIT WriteEmptyDefaultConfigFile
@@ -277,14 +518,14 @@ LAST_COMMAND
 %1 keyword REBOOT
 %action REBOOT
 
-%action-define BLOCK_ID_ON BlockIDOn
-%action-define BLOCK_ID_OFF BlockIDOff
+%action-define BLOCK_ID_CMD_ON BlockIDCmdOn
+%action-define BLOCK_ID_CMD_OFF BlockIDCmdOff
 
 %1 param-integer
 %2 keyword ON
-%action BLOCK_ID_ON
+%action BLOCK_ID_CMD_ON
 %2 keyword OFF
-%action BLOCK_ID_OFF
+%action BLOCK_ID_CMD_OFF
 
 %grammar-end
 

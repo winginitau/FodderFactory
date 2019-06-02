@@ -47,6 +47,7 @@ char g_debug_message[MAX_OUTPUT_LINE_SIZE];
 // that can have their space measured at compile / link time
 // and allocated at the start rather than dynamically creating them
 // on the stack inside functions, potentially bumping into the heap.
+
 // 2018-05-23 Changed my mind. They're taking up too much space.
 // Mostly pruned, except a debug message and some parser globals
 // that were originally members of a class (before reverting to)

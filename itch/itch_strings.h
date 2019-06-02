@@ -16,6 +16,7 @@
 
 #include "config.h"
 
+// PE - Parse Error, ME - Map/Match Error
 enum {
 	PE_ERROR = 0,
 	PEME_NO_ERROR,

@@ -47,13 +47,178 @@ uint16_t CallFunction(uint8_t func_xlat, ParamUnion params[]) {
 			SetDate(params[0].param_char_star);
 			break;
 		case 10:
-			SystemReboot();
+			ConfigReset();
 			break;
 		case 11:
-			BlockIDOn(params[0].param_int16_t);
+			ConfigLoad();
 			break;
 		case 12:
-			BlockIDOff(params[0].param_int16_t);
+			ConfigLoadBinary();
+			break;
+		case 13:
+			ConfigLoadINI();
+			break;
+		case 14:
+			ConfigSave();
+			break;
+		case 15:
+			ConfigSaveBinary();
+			break;
+		case 16:
+			ConfigBlockSystem(params[0].param_char_star, params[1].param_char_star);
+			break;
+		case 16:
+			ConfigBlockSystem(params[0].param_char_star, params[1].param_char_star);
+			break;
+		case 16:
+			ConfigBlockSystem(params[0].param_char_star, params[1].param_char_star);
+			break;
+		case 16:
+			ConfigBlockSystem(params[0].param_char_star, params[1].param_char_star);
+			break;
+		case 16:
+			ConfigBlockSystem(params[0].param_char_star, params[1].param_char_star);
+			break;
+		case 16:
+			ConfigBlockSystem(params[0].param_char_star, params[1].param_char_star);
+			break;
+		case 17:
+			ConfigBlockInput(params[0].param_char_star, params[1].param_char_star);
+			break;
+		case 17:
+			ConfigBlockInput(params[0].param_char_star, params[1].param_char_star);
+			break;
+		case 17:
+			ConfigBlockInput(params[0].param_char_star, params[1].param_char_star);
+			break;
+		case 17:
+			ConfigBlockInput(params[0].param_char_star, params[1].param_char_star);
+			break;
+		case 17:
+			ConfigBlockInput(params[0].param_char_star, params[1].param_char_star);
+			break;
+		case 17:
+			ConfigBlockInput(params[0].param_char_star, params[1].param_char_star);
+			break;
+		case 17:
+			ConfigBlockInput(params[0].param_char_star, params[1].param_char_star);
+			break;
+		case 18:
+			ConfigBlockMonitor(params[0].param_char_star, params[1].param_char_star);
+			break;
+		case 18:
+			ConfigBlockMonitor(params[0].param_char_star, params[1].param_char_star);
+			break;
+		case 18:
+			ConfigBlockMonitor(params[0].param_char_star, params[1].param_char_star);
+			break;
+		case 18:
+			ConfigBlockMonitor(params[0].param_char_star, params[1].param_char_star);
+			break;
+		case 18:
+			ConfigBlockMonitor(params[0].param_char_star, params[1].param_char_star);
+			break;
+		case 18:
+			ConfigBlockMonitor(params[0].param_char_star, params[1].param_char_star);
+			break;
+		case 18:
+			ConfigBlockMonitor(params[0].param_char_star, params[1].param_char_star);
+			break;
+		case 18:
+			ConfigBlockMonitor(params[0].param_char_star, params[1].param_char_star);
+			break;
+		case 18:
+			ConfigBlockMonitor(params[0].param_char_star, params[1].param_char_star);
+			break;
+		case 19:
+			ConfigBlockSchedule(params[0].param_char_star, params[1].param_char_star);
+			break;
+		case 19:
+			ConfigBlockSchedule(params[0].param_char_star, params[1].param_char_star);
+			break;
+		case 19:
+			ConfigBlockSchedule(params[0].param_char_star, params[1].param_char_star);
+			break;
+		case 19:
+			ConfigBlockSchedule(params[0].param_char_star, params[1].param_char_star);
+			break;
+		case 19:
+			ConfigBlockSchedule(params[0].param_char_star, params[1].param_char_star);
+			break;
+		case 19:
+			ConfigBlockSchedule(params[0].param_char_star, params[1].param_char_star);
+			break;
+		case 19:
+			ConfigBlockSchedule(params[0].param_char_star, params[1].param_char_star);
+			break;
+		case 19:
+			ConfigBlockSchedule(params[0].param_char_star, params[1].param_char_star);
+			break;
+		case 20:
+			ConfigBlockRule(params[0].param_char_star, params[1].param_char_star);
+			break;
+		case 20:
+			ConfigBlockRule(params[0].param_char_star, params[1].param_char_star);
+			break;
+		case 20:
+			ConfigBlockRule(params[0].param_char_star, params[1].param_char_star);
+			break;
+		case 20:
+			ConfigBlockRule(params[0].param_char_star, params[1].param_char_star);
+			break;
+		case 20:
+			ConfigBlockRule(params[0].param_char_star, params[1].param_char_star);
+			break;
+		case 20:
+			ConfigBlockRule(params[0].param_char_star, params[1].param_char_star);
+			break;
+		case 20:
+			ConfigBlockRule(params[0].param_char_star, params[1].param_char_star);
+			break;
+		case 21:
+			ConfigBlockController(params[0].param_char_star, params[1].param_char_star);
+			break;
+		case 21:
+			ConfigBlockController(params[0].param_char_star, params[1].param_char_star);
+			break;
+		case 21:
+			ConfigBlockController(params[0].param_char_star, params[1].param_char_star);
+			break;
+		case 21:
+			ConfigBlockController(params[0].param_char_star, params[1].param_char_star);
+			break;
+		case 21:
+			ConfigBlockController(params[0].param_char_star, params[1].param_char_star);
+			break;
+		case 21:
+			ConfigBlockController(params[0].param_char_star, params[1].param_char_star);
+			break;
+		case 21:
+			ConfigBlockController(params[0].param_char_star, params[1].param_char_star);
+			break;
+		case 22:
+			ConfigBlockOutput(params[0].param_char_star, params[1].param_char_star);
+			break;
+		case 22:
+			ConfigBlockOutput(params[0].param_char_star, params[1].param_char_star);
+			break;
+		case 22:
+			ConfigBlockOutput(params[0].param_char_star, params[1].param_char_star);
+			break;
+		case 22:
+			ConfigBlockOutput(params[0].param_char_star, params[1].param_char_star);
+			break;
+		case 22:
+			ConfigBlockOutput(params[0].param_char_star, params[1].param_char_star);
+			break;
+		case 23:
+			SystemReboot();
+			break;
+		case 24:
+			BlockIDCmdOn(params[0].param_int16_t);
+			break;
+		case 25:
+			BlockIDCmdOff(params[0].param_int16_t);
 			break;
 		default:
 			return PE_FUNC_XLAT_NOT_MATCHED_IN_CALLFUNCTION;

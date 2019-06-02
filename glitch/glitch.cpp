@@ -35,7 +35,7 @@
 FILE* hf;	// output header file - global, so can be seen within other modules.
 FILE* cf;	// output code file - global, so can be seen within other modules.
 FILE* uf;	// user code file - templates written if not exist
-FILE* gf;	// grammar file - doesn't need to be global but put here with the other two anyway
+FILE* gf;	// grammar file - doesn't need to be global but put here with the others anyway
 
 char gf_name[MAX_BUFFER_LENGTH];
 char hf_name[MAX_BUFFER_LENGTH];

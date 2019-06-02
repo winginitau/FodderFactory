@@ -63,9 +63,9 @@ using namespace std;
 /************************************************
  Includes
  ************************************************/
-#include <ff_sys_config.h>
-#include <ff_string_consts.h>
-#include <ff_main.h>
+#include <build_config.h>
+#include <string_consts.h>
+
 
 //#include "src/ff_utils.h"
 //#include <ff_inputs.h>
@@ -73,19 +73,13 @@ using namespace std;
 //#include <ff_controllers.h>
 //#include <ff_display.h>
 
-#include <ff_validate.h>
-#include <ff_registry.h>
-#include <ff_debug.h>
+#include <validate.h>
+#include <registry.h>
+#include <debug_ff.h>
 #include <stdio.h>
-#include <ff_HAL.h>
+#include <HAL.h>
 
-#ifdef FF_CONFIG
-#include <ff_ini_config.h>
-#endif
-
-#ifdef FF_SIM_PARSECONFIG
-#include <ff_ini_config.h>
-#endif
+#include <init_config.h>
 
 
 /************************************************
@@ -97,9 +91,12 @@ void loop() {
 	ProcessDispatcher(Operate);
 	//TODO - remove dead and/or requested blocks from the run-time in
 	// a larger continuously running system
+
+	#ifdef USE_ITCH
+		HALPollItch();
+	#endif
+
 }
-
-
 
 #ifdef FF_ARDUINO
 void setup() {
@@ -110,7 +107,6 @@ void setup() {
 int main(void) {
 #endif
 	// main() is equivalent to setup() on arduino
-
 
 	//Key issue for large scalability is that the system executive (registry)
 	// is presently stateful. Therefore it requires a start up / state
@@ -127,44 +123,53 @@ int main(void) {
 	// TODO and sockets etc later
 	// Has to be first step in setup so that config processing can debug to serial
 	HALInitSerial(EVENT_SERIAL_PORT, EVENT_SERIAL_BAUDRATE);
-#ifdef DEBUG
-	DebugLog(F("HALInitSerial Passed"));
-#endif
+	#ifdef DEBUG
+		DebugLog(F("HALInitSerial Passed"));
+	#endif
 
 	// If using itch, init here because it proxies all comms on serial
 	#ifdef USE_ITCH
-	HALInitItch();
+		HALInitItch();
 	#endif
 
-	// Set up the run-time environment
+	// Set up the basic run-time environment - state vector, event buffer, rtc, etc
 	InitSystem();
-	//TODO set up remote control / data feed / radio link
 
 	// Read the config file, parse it and create a block list in memory
+	#ifdef TEST_CONFIG_FUNCS
+		InitConfigLoadINI();	//from INI config file
+		InitConfigLoadINI();	//from INI config file
+		InitConfigSaveBinary();
+		InitConfigLoadBinary();
+		InitConfigSave();
+
+	#else
 	#ifdef FF_SIM_PARSECONFIG
 		// from INI source
-		ReadAndParseConfig();	//from INI config file
+		InitConfigLoadINI();	//from INI config file
 	#else
 	#ifdef FF_CONFIG
-		ReadAndParseConfig();	//from INI config file
+		InitConfigLoadINI();	//from INI config file
 	#else
 		// Read the binary configuration file previously created with
 		// ff_config. Note, this build and the ff_config build must use exactly
 		// the same pre-processor and compiler directives to ensure binary portability
-		ReadProcessedConfig();
+		InitConfigLoadBinary();
+	#endif
 	#endif
 	#endif
 
 	// Run the Validate function on each block
 	// currently uses assert() - which will bomb the run if failed on embedded
-	ProcessDispatcher(Validate);
+	// XXX Temp disabled for TESE_CONFIG_FUNCS
+	//ProcessDispatcher(Validate);
 	// TODO implement assert()-like exception handling for embedded
 	// while using assert, its safe to declare success (if not correctness) if we get this far
 	DebugLog(SSS, E_INFO, M_DISP_VALIDATE);
 
 	#ifdef FF_CONFIG
 	//Write out a binary config file (for consumption by ReadProcessedConfig() in embedded builds
-	WriteRunningConfig();
+	InitConfigSaveBinary();
 	DebugLog("Created Binary Configuration File. Done.");
 	return 0;
 	#endif
