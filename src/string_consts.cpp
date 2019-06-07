@@ -81,28 +81,14 @@ uint8_t DayStringArrayIndex(const char* key) {
 }
 #endif
 
-#ifdef USE_PROGMEM
 uint8_t UnitStringArrayIndex(const char* key) {
-	SimpleStringArray temp;
 	for (int i = 0; i < LAST_UNIT; i++) {
-		memcpy_P(&temp, &unit_strings[i], sizeof(temp));
-		if (strcmp(key, temp.text) == 0) {
+		if (strcmp_hal(key, unit_strings[i].text) == 0) {
 			return i;
 		}
 	}
-	return UINT8_INIT;
+	return UNIT_ERROR;
 }
-
-#else
-uint8_t UnitStringArrayIndex(const char* key) {
-	for (int i = 0; i < LAST_UNIT; i++) {
-		if (strcmp(key, unit_strings[i].text) == 0) {
-			return i;
-		}
-	}
-	return UINT8_INIT;
-}
-#endif
 
 #ifdef USE_PROGMEM
 uint8_t LanguageStringArrayIndex(const char* key) {
@@ -205,28 +191,65 @@ char *strcat_misc(char *dest, uint8_t src) {
 /**************************************************************************
  * Properly formed Generic string function overloads accommodating PROGMEM
  *************************************************************************/
+
+// The hal form should only be used for source or 2nd parameter strings
+// that are known to be in PROGMEM on AVR platforms.
+
 char *strcpy_hal(char *dest, const char *src) {
-	return strcpy(dest, src);
+	#ifdef ARDUINO
+		return strcpy_P(dest, src);
+	#else
+		return strcpy(dest, src);
+	#endif
 }
 
-int strcmp_hal(char *dest, const char *src) {
-	return strcmp(dest, src);
+char *strcat_hal(char *dest, const char *src) {
+	#ifdef ARDUINO
+		return strcat_P(dest, src);
+	#else
+		return strcat(dest, src);
+#endif
+}
+
+int strcmp_hal(const char *s1, const char *s2) {
+	#ifdef ARDUINO
+		return strcmp_P(s1, s2);
+	#else
+		return strcmp(s1, s2);
+	#endif
+}
+
+void *memcpy_hal(void *dest, const void *src, size_t sz) {
+	#ifdef ARDUINO
+		return memcpy_P(dest, src, sz);
+	#else
+		return memcpy(dest, src, sz);
+	#endif
 }
 
 #ifdef ARDUINO
+// These are for the form strxxx_hal(char* dest, F("String in PROGMEM"))
+//  and overload when that form is used.
+// When compiling for non-PROGMEM platforms (linux) an F macro is defined
+//	in build_config.h F(x) = (x) so that code can be the same.
 
 char *strcpy_hal(char *dest, const __FlashStringHelper *src) {
 	return strcpy_P(dest, (const char *)src);
 }
 
-int strcmp_hal(char *dest, const __FlashStringHelper *src) {
-	return strcmp_P(dest, (const char *)src);
+char *strcat_hal(char *dest, const __FlashStringHelper *src) {
+	return strcat_P(dest, (const char *)src);
+}
+
+int strcmp_hal(const char *s1, const __FlashStringHelper *s2) {
+	return strcmp_P(s1, (const char *)s2);
 }
 
 #endif
 
 /**************************************************************************/
 
+/*
 char *strcat_hal(char *dest, const char *src) {
 #ifdef ARDUINO
 	return strcat_P(dest, src);
@@ -234,14 +257,8 @@ char *strcat_hal(char *dest, const char *src) {
 	return strcat(dest, src);
 #endif
 }
+*/
 
-void *memcpy_hal(void *dest, const void *src, size_t sz) {
-#ifdef ARDUINO
-	return memcpy_P(dest, src, sz);
-#else
-	return memcpy(dest, src, sz);
-#endif
-}
 
 /*
 #ifdef DEBUG

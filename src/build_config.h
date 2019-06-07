@@ -25,18 +25,18 @@
 // OR
 #define FF_SIMULATOR
 // Optionally with
-#define FF_SIM_PARSECONFIG	//optional parse the TXT config (default -> read BIN)
+//#define FF_SIM_PARSECONFIG	//optional parse the TXT config (default -> read BIN)
 
 // OR
 //#define FF_CONFIG
 
 // Optionally:
-//#define FF_TEMPERATURE_SIM
+#define FF_TEMPERATURE_SIM
 // OR with FF_ARDUINO
 //#define FF_TEMP_SIM_WITH_DALLAS
 
 // Optionally:
-#define FF_RPI_START_DELAY 30000	// Start delay to allow RPIs upstream to to get going
+//#define FF_RPI_START_DELAY 30000	// Start delay to allow RPIs upstream to to get going
 
 #define USE_ITCH
 
@@ -88,8 +88,8 @@
 #define PROGMEM_BLOCK_DEFS
 #endif
 
-//#define EXCLUDE_DESCRIPTION			// to save .data segment and heap space on arduino
-//#define EXCLUDE_DISPLAYNAME			// to save .data segment and heap space on arduino
+#define EXCLUDE_DESCRIPTION			// to save .data segment and heap space on arduino
+#define EXCLUDE_DISPLAYNAME			// to save .data segment and heap space on arduino
 
 #define RTC_POLL_INTERVAL 10000		// milliseconds between calls to the rtc
 
@@ -228,7 +228,7 @@
 #define EVENT_FILENAME "FFEVENTS.TXT"
 #define CONFIG_INI_FILENAME "FFCONFIG.TXT"
 #define CONFIG_BIN_FILENAME "FFCONFIG.BIN"
-#define CONFIG_TXT_FILENAME "FFCONFIGTXT.TXT"
+#define CONFIG_TXT_FILENAME "CONFIG.TXT"
 
 #define INI_FILE_MAX_LINE_LENGTH 150
 #define INI_ERROR_TYPES 9

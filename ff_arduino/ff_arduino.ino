@@ -137,11 +137,10 @@ int main(void) {
 
 	// Read the config file, parse it and create a block list in memory
 	#ifdef TEST_CONFIG_FUNCS
-		InitConfigLoadINI();	//from INI config file
-		InitConfigLoadINI();	//from INI config file
-		InitConfigSaveBinary();
-		InitConfigLoadBinary();
-		InitConfigSave();
+		//InitConfigLoadINI();	//from INI config file
+		//InitConfigSaveBinary();
+		//InitConfigLoadBinary();
+		//InitConfigSave();
 
 	#else
 	#ifdef FF_SIM_PARSECONFIG
@@ -162,7 +161,7 @@ int main(void) {
 	// Run the Validate function on each block
 	// currently uses assert() - which will bomb the run if failed on embedded
 	// XXX Temp disabled for TESE_CONFIG_FUNCS
-	//ProcessDispatcher(Validate);
+	ProcessDispatcher(Validate);
 	// TODO implement assert()-like exception handling for embedded
 	// while using assert, its safe to declare success (if not correctness) if we get this far
 	DebugLog(SSS, E_INFO, M_DISP_VALIDATE);
@@ -203,7 +202,7 @@ int main(void) {
 	return 0;
 	#endif
 
-	// On Arduino loop() is now called forever by the bootloader
+	// On Arduino loop() is now called automatically forever
 }
 
 

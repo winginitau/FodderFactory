@@ -90,6 +90,10 @@ public:
 
 	bool IdentifierValid(char * ident);
 
+	int SetActionBuilt(char* identifier_name, bool built);
+	bool GetActionBuilt(char* identifier_name);
+
+
 
 };
 

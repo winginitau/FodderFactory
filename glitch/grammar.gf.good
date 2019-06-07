@@ -57,10 +57,10 @@ typedef struct XLAT_MAP {
 } XLATMap;
 
 typedef union {
-    int16_t param_int16_t;
-    uint16_t param_uint16_t;
-    float param_float;
-    char* param_char_star;
+	int16_t param_int16_t;
+	uint16_t param_uint16_t;
+	float param_float;
+	char* param_char_star;
 } ParamUnion;
 
 %header-end

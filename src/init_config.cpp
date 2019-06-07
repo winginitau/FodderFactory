@@ -210,10 +210,10 @@ void InitConfigLoadBinary(void) {
 
 	while (1) {    //continue reading the file until EOF break
 		b_cat = uint8_tRead(fp); //all blocks start with block category
-//DebugLog("Read b_cat");
+		//DebugLog("Read b_cat");
 		#ifdef FF_ARDUINO
 		if (!f.available()) {
-//DebugLog("Not available - break");
+			//DebugLog("Not available - break");
 			break;
 		}
 		#endif
@@ -240,7 +240,7 @@ void InitConfigLoadBinary(void) {
 			LabelRead(temp_label, MAX_LABEL_LENGTH, fp);
 			UpdateBlockLabel(b, temp_label);
 
-			// XXX the following excludes need to be same as when the binary was created
+			// NOTE: the following excludes need to be same as when the binary was created
 			#ifndef	EXCLUDE_DISPLAYNAME
 				LabelRead(temp_display_name, MAX_DISPLAY_NAME_LENGTH, fp);
 				UpdateDisplayName(b, temp_display_name);
@@ -302,16 +302,16 @@ void InitConfigLoadBinary(void) {
 		DebugLog(b->block_id, E_VERBOSE, M_BLOCK_READ_BINARY);
 	};
 
-#ifdef FF_SIMULATOR
+	#ifdef FF_SIMULATOR
 	fclose(fp);
-#endif
-#ifdef FF_ARDUINO
+	#endif
+	#ifdef FF_ARDUINO
 //	DebugLog("Prior f.close");
 	f.close();
 //	DebugLog("After f.close, prior SD.end");
 	SD.end();
 //	DebugLog("After SD.end");
-#endif
+	#endif
 
 	// As a fresh block list, call validate and setup on each block too
 	ProcessDispatcher(Validate);
@@ -371,6 +371,7 @@ uint8_t GetConfKeyIndex(uint8_t block_cat, const char* key_str) {
 	uint8_t last_key = UINT8_INIT;
 	uint8_t key_idx = 0; 			//see "string_consts.h" Zero is error.
 
+	char temp[MAX_LABEL_LENGTH];
 	//lock the last key index to the appropriate block category
 
 	switch (block_cat) {
@@ -379,25 +380,55 @@ uint8_t GetConfKeyIndex(uint8_t block_cat, const char* key_str) {
 			while(1);
 			break;
 		case FF_SYSTEM:
-			last_key = LAST_SYS_KEY_TYPE;
+			last_key = LAST_SYS_CONFIG;
+			while (key_idx <= last_key) {
+				strcpy_hal(temp, sys_config_keys[key_idx].text);
+				DebugLog(temp);
+				if (strcmp (key_str, temp) == 0) break;
+				key_idx++;
+			}
 			break;
 		case FF_INPUT:
-			last_key = LAST_IN_KEY_TYPE;
+			last_key = LAST_IN_CONFIG;
+			while (strcmp_hal(key_str, in_config_keys[key_idx].text) != 0) {
+				key_idx++;
+				if (key_idx == last_key) break;
+			}
 			break;
 		case FF_MONITOR:
-			last_key = LAST_MON_KEY_TYPE;
+			last_key = LAST_MON_CONFIG;
+			while (strcmp_hal(key_str, mon_config_keys[key_idx].text) != 0) {
+				key_idx++;
+				if (key_idx == last_key) break;
+			}
 			break;
 		case FF_SCHEDULE:
-			last_key = LAST_SCH_KEY_TYPE;
+			last_key = LAST_SCH_CONFIG;
+			while (strcmp_hal(key_str, sch_config_keys[key_idx].text) != 0) {
+				key_idx++;
+				if (key_idx == last_key) break;
+			}
 			break;
 		case FF_RULE:
-			last_key = LAST_RL_KEY_TYPE;
+			last_key = LAST_RL_CONFIG;
+			while (strcmp_hal(key_str, rl_config_keys[key_idx].text) != 0) {
+				key_idx++;
+				if (key_idx == last_key) break;
+			}
 			break;
 		case FF_CONTROLLER:
-			last_key = LAST_CON_KEY_TYPE;
+			last_key = LAST_CON_CONFIG;
+			while (strcmp_hal(key_str, con_config_keys[key_idx].text) != 0) {
+				key_idx++;
+				if (key_idx == last_key) break;
+			}
 			break;
 		case FF_OUTPUT:
-			last_key = LAST_OUT_KEY_TYPE;
+			last_key = LAST_OUT_CONFIG;
+			while (strcmp_hal(key_str, out_config_keys[key_idx].text) != 0) {
+				key_idx++;
+				if (key_idx == last_key) break;
+			}
 			break;
 		default:
 			DebugLog(SSS, E_STOP, M_CONFKEY_LAST_BCAT);
@@ -405,9 +436,12 @@ uint8_t GetConfKeyIndex(uint8_t block_cat, const char* key_str) {
 	}
 
 	//check that we have a key that matches one of the keys strings of the block category
-
+	/*
 	#ifdef PROGMEM_BLOCK_DEFS
+		char temp[MAX_LABEL_LENGTH];
 		while ((strcmp_P(key_str, block_cat_defs[block_cat].conf_keys[key_idx]) != 0) && key_idx < last_key) {
+			strcpy_hal(temp, block_cat_defs[block_cat].conf_keys[key_idx]);
+			DebugLog(temp);
 			key_idx++;
 		}
 	#else
@@ -415,6 +449,7 @@ uint8_t GetConfKeyIndex(uint8_t block_cat, const char* key_str) {
 			key_idx++;
 		}
 	#endif
+	*/
 
 	if (key_idx == last_key) {
 		DebugLog(SSS, E_STOP, M_CONFKEY_NOTIN_DEFS);
@@ -476,6 +511,8 @@ uint8_t ConfigureSYSSetting(BlockNode* block_ptr, uint8_t key_idx, const char* v
 			break;
 		case SYS_TEMPERATURE:
 			block_ptr->settings.sys.temp_scale = UnitStringArrayIndex(value_str);
+			return block_ptr->settings.sys.temp_scale;
+			// XXX testing threading of error results
 			break;
 		case SYS_WEEK_START:
 			block_ptr->settings.sys.week_start = DayStringArrayIndex(value_str);
@@ -774,7 +811,7 @@ uint8_t ConfigureBlock(uint8_t block_cat, const char *block_label, const char *k
 
 
 
-#if defined FF_CONFIG || defined TEST_CONFIG_FUNCS
+#if defined FF_SIMULATOR
 
 int uint8_tWrite(uint8_t data, FILE *f) {
 	return fwrite(&data, sizeof(data), 1, f);
@@ -795,7 +832,7 @@ int uint32_tWrite(uint32_t data, FILE *f) {
 }
 
 int LabelWrite(char* data, size_t s,  FILE *f) {
-	return fwrite(data, s, 1, f);
+	return fwrite(data, s, (size_t)1, f);
 	//puts(data);
 	//printf("%s\n", data);
 	//return fwrite(data, s, 1, f);
@@ -816,19 +853,42 @@ int floatWrite(float data, FILE *f) {
 	//return fprintf(f, "%.2f\n", data);
 }
 
-void WriteTextBlock(BlockNode *b, FILE *f) {
+#endif
+
+#ifdef FF_SIMULATOR
+void HALWriteLine(FILE *f, const char* out_str) {
+	fprintf(f, "%s\n", out_str);
+}
+#endif
+
+#ifdef FF_ARDUINO
+void HALWriteLine(File *f, const char* out_str) {
+	DebugLog(out_str);
+	f->println(out_str);
+}
+#endif
+
+#ifdef FF_SIMULATOR
+void WriteTextBlock(BlockNode *b, FILE *f, uint8_t reg_only) {
+#endif
+#ifdef FF_ARDUINO
+void WriteTextBlock(BlockNode *b, File *f, uint8_t reg_only) {
+#endif
 	// Called by FileIODispatcher on each block to write their
-	//  config to an itch parsable text file
+	//  config to an itch parsable text file. To read and parse
+	//	the file, all blocks that are referenced by other blocks
+	//	need to be registered first, before settings are applied
+	//	that may otherwise refer to non-existent blocks.
 
 	char base_str[MAX_LABEL_LENGTH + 19];					// "CONFIG CONTROLLER "(19)
 	char out_str[MAX_LABEL_LENGTH + 19 + MAX_DESCR_LENGTH];
 	char hms_str[9];
 	char float_str[6];
-	char temp_str[MAX_DESCR_LENGTH];
+	char temp_str[MAX_LABEL_LENGTH + 19 + MAX_DESCR_LENGTH];
 
 	// set up base string for all "CONFIG <block_cat> <block_label> "
 	strcpy_hal(base_str, F("CONFIG "));
-	strcat(base_str, block_cat_defs[b->block_cat].conf_section_key_base);
+	strcat_hal(base_str, block_cat_defs[b->block_cat].conf_section_key_base);
 	strcat_hal(base_str, F(" "));
 	strcat(base_str, b->block_label);
 	strcat_hal(base_str, F(" "));
@@ -836,60 +896,70 @@ void WriteTextBlock(BlockNode *b, FILE *f) {
 	// Key value pairs common to all blocks - build them and write them
 	strcpy(out_str, base_str);
 	strcat_hal(out_str, F("type "));
-	strcat(out_str, block_type_strings[b->block_type].text);
-	fprintf(f, "%s\n", out_str);
+	strcat_hal(out_str, block_type_strings[b->block_type].text);
+	HALWriteLine(f, out_str);
+
+	// register the block labels and types only
+	if (reg_only == 1 ) return;
 
 	#ifndef	EXCLUDE_DISPLAYNAME
-		strcpy(out_str, base_str);
-		strcat_hal(out_str, F("display_name "));
-		strcat(out_str, b->display_name);
-		fprintf(f, "%s\n", out_str);
+		if (b->display_name[0] != '\0') {
+			strcpy(out_str, base_str);
+			strcat_hal(out_str, F("display_name \""));
+			strcat(out_str, b->display_name);
+			strcat(out_str, "\"");
+			HALWriteLine(f, out_str);
+		}
 	#endif
 	#ifndef EXCLUDE_DESCRIPTION
-		strcpy(out_str, base_str);
-		strcat_hal(out_str, F("description "));
-		strcat(out_str, b->description);
-		fprintf(f, "%s\n", out_str);
+		if (b->description[0] != '\0') {
+			strcpy(out_str, base_str);
+			strcat_hal(out_str, F("description \""));
+			strcat(out_str, b->description);
+			strcat(out_str, "\"");
+			HALWriteLine(f, out_str);
+		}
 	#endif
 
 	switch (b->block_cat) {
 	case FF_SYSTEM:
 		strcpy(out_str, base_str);
 		strcat_hal(out_str, F("temp_scale "));
-		strcat(out_str, unit_strings[b->settings.sys.temp_scale].text);
-		fprintf(f, "%s\n", out_str);
+		strcat_hal(out_str, unit_strings[b->settings.sys.temp_scale].text);
+		HALWriteLine(f, out_str);
 
 		strcpy(out_str, base_str);
 		strcat_hal(out_str, F("language "));
-		strcat(out_str, language_strings[b->settings.sys.language].text);
-		fprintf(f, "%s\n", out_str);
+		strcat_hal(out_str, language_strings[b->settings.sys.language].text);
+		HALWriteLine(f, out_str);
 
 		strcpy(out_str, base_str);
 		strcat_hal(out_str, F("week_start "));
-		strcat(out_str, day_strings[b->settings.sys.week_start].text);
-		fprintf(f, "%s\n", out_str);
+		strcat_hal(out_str, day_strings[b->settings.sys.week_start].text);
+		HALWriteLine(f, out_str);
 
 		break;
 
 	case FF_INPUT:
 		strcpy(out_str, base_str);
 		strcat_hal(out_str, F("interface "));
-		strcat(out_str, interface_strings[b->settings.in.interface].text);
-		fprintf(f, "%s\n", out_str);
+		strcat_hal(out_str, interface_strings[b->settings.in.interface].text);
+		HALWriteLine(f, out_str);
 
 		strcpy(out_str, base_str);
 		strcat_hal(out_str, F("if_num "));
-		fprintf(f, "%s%d\n", out_str, b->settings.in.if_num);
+		sprintf(temp_str, "%s%d", out_str, b->settings.in.if_num);
+		HALWriteLine(f, temp_str);
 
 		strcpy(out_str, base_str);
 		strcat_hal(out_str, F("log_rate "));
 		strcat(out_str, TVToHMSString(hms_str, b->settings.in.log_rate));
-		fprintf(f, "%s\n", out_str);
+		HALWriteLine(f, out_str);
 
 		strcpy(out_str, base_str);
 		strcat_hal(out_str, F("data_units "));
-		strcat(out_str, unit_strings[b->settings.in.data_units].text);
-		fprintf(f, "%s\n", out_str);
+		strcat_hal(out_str, unit_strings[b->settings.in.data_units].text);
+		HALWriteLine(f, out_str);
 
 		// data type not properly implemented or used
 		//uint8_tWrite(b->settings.in.data_type, f);
@@ -900,67 +970,70 @@ void WriteTextBlock(BlockNode *b, FILE *f) {
 		strcpy(out_str, base_str);
 		strcat_hal(out_str, F("input1 "));
 		strcat(out_str, GetBlockLabelString(b->settings.mon.input1));
-		fprintf(f, "%s\n", out_str);
+		HALWriteLine(f, out_str);
 
-		strcpy(out_str, base_str);
-		strcat_hal(out_str, F("input2 "));
-		strcat(out_str, GetBlockLabelString(b->settings.mon.input2));
-		fprintf(f, "%s\n", out_str);
+		if (b->settings.mon.input2 != UINT16_INIT) {
+			strcpy(out_str, base_str);
+			strcat_hal(out_str, F("input2 "));
+			strcat(out_str, GetBlockLabelString(b->settings.mon.input2));
+			HALWriteLine(f, out_str);
+		}
 
-		strcpy(out_str, base_str);
-		strcat_hal(out_str, F("input3 "));
-		strcat(out_str, GetBlockLabelString(b->settings.mon.input3));
-		fprintf(f, "%s\n", out_str);
+		if (b->settings.mon.input3 != UINT16_INIT) {
+			strcpy(out_str, base_str);
+			strcat_hal(out_str, F("input3 "));
+			strcat(out_str, GetBlockLabelString(b->settings.mon.input3));
+			HALWriteLine(f, out_str);
+		}
 
-		strcpy(out_str, base_str);
-		strcat_hal(out_str, F("input4 "));
-		strcat(out_str, GetBlockLabelString(b->settings.mon.input4));
-		fprintf(f, "%s\n", out_str);
+		if (b->settings.mon.input2 != UINT16_INIT) {
+			strcpy(out_str, base_str);
+			strcat_hal(out_str, F("input4 "));
+			strcat(out_str, GetBlockLabelString(b->settings.mon.input4));
+			HALWriteLine(f, out_str);
+		}
 
 		strcpy(out_str, base_str);
 		strcat_hal(out_str, F("act_val "));
 		strcat(out_str, FFFloatToCString(float_str, b->settings.mon.act_val));
-		fprintf(f, "%s\n", out_str);
+		HALWriteLine(f, out_str);
 
 		strcpy(out_str, base_str);
 		strcat_hal(out_str, F("deact_val "));
 		strcat(out_str, FFFloatToCString(float_str, b->settings.mon.deact_val));
-		fprintf(f, "%s\n", out_str);
+		HALWriteLine(f, out_str);
 		break;
 
 	case FF_SCHEDULE:
 		strcpy(out_str, base_str);
 		strcat_hal(out_str, F("days "));
 		strcat(out_str, FlagToDayStr(temp_str, b->settings.sch.days));
-		fprintf(f, "%s\n", out_str);
+		HALWriteLine(f, out_str);
 
 		strcpy(out_str, base_str);
 		strcat_hal(out_str, F("time_start "));
 		strcat(out_str, TVToHMSString(hms_str, b->settings.sch.time_start));
-		fprintf(f, "%s\n", out_str);
+		HALWriteLine(f, out_str);
 
 		if (b->settings.sch.time_end != UINT32_INIT) {
 			strcpy(out_str, base_str);
 			strcat_hal(out_str, F("time_end "));
 			strcat(out_str, TVToHMSString(hms_str, b->settings.sch.time_end));
-			fprintf(f, "%s\n", out_str);
-
+			HALWriteLine(f, out_str);
 		}
 
 		if (b->settings.sch.time_duration != UINT32_INIT) {
 			strcpy(out_str, base_str);
 			strcat_hal(out_str, F("time_duration "));
 			strcat(out_str, TVToHMSString(hms_str, b->settings.sch.time_duration));
-			fprintf(f, "%s\n", out_str);
-
+			HALWriteLine(f, out_str);
 		}
 
 		if (b->settings.sch.time_repeat != UINT32_INIT) {
 			strcpy(out_str, base_str);
 			strcat_hal(out_str, F("time_repeat "));
 			strcat(out_str, TVToHMSString(hms_str, b->settings.sch.time_repeat));
-			fprintf(f, "%s\n", out_str);
-
+			HALWriteLine(f, out_str);
 		}
 		break;
 
@@ -968,27 +1041,27 @@ void WriteTextBlock(BlockNode *b, FILE *f) {
 		strcpy(out_str, base_str);
 		strcat_hal(out_str, F("param1 "));
 		strcat(out_str, GetBlockLabelString(b->settings.rl.param1));
-		fprintf(f, "%s\n", out_str);
+		HALWriteLine(f, out_str);
 
 		if (b->settings.rl.param2 != UINT16_INIT) {
 			strcpy(out_str, base_str);
 			strcat_hal(out_str, F("param2 "));
 			strcat(out_str, GetBlockLabelString(b->settings.rl.param2));
-			fprintf(f, "%s\n", out_str);
+			HALWriteLine(f, out_str);
 		}
 
 		if (b->settings.rl.param3 != UINT16_INIT) {
 			strcpy(out_str, base_str);
 			strcat_hal(out_str, F("param3 "));
 			strcat(out_str, GetBlockLabelString(b->settings.rl.param3));
-			fprintf(f, "%s\n", out_str);
+			HALWriteLine(f, out_str);
 		}
 
 		if (b->settings.rl.param_not != UINT16_INIT) {
 			strcpy(out_str, base_str);
 			strcat_hal(out_str, F("param_not "));
 			strcat(out_str, GetBlockLabelString(b->settings.rl.param_not));
-			fprintf(f, "%s\n", out_str);
+			HALWriteLine(f, out_str);
 		}
 		break;
 
@@ -996,33 +1069,34 @@ void WriteTextBlock(BlockNode *b, FILE *f) {
 		strcpy(out_str, base_str);
 		strcat_hal(out_str, F("rule "));
 		strcat(out_str, GetBlockLabelString(b->settings.con.rule));
-		fprintf(f, "%s\n", out_str);
+		HALWriteLine(f, out_str);
 
 		strcpy(out_str, base_str);
 		strcat_hal(out_str, F("output "));
 		strcat(out_str, GetBlockLabelString(b->settings.con.output));
-		fprintf(f, "%s\n", out_str);
+		HALWriteLine(f, out_str);
 
 		strcpy(out_str, base_str);
 		strcat_hal(out_str, F("act_cmd "));
-		strcat(out_str, command_strings[b->settings.con.act_cmd].text);
-		fprintf(f, "%s\n", out_str);
+		strcat_hal(out_str, command_strings[b->settings.con.act_cmd].text);
+		HALWriteLine(f, out_str);
 
 		strcpy(out_str, base_str);
 		strcat_hal(out_str, F("deact_cmd "));
-		strcat(out_str, command_strings[b->settings.con.deact_cmd].text);
-		fprintf(f, "%s\n", out_str);
+		strcat_hal(out_str, command_strings[b->settings.con.deact_cmd].text);
+		HALWriteLine(f, out_str);
 
 		break;
 	case FF_OUTPUT:
 		strcpy(out_str, base_str);
 		strcat_hal(out_str, F("interface "));
-		strcat(out_str, interface_strings[b->settings.out.interface].text);
-		fprintf(f, "%s\n", out_str);
+		strcat_hal(out_str, interface_strings[b->settings.out.interface].text);
+		HALWriteLine(f, out_str);
 
 		strcpy(out_str, base_str);
 		strcat_hal(out_str, F("if_num "));
-		fprintf(f, "%s%d\n", out_str, b->settings.out.if_num);
+		sprintf(temp_str, "%s%d", out_str, b->settings.out.if_num);
+		HALWriteLine(f, temp_str);
 
 		break;
 
@@ -1032,8 +1106,8 @@ void WriteTextBlock(BlockNode *b, FILE *f) {
 	}
 }
 
-
-void WriteBinaryBlock(BlockNode *b, FILE *f) {
+#ifdef FF_SIMULATOR
+void WriteBinaryBlock(BlockNode *b, FILE *f, uint8_t _option) {
 	// Called by FileIODispatcher on each block to write their
 	//  config to a binary file
 	// Note strict adherence to cross platform compatible types
@@ -1099,15 +1173,20 @@ void WriteBinaryBlock(BlockNode *b, FILE *f) {
 		break;
 	}
 }
+#endif
 
-
-void FileIODispatcher(void(*func)(BlockNode*, FILE*), FILE* file) {
+#ifdef FF_SIMULATOR
+void FileIODispatcher(void(*func)(BlockNode*, FILE*, uint8_t), FILE* file, uint8_t option) {
+#endif
+#ifdef FF_ARDUINO
+void FileIODispatcher(void(*func)(BlockNode*, File*, uint8_t), File* file, uint8_t option) {
+#endif
 	BlockNode* block_ptr;
 
 	block_ptr = GetBlockListHead();
 
 	while (block_ptr != NULL) {
-		func(block_ptr, file);
+		func(block_ptr, file, option);
 		block_ptr = block_ptr->next_block;
 	}
 }
@@ -1116,11 +1195,59 @@ void InitConfigSave(void) {
 	// Write the running config to a text file in the form of parse-able
 	//  CONFIG statements that can be read by itch in file processing mode
 
-	FILE *outfile;
-	outfile = fopen(CONFIG_TXT_FILENAME, "w");
-	FileIODispatcher(WriteTextBlock, outfile);
-	fclose(outfile);
+	//char temp_label[MAX_LABEL_LENGTH];
+
+	#ifdef FF_SIMULATOR
+	FILE *fp;
+	fp = fopen(CONFIG_TXT_FILENAME, "w");
+	#endif
+
+	#ifdef FF_ARDUINO
+	File f;
+	File *fp;
+	fp = &f;
+	pinMode(SS, OUTPUT);
+	pinMode(10, OUTPUT);
+	//pinMode(53, OUTPUT);
+	#endif
+
+	#ifdef FF_ARDUINO
+	if (SD.begin(10, 11, 12, 13)) {
+		f = SD.open(CONFIG_TXT_FILENAME, FILE_OVERWRITE);
+		if (!f) {
+			char temp_label[MAX_LABEL_LENGTH];
+			strcpy_hal(temp_label, F("TEXT CONFIG FILE COULD NOT BE OPENED FOR WRITING (STOP)"));
+			DebugLog(temp_label);
+			// Cannot do anything else
+			while (1);
+		}
+	} else {
+		char temp_label[MAX_LABEL_LENGTH];
+		strcpy_hal(temp_label, F("SD FAIL"));
+		DebugLog(temp_label);
+		while (1);
+	}
+	#endif
+
+	// First write block registrations only (option = 1)
+	FileIODispatcher(WriteTextBlock, fp, 1);
+	// Then write the rest of the settings (option = 0)
+	FileIODispatcher(WriteTextBlock, fp, 0);
+
+	// write the command to enable everything
+	//HALWriteLine(fp, F("INIT ENABLE ALL"));
+
+	#ifdef FF_SIMULATOR
+	fclose(fp);
+	#endif
+	#ifdef FF_ARDUINO
+	f.flush();
+	f.close();
+	SD.end();
+	#endif
+
 }
+
 
 void InitConfigSaveBinary(void) {
 	// Write the running config (block list) to a binary file which can be
@@ -1132,13 +1259,13 @@ void InitConfigSaveBinary(void) {
 	//  (eg avr). In particular EXCLUDE_DESCRIPTION and EXCLUDE_DISPLAYNAME
 	//  change the size and field locations within the file.
 
+	#ifdef FF_SIMULATOR
 	FILE *outfile;
 	outfile = fopen(CONFIG_BIN_FILENAME, "w");
-	FileIODispatcher(WriteBinaryBlock, outfile);
+	FileIODispatcher(WriteBinaryBlock, outfile, 0);
 	fclose(outfile);
+	#endif
 }
-
-#endif //FF_CONFIG || TEST_CONFIG_FUNCS
 
 
 #ifdef USE_PROGMEM
@@ -1178,6 +1305,120 @@ void InitConfFile(IniFile* cf) {
 	}
 }
 
+void InitConfigLoad(void) {
+	// Build the block list from a text config file previously written
+	//  by InitConfigSave()
+	// Read each line of the file and pass it to ITCH::StuffAndProcess() which will
+	//	use the restuff buffer to insert the line into the parsing stream and then
+	//	poll itch until it is consumed.
+	// NOTE: no existence or duplicate checking - this function assumes an empty (NULL)
+	//  block list therefore DropBlockList() is called first to make sure
+
+
+
+	#ifdef FF_SIMULATOR
+	char* line_ptr = NULL;
+	size_t len = 0;
+
+	FILE *fp;
+	fp = fopen(CONFIG_TXT_FILENAME, "r");
+
+	HALItchSetBufferStuffMode();
+
+	while (1) {    //continue reading the file until EOF break
+		getline(&line_ptr, &len, fp);
+		//fgets(&line, fp);
+		//fscanf(fp, "%s\n", line);
+
+		if(feof(fp)) {
+			break;
+		}
+
+		#ifdef USE_ITCH
+			HALItchStuffAndProcess(line_ptr);
+			//XXX no alternative if not using itch at this stage!
+		#endif
+			free(line_ptr);
+			line_ptr = NULL;
+			len = 0;
+	}
+	fclose(fp);
+
+	HALItchSetTextDataMode();
+
+	#endif
+
+
+	#ifdef ARDUINO
+	size_t lin_len = MAX_LABEL_LENGTH + 19 + MAX_DESCR_LENGTH;
+	char line[lin_len];
+	File f;
+
+	pinMode(SS, OUTPUT);
+	pinMode(10, OUTPUT);
+	//pinMode(53, OUTPUT);
+
+	// see if the card is present and can be initialized:
+	if (SD.begin(10, 11, 12, 13)) {
+		//	if (SD.begin(10)) {
+		f = SD.open(CONFIG_TXT_FILENAME, FILE_READ);
+		if (!f) {
+			char temp_label[MAX_LABEL_LENGTH];
+			strcpy_hal(temp_label, F("NO CONFIG"));
+			DebugLog(temp_label);
+			// Cannot do anything else
+			while (1);
+		}
+	} else {
+		char temp_label[MAX_LABEL_LENGTH];
+		strcpy_hal(temp_label, F("SD FAIL"));
+		DebugLog(temp_label);
+		while (1);
+	}
+	HALItchSetBufferStuffMode();
+	//char c;
+	//uint8_t count = 0;
+	//uint8_t index = 0;
+	while (1) {    //continue reading the file until EOF break
+		f.readBytesUntil('\n', line, lin_len);
+		#ifdef USE_ITCH
+			DebugLog(line);
+			HALItchStuffAndProcess(line);
+		#endif
+		if (!f.available()) { //EOF
+			break;
+		}
+	}
+	f.close();
+	SD.end();
+
+	HALItchSetTextDataMode();
+	#endif
+
+
+/*
+c = f.read();
+if (c == '\n' || c == '\r') {
+	if (count > 0) {
+		line[index] = '\0';
+
+size_t index = 0;
+			while (index < length) {
+			    int c = timedRead();
+			    if (c < 0 || c == terminator) break;
+			    *buffer++ = (char)c;
+			    index++;
+			  }
+*/
+
+
+
+
+	// As a fresh block list, call validate and setup on each block too
+	//ProcessDispatcher(Validate);
+	//ProcessDispatcher(Setup);
+
+}
 
 void InitConfigLoadINI(void) {
 	// Create or update the block list and each block settings from stanzas and key / value
@@ -1198,7 +1439,7 @@ void InitConfigLoadINI(void) {
 	#endif
 
 	char list_section[MAX_LABEL_LENGTH];		// [inputs] [controllers] etc
-	char list_section_key[MAX_LABEL_LENGTH];	// input7=    controller3=
+	char list_section_key[MAX_LABEL_LENGTH+2];	// input7=    controller3=
 	char block_section[MAX_LABEL_LENGTH];
 	char block_section_key[MAX_LABEL_LENGTH];
 	char key_value[INI_FILE_MAX_LINE_LENGTH];	//to read value into

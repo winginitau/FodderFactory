@@ -70,6 +70,9 @@ enum {
 	ITCH_MISC_PARAM_INTEGER,
 	ITCH_MISC_PARAM_STRING,
 	ITCH_TERMINAL_WELCOME,
+	ITCH_TERMINAL_GOODBYE,
+	ITCH_BUFFER_STUFFING_MODE,
+	ITCH_BUFFER_STUFFING_ERROR,
 	LAST_ITCH_MISC_STRING
 };
 
@@ -79,17 +82,20 @@ static const EnumStringArray misc_itch_strings[LAST_ITCH_MISC_STRING] PROGMEM = 
 static const EnumStringArray misc_itch_strings[LAST_ITCH_MISC_STRING] = {
 #endif
 	"MISC_ERROR",
-	"Command Help:\n",
-	"Try \"?\" or <command> ? for help.\n",
+	"Command Help:",
+	"Try \"?\" or <command> ? for help.",
 	">>> Error:\n>>> ",
-	"\nitch:$ ",
+	"itch:$ ",
 	"\n",
 	"<param-date>",
 	"<param-time>",
 	"<param-float>",
 	"<param-integer>",
 	"<param-string>",
-	"ITCH - Interactive Terminal Command sHell\n",
+	"ITCH - Interactive Terminal Command sHell",
+	"ITCH Interactive Terminal Session Ended",
+	"ITCH Entering Buffer Stuffing Mode. Will return to TEXT_DATA mode on completion.",
+	"ITCH Line being stuffed when error occurred:",
 };
 
 

@@ -47,6 +47,7 @@ void RuleSetup(BlockNode *b) {
 			b->active = 0;
 			b->last_update = TimeNow();
 			EventMsg(b->block_id, E_DEACT);
+			b->status = STATUS_ENABLED_INIT;
 			break;
 		}
 
@@ -54,6 +55,7 @@ void RuleSetup(BlockNode *b) {
 			b->active = 0;
 			b->last_update = TimeNow();
 			EventMsg(b->block_id, E_DEACT);
+			b->status = STATUS_ENABLED_INIT;
 			break;
 		}
 
@@ -61,6 +63,7 @@ void RuleSetup(BlockNode *b) {
 			b->active = 0;
 			b->last_update = TimeNow();
 			EventMsg(b->block_id, E_DEACT);
+			b->status = STATUS_ENABLED_INIT;
 			break;
 		}
 
@@ -68,6 +71,7 @@ void RuleSetup(BlockNode *b) {
 			b->active = 0;
 			b->last_update = TimeNow();
 			EventMsg(b->block_id, E_DEACT);
+			b->status = STATUS_ENABLED_INIT;
 			break;
 		}
 		default:

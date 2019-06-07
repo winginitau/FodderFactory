@@ -11,8 +11,6 @@
 #define VERSION "0.1a"
 #define PROG_NAME "itch - Interactive Terminal Command sHell"
 
-//#define IDENTIFIER_REGEX "^[a-zA-Z0-9_]{1,31}$"
-
 //#define ITCH_DEBUG
 
 #include "common_config.h"
@@ -20,6 +18,13 @@
 #ifdef ARDUINO
 #define USE_PROGMEM
 #endif
+
+#ifdef MAX_LABEL_LENGTH						// As defined in src/build_config.h
+#define MAX_TOKEN_SIZE MAX_LABEL_LENGTH		// MAX_TOKEN_SIZE only used in itch parser
+#else
+#define MAX_TOKEN_SIZE 48
+#endif
+
 
 typedef struct ENUM_STRING_ARRAY_TYPE {
 	// Array of strings relating to enums

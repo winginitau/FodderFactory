@@ -191,6 +191,9 @@ void AST::WriteASTArray(Identifiers* idents) {
 
 	DT(root, idents, false);  // to count the output lines
 
+    sprintf(output_string, "\n// id, type, label, actionable, parent, first_child, next_sibling, action_id");
+	header_output_queue.EnQueue(output_string);
+
 	sprintf(output_string, "\n#ifdef USE_PROGMEM\n");
 	header_output_queue.EnQueue(output_string);
 	sprintf(output_string, "static const ASTA asta [%d] PROGMEM = {\n", grammar_def_count);
@@ -211,7 +214,8 @@ void AST::WriteASTArray(Identifiers* idents) {
 }
 
 void AST::DT(ASTNode* w, Identifiers* idents, bool print) {
-	char temp[MAX_BUFFER_LENGTH];
+	// Dump Tree: asta tree walk, node count, optionally writing it as a vector array.
+	char temp[MAX_TEMP_BUFFER_LENGTH];
 	char instance_name[MAX_BUFFER_LENGTH];
 	char type_string[MAX_BUFFER_LENGTH];
 
@@ -318,6 +322,10 @@ int AST::BuildActionCode(Identifiers& idents) {
 	char temp[MAX_BUFFER_LENGTH];
 	char temp2[MAX_BUFFER_LENGTH];
 
+	// ***************************** Check if the action code for this action is already built?
+	if (idents.GetActionBuilt(current->action_identifier) == true) {
+		return I_ACTION_ALREADY_BUILT;
+	}
 
 	// ***************************** Count the Params for the Function Definition and Prototype
 	walker = current;
@@ -626,14 +634,14 @@ int AST::BuildActionCode(Identifiers& idents) {
 	#ifdef USER_CODE_HINTS
 	sprintf(output_string, "\t// >>>\n");
 	user_code_output_queue.EnQueue(output_string);
-	sprintf(output_string, "\t// >>> Results Callback via ITCH.WriteLine\n");
+	sprintf(output_string, "\t// >>> Results Callback via ITCH.WriteLineCallback\n");
 	user_code_output_queue.EnQueue(output_string);
 	sprintf(output_string, "\t// >>>\n");
 	user_code_output_queue.EnQueue(output_string);
 	#endif //USER_CODE_HINTS
 
 	#ifdef USER_CODE_DEBUG
-	sprintf(output_string, "\titch.WriteLine(temp);\n");
+	sprintf(output_string, "\titch.WriteLineCallback(temp);\n");
 	user_code_output_queue.EnQueue(output_string);
 	#endif //USER_CODE_DEBUG
 
@@ -664,7 +672,7 @@ int AST::BuildActionCode(Identifiers& idents) {
 
 	if (param_count == 0) {
 		// Just write the callback and close it
-		sprintf(temp, "itch.WriteLine);\n");
+		sprintf(temp, "itch.WriteLineCallback);\n");
 		strcat(output_string, temp);
 	} else {
 		// write the param list into the external call - including the last one
@@ -674,7 +682,7 @@ int AST::BuildActionCode(Identifiers& idents) {
 			strcat(output_string, temp);
 		}
 		// then the callback and close
-		sprintf(temp, "itch.WriteLine);\n");
+		sprintf(temp, "itch.WriteLineCallback);\n");
 		strcat(output_string, temp);
 	}
 
@@ -689,6 +697,9 @@ int AST::BuildActionCode(Identifiers& idents) {
 	header_output_queue.SetOutputAvailable();
 	user_code_output_queue.SetOutputAvailable();
 	code_output_queue.SetOutputAvailable();
+
+	// Flag that this identifier's action code has now been built
+	idents.SetActionBuilt(current->action_identifier, true);
 
 	return E_NO_ERROR;
 }

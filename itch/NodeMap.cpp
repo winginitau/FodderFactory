@@ -31,7 +31,7 @@ uint8_t g_map_line_pos;
 uint16_t g_map_id_current;		// currently matched node
 uint16_t g_map_id_walker;		// to walk through the asta array nodes by id
 
-char g_map_last_target_str[MAX_IDENTIFIER_LABEL_SIZE];
+char g_map_last_target_str[MAX_AST_IDENTIFIER_SIZE];
 
 //extern ASTA g_temp_asta;
 
@@ -70,7 +70,7 @@ void MapReset(void) {
 
 }
 
-uint16_t MapGetASTAByID(uint16_t asta_id, ASTA* result) {
+uint16_t MapGetASTAByID(uint16_t asta_id, ASTA_Node* result) {
 	uint16_t asta_idx = 0;	// index into the asta array
 
 	// set up to walk the asta array
@@ -86,12 +86,22 @@ uint16_t MapGetASTAByID(uint16_t asta_id, ASTA* result) {
 			test = asta[asta_idx].id;
 		#endif
 		if (test == asta_id) {
+			result->id = asta[asta_idx].id;
+			strcpy_itch_hal(result->label, asta[asta_idx].label);
+			result->type = asta[asta_idx].type;
+			result->parent = asta[asta_idx].parent;
+			result->next_sibling = asta[asta_idx].next_sibling;
+			result->first_child = asta[asta_idx].first_child;
+			result->action = asta[asta_idx].action;
+			strcpy_itch_hal(result->action_identifier, asta[asta_idx].action_identifier);
+			/*
 			#ifdef ARDUINO
 				memcpy_P(result, &(asta[asta_idx]), sizeof(ASTA));
 			#else
-				memcpy_itch_hal(result, &(asta[asta_idx]), sizeof(ASTA));
+				memcpy_itch_hal(result, &(asta[asta_idx]), sizeof(ASTA_Node));
 
 			#endif
+			*/
 			return PEME_NO_ERROR;
 		}
 		asta_idx++;
@@ -99,7 +109,7 @@ uint16_t MapGetASTAByID(uint16_t asta_id, ASTA* result) {
 	return ME_GETASTABYID_FAIL;
 }
 
-uint8_t MapDetermineTarget(uint8_t* target_size, char* target, char* line) {
+uint8_t MapDetermineTarget(uint8_t* target_size, char** target, char* line) {
 	*target_size = strlen(line) - g_map_line_pos;	// mf.str_pos points to current token in target
 	if (*target_size == 0) {
 		// We've been advanced and line_pos is now pointing
@@ -113,17 +123,22 @@ uint8_t MapDetermineTarget(uint8_t* target_size, char* target, char* line) {
 
 		return MR_DELIM_SKIP;
 	}
-	// line is \0 terminated. Copy the bit we're interested in to the target
+	// line is \0 terminated.
+
+	*target = line + g_map_line_pos;
+	/*
+	//Copy the bit we're interested in to the target
 	int i = 0;
 	target[i] = line[g_map_line_pos+i];
 	while (target[i] != '\0') {
 		i++;
 		target[i] = line[g_map_line_pos+i];
 	}
+	*/
 	return MR_CONTINUE;
 }
 
-uint8_t Compare_N_PARAM_DATE(char* target, ASTA* temp_node) {
+uint8_t Compare_N_PARAM_DATE(char* target, ASTA_Node* temp_node) {
 	// date format is 2018-02-20
 	// sufficient for filtering to just check if it starts with a 2
 	if (isdigit(target[0])) {
@@ -137,7 +152,7 @@ uint8_t Compare_N_PARAM_DATE(char* target, ASTA* temp_node) {
 	return 0;
 }
 
-uint8_t Compare_N_PARAM_TIME(char* target, ASTA* temp_node) {
+uint8_t Compare_N_PARAM_TIME(char* target, ASTA_Node* temp_node) {
 	// time format is 23:30:45 (hh:mm:ss)
 	if (isdigit(target[0])) {
 		int x = target[0] - '0';
@@ -150,7 +165,7 @@ uint8_t Compare_N_PARAM_TIME(char* target, ASTA* temp_node) {
 	return 0;
 }
 
-uint8_t Compare_N_PARAM_FLOAT(char* target, ASTA* temp_node) {
+uint8_t Compare_N_PARAM_FLOAT(char* target, ASTA_Node* temp_node) {
 	//if (mf.keyword_match) {
 	//	return 0;
 	//}
@@ -162,7 +177,7 @@ uint8_t Compare_N_PARAM_FLOAT(char* target, ASTA* temp_node) {
 	return 0;
 }
 
-uint8_t Compare_N_PARAM_INTEGER(char* target, ASTA* temp_node) {
+uint8_t Compare_N_PARAM_INTEGER(char* target, ASTA_Node* temp_node) {
 	//if (mf.keyword_match) {
 	//	return 0;
 	//}
@@ -174,21 +189,23 @@ uint8_t Compare_N_PARAM_INTEGER(char* target, ASTA* temp_node) {
 	return 0;
 }
 
-uint8_t Compare_N_PARAM_STRING(char* target, ASTA* temp_node) {
+uint8_t Compare_N_PARAM_STRING(char* target, ASTA_Node* temp_node) {
 
+	/*
 	if (isdigit(target[0])) {
 		// can't be keyword or ident or lookup
 		// XXX any string, unless in "" would also likely be subject to
 		// identifier regex..... eg filename.....
 		return 0;
 	}
+	*/
 	// input is a string by definition
 	// we're looking for a string, so add it otherwise
 	strcpy_itch_misc(temp_node->label, ITCH_MISC_PARAM_STRING);
 	return 1;
 }
 
-uint8_t Compare_N_LOOKUP(char* target, ASTA* temp_node) {
+uint8_t Compare_N_LOOKUP(char* target, ASTA_Node* temp_node) {
 	if (isdigit(target[0])) {
 		// can't be keyword or ident or lookup
 		return 0;
@@ -222,7 +239,7 @@ uint8_t Compare_N_LOOKUP(char* target, ASTA* temp_node) {
 	}
 }
 
-uint8_t Compare_N_IDENTIFIER(char* target, ASTA* temp_node) {
+uint8_t Compare_N_IDENTIFIER(char* target, ASTA_Node* temp_node) {
 	uint16_t xlat;
 	uint8_t member_id;
 	//char target_upr[MAX_LABEL_LENGTH];
@@ -250,9 +267,9 @@ uint8_t Compare_N_IDENTIFIER(char* target, ASTA* temp_node) {
 	}
 }
 
-uint8_t Compare_N_KEYWORD(char* target, ASTA* temp_node) {
-	char target_upr[MAX_IDENTIFIER_LABEL_SIZE];
-	char label_upr[MAX_IDENTIFIER_LABEL_SIZE];
+uint8_t Compare_N_KEYWORD(char* target, ASTA_Node* temp_node) {
+	char target_upr[MAX_TOKEN_SIZE];
+	char label_upr[MAX_TOKEN_SIZE];
 
 	// even as partial unique, it overrides all other types
 	// check if its matching the input string
@@ -280,7 +297,8 @@ uint8_t MapMatch(char* line, TokenList* matched_list) {
 	// possible nodes, evaluate the results and return result
 	// and a list of matched nodes to the parser
 
-	char target[MAX_IDENTIFIER_LABEL_SIZE]; 	// for the last bit that we are interested in
+	//char target[MAX_IDENTIFIER_LABEL_SIZE]; 	// for the last bit that we are interested in
+	char* target = NULL;
 	uint8_t target_size;					//
 
 	// clear the previous match list
@@ -294,7 +312,7 @@ uint8_t MapMatch(char* line, TokenList* matched_list) {
 
 	// Determine the target part of the line buffer
 	// ie the last token on the line - complete or partial and get its size
-	g_mflags.match_result = MapDetermineTarget(&target_size, target, line);
+	g_mflags.match_result = MapDetermineTarget(&target_size, &target, line);
 
 	// If size == 0 assume advanced past a delim, return
 	// size will only be 0 if the previous pass detected a delim and advanced the buffer
@@ -329,7 +347,7 @@ uint8_t MapMatch(char* line, TokenList* matched_list) {
 }
 
 void MapSelectMatchingNodes(char* token, TokenList* matched_list) {
-	ASTA temp_asta;
+	ASTA_Node temp_asta;
 	uint8_t cr = 0;		// compare result
 
 	do {
@@ -408,7 +426,7 @@ void MapSelectMatchingNodes(char* token, TokenList* matched_list) {
 }
 
 uint8_t MapEvaluateMatchedList(TokenList* matched_list) {
-	ASTA temp_asta;
+	ASTA_Node temp_asta;
 
 		// filter results based on matching precedence
 		// If any of these are present together in the matched
@@ -578,7 +596,7 @@ uint16_t MapAdvance(uint8_t in_buf_idx) {
 	// Move to first child so that subsequent matching
 	// will occur against the child and its siblings
 
-	ASTA temp_asta;
+	ASTA_Node temp_asta;
 	MapGetASTAByID(g_mflags.last_matched_id, &temp_asta);
 
 	// set the current_id for the next matching iteration to
@@ -598,7 +616,7 @@ uint16_t MapAdvance(uint8_t in_buf_idx) {
 }
 
 uint8_t MapGetAction(uint16_t asta_id, char* action_str) {
-	ASTA temp_asta;
+	ASTA_Node temp_asta;
 	uint8_t result;
 	result = MapGetASTAByID(asta_id, &temp_asta);
 	if (result == PEME_NO_ERROR) {

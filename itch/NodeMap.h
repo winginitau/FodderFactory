@@ -61,7 +61,7 @@ typedef struct MATCH_FLAGS {
  ******************************************************************************/
 
 void MapReset(void);
-uint16_t MapGetASTAByID(uint16_t ASTA_ID, ASTA* result);
+uint16_t MapGetASTAByID(uint16_t ASTA_ID, ASTA_Node* result);
 uint16_t MapGetLastMatchedID();
 uint8_t MapMatch(char* target, TokenList* match_list);
 char* MapGetLastTargetString(char* return_string);
@@ -73,13 +73,13 @@ uint16_t MapGetErrorCode();
 uint8_t MapDetermineTarget(uint8_t* target_size, char* target, char* line);
 void MapSelectMatchingNodes(char* target, TokenList* matched_list);
 uint8_t MapEvaluateMatchedList(TokenList* matched_list);
-uint8_t Compare_N_PARAM_DATE(char* target, ASTA* temp_node);
-uint8_t Compare_N_PARAM_TIME(char* target, ASTA* temp_node);
-uint8_t Compare_N_PARAM_FLOAT(char* target, ASTA* temp_node);
-uint8_t Compare_N_PARAM_INTEGER(char* target, ASTA* temp_node);
-uint8_t Compare_N_PARAM_STRING(char* target, ASTA* temp_node);
-uint8_t Compare_N_LOOKUP(char* target, ASTA* temp_node);
-uint8_t Compare_N_IDENTIFIER(char* target, ASTA* temp_node);
-uint8_t Compare_N_KEYWORD(char* target, ASTA* temp_node);
+uint8_t Compare_N_PARAM_DATE(char* target, ASTA_Node* temp_node);
+uint8_t Compare_N_PARAM_TIME(char* target, ASTA_Node* temp_node);
+uint8_t Compare_N_PARAM_FLOAT(char* target, ASTA_Node* temp_node);
+uint8_t Compare_N_PARAM_INTEGER(char* target, ASTA_Node* temp_node);
+uint8_t Compare_N_PARAM_STRING(char* target, ASTA_Node* temp_node);
+uint8_t Compare_N_LOOKUP(char* target, ASTA_Node* temp_node);
+uint8_t Compare_N_IDENTIFIER(char* target, ASTA_Node* temp_node);
+uint8_t Compare_N_KEYWORD(char* target, ASTA_Node* temp_node);
 
 #endif /* NODEMAP_H_ */

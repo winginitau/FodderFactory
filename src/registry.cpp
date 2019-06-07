@@ -20,6 +20,7 @@
 #include <registry.h>
 #include <rules.h>
 #include <schedules.h>
+#include <validate.h>
 #include <stdlib.h>
 #include <string.h>
 #include <string_consts.h>
@@ -35,7 +36,7 @@
 #include <init_config.h>
 
 #ifdef USE_ITCH
-//#include "itch.h"
+#include <out.h>
 #endif
 
 /************************************************
@@ -82,6 +83,17 @@ uint8_t VE_status;
 ************************************************/
 
 void Setup(BlockNode *b) {
+	// Called on blocks to configure their initial run-time settings (not config)
+	// 	and perform any preliminary setup actions.
+	// Blocks that successfully complete setup will change state to STATUS_ENABLED_INIT
+	//	which will allow them to be polled in the main operating loop.
+	// Blocks are expected to have a status of STATUS_DISABLED_INIT before setup
+	//	will be called. This provides a measure of block list consistency by
+	//	avoiding run time issues such as blocks referring to other blocks that have
+	//	not yet been fully configured. For example, during system load processes,
+	// 	a final set post config is to move the blocks to STATUS_DISABLED_INIT. Otherwise,
+	//	blocks could become operational prematurely.
+
 	switch (b->block_cat) {
 	case FF_SYSTEM:
 		//EventMsg(SSS, E_DEBUG_MSG, M_SYS_HEART_BEAT);
@@ -113,7 +125,11 @@ void Setup(BlockNode *b) {
 		#endif //VE_DIRECT
 		break;
 	case FF_INPUT:
-		InputSetup(b);
+		if (b->status == STATUS_DISABLED_INIT) {
+			InputSetup(b);
+		} else {
+			EventMsg(b->block_id, E_WARNING, M_SETUP_ON_BLOCK_NOT_DISABLED_INIT);
+		}
 		break;
 	case FF_MONITOR:
 
@@ -145,7 +161,11 @@ void Setup(BlockNode *b) {
 			EventMsg(SSS, E_WARNING, M_HACK_MON_BOT_COLD);
 		}
 
-		MonitorSetup(b);
+		if (b->status == STATUS_DISABLED_INIT) {
+			MonitorSetup(b);
+		} else {
+			EventMsg(b->block_id, E_WARNING, M_SETUP_ON_BLOCK_NOT_DISABLED_INIT);
+		}
 		break;
 	case FF_SCHEDULE: {
 
@@ -159,7 +179,11 @@ void Setup(BlockNode *b) {
 			EventMsg(SSS, E_WARNING, M_HACK_SCH_WATER_BOT_COLD);
 		}
 
-		ScheduleSetup(b);
+		if (b->status == STATUS_DISABLED_INIT) {
+			ScheduleSetup(b);
+		} else {
+			EventMsg(b->block_id, E_WARNING, M_SETUP_ON_BLOCK_NOT_DISABLED_INIT);
+		}
 	}
 		break;
 	case FF_RULE: {
@@ -179,14 +203,26 @@ void Setup(BlockNode *b) {
 		//	EventMsg(SSS, E_WARNING, M_HACK_RL_EXHAUST_IF_TOP_HOT_BOT_HOT);
 		//}
 
-		RuleSetup(b);
+		if (b->status == STATUS_DISABLED_INIT) {
+			RuleSetup(b);
+		} else {
+			EventMsg(b->block_id, E_WARNING, M_SETUP_ON_BLOCK_NOT_DISABLED_INIT);
+		}
 	}
 		break;
 	case FF_CONTROLLER:
-		ControllerSetup(b);
+		if (b->status == STATUS_DISABLED_INIT) {
+			ControllerSetup(b);
+		} else {
+			EventMsg(b->block_id, E_WARNING, M_SETUP_ON_BLOCK_NOT_DISABLED_INIT);
+		}
 		break;
 	case FF_OUTPUT:
-		OutputSetup(b);
+		if (b->status == STATUS_DISABLED_INIT) {
+			OutputSetup(b);
+		} else {
+			EventMsg(b->block_id, E_WARNING, M_SETUP_ON_BLOCK_NOT_DISABLED_INIT);
+		}
 		break;
 	default:
 		DebugLog(SSS, E_ERROR, M_SET_BCAT_NOT_MATCHED);
@@ -217,7 +253,13 @@ uint8_t VarianceExceedsAbsolute(int32_t old_val, int32_t new_val, uint16_t thres
 
 void Operate(BlockNode *b) {
 	// Calls the appropriate operate function on the block based on its category
-	// Called from process dispatcher with each block in the list
+	// Called from process dispatcher with each block in the list.
+	// Blocks must have a status that is ENABLED (ie < INIT_DISABLED) for
+	// 	operate to be called on them.
+	// Under system control, blocks may only transition to an ENABLED state as follows:
+	//	Block created by AddBlockNode -> STATUS_DISABLED_INIT
+	//  STATUS_DISABLED_INIT -> may have Setup called (all other states reject Setup())
+	//	Setup -> STATUS_ENABLED_INIT and lower.
 
 	switch (b->block_cat) {
 	case FF_SYSTEM: {
@@ -263,27 +305,46 @@ void Operate(BlockNode *b) {
 		break;
 	}
 	case FF_INPUT:
-		InputOperate(b);
+		if (b->status < STATUS_DISABLED) {
+			InputOperate(b);
+		}
 		break;
 	case FF_MONITOR:
-		MonitorOperate(b);
+		if (b->status < STATUS_DISABLED) {
+			MonitorOperate(b);
+		}
 		break;
 	case FF_SCHEDULE:
-		ScheduleOperate(b);
+		if (b->status < STATUS_DISABLED) {
+			ScheduleOperate(b);
+		}
 		break;
 	case FF_RULE:
-		RuleOperate(b);
+		if (b->status < STATUS_DISABLED) {
+			RuleOperate(b);
+		}
 		break;
 	case FF_CONTROLLER:
-		ControllerOperate(b);
+		if (b->status < STATUS_DISABLED) {
+			ControllerOperate(b);
+		}
 		break;
 	case FF_OUTPUT:
-		OutputOperate(b);
+		if (b->status < STATUS_DISABLED) {
+			OutputOperate(b);
+		}
 		break;
 	default:
 		DebugLog(SSS, E_ERROR, M_OPR_BCAT_NOT_MATCHED);
 		break;
 	}
+}
+
+void InitDisable(BlockNode* b) {
+	// Change blocks from their current status to
+	// STATUS_DISABLED_INIT which means that Operate() will not be
+	// 	called on them.
+	b->status = STATUS_DISABLED_INIT;
 }
 
 void ProcessDispatcher(void(*func)(BlockNode*)) {
@@ -486,7 +547,8 @@ BlockNode* AddBlockNode(BlockNode** head_ref, uint8_t block_cat, const char *blo
 		new_block->int_val = INT32_INIT;
 		new_block->f_val = FLOAT_INIT;
 		new_block->last_update = UINT32_INIT;
-		new_block->status = STATUS_ENABLED_INIT;
+		// New blocks are disabled by default
+		new_block->status = STATUS_DISABLED_INIT;
 
 		if (block_cat != FF_GENERIC_BLOCK) {
 
@@ -625,6 +687,7 @@ char* UpdateBlockLabel(BlockNode* b, const char * block_label) {
 	return b->block_label;
 }
 
+#ifndef EXCLUDE_DISPLAYNAME
 char* UpdateDisplayName(BlockNode* b, const char * display_name) {
 	// Update the display_name of a block and adjust its memory use
 	// Possible calling value combinations:
@@ -660,7 +723,9 @@ char* UpdateDisplayName(BlockNode* b, const char * display_name) {
 	}
 	return b->display_name;
 }
+#endif
 
+#ifndef EXCLUDE_DESCRIPTION
 char* UpdateDescription(BlockNode* b, const char * description) {
 	// Update the description of a block and adjust its memory use
 	// Possible calling value combinations:
@@ -696,6 +761,7 @@ char* UpdateDescription(BlockNode* b, const char * description) {
 	}
 	return b->description;
 }
+#endif
 
 BlockNode* GetBlockNodeByLabel(BlockNode *head, const char *block_label) {
 	// re-written iteratively
@@ -862,26 +928,26 @@ void RegShowBlockByID(uint16_t id, void (*Callback)(char *)) {
 				strcpy_hal(fmt_str, F(" language:     %d"));
 				sprintf(out_str, fmt_str, b->settings.sys.language);
 				Callback(out_str);
-				strcpy_hal(fmt_str, F(" week_star     %d"));
+				strcpy_hal(fmt_str, F(" week_start    %d"));
 				sprintf(out_str, fmt_str, b->settings.sys.week_start);
 				Callback(out_str);
 				break;
 			case FF_INPUT:
 				strcpy_hal(out_str, F("Input:"));
 				Callback(out_str);
-				strcpy_hal(fmt_str, F(" interface     %d"));
+				strcpy_hal(fmt_str, F(" interface:    %d"));
 				sprintf(out_str, fmt_str, b->settings.in.interface);
 				Callback(out_str);
 				strcpy_hal(fmt_str, F(" if_num:       %d"));
 				sprintf(out_str, fmt_str, b->settings.in.if_num);
 				Callback(out_str);
-				strcpy_hal(fmt_str, F(" log_rate      %lu"));
+				strcpy_hal(fmt_str, F(" log_rate:     %lu"));
 				sprintf(out_str, fmt_str, (unsigned long) b->settings.in.log_rate); //TV_TYPE
 				Callback(out_str);
-				strcpy_hal(fmt_str, F(" data_unit     %d"));
+				strcpy_hal(fmt_str, F(" data_unit:    %d"));
 				sprintf(out_str, fmt_str, b->settings.in.data_units);
 				Callback(out_str);
-				strcpy_hal(fmt_str, F(" data_type     %d"));
+				strcpy_hal(fmt_str, F(" data_type:    %d"));
 				sprintf(out_str, fmt_str, b->settings.in.data_type);		// float, int
 				Callback(out_str);
 				break;
@@ -912,23 +978,23 @@ void RegShowBlockByID(uint16_t id, void (*Callback)(char *)) {
 			case FF_SCHEDULE: {
 				strcpy_hal(out_str, F("Schedule:"));
 				Callback(out_str);
-				strcpy_hal(out_str, F(" days          "));
+				strcpy_hal(out_str, F(" days:         "));
 				for (uint8_t i = 0; i < 7; i++) {
 					strcpy_hal(fmt_str, F("%d "));
 					sprintf(temp_str, fmt_str, b->settings.sch.days[i]);
 					strcat(out_str, temp_str);
 				}
 				Callback(out_str);
-				strcpy_hal(fmt_str, F(" time_start    %lu"));
+				strcpy_hal(fmt_str, F(" time_start:   %lu"));
 				sprintf(out_str, fmt_str, b->settings.sch.time_start);
 				Callback(out_str);
-				strcpy_hal(fmt_str, F(" time_end      %lu"));
+				strcpy_hal(fmt_str, F(" time_end:     %lu"));
 				sprintf(out_str, fmt_str, b->settings.sch.time_end);
 				Callback(out_str);
-				strcpy_hal(fmt_str, F(" time_duration %lu"));
+				strcpy_hal(fmt_str, F(" time_duration:%lu"));
 				sprintf(out_str, fmt_str, (unsigned long) b->settings.sch.time_duration);
 				Callback(out_str);
-				strcpy_hal(fmt_str, F(" time_repeat   %lu"));
+				strcpy_hal(fmt_str, F(" time_repeat:  %lu"));
 				sprintf(out_str, fmt_str, (unsigned long) b->settings.sch.time_repeat);
 				Callback(out_str);
 			}
@@ -1178,7 +1244,7 @@ void RegConfigReset(void(*Callback)(char*)) {
 
 
 void RegConfigLoad(void(*Callback)(char*)) {
-
+	InitConfigLoad();
 }
 
 void RegConfigLoadBinary(void(*Callback)(char*)) {
@@ -1196,6 +1262,140 @@ void RegConfigSave(void(*Callback)(char*)) {
 void RegConfigSaveBinary(void(*Callback)(char*)) {
 	InitConfigSaveBinary();
 }
+
+void RegConfigBlockSystem(char* param1_string, uint16_t SYS_CONFIG, char* param2_string, void(*Callback)(char*)) {
+	char out_str[MAX_MESSAGE_STRING_LENGTH];	// 80
+
+	if (ConfigureBlock(FF_SYSTEM, param1_string, \
+			sys_config_keys[SYS_CONFIG].text, param2_string) == 0) {
+		GetMessageString(out_str, M_CONFIGURE_BLOCK_ERROR);
+		Callback(out_str);
+		strcpy_hal(out_str, F(" >>> CONFIG system "));
+		strcat(out_str, param1_string);
+		strcat_hal(out_str, F(" "));
+		strcat_hal(out_str, sys_config_keys[SYS_CONFIG].text);
+		strcat_hal(out_str, F(" "));
+		strcat(out_str, param2_string);
+		Callback(out_str);
+	}
+}
+
+void RegConfigBlockInput(char* param1_string, uint16_t IN_CONFIG, char* param2_string, void(*Callback)(char*)) {
+	char out_str[MAX_MESSAGE_STRING_LENGTH];	// 80
+
+	if (ConfigureBlock(FF_INPUT, param1_string, \
+			in_config_keys[IN_CONFIG].text, param2_string) == 0) {
+		GetMessageString(out_str, M_CONFIGURE_BLOCK_ERROR);
+		Callback(out_str);
+		strcpy_hal(out_str, F(" >>> CONFIG input "));
+		strcat(out_str, param1_string);
+		strcat_hal(out_str, F(" "));
+		strcat_hal(out_str, in_config_keys[IN_CONFIG].text);
+		strcat_hal(out_str, F(" "));
+		strcat(out_str, param2_string);
+		Callback(out_str);
+	}
+}
+
+void RegConfigBlockMonitor(char* param1_string, uint16_t MON_CONFIG, char* param2_string, void(*Callback)(char*)) {
+	char out_str[MAX_MESSAGE_STRING_LENGTH];	// 80
+
+	if (ConfigureBlock(FF_MONITOR, param1_string, \
+			mon_config_keys[MON_CONFIG].text, param2_string) == 0) {
+		GetMessageString(out_str, M_CONFIGURE_BLOCK_ERROR);
+		Callback(out_str);
+		strcpy_hal(out_str, F(" >>> CONFIG monitor "));
+		strcat(out_str, param1_string);
+		strcat_hal(out_str, F(" "));
+		strcat_hal(out_str, mon_config_keys[MON_CONFIG].text);
+		strcat_hal(out_str, F(" "));
+		strcat(out_str, param2_string);
+		Callback(out_str);
+	}
+}
+
+void RegConfigBlockSchedule(char* param1_string, uint16_t SCH_CONFIG, char* param2_string, void(*Callback)(char*)) {
+	char out_str[MAX_MESSAGE_STRING_LENGTH];	// 80
+
+	if (ConfigureBlock(FF_SCHEDULE, param1_string, \
+			sch_config_keys[SCH_CONFIG].text, param2_string) == 0) {
+		GetMessageString(out_str, M_CONFIGURE_BLOCK_ERROR);
+		Callback(out_str);
+		strcpy_hal(out_str, F(" >>> CONFIG schedule "));
+		strcat(out_str, param1_string);
+		strcat_hal(out_str, F(" "));
+		strcat_hal(out_str, sch_config_keys[SCH_CONFIG].text);
+		strcat_hal(out_str, F(" "));
+		strcat(out_str, param2_string);
+		Callback(out_str);
+	}
+}
+
+void RegConfigBlockRule(char* param1_string, uint16_t RL_CONFIG, char* param2_string, void(*Callback)(char*)) {
+	char out_str[MAX_MESSAGE_STRING_LENGTH];	// 80
+
+	if (ConfigureBlock(FF_RULE, param1_string, \
+			rl_config_keys[RL_CONFIG].text, param2_string) == 0) {
+		GetMessageString(out_str, M_CONFIGURE_BLOCK_ERROR);
+		Callback(out_str);
+		strcpy_hal(out_str, F(" >>> CONFIG rule "));
+		strcat(out_str, param1_string);
+		strcat_hal(out_str, F(" "));
+		strcat_hal(out_str, rl_config_keys[RL_CONFIG].text);
+		strcat_hal(out_str, F(" "));
+		strcat(out_str, param2_string);
+		Callback(out_str);
+	}
+}
+
+void RegConfigBlockController(char* param1_string, uint16_t CON_CONFIG, char* param2_string, void(*Callback)(char*)) {
+	char out_str[MAX_MESSAGE_STRING_LENGTH];	// 80
+
+	if (ConfigureBlock(FF_CONTROLLER, param1_string, \
+			con_config_keys[CON_CONFIG].text, param2_string) == 0) {
+		GetMessageString(out_str, M_CONFIGURE_BLOCK_ERROR);
+		Callback(out_str);
+		strcpy_hal(out_str, F(" >>> CONFIG controller "));
+		strcat(out_str, param1_string);
+		strcat_hal(out_str, F(" "));
+		strcat_hal(out_str, con_config_keys[CON_CONFIG].text);
+		strcat_hal(out_str, F(" "));
+		strcat(out_str, param2_string);
+		Callback(out_str);
+	}
+}
+
+void RegConfigBlockOutput(char* param1_string, uint16_t OUT_CONFIG, char* param2_string, void(*Callback)(char*)) {
+	char out_str[MAX_MESSAGE_STRING_LENGTH];	// 80
+
+	if (ConfigureBlock(FF_OUTPUT, param1_string, \
+			out_config_keys[OUT_CONFIG].text, param2_string) == 0) {
+		GetMessageString(out_str, M_CONFIGURE_BLOCK_ERROR);
+		Callback(out_str);
+		strcpy_hal(out_str, F(" >>> CONFIG output "));
+		strcat(out_str, param1_string);
+		strcat_hal(out_str, F(" "));
+		strcat_hal(out_str, out_config_keys[OUT_CONFIG].text);
+		strcat_hal(out_str, F(" "));
+		strcat(out_str, param2_string);
+		Callback(out_str);
+	}
+}
+
+
+void RegInitSetupAll(void(*Callback)(char*)) {
+	ProcessDispatcher(Setup);
+}
+
+void RegInitValidateAll(void(*Callback)(char*)) {
+	ProcessDispatcher(Validate);
+}
+
+void RegInitDisableAll(void(*Callback)(char*)) {
+	ProcessDispatcher(InitDisable);
+}
+
+
 
 void RegSystemReboot(void(*Callback)(char*)) {
 	HALReboot();

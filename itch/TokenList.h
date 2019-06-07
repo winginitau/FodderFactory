@@ -15,7 +15,7 @@
 #include <out.h>
 #include <stdint.h>
 
-typedef struct AST_ARRAY ASTA;
+//typedef struct AST_ARRAY ASTA;
 
 typedef struct TOKEN_NODE {
 	//char label[MAX_IDENTIFIER_LABEL_SIZE];
@@ -36,7 +36,7 @@ typedef struct TOKEN_LIST {
 TokenList* TLNewTokenList(void);
 void TLDeleteTokenList(TokenList* tl);
 
-TokenNode* TLAddASTAToTokenList(TokenList* tl, ASTA node);
+TokenNode* TLAddASTAToTokenList(TokenList* tl, ASTA_Node node);
 TokenNode* TLAdd(TokenList* tl, TokenNode* n);
 TokenNode* TLNewTokenNode(void);
 void TLReset(TokenList* tl);

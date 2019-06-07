@@ -19,9 +19,11 @@ enum {
 	R_UNFINISHED,
 	R_COMPLETE,
 	R_IGNORE,
+	R_DISCARD,
 	R_HELP,
 	R_CONTINUE,
 	R_REPLAY,
+	R_BACKSPACE,
 };
 
 // AST types shared across grammar processor and parser

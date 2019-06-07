@@ -137,7 +137,7 @@ uint8_t TLIsEmpty(TokenList* tl) {
 	} else return 0;
 }
 
-TokenNode* TLAddASTAToTokenList(TokenList* tl, ASTA node) {
+TokenNode* TLAddASTAToTokenList(TokenList* tl, ASTA_Node node) {
 	// malloc new node
 	TokenNode* tn;
 	tn = TLNewTokenNode();

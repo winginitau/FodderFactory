@@ -52,7 +52,7 @@ int main(void) {
 	//if (isp) {
 	//	icli.Begin(isp, stdout, ICLI_FILE);
 	//} else {
-	itch.Begin(stdin, stdout, ITCH_INTERACTIVE);
+	itch.Begin(stdin, stdout);
 	//}
 
 

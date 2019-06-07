@@ -39,6 +39,9 @@ uint8_t HALEventSerialSend(EventNode* e, uint8_t port);
 void HALInitItch(void);
 void HALPollItch(void);
 void HALItchWriteLnImmediate(char *str);
+void HALItchSetBufferStuffMode(void);
+void HALItchSetTextDataMode(void);
+void HALItchStuffAndProcess(char *str);
 #endif
 
 uint8_t HALDigitalRead(uint8_t if_num);

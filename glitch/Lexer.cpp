@@ -25,13 +25,13 @@ Lexer::Lexer() {
     enum_array_type[0] = '\0';
     enum_array_instance[0] = '\0';
     enum_identifier[0] = '\0';
-    id_idx = 0;
+    //id_idx = 0;
     term_level = 0;		// not in a term at all
     previous_directive = D_NONE;
     action_since_last_term = false;
     escape_sequence[0] = '\0';
 
-    max_enum_string_array_string_size = 0;
+    //max_enum_string_array_string_size = 0;
     max_identifier_label_size = 0;
     max_ast_label_size = 0;
     max_ast_action_size = 0;
@@ -56,6 +56,7 @@ void Lexer::Init() {
     header_output_available = false;
     output_string[0] = '\0';
     error_type = E_NO_ERROR;
+    ast_build_action_code_result = E_NO_ERROR;
     // sectionally persistent directives
     // persist only while line result = R_UNFINISHED or R_IGNORE
     code_section = false;
@@ -183,7 +184,7 @@ void Lexer::Process_D_UNKNOWN(void) {
 			line.GetTokenStr(tokens[0], 0);
 			line.GetTokenStr(tokens[1], 1);
 			idents.AddMember(enum_identifier, tokens[0], tokens[1]);
-			RegisterSize(&max_enum_string_array_string_size, tokens[1]);
+			//RegisterSize(&max_enum_string_array_string_size, tokens[1]);
 			// TODO possibly add code to process lines as enum-only entries
 			// if token[1] fails
 			process_result = R_UNFINISHED;
@@ -380,11 +381,12 @@ void Lexer::Process_D_ENUM_START_VALUE(void) {
 }
 
 void Lexer::Process_D_ENUM_ARRAY_TYPE(void) {
+	// e.g. %enum-array-type SimpleStringArray
     if (line.GetTokenStr(token_str, 1) == NULL) {
         process_result = R_ERROR;
         error_type = E_ENUM_ARRAY_TYPE_NULL;
     } else {
-    	RegisterSize(&max_identifier_label_size, token_str);
+    	//RegisterSize(&max_identifier_label_size, token_str);
         strcpy(enum_array_type, token_str);
         process_result = R_COMPLETE;
 		sprintf(temp_string, "Enum string array type set to: %s\n", token_str);
@@ -394,6 +396,7 @@ void Lexer::Process_D_ENUM_ARRAY_TYPE(void) {
 }
 
 void Lexer::Process_D_ENUM_ARRAY_INSTANCE(void) {
+	// enum-array-instance command_strings
     if (line.GetTokenStr(token_str, 1) == NULL) {
         process_result = R_ERROR;
         error_type = E_ENUM_ARRAY_INSTANCE_NULL;
@@ -411,7 +414,7 @@ void Lexer::Process_D_ENUM_ARRAY_MEMBER_LABEL(void) {
         process_result = R_ERROR;
         error_type = E_ENUM_ARRAY_MEMBER_LABEL_NULL;
     } else {
-    	RegisterSize(&max_identifier_label_size, token_str);
+    	//RegisterSize(&max_identifier_label_size, token_str);
         strcpy(enum_array_member_label, token_str);
         process_result = R_COMPLETE;
 		sprintf(temp_string, "Enum array member field label set to: %s\n", token_str);
@@ -432,11 +435,12 @@ void Lexer::Process_D_ENUM_ARRAY_NO_RESERVE(void) {
 }
 
 void Lexer::Process_D_ENUM_IDENTIFIFER(void) {
+	// e.g. %enum-identifier COMMAND_STRING
     if (line.GetTokenStr(token_str, 1) == NULL) {
         process_result = R_ERROR;
         error_type = E_ENUM_IDENTFIFER_NULL;
     } else {
-    	RegisterSize(&max_identifier_label_size, token_str);
+    	//RegisterSize(&max_identifier_label_size, token_str);
         strcpy(enum_identifier, token_str);
         process_result = R_COMPLETE;
         // indicate user output at end of processing the list
@@ -445,7 +449,7 @@ void Lexer::Process_D_ENUM_IDENTIFIFER(void) {
 
 void Lexer::Process_D_ENUM_START(void) {
     // do logic checks that pre reqs met
-    if (enum_identifier == '\0') {
+    if (enum_identifier[0] == '\0') {
         process_result = R_ERROR;
         error_type = E_ENUM_START_BEFORE_PREREQ;
     }
@@ -508,6 +512,9 @@ void Lexer::Process_D_ENUM_END(void) {
 			// or only the enum symbol if there's no strings
 			idents.GetEntryAtLocation(enum_identifier,tokens[0], i);
 		}
+		// Register the size for MAX defines
+		RegisterSize(&max_identifier_label_size, tokens[1]);
+
 		// write the symbol
 		strcpy(output_string, "\t");
 		strcat(output_string, tokens[0]);
@@ -641,23 +648,24 @@ void Lexer::Process_D_TERM(void) {
 			// Form: <level> <term-type> (<term>)
 			// Present forms / types:
 			//
-			// <n> keyword <keyword>		// AST_KEYWORD
+			// <n> keyword <keyword>					// AST_KEYWORD
 			// <n> enum-array <enum-array-identifier>	// AST_ENUM_ARRAY
-			// <n> lookup <lookup-list>		// AST_LOOKUP
+			// <n> lookup <lookup-list-identifier>					// AST_LOOKUP
 			//
-			// <n> param-string				// AST_PARAM_STRING,
-			// <n> param-integer			// AST_PARAM_INTEGER,
-			// <n> param-float				// AST_PARAM_FLOAT,
-			// <n> param-time				// AST_PARAM_TIME,
-			// <n> param-date				// AST_PARAM_DATE,
+			// <n> param-string							// AST_PARAM_STRING,
+			// <n> param-integer						// AST_PARAM_INTEGER,
+			// <n> param-float							// AST_PARAM_FLOAT,
+			// <n> param-time							// AST_PARAM_TIME,
+			// <n> param-date							// AST_PARAM_DATE,
 
 			// see if this is a 2 or 3 token form
 			if (line.GetTokenStr(tokens[2], 2) == NULL) {
-				// 2 - Must be a param type - AST will check for valid types when added
+				// 2 - param type - AST will check for valid types when added
 				error_type = ast.NewNode(term_level, tokens[1]);
 		    	RegisterSize(&max_ast_label_size, tokens[1]);
+		    	RegisterSize(&max_identifier_label_size, tokens[1]);
 			} else {
-				// it is a 3 token form (enum-array or lookup)
+				// 3 token form (enum-array or lookup)
 				if (   (strcmp(tokens[1], "enum-array") == 0)
 					|| (strcmp(tokens[1], "lookup") == 0) ) {
 					// check that it has already been defined
@@ -665,7 +673,7 @@ void Lexer::Process_D_TERM(void) {
 						// add it to the term to the AST
 						error_type = ast.NewNode(term_level, tokens[1], tokens[2]);
 				    	RegisterSize(&max_identifier_label_size, tokens[2]);
-				    	RegisterSize(&max_ast_label_size, tokens[2]);
+				    	//RegisterSize(&max_ast_label_size, tokens[2]);
 					} else {
 						// tried to use
 						error_type = E_UNKNOWN_IDENT_OR_LOOKUP;
@@ -675,7 +683,7 @@ void Lexer::Process_D_TERM(void) {
 					if (strcmp(tokens[1], "keyword") == 0) {
 						// XXX duplicate check needs to be done in AST - its the only place the keywords persist
 						error_type = ast.NewNode(term_level, tokens[1], tokens[2]);
-				    	RegisterSize(&max_ast_label_size, tokens[1]);
+				    	//RegisterSize(&max_ast_label_size, tokens[1]);
 						RegisterSize(&max_identifier_label_size, tokens[2]);
 				    	RegisterSize(&max_ast_label_size, tokens[2]);
 					} else {
@@ -695,9 +703,10 @@ void Lexer::Process_D_TERM(void) {
 }
 
 void Lexer::Process_D_ACTION_DEFINE(void) {
-	// Set up an identifier list of key val pairs
-	//	ACTION_IDENTIFIER as IdentifierName
-	//	FunctionName as InstanceName
+	// e.g. %action-define COMMAND_BLOCK_LABEL SendCommandToBlockLabel
+	// Set up an identifier
+	//	IdentifierName holds the ACTION_IDENTIFIER
+	//	InstanceName holds the FunctionName
 
 	line.GetTokenStr(tokens[0], 0);
 
@@ -716,9 +725,9 @@ void Lexer::Process_D_ACTION_DEFINE(void) {
 			} else {
 				if ((error_type = idents.NewIdent(tokens[1], ID_ACTION_PAIR)) == E_NO_ERROR) {
 					idents.SetInstanceName(tokens[1], tokens[2]);
-			    	RegisterSize(&max_identifier_label_size, tokens[1]);
-			    	RegisterSize(&max_identifier_label_size, tokens[2]);
-			    	RegisterSize(&max_ast_action_size, tokens[2]);
+			    	//RegisterSize(&max_identifier_label_size, tokens[1]);
+			    	//RegisterSize(&max_identifier_label_size, tokens[2]);
+			    	RegisterSize(&max_ast_action_size, tokens[1]);
 
 				    // tell the user
 					sprintf(temp_string, "Registered Action: %s which will call function: %s\n", tokens[1], tokens[2]);
@@ -735,6 +744,7 @@ void Lexer::Process_D_ACTION_DEFINE(void) {
 }
 
 void Lexer::Process_D_ACTION(void) {
+	// e.g. %action COMMAND_BLOCK_LABEL
 	// Attach the action to the last added AST node
 	// check first that the action identifier has been defined
 	// Build the action calling code
@@ -748,7 +758,7 @@ void Lexer::Process_D_ACTION(void) {
     		process_result = R_ERROR;
     	} else {
     		ast.AttachActionToCurrent(tokens[1]);
-    		ast.BuildActionCode(idents);
+    		ast_build_action_code_result = ast.BuildActionCode(idents);
     		while (ast.header_output_queue.OutputAvailable()) {
     			ast.header_output_queue.GetOutputAsString(output_string);
     			header_output_queue.EnQueue(output_string);
@@ -765,12 +775,22 @@ void Lexer::Process_D_ACTION(void) {
     			code_output_available = true;
     		}
 
-    		// Tell the user
-    		sprintf(temp_string, "Processed grammar and built user code for Action: %s\n", tokens[1]);
+    		// Check result and tell the user
+    		process_result = R_COMPLETE;
+    		if (ast_build_action_code_result == E_NO_ERROR) {
+    			sprintf(temp_string, "Processed grammar and built user code for Action: %s\n", tokens[1]);
+    		} else {
+    			if (ast_build_action_code_result == I_ACTION_ALREADY_BUILT) {
+    				sprintf(temp_string, "Processed grammar and reused previously built code for Action: %s\n", tokens[1]);
+    			} else {
+    	    		error_type = ast_build_action_code_result;
+    	    		process_result = R_ERROR;
+    			}
+
+    		}
 			user_output_queue.EnQueue(temp_string);
 			user_output_available = true;
 
-    		process_result = R_COMPLETE;
     		action_since_last_term = true;
     	}
     }
@@ -974,6 +994,7 @@ void Lexer::Process_D_INCLUDE_CODE(void) {
 }
 
 void Lexer::Process_D_LOOKUP_LIST(void) {
+	// e.g. %lookup-list BLOCK_LABEL LookupBlockLabel
 	// Set up an identifier list of key val pairs
 	//	<lookup-identifier> as IdentifierName
 	// Set FunctionName as InstanceName
@@ -1001,7 +1022,8 @@ void Lexer::Process_D_LOOKUP_LIST(void) {
 				error_type = idents.NewIdent(tokens[1], ID_LOOKUP_LIST);
 				if (error_type == E_NO_ERROR) {
 					idents.SetInstanceName(tokens[1], tokens[2]);
-			    	RegisterSize(&max_identifier_label_size, tokens[2]);
+					RegisterSize(&max_identifier_label_size, tokens[1]);
+					RegisterSize(&max_ast_label_size, tokens[1]);
 					process_result = R_COMPLETE;
 				} else {
 					process_result = R_ERROR;

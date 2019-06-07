@@ -60,6 +60,7 @@ enum {
 	E_HEADER_END_WITHOUT_START,
 	E_ESCAPE_SEQUENCE_ALREADY_DEFINED,
 	E_MODE_CHANGE_WITHOUT_MODE,
+	I_ACTION_ALREADY_BUILT,
 	LAST_ERROR,
 };
 
@@ -109,8 +110,9 @@ static const EnumStringArray error_strings[LAST_ERROR] = {
 		"Duplication of keyword at this term level detected",
 		"%header-start encountered while other %code %header or %grammar section already active",
 		"%header-end encountered before %header-start",
-		"Duplicate definition of escape-sequence. Already defined."
-		"%mode-change encountered without stipulating a mode."
+		"Duplicate definition of escape-sequence. Already defined.",
+		"%mode-change encountered without stipulating a mode.",
+		"Action Code already built for identifier - reusing."
 
 };
 

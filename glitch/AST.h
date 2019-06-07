@@ -31,7 +31,7 @@ private:
 	uint16_t next_id;
 	void DT(ASTNode* tree, Identifiers* idents, bool print);
 
-    char output_string[MAX_BUFFER_LENGTH];
+    char output_string[MAX_OUT_BUFFER_LENGTH];
 
     bool caller_func_preamble_done;
 

@@ -110,7 +110,7 @@ typedef struct BLOCK_NODE {
 	int32_t int_val;	// generic holder of an int value (representing some real world status)
 	float f_val;		// generic holder of a float value (representing some real world status)
 	time_t last_update;	// the time the block was last updated / operated / etc
-	uint8_t status;		// generic status flag (eg for MON cat to indicate of the last input read was valid)
+	uint8_t status;		// generic status flag (eg for MON cat to indicate if the last input read was valid)
 
 	// union of block_type specific settings
 	// also tied to config file key strings
@@ -170,8 +170,12 @@ BlockNode* GetBlockByLabel(const char *block_label);
 BlockNode* AddBlock(uint8_t block_cat, const char *block_label);
 //BlockNode* AddBlockNode(BlockNode** head_ref, uint8_t block_cat, const char *block_label);
 char* UpdateBlockLabel(BlockNode* b, const char * block_label);
+#ifndef EXCLUDE_DISPLAYNAME
 char* UpdateDisplayName(BlockNode* b, const char * display_name);
+#endif
+#ifndef EXCLUDE_DESCRIPTION
 char* UpdateDescription(BlockNode* b, const char * description);
+#endif
 void DropBlockList(void);
 
 // itch integration functions (called by user_code.cpp)
@@ -194,6 +198,19 @@ void RegConfigLoadBinary(void(*Callback)(char*));
 void RegConfigLoadINI(void(*Callback)(char*));
 void RegConfigSave(void(*Callback)(char*));
 void RegConfigSaveBinary(void(*Callback)(char*));
+
+void RegConfigBlockSystem(char* param1_string, uint16_t SYS_CONFIG, char* param2_string, void(*Callback)(char*));
+void RegConfigBlockInput(char* param1_string, uint16_t IN_CONFIG, char* param2_string, void(*Callback)(char*));
+void RegConfigBlockMonitor(char* param1_string, uint16_t MON_CONFIG, char* param2_string, void(*Callback)(char*));
+void RegConfigBlockSchedule(char* param1_string, uint16_t SCH_CONFIG, char* param2_string, void(*Callback)(char*));
+void RegConfigBlockRule(char* param1_string, uint16_t RL_CONFIG, char* param2_string, void(*Callback)(char*));
+void RegConfigBlockController(char* param1_string, uint16_t CON_CONFIG, char* param2_string, void(*Callback)(char*));
+void RegConfigBlockOutput(char* param1_string, uint16_t OUT_CONFIG, char* param2_string, void(*Callback)(char*));
+
+void RegInitSetupAll(void(*Callback)(char*));
+void RegInitValidateAll(void(*Callback)(char*));
+void RegInitDisableAll(void(*Callback)(char*));
+
 void RegSystemReboot(void(*Callback)(char*));
 void RegBlockIDCmdOn(uint16_t block_id, void(*Callback)(char*));
 void RegBlockIDCmdOff(uint16_t block_id, void(*Callback)(char*));

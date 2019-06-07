@@ -46,6 +46,7 @@ void ScheduleSetup(BlockNode *b) {
 		case SCH_START_STOP:
 			b->active = 0;
 			b->last_update = TimeNow();
+			b->status = STATUS_ENABLED_INIT;
 			break;
 
 		case SCH_ONE_SHOT:
@@ -55,6 +56,7 @@ void ScheduleSetup(BlockNode *b) {
 			// in which case debounce logic would then need to be implemented.
 			b->active = 0;
 			b->last_update = TimeNow();
+			b->status = STATUS_ENABLED_INIT;
 			break;
 
 		case SCH_START_DURATION_REPEAT: {
@@ -67,6 +69,7 @@ void ScheduleSetup(BlockNode *b) {
 				sprintf(log_message, fmt_str, b->block_label);
 				DebugLog(log_message);
 			}
+			b->status = STATUS_ENABLED_INIT;
 		}
 			break;
 

@@ -9,22 +9,18 @@
 #ifndef OUT_H_
 #define OUT_H_
 
-#define MAX_ENUM_STRING_ARRAY_STRING_SIZE 18
-#define MAX_IDENTIFIER_LABEL_SIZE 24
+#define MAX_AST_IDENTIFIER_SIZE 18
 #define MAX_AST_LABEL_SIZE 16
 #define MAX_AST_ACTION_SIZE 24
-#define AST_NODE_COUNT 140
-#define MAX_PARAM_COUNT 2
+#define AST_NODE_COUNT 63
+#define MAX_PARAM_COUNT 3
 
-#define XLAT_IDENT_MAP_COUNT 2
+#define XLAT_IDENT_MAP_COUNT 9
 #define XLAT_LOOKUP_MAP_COUNT 1
-#define XLAT_FUNC_MAP_COUNT 26
+#define XLAT_FUNC_MAP_COUNT 29
 
-#define MAX_INPUT_LINE_SIZE 80
+#define MAX_INPUT_LINE_SIZE 150
 #define MAX_OUTPUT_LINE_SIZE 150
-
-#define MAX_BUFFER_SIZE MAX_OUTPUT_LINE_SIZE
-#define MAX_BUFFER_LENGTH MAX_OUTPUT_LINE_SIZE
 
 #ifdef ARDUINO
 #include <Arduino.h>
@@ -45,26 +41,37 @@
 // 
 
 typedef struct AST_ARRAY {
-    uint16_t id;
-    int type;
-    char label[MAX_AST_LABEL_SIZE];
-    bool action;
-    uint16_t parent;
-    uint16_t first_child;
-    uint16_t next_sibling;
-    char action_identifier[MAX_AST_ACTION_SIZE];
+    uint8_t id;
+    uint8_t type;
+    const char *label;
+    uint8_t action;
+    uint8_t parent;
+    uint8_t first_child;
+    uint8_t next_sibling;
+    const char *action_identifier;
 } ASTA;
 
+typedef struct AST_NODE {
+    uint8_t id;
+    uint8_t type;
+    char label[MAX_AST_LABEL_SIZE];
+    uint8_t action;
+    uint8_t parent;
+    uint8_t first_child;
+    uint8_t next_sibling;
+    char action_identifier[MAX_AST_ACTION_SIZE];
+} ASTA_Node;
+
 typedef struct XLAT_MAP {
-	char label[MAX_IDENTIFIER_LABEL_SIZE];
-	uint16_t xlat_id;
+    const char *label;
+    uint16_t xlat_id;
 } XLATMap;
 
 typedef union {
-	int16_t param_int16_t;
-	uint16_t param_uint16_t;
-	float param_float;
-	char* param_char_star;
+    int16_t param_int16_t;
+    uint16_t param_uint16_t;
+    float param_float;
+    char* param_char_star;
 } ParamUnion;
 
 #define ITCH_ESCAPE_SEQUENCE "^^^"
@@ -118,6 +125,195 @@ static const SimpleStringArray command_strings [LAST_COMMAND] = {
 	"CMD_RESET_MIN_MAX",
 };
 
+enum {
+	SYS_CONFIG_ERROR = 0,
+	SYS_CONFIG_TYPE,
+	SYS_CONFIG_DISPLAY_NAME,
+	SYS_CONFIG_DESCRIPTION,
+	SYS_CONFIG_LANGUAGE,
+	SYS_CONFIG_TEMP_SCALE,
+	SYS_CONFIG_WEEK_START,
+	LAST_SYS_CONFIG,
+};
+
+#ifdef USE_PROGMEM
+static const SimpleStringArray sys_config_keys [LAST_SYS_CONFIG] PROGMEM = {
+#else
+static const SimpleStringArray sys_config_keys [LAST_SYS_CONFIG] = {
+#endif
+	"SYS_CONFIG_ERROR",
+	"type",
+	"display_name",
+	"description",
+	"language",
+	"temp_scale",
+	"week_start",
+};
+
+enum {
+	IN_CONFIG_ERROR = 0,
+	IN_CONFIG_TYPE,
+	IN_CONFIG_DISPLAY_NAME,
+	IN_CONFIG_DESCRIPTION,
+	IN_CONFIG_INTERFACE,
+	IN_CONFIG_IF_NUM,
+	IN_CONFIG_LOG_RATE,
+	IN_CONFIG_DATA_UNITS,
+	LAST_IN_CONFIG,
+};
+
+#ifdef USE_PROGMEM
+static const SimpleStringArray in_config_keys [LAST_IN_CONFIG] PROGMEM = {
+#else
+static const SimpleStringArray in_config_keys [LAST_IN_CONFIG] = {
+#endif
+	"IN_CONFIG_ERROR",
+	"type",
+	"display_name",
+	"description",
+	"interface",
+	"if_num",
+	"log_rate",
+	"data_units",
+};
+
+enum {
+	MON_CONFIG_ERROR = 0,
+	MON_CONFIG_TYPE,
+	MON_CONFIG_DISPLAY_NAME,
+	MON_CONFIG_DESCRIPTION,
+	MON_CONFIG_INPUT1,
+	MON_CONFIG_INPUT2,
+	MON_CONFIG_INPUT3,
+	MON_CONFIG_INPUT4,
+	MON_CONFIG_ACT_VAL,
+	MON_CONFIG_DEACT_VAL,
+	LAST_MON_CONFIG,
+};
+
+#ifdef USE_PROGMEM
+static const SimpleStringArray mon_config_keys [LAST_MON_CONFIG] PROGMEM = {
+#else
+static const SimpleStringArray mon_config_keys [LAST_MON_CONFIG] = {
+#endif
+	"MON_CONFIG_ERROR",
+	"type",
+	"display_name",
+	"description",
+	"input1",
+	"input2",
+	"input3",
+	"input4",
+	"act_val",
+	"deact_val",
+};
+
+enum {
+	SCH_CONFIG_ERROR = 0,
+	SCH_CONFIG_TYPE,
+	SCH_CONFIG_DISPLAY_NAME,
+	SCH_CONFIG_DESCRIPTION,
+	SCH_CONFIG_DAYS,
+	SCH_CONFIG_TIME_START,
+	SCH_CONFIG_TIME_END,
+	SCH_CONFIG_TIME_DURATION,
+	SCH_CONFIG_TIME_REPEAT,
+	LAST_SCH_CONFIG,
+};
+
+#ifdef USE_PROGMEM
+static const SimpleStringArray sch_config_keys [LAST_SCH_CONFIG] PROGMEM = {
+#else
+static const SimpleStringArray sch_config_keys [LAST_SCH_CONFIG] = {
+#endif
+	"SCH_CONFIG_ERROR",
+	"type",
+	"display_name",
+	"description",
+	"days",
+	"time_start",
+	"time_end",
+	"time_duration",
+	"time_repeat",
+};
+
+enum {
+	RL_CONFIG_ERROR = 0,
+	RL_CONFIG_TYPE,
+	RL_CONFIG_DISPLAY_NAME,
+	RL_CONFIG_DESCRIPTION,
+	RL_CONFIG_PARAM1,
+	RL_CONFIG_PARAM2,
+	RL_CONFIG_PARAM3,
+	RL_CONFIG_PARAM_NOT,
+	LAST_RL_CONFIG,
+};
+
+#ifdef USE_PROGMEM
+static const SimpleStringArray rl_config_keys [LAST_RL_CONFIG] PROGMEM = {
+#else
+static const SimpleStringArray rl_config_keys [LAST_RL_CONFIG] = {
+#endif
+	"RL_CONFIG_ERROR",
+	"type",
+	"display_name",
+	"description",
+	"param1",
+	"param2",
+	"param3",
+	"param_not",
+};
+
+enum {
+	CON_CONFIG_ERROR = 0,
+	CON_CONFIG_TYPE,
+	CON_CONFIG_DISPLAY_NAME,
+	CON_CONFIG_DESCRIPTION,
+	CON_CONFIG_RULE,
+	CON_CONFIG_OUTPUT,
+	CON_CONFIG_ACT_CMD,
+	CON_CONFIG_DEACT_CMD,
+	LAST_CON_CONFIG,
+};
+
+#ifdef USE_PROGMEM
+static const SimpleStringArray con_config_keys [LAST_CON_CONFIG] PROGMEM = {
+#else
+static const SimpleStringArray con_config_keys [LAST_CON_CONFIG] = {
+#endif
+	"CON_CONFIG_ERROR",
+	"type",
+	"display_name",
+	"description",
+	"rule",
+	"output",
+	"act_cmd",
+	"deact_cmd",
+};
+
+enum {
+	OUT_CONFIG_ERROR = 0,
+	OUT_CONFIG_TYPE,
+	OUT_CONFIG_DISPLAY_NAME,
+	OUT_CONFIG_DESCRIPTION,
+	OUT_CONFIG_INTERFACE,
+	OUT_CONFIG_IF_NUM,
+	LAST_OUT_CONFIG,
+};
+
+#ifdef USE_PROGMEM
+static const SimpleStringArray out_config_keys [LAST_OUT_CONFIG] PROGMEM = {
+#else
+static const SimpleStringArray out_config_keys [LAST_OUT_CONFIG] = {
+#endif
+	"OUT_CONFIG_ERROR",
+	"type",
+	"display_name",
+	"description",
+	"interface",
+	"if_num",
+};
+
 void ShowBlocks(void);
 void ShowSystem(void);
 void ShowBlockByLabel(char* BLOCK_LABEL);
@@ -134,63 +330,25 @@ void ConfigLoadBinary(void);
 void ConfigLoadINI(void);
 void ConfigSave(void);
 void ConfigSaveBinary(void);
-void ConfigBlockSystem(char* param1_string, char* param2_string);
-void ConfigBlockSystem(char* param1_string, char* param2_string);
-void ConfigBlockSystem(char* param1_string, char* param2_string);
-void ConfigBlockSystem(char* param1_string, char* param2_string);
-void ConfigBlockSystem(char* param1_string, char* param2_string);
-void ConfigBlockSystem(char* param1_string, char* param2_string);
-void ConfigBlockInput(char* param1_string, char* param2_string);
-void ConfigBlockInput(char* param1_string, char* param2_string);
-void ConfigBlockInput(char* param1_string, char* param2_string);
-void ConfigBlockInput(char* param1_string, char* param2_string);
-void ConfigBlockInput(char* param1_string, char* param2_string);
-void ConfigBlockInput(char* param1_string, char* param2_string);
-void ConfigBlockInput(char* param1_string, char* param2_string);
-void ConfigBlockMonitor(char* param1_string, char* param2_string);
-void ConfigBlockMonitor(char* param1_string, char* param2_string);
-void ConfigBlockMonitor(char* param1_string, char* param2_string);
-void ConfigBlockMonitor(char* param1_string, char* param2_string);
-void ConfigBlockMonitor(char* param1_string, char* param2_string);
-void ConfigBlockMonitor(char* param1_string, char* param2_string);
-void ConfigBlockMonitor(char* param1_string, char* param2_string);
-void ConfigBlockMonitor(char* param1_string, char* param2_string);
-void ConfigBlockMonitor(char* param1_string, char* param2_string);
-void ConfigBlockSchedule(char* param1_string, char* param2_string);
-void ConfigBlockSchedule(char* param1_string, char* param2_string);
-void ConfigBlockSchedule(char* param1_string, char* param2_string);
-void ConfigBlockSchedule(char* param1_string, char* param2_string);
-void ConfigBlockSchedule(char* param1_string, char* param2_string);
-void ConfigBlockSchedule(char* param1_string, char* param2_string);
-void ConfigBlockSchedule(char* param1_string, char* param2_string);
-void ConfigBlockSchedule(char* param1_string, char* param2_string);
-void ConfigBlockRule(char* param1_string, char* param2_string);
-void ConfigBlockRule(char* param1_string, char* param2_string);
-void ConfigBlockRule(char* param1_string, char* param2_string);
-void ConfigBlockRule(char* param1_string, char* param2_string);
-void ConfigBlockRule(char* param1_string, char* param2_string);
-void ConfigBlockRule(char* param1_string, char* param2_string);
-void ConfigBlockRule(char* param1_string, char* param2_string);
-void ConfigBlockController(char* param1_string, char* param2_string);
-void ConfigBlockController(char* param1_string, char* param2_string);
-void ConfigBlockController(char* param1_string, char* param2_string);
-void ConfigBlockController(char* param1_string, char* param2_string);
-void ConfigBlockController(char* param1_string, char* param2_string);
-void ConfigBlockController(char* param1_string, char* param2_string);
-void ConfigBlockController(char* param1_string, char* param2_string);
-void ConfigBlockOutput(char* param1_string, char* param2_string);
-void ConfigBlockOutput(char* param1_string, char* param2_string);
-void ConfigBlockOutput(char* param1_string, char* param2_string);
-void ConfigBlockOutput(char* param1_string, char* param2_string);
-void ConfigBlockOutput(char* param1_string, char* param2_string);
+void ConfigBlockSystem(char* param1_string, uint16_t SYS_CONFIG, char* param2_string);
+void ConfigBlockInput(char* param1_string, uint16_t IN_CONFIG, char* param2_string);
+void ConfigBlockMonitor(char* param1_string, uint16_t MON_CONFIG, char* param2_string);
+void ConfigBlockSchedule(char* param1_string, uint16_t SCH_CONFIG, char* param2_string);
+void ConfigBlockRule(char* param1_string, uint16_t RL_CONFIG, char* param2_string);
+void ConfigBlockController(char* param1_string, uint16_t CON_CONFIG, char* param2_string);
+void ConfigBlockOutput(char* param1_string, uint16_t OUT_CONFIG, char* param2_string);
+void InitSetupAll(void);
+void InitValidateAll(void);
+void InitDisableAll(void);
 void SystemReboot(void);
 void BlockIDCmdOn(int16_t param1_int);
 void BlockIDCmdOff(int16_t param1_int);
 
+// id, type, label, actionable, parent, first_child, next_sibling, action_id
 #ifdef USE_PROGMEM
-static const ASTA asta [140] PROGMEM = {
+static const ASTA asta [63] PROGMEM = {
 #else
-static const ASTA asta [140] = {
+static const ASTA asta [63] = {
 #endif
 	1, 1, "SHOW", 0, 0, 2, 6, "",
 	2, 1, "BLOCKS", 1, 1, 0, 3, "SHOW_BLOCKS",
@@ -209,138 +367,68 @@ static const ASTA asta [140] = {
 	15, 1, "DATE", 1, 0, 16, 18, "SHOW_DATE",
 	16, 1, "SET", 0, 15, 17, 0, "",
 	17, 4, "param-date", 1, 16, 0, 0, "SET_DATE",
-	18, 1, "CONFIG", 0, 0, 19, 137, "",
+	18, 1, "CONFIG", 0, 0, 19, 53, "",
 	19, 1, "RESET", 1, 18, 0, 20, "CONFIG_RESET",
 	20, 1, "LOAD", 1, 18, 21, 23, "CONFIG_LOAD",
 	21, 1, "BINARY", 1, 20, 0, 22, "CONFIG_LOAD_BINARY",
 	22, 1, "INI", 1, 20, 0, 0, "CONFIG_LOAD_INI",
 	23, 1, "SAVE", 1, 18, 24, 25, "CONFIG_SAVE",
 	24, 1, "BINARY", 1, 23, 0, 0, "CONFIG_SAVE_BINARY",
-	25, 1, "system", 0, 18, 26, 39, "",
+	25, 1, "system", 0, 18, 26, 29, "",
 	26, 13, "param-string", 0, 25, 27, 0, "",
-	27, 1, "type", 0, 26, 28, 29, "",
+	27, 2, "sys_config_keys", 0, 26, 28, 0, "",
 	28, 13, "param-string", 1, 27, 0, 0, "CONFIG_BLOCK_SYSTEM",
-	29, 1, "display_name", 0, 26, 30, 31, "",
-	30, 13, "param-string", 1, 29, 0, 0, "CONFIG_BLOCK_SYSTEM",
-	31, 1, "description", 0, 26, 32, 33, "",
-	32, 13, "param-string", 1, 31, 0, 0, "CONFIG_BLOCK_SYSTEM",
-	33, 1, "temp_scale", 0, 26, 34, 35, "",
-	34, 13, "param-string", 1, 33, 0, 0, "CONFIG_BLOCK_SYSTEM",
-	35, 1, "language", 0, 26, 36, 37, "",
-	36, 13, "param-string", 1, 35, 0, 0, "CONFIG_BLOCK_SYSTEM",
-	37, 1, "week_start", 0, 26, 38, 0, "",
-	38, 13, "param-string", 1, 37, 0, 0, "CONFIG_BLOCK_SYSTEM",
-	39, 1, "input", 0, 18, 40, 55, "",
-	40, 13, "param-string", 0, 39, 41, 0, "",
-	41, 1, "type", 0, 40, 42, 43, "",
-	42, 13, "param-string", 1, 41, 0, 0, "CONFIG_BLOCK_INPUT",
-	43, 1, "display_name", 0, 40, 44, 45, "",
-	44, 13, "param-string", 1, 43, 0, 0, "CONFIG_BLOCK_INPUT",
-	45, 1, "description", 0, 40, 46, 47, "",
-	46, 13, "param-string", 1, 45, 0, 0, "CONFIG_BLOCK_INPUT",
-	47, 1, "interface", 0, 40, 48, 49, "",
-	48, 13, "param-string", 1, 47, 0, 0, "CONFIG_BLOCK_INPUT",
-	49, 1, "if_num", 0, 40, 50, 51, "",
-	50, 13, "param-string", 1, 49, 0, 0, "CONFIG_BLOCK_INPUT",
-	51, 1, "log_rate", 0, 40, 52, 53, "",
-	52, 13, "param-string", 1, 51, 0, 0, "CONFIG_BLOCK_INPUT",
-	53, 1, "data_units", 0, 40, 54, 0, "",
-	54, 13, "param-string", 1, 53, 0, 0, "CONFIG_BLOCK_INPUT",
-	55, 1, "monitor", 0, 18, 56, 75, "",
-	56, 13, "param-string", 0, 55, 57, 0, "",
-	57, 1, "type", 0, 56, 58, 59, "",
-	58, 13, "param-string", 1, 57, 0, 0, "CONFIG_BLOCK_MONITOR",
-	59, 1, "display_name", 0, 56, 60, 61, "",
-	60, 13, "param-string", 1, 59, 0, 0, "CONFIG_BLOCK_MONITOR",
-	61, 1, "description", 0, 56, 62, 63, "",
-	62, 13, "param-string", 1, 61, 0, 0, "CONFIG_BLOCK_MONITOR",
-	63, 1, "input1", 0, 56, 64, 65, "",
-	64, 13, "param-string", 1, 63, 0, 0, "CONFIG_BLOCK_MONITOR",
-	65, 1, "input2", 0, 56, 66, 67, "",
-	66, 13, "param-string", 1, 65, 0, 0, "CONFIG_BLOCK_MONITOR",
-	67, 1, "input3", 0, 56, 68, 69, "",
-	68, 13, "param-string", 1, 67, 0, 0, "CONFIG_BLOCK_MONITOR",
-	69, 1, "input4", 0, 56, 70, 71, "",
-	70, 13, "param-string", 1, 69, 0, 0, "CONFIG_BLOCK_MONITOR",
-	71, 1, "act_val", 0, 56, 72, 73, "",
-	72, 13, "param-string", 1, 71, 0, 0, "CONFIG_BLOCK_MONITOR",
-	73, 1, "deact_val", 0, 56, 74, 0, "",
-	74, 13, "param-string", 1, 73, 0, 0, "CONFIG_BLOCK_MONITOR",
-	75, 1, "schedule", 0, 18, 76, 93, "",
-	76, 13, "param-string", 0, 75, 77, 0, "",
-	77, 1, "type", 0, 76, 78, 79, "",
-	78, 13, "param-string", 1, 77, 0, 0, "CONFIG_BLOCK_SCHEDULE",
-	79, 1, "display_name", 0, 76, 80, 81, "",
-	80, 13, "param-string", 1, 79, 0, 0, "CONFIG_BLOCK_SCHEDULE",
-	81, 1, "description", 0, 76, 82, 83, "",
-	82, 13, "param-string", 1, 81, 0, 0, "CONFIG_BLOCK_SCHEDULE",
-	83, 1, "days", 0, 76, 84, 85, "",
-	84, 13, "param-string", 1, 83, 0, 0, "CONFIG_BLOCK_SCHEDULE",
-	85, 1, "time_start", 0, 76, 86, 87, "",
-	86, 13, "param-string", 1, 85, 0, 0, "CONFIG_BLOCK_SCHEDULE",
-	87, 1, "time_end", 0, 76, 88, 89, "",
-	88, 13, "param-string", 1, 87, 0, 0, "CONFIG_BLOCK_SCHEDULE",
-	89, 1, "time_duration", 0, 76, 90, 91, "",
-	90, 13, "param-string", 1, 89, 0, 0, "CONFIG_BLOCK_SCHEDULE",
-	91, 1, "time_repeat", 0, 76, 92, 0, "",
-	92, 13, "param-string", 1, 91, 0, 0, "CONFIG_BLOCK_SCHEDULE",
-	93, 1, "rule", 0, 18, 94, 109, "",
-	94, 13, "param-string", 0, 93, 95, 0, "",
-	95, 1, "type", 0, 94, 96, 97, "",
-	96, 13, "param-string", 1, 95, 0, 0, "CONFIG_BLOCK_RULE",
-	97, 1, "display_name", 0, 94, 98, 99, "",
-	98, 13, "param-string", 1, 97, 0, 0, "CONFIG_BLOCK_RULE",
-	99, 1, "description", 0, 94, 100, 101, "",
-	100, 13, "param-string", 1, 99, 0, 0, "CONFIG_BLOCK_RULE",
-	101, 1, "param1", 0, 94, 102, 103, "",
-	102, 13, "param-string", 1, 101, 0, 0, "CONFIG_BLOCK_RULE",
-	103, 1, "param2", 0, 94, 104, 105, "",
-	104, 13, "param-string", 1, 103, 0, 0, "CONFIG_BLOCK_RULE",
-	105, 1, "param3", 0, 94, 106, 107, "",
-	106, 13, "param-string", 1, 105, 0, 0, "CONFIG_BLOCK_RULE",
-	107, 1, "param_not", 0, 94, 108, 0, "",
-	108, 13, "param-string", 1, 107, 0, 0, "CONFIG_BLOCK_RULE",
-	109, 1, "controller", 0, 18, 110, 125, "",
-	110, 13, "param-string", 0, 109, 111, 0, "",
-	111, 1, "type", 0, 110, 112, 113, "",
-	112, 13, "param-string", 1, 111, 0, 0, "CONFIG_BLOCK_CONTROLLER",
-	113, 1, "display_name", 0, 110, 114, 115, "",
-	114, 13, "param-string", 1, 113, 0, 0, "CONFIG_BLOCK_CONTROLLER",
-	115, 1, "description", 0, 110, 116, 117, "",
-	116, 13, "param-string", 1, 115, 0, 0, "CONFIG_BLOCK_CONTROLLER",
-	117, 1, "rule", 0, 110, 118, 119, "",
-	118, 13, "param-string", 1, 117, 0, 0, "CONFIG_BLOCK_CONTROLLER",
-	119, 1, "output", 0, 110, 120, 121, "",
-	120, 13, "param-string", 1, 119, 0, 0, "CONFIG_BLOCK_CONTROLLER",
-	121, 1, "act_cmd", 0, 110, 122, 123, "",
-	122, 13, "param-string", 1, 121, 0, 0, "CONFIG_BLOCK_CONTROLLER",
-	123, 1, "deact_cmd", 0, 110, 124, 0, "",
-	124, 13, "param-string", 1, 123, 0, 0, "CONFIG_BLOCK_CONTROLLER",
-	125, 1, "output", 0, 18, 126, 0, "",
-	126, 13, "param-string", 0, 125, 127, 0, "",
-	127, 1, "type", 0, 126, 128, 129, "",
-	128, 13, "param-string", 1, 127, 0, 0, "CONFIG_BLOCK_OUTPUT",
-	129, 1, "display_name", 0, 126, 130, 131, "",
-	130, 13, "param-string", 1, 129, 0, 0, "CONFIG_BLOCK_OUTPUT",
-	131, 1, "description", 0, 126, 132, 133, "",
-	132, 13, "param-string", 1, 131, 0, 0, "CONFIG_BLOCK_OUTPUT",
-	133, 1, "interface", 0, 126, 134, 135, "",
-	134, 13, "param-string", 1, 133, 0, 0, "CONFIG_BLOCK_OUTPUT",
-	135, 1, "if_num", 0, 126, 136, 0, "",
-	136, 13, "param-string", 1, 135, 0, 0, "CONFIG_BLOCK_OUTPUT",
-	137, 1, "REBOOT", 1, 0, 0, 138, "REBOOT",
-	138, 6, "param-integer", 0, 0, 139, 0, "",
-	139, 1, "ON", 1, 138, 0, 140, "BLOCK_ID_CMD_ON",
-	140, 1, "OFF", 1, 138, 0, 0, "BLOCK_ID_CMD_OFF",
+	29, 1, "input", 0, 18, 30, 33, "",
+	30, 13, "param-string", 0, 29, 31, 0, "",
+	31, 2, "in_config_keys", 0, 30, 32, 0, "",
+	32, 13, "param-string", 1, 31, 0, 0, "CONFIG_BLOCK_INPUT",
+	33, 1, "monitor", 0, 18, 34, 37, "",
+	34, 13, "param-string", 0, 33, 35, 0, "",
+	35, 2, "mon_config_keys", 0, 34, 36, 0, "",
+	36, 13, "param-string", 1, 35, 0, 0, "CONFIG_BLOCK_MONITOR",
+	37, 1, "schedule", 0, 18, 38, 41, "",
+	38, 13, "param-string", 0, 37, 39, 0, "",
+	39, 2, "sch_config_keys", 0, 38, 40, 0, "",
+	40, 13, "param-string", 1, 39, 0, 0, "CONFIG_BLOCK_SCHEDULE",
+	41, 1, "rule", 0, 18, 42, 45, "",
+	42, 13, "param-string", 0, 41, 43, 0, "",
+	43, 2, "rl_config_keys", 0, 42, 44, 0, "",
+	44, 13, "param-string", 1, 43, 0, 0, "CONFIG_BLOCK_RULE",
+	45, 1, "controller", 0, 18, 46, 49, "",
+	46, 13, "param-string", 0, 45, 47, 0, "",
+	47, 2, "con_config_keys", 0, 46, 48, 0, "",
+	48, 13, "param-string", 1, 47, 0, 0, "CONFIG_BLOCK_CONTROLLER",
+	49, 1, "output", 0, 18, 50, 0, "",
+	50, 13, "param-string", 0, 49, 51, 0, "",
+	51, 2, "out_config_keys", 0, 50, 52, 0, "",
+	52, 13, "param-string", 1, 51, 0, 0, "CONFIG_BLOCK_OUTPUT",
+	53, 1, "INIT", 0, 0, 54, 60, "",
+	54, 1, "SETUP", 0, 53, 55, 56, "",
+	55, 1, "ALL", 1, 54, 0, 0, "INIT_SETUP_ALL",
+	56, 1, "VALIDATE", 0, 53, 57, 58, "",
+	57, 1, "ALL", 1, 56, 0, 0, "INIT_VALIDATE_ALL",
+	58, 1, "DISABLE", 0, 53, 59, 0, "",
+	59, 1, "ALL", 1, 58, 0, 0, "INIT_DISABLE_ALL",
+	60, 1, "REBOOT", 1, 0, 0, 61, "REBOOT",
+	61, 6, "param-integer", 0, 0, 62, 0, "",
+	62, 1, "ON", 1, 61, 0, 63, "BLOCK_ID_CMD_ON",
+	63, 1, "OFF", 1, 61, 0, 0, "BLOCK_ID_CMD_OFF",
 };
 
 #ifdef USE_PROGMEM
-static const XLATMap ident_map [2] PROGMEM = {
+static const XLATMap ident_map [9] PROGMEM = {
 #else
-static const XLATMap ident_map [2] = {
+static const XLATMap ident_map [9] = {
 #endif
 	"block_cat_names", 0,
 	"command_strings", 1,
+	"sys_config_keys", 2,
+	"in_config_keys", 3,
+	"mon_config_keys", 4,
+	"sch_config_keys", 5,
+	"rl_config_keys", 6,
+	"con_config_keys", 7,
+	"out_config_keys", 8,
 };
 
 #ifdef USE_PROGMEM
@@ -352,9 +440,9 @@ static const XLATMap lookup_map [1] = {
 };
 
 #ifdef USE_PROGMEM
-static const XLATMap func_map [26] PROGMEM = {
+static const XLATMap func_map [29] PROGMEM = {
 #else
-static const XLATMap func_map [26] = {
+static const XLATMap func_map [29] = {
 #endif
 	"SHOW_BLOCKS", 0,
 	"SHOW_SYSTEM", 1,
@@ -379,9 +467,12 @@ static const XLATMap func_map [26] = {
 	"CONFIG_BLOCK_RULE", 20,
 	"CONFIG_BLOCK_CONTROLLER", 21,
 	"CONFIG_BLOCK_OUTPUT", 22,
-	"REBOOT", 23,
-	"BLOCK_ID_CMD_ON", 24,
-	"BLOCK_ID_CMD_OFF", 25,
+	"INIT_SETUP_ALL", 23,
+	"INIT_VALIDATE_ALL", 24,
+	"INIT_DISABLE_ALL", 25,
+	"REBOOT", 26,
+	"BLOCK_ID_CMD_ON", 27,
+	"BLOCK_ID_CMD_OFF", 28,
 };
 
 uint16_t LookupIdentMap (char* key);
@@ -392,5 +483,6 @@ uint8_t LookupLookupMembers(uint16_t ident_xlat, char* lookup_string);
 uint8_t LookupBlockLabel(char* lookup_string);
 uint16_t CallFunction(uint8_t func_xlat, ParamUnion params[]);
 
-#endif // OUT_H_
+#endif // ockLabel(lookup_string) != 0) return 1;
+
 

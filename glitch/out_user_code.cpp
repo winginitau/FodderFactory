@@ -8,275 +8,119 @@
 extern ITCH itch;
 
 void ShowBlocks(void) {
-	RegShowBlocks(itch.WriteLine);
+	RegShowBlocks(itch.WriteLineCallback);
 }
 
 void ShowSystem(void) {
-	RegShowSystem(itch.WriteLine);
+	RegShowSystem(itch.WriteLineCallback);
 }
 
 void ShowBlockByLabel(char* BLOCK_LABEL) {
-	RegShowBlockByLabel(BLOCK_LABEL, itch.WriteLine);
+	RegShowBlockByLabel(BLOCK_LABEL, itch.WriteLineCallback);
 }
 
 void ShowBlockByID(int16_t param1_int) {
-	RegShowBlockByID(param1_int, itch.WriteLine);
+	RegShowBlockByID(param1_int, itch.WriteLineCallback);
 }
 
 void SendCommandToBlockLabel(char* BLOCK_LABEL, uint16_t COMMAND_STRING) {
-	RegSendCommandToBlockLabel(BLOCK_LABEL, COMMAND_STRING, itch.WriteLine);
+	RegSendCommandToBlockLabel(BLOCK_LABEL, COMMAND_STRING, itch.WriteLineCallback);
 }
 
 void SendCommandToBlockID(int16_t param1_int, uint16_t COMMAND_STRING) {
-	RegSendCommandToBlockID(param1_int, COMMAND_STRING, itch.WriteLine);
+	RegSendCommandToBlockID(param1_int, COMMAND_STRING, itch.WriteLineCallback);
 }
 
 void ShowTime(void) {
-	RegShowTime(itch.WriteLine);
+	RegShowTime(itch.WriteLineCallback);
 }
 
 void SetTime(char* param1_time) {
-	RegSetTime(param1_time, itch.WriteLine);
+	RegSetTime(param1_time, itch.WriteLineCallback);
 }
 
 void ShowDate(void) {
-	RegShowDate(itch.WriteLine);
+	RegShowDate(itch.WriteLineCallback);
 }
 
 void SetDate(char* param1_date) {
-	RegSetDate(param1_date, itch.WriteLine);
+	RegSetDate(param1_date, itch.WriteLineCallback);
 }
 
 void ConfigReset(void) {
-	RegConfigReset(itch.WriteLine);
+	RegConfigReset(itch.WriteLineCallback);
 }
 
 void ConfigLoad(void) {
-	RegConfigLoad(itch.WriteLine);
+	RegConfigLoad(itch.WriteLineCallback);
 }
 
 void ConfigLoadBinary(void) {
-	RegConfigLoadBinary(itch.WriteLine);
+	RegConfigLoadBinary(itch.WriteLineCallback);
 }
 
 void ConfigLoadINI(void) {
-	RegConfigLoadINI(itch.WriteLine);
+	RegConfigLoadINI(itch.WriteLineCallback);
 }
 
 void ConfigSave(void) {
-	RegConfigSave(itch.WriteLine);
+	RegConfigSave(itch.WriteLineCallback);
 }
 
 void ConfigSaveBinary(void) {
-	RegConfigSaveBinary(itch.WriteLine);
+	RegConfigSaveBinary(itch.WriteLineCallback);
 }
 
-void ConfigBlockSystem(char* param1_string, char* param2_string) {
-	RegConfigBlockSystem(param1_string, param2_string, itch.WriteLine);
+void ConfigBlockSystem(char* param1_string, uint16_t SYS_CONFIG, char* param2_string) {
+	RegConfigBlockSystem(param1_string, SYS_CONFIG, param2_string, itch.WriteLineCallback);
 }
 
-void ConfigBlockSystem(char* param1_string, char* param2_string) {
-	RegConfigBlockSystem(param1_string, param2_string, itch.WriteLine);
+void ConfigBlockInput(char* param1_string, uint16_t IN_CONFIG, char* param2_string) {
+	RegConfigBlockInput(param1_string, IN_CONFIG, param2_string, itch.WriteLineCallback);
 }
 
-void ConfigBlockSystem(char* param1_string, char* param2_string) {
-	RegConfigBlockSystem(param1_string, param2_string, itch.WriteLine);
+void ConfigBlockMonitor(char* param1_string, uint16_t MON_CONFIG, char* param2_string) {
+	RegConfigBlockMonitor(param1_string, MON_CONFIG, param2_string, itch.WriteLineCallback);
 }
 
-void ConfigBlockSystem(char* param1_string, char* param2_string) {
-	RegConfigBlockSystem(param1_string, param2_string, itch.WriteLine);
+void ConfigBlockSchedule(char* param1_string, uint16_t SCH_CONFIG, char* param2_string) {
+	RegConfigBlockSchedule(param1_string, SCH_CONFIG, param2_string, itch.WriteLineCallback);
 }
 
-void ConfigBlockSystem(char* param1_string, char* param2_string) {
-	RegConfigBlockSystem(param1_string, param2_string, itch.WriteLine);
+void ConfigBlockRule(char* param1_string, uint16_t RL_CONFIG, char* param2_string) {
+	RegConfigBlockRule(param1_string, RL_CONFIG, param2_string, itch.WriteLineCallback);
 }
 
-void ConfigBlockSystem(char* param1_string, char* param2_string) {
-	RegConfigBlockSystem(param1_string, param2_string, itch.WriteLine);
+void ConfigBlockController(char* param1_string, uint16_t CON_CONFIG, char* param2_string) {
+	RegConfigBlockController(param1_string, CON_CONFIG, param2_string, itch.WriteLineCallback);
 }
 
-void ConfigBlockInput(char* param1_string, char* param2_string) {
-	RegConfigBlockInput(param1_string, param2_string, itch.WriteLine);
+void ConfigBlockOutput(char* param1_string, uint16_t OUT_CONFIG, char* param2_string) {
+	RegConfigBlockOutput(param1_string, OUT_CONFIG, param2_string, itch.WriteLineCallback);
 }
 
-void ConfigBlockInput(char* param1_string, char* param2_string) {
-	RegConfigBlockInput(param1_string, param2_string, itch.WriteLine);
+void InitSetupAll(void) {
+	RegInitSetupAll(itch.WriteLineCallback);
 }
 
-void ConfigBlockInput(char* param1_string, char* param2_string) {
-	RegConfigBlockInput(param1_string, param2_string, itch.WriteLine);
+void InitValidateAll(void) {
+	RegInitValidateAll(itch.WriteLineCallback);
 }
 
-void ConfigBlockInput(char* param1_string, char* param2_string) {
-	RegConfigBlockInput(param1_string, param2_string, itch.WriteLine);
-}
-
-void ConfigBlockInput(char* param1_string, char* param2_string) {
-	RegConfigBlockInput(param1_string, param2_string, itch.WriteLine);
-}
-
-void ConfigBlockInput(char* param1_string, char* param2_string) {
-	RegConfigBlockInput(param1_string, param2_string, itch.WriteLine);
-}
-
-void ConfigBlockInput(char* param1_string, char* param2_string) {
-	RegConfigBlockInput(param1_string, param2_string, itch.WriteLine);
-}
-
-void ConfigBlockMonitor(char* param1_string, char* param2_string) {
-	RegConfigBlockMonitor(param1_string, param2_string, itch.WriteLine);
-}
-
-void ConfigBlockMonitor(char* param1_string, char* param2_string) {
-	RegConfigBlockMonitor(param1_string, param2_string, itch.WriteLine);
-}
-
-void ConfigBlockMonitor(char* param1_string, char* param2_string) {
-	RegConfigBlockMonitor(param1_string, param2_string, itch.WriteLine);
-}
-
-void ConfigBlockMonitor(char* param1_string, char* param2_string) {
-	RegConfigBlockMonitor(param1_string, param2_string, itch.WriteLine);
-}
-
-void ConfigBlockMonitor(char* param1_string, char* param2_string) {
-	RegConfigBlockMonitor(param1_string, param2_string, itch.WriteLine);
-}
-
-void ConfigBlockMonitor(char* param1_string, char* param2_string) {
-	RegConfigBlockMonitor(param1_string, param2_string, itch.WriteLine);
-}
-
-void ConfigBlockMonitor(char* param1_string, char* param2_string) {
-	RegConfigBlockMonitor(param1_string, param2_string, itch.WriteLine);
-}
-
-void ConfigBlockMonitor(char* param1_string, char* param2_string) {
-	RegConfigBlockMonitor(param1_string, param2_string, itch.WriteLine);
-}
-
-void ConfigBlockMonitor(char* param1_string, char* param2_string) {
-	RegConfigBlockMonitor(param1_string, param2_string, itch.WriteLine);
-}
-
-void ConfigBlockSchedule(char* param1_string, char* param2_string) {
-	RegConfigBlockSchedule(param1_string, param2_string, itch.WriteLine);
-}
-
-void ConfigBlockSchedule(char* param1_string, char* param2_string) {
-	RegConfigBlockSchedule(param1_string, param2_string, itch.WriteLine);
-}
-
-void ConfigBlockSchedule(char* param1_string, char* param2_string) {
-	RegConfigBlockSchedule(param1_string, param2_string, itch.WriteLine);
-}
-
-void ConfigBlockSchedule(char* param1_string, char* param2_string) {
-	RegConfigBlockSchedule(param1_string, param2_string, itch.WriteLine);
-}
-
-void ConfigBlockSchedule(char* param1_string, char* param2_string) {
-	RegConfigBlockSchedule(param1_string, param2_string, itch.WriteLine);
-}
-
-void ConfigBlockSchedule(char* param1_string, char* param2_string) {
-	RegConfigBlockSchedule(param1_string, param2_string, itch.WriteLine);
-}
-
-void ConfigBlockSchedule(char* param1_string, char* param2_string) {
-	RegConfigBlockSchedule(param1_string, param2_string, itch.WriteLine);
-}
-
-void ConfigBlockSchedule(char* param1_string, char* param2_string) {
-	RegConfigBlockSchedule(param1_string, param2_string, itch.WriteLine);
-}
-
-void ConfigBlockRule(char* param1_string, char* param2_string) {
-	RegConfigBlockRule(param1_string, param2_string, itch.WriteLine);
-}
-
-void ConfigBlockRule(char* param1_string, char* param2_string) {
-	RegConfigBlockRule(param1_string, param2_string, itch.WriteLine);
-}
-
-void ConfigBlockRule(char* param1_string, char* param2_string) {
-	RegConfigBlockRule(param1_string, param2_string, itch.WriteLine);
-}
-
-void ConfigBlockRule(char* param1_string, char* param2_string) {
-	RegConfigBlockRule(param1_string, param2_string, itch.WriteLine);
-}
-
-void ConfigBlockRule(char* param1_string, char* param2_string) {
-	RegConfigBlockRule(param1_string, param2_string, itch.WriteLine);
-}
-
-void ConfigBlockRule(char* param1_string, char* param2_string) {
-	RegConfigBlockRule(param1_string, param2_string, itch.WriteLine);
-}
-
-void ConfigBlockRule(char* param1_string, char* param2_string) {
-	RegConfigBlockRule(param1_string, param2_string, itch.WriteLine);
-}
-
-void ConfigBlockController(char* param1_string, char* param2_string) {
-	RegConfigBlockController(param1_string, param2_string, itch.WriteLine);
-}
-
-void ConfigBlockController(char* param1_string, char* param2_string) {
-	RegConfigBlockController(param1_string, param2_string, itch.WriteLine);
-}
-
-void ConfigBlockController(char* param1_string, char* param2_string) {
-	RegConfigBlockController(param1_string, param2_string, itch.WriteLine);
-}
-
-void ConfigBlockController(char* param1_string, char* param2_string) {
-	RegConfigBlockController(param1_string, param2_string, itch.WriteLine);
-}
-
-void ConfigBlockController(char* param1_string, char* param2_string) {
-	RegConfigBlockController(param1_string, param2_string, itch.WriteLine);
-}
-
-void ConfigBlockController(char* param1_string, char* param2_string) {
-	RegConfigBlockController(param1_string, param2_string, itch.WriteLine);
-}
-
-void ConfigBlockController(char* param1_string, char* param2_string) {
-	RegConfigBlockController(param1_string, param2_string, itch.WriteLine);
-}
-
-void ConfigBlockOutput(char* param1_string, char* param2_string) {
-	RegConfigBlockOutput(param1_string, param2_string, itch.WriteLine);
-}
-
-void ConfigBlockOutput(char* param1_string, char* param2_string) {
-	RegConfigBlockOutput(param1_string, param2_string, itch.WriteLine);
-}
-
-void ConfigBlockOutput(char* param1_string, char* param2_string) {
-	RegConfigBlockOutput(param1_string, param2_string, itch.WriteLine);
-}
-
-void ConfigBlockOutput(char* param1_string, char* param2_string) {
-	RegConfigBlockOutput(param1_string, param2_string, itch.WriteLine);
-}
-
-void ConfigBlockOutput(char* param1_string, char* param2_string) {
-	RegConfigBlockOutput(param1_string, param2_string, itch.WriteLine);
+void InitDisableAll(void) {
+	RegInitDisableAll(itch.WriteLineCallback);
 }
 
 void SystemReboot(void) {
-	RegSystemReboot(itch.WriteLine);
+	RegSystemReboot(itch.WriteLineCallback);
 }
 
 void BlockIDCmdOn(int16_t param1_int) {
-	RegBlockIDCmdOn(param1_int, itch.WriteLine);
+	RegBlockIDCmdOn(param1_int, itch.WriteLineCallback);
 }
 
 void BlockIDCmdOff(int16_t param1_int) {
-	RegBlockIDCmdOff(param1_int, itch.WriteLine);
+	RegBlockIDCmdOff(param1_int, itch.WriteLineCallback);
 }
 
 uint8_t LookupBlockLabel(char* lookup_string) {

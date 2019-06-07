@@ -37,7 +37,7 @@
 #endif // FF_ARDUINO
 
 #ifdef USE_ITCH
-#include "itch.h"
+#include <itch.h>
 #endif
 
 #ifdef U8X8_HAVE_HW_SPI
@@ -452,6 +452,19 @@ void HALPollItch(void) {
 void HALItchWriteLnImmediate(char *str) {
 	itch.WriteLineDirect(str);
 }
+
+void HALItchSetBufferStuffMode(void) {
+	itch.SetMode(ITCH_BUFFER_STUFF);
+}
+
+void HALItchSetTextDataMode(void) {
+	itch.SetMode(ITCH_TEXT_DATA);
+}
+
+void HALItchStuffAndProcess(char *str) {
+	itch.StuffAndProcess(str);
+}
+
 #endif //USE_ITCH
 
 

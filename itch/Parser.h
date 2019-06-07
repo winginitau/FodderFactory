@@ -71,7 +71,7 @@ typedef struct PARSER_FLAGS {
 	uint8_t P_EOL();
 	uint8_t P_DOUBLE_QUOTE();
 	uint8_t P_SPACE_TAB();
-	void P_ADD_TO_BUFFER(char ch);
+	void P_ADD_TO_PARSE_BUFFER(char ch);
 
 
 #endif /* PARSER_H_ */

@@ -1,11 +1,13 @@
-/*****************************************************************
- LineBuffer.cpp
+/******************************************************************
 
- Copyright (C) 2018 Brendan McLearie 
+ glitch - Grammar Lexer and Interactive Terminal Command sHell
 
- Created on: 9 Feb. 2018
+ Copyright 2018, 2019, Brendan McLearie
+ Distributed under MIT license - see LICENSE.txt
+ See also README.txt
 
- ******************************************************************/
+ File: LineBuffer.cpp
+******************************************************************/
 
 #include "LineBuffer.h"
 
@@ -24,7 +26,7 @@ void LineBuffer::Init() {
     available = false;
     empty_line = false;
     for (int i = 0; i < MAX_BUFFER_WORDS_PER_LINE; i++) {
-        word_list[i] = '\0';
+        word_list[i] = NULL;
     }
     word_count = 0;
 }
@@ -36,12 +38,12 @@ int LineBuffer::Tokenise() {
 	// Assumes: that any quoted string is at the end of the line
 	// Any number of tokens may precede the quoted string.
 
-	char quoted_string_buf[MAX_BUFFER_LENGTH];
+	//char quoted_string_buf[MAX_BUFFER_LENGTH];
 
 	// Preserve the raw buffer for future use
     strcpy(buf_preserve, buf);
 
-    // Check if the buffer contains a "" delimited string
+    // Check if the buffer contains a double quote ("...") delimited string
     char *pre_quotes;
     char *in_quotes;
     bool quotes = false;
@@ -52,18 +54,18 @@ int LineBuffer::Tokenise() {
     	in_quotes = strtok(NULL, "\"");
     	if(in_quotes != NULL) {
     		// quoted string now pointed to by in_quotes
-    		// with either eol or the next " being null
+    		// with either eol or the next \" being null
     		quotes = true;
     		//strcpy(quoted_string_buf, in_quotes);
     	}
     }
 
-    // buf still points to the start of string
-    // now with the first " turned to null - ie end of string
-    // or unmodified if " couldnt be found.
+    // buf still points to the start of string.
+    // buf now with the first \" turned to null - ie end of string
+    // or buf is unmodified if \" wasn't found.
     int i = 0;
     word_list[i] = strtok(buf, TOKEN_DELIM);
-    while (word_list[i] != '\0') {
+    while (word_list[i] != NULL) {
         i++;
         word_list[i] = strtok(0, TOKEN_DELIM);
     }

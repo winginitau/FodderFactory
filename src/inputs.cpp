@@ -68,14 +68,15 @@ void InputSetup(BlockNode *b) {
 			#ifdef IN_LOGRATE_OVERRIDE
 			b->settings.in.log_rate = IN_LOGRATE_OVERRIDE;
 			#endif
+			b->status = STATUS_ENABLED_INIT;
 			break;
 		case IN_DIGITAL:
 			if (b->settings.in.interface == IF_DIG_PIN_IN) {
 				HALInitDigitalInput(b->settings.in.if_num);
 				b->last_update = TimeNow();
 				b->bool_val = HALDigitalRead(b->settings.in.if_num);
-
 			}
+			b->status = STATUS_ENABLED_INIT;
 			break;
 		default:
 			break;

@@ -244,7 +244,7 @@ void Identifiers::WriteXLATArrayOfTypeAndInstance(int type, char* array_instance
 	int idx;
 	int xlat_idx;
 	int count;
-	char out[MAX_BUFFER_LENGTH];
+	char out[MAX_OUT_BUFFER_LENGTH];
 
 	// count number of idents of the type being written out
 	// TODO this is redundant to the DEFINE_ public members used to
@@ -547,7 +547,7 @@ void Identifiers::WriteLookupMemberLookupCase(int case_num, char* function_name)
 void Identifiers::WriteUserLookupFunctions(int header_or_code) {
 	// Write each of the lookup list function outlines to header / user_code file
 
-	char out[MAX_BUFFER_LENGTH];
+	char out[MAX_OUT_BUFFER_LENGTH];
 	int idx = 0;
 
 	idx = 0;
@@ -668,3 +668,30 @@ bool Identifiers::IdentifierValid(char* ident) {
 	}
 
 }
+
+
+
+
+int Identifiers::SetActionBuilt(char* identifier_name, bool built) {
+	int idx = 0;
+		while (idx < idents_count) {
+			if (strcmp(ids[idx].IdentifierName, identifier_name) == 0) { //found
+				ids[idx].action_built = built;
+				return E_NO_ERROR;
+			}
+			idx++;
+		}
+		return E_IDENTIFER_NAME_NOT_FOUND;
+}
+
+bool Identifiers::GetActionBuilt(char* identifier_name) {
+	int idx = 0;
+		while (idx < idents_count) {
+			if (strcmp(ids[idx].IdentifierName, identifier_name) == 0) { //found
+				return ids[idx].action_built;
+			}
+			idx++;
+		}
+		return false;
+}
+

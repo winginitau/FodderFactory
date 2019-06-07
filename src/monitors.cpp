@@ -44,26 +44,31 @@ void MonitorSetup(BlockNode *b) {
 		case MON_CONDITION_LOW:
 			b->active = 0;
 			b->last_update = TimeNow();
+			b->status = STATUS_ENABLED_INIT;
 			break;
 
 		case MON_CONDITION_HIGH:
 			b->active = 0;
 			b->last_update = TimeNow();
+			b->status = STATUS_ENABLED_INIT;
 			break;
 
 		case MON_AVERAGE_CONDITION_LOW:
 			b->active = 0;
 			b->last_update = TimeNow();
+			b->status = STATUS_ENABLED_INIT;
 			break;
 
 		case MON_AVERAGE_CONDITION_HIGH:
 			b->active = 0;
 			b->last_update = TimeNow();
+			b->status = STATUS_ENABLED_INIT;
 			break;
 
 		case MON_TRIGGER:
 			b->active = 0;
 			b->last_update = TimeNow();
+			b->status = STATUS_ENABLED_INIT;
 			break;
 
 		default:

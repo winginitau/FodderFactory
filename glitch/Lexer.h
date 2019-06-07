@@ -1,11 +1,15 @@
-/*****************************************************************
- Lexer.h
+/******************************************************************
 
- Copyright (C) 2018 Brendan McLearie 
+ glitch - Grammar Lexer and Interactive Terminal Command sHell
 
- Created on: 11 Feb. 2018
+ Copyright 2018, 2019, Brendan McLearie
+ Distributed under MIT license - see LICENSE.txt
+ See also README.txt
 
- ******************************************************************/
+ File: Lexer.h
+ - Defines the lexicon used to build grammars
+ - Defines the main lexer class, its flags and functions
+******************************************************************/
 
 #ifndef LEXER_H_
 #define LEXER_H_
@@ -25,10 +29,12 @@
 
 #define TOKEN_DELIM " "
 
-// Grammar definition directives (all start with %)
+// All lexicons start with '%'
+// For each reserved lexicon the text
+// and an enum identifier is defined.
 
 enum {
-// directives used to describe a grammar
+// Lexicons used to describe a grammar
 	D_UNKNOWN = 0,
 	D_NONE,
 	D_NULL,
@@ -75,8 +81,6 @@ enum {
 	D_CHANGE_MODE,
 	LAST_DIRECTIVE,
 };
-
-
 
 static const EnumStringArray grammar_directives[LAST_DIRECTIVE] = {
 		"DIRECTVE_UNKNOWN",
@@ -125,6 +129,7 @@ static const EnumStringArray grammar_directives[LAST_DIRECTIVE] = {
 		"%change-mode",
 };
 
+// Identifiers for the output queues
 enum {
 	Q_USER,
 	Q_HEADER,
@@ -133,11 +138,9 @@ enum {
 	LAST_Q_TYPE,
 };
 
-
-
 class Lexer {
 private:
-    // temporary holders and processing flags
+    // Temporary holders and processing flags
     char token_str[MAX_BUFFER_WORD_LENGTH];
     char tokens[MAX_BUFFER_WORDS_PER_LINE][MAX_BUFFER_WORD_LENGTH];
     char directive_str[MAX_BUFFER_WORD_LENGTH];
@@ -145,10 +148,11 @@ private:
     int process_result;
     int last_directive;
     int error_type;
+    int ast_build_action_code_result;
     LineBuffer line;
     char temp_string[MAX_BUFFER_LENGTH];	// for general use in constructing messages
 
-    // sectionally persistent directives
+    // Sectionally persistent directives
     // persist while result = R_UNFINISHED
     bool code_section;
     bool enum_section;
@@ -157,7 +161,7 @@ private:
     char enum_array_instance[MAX_BUFFER_WORD_LENGTH];
     char enum_identifier[MAX_BUFFER_WORD_LENGTH];
 
-    // globally persistent directives
+    // Globally persistent directives
     // Values in these need to survive calls to Init();
     bool grammar_section;
     StringList comments;                //initialised in constructor
@@ -181,24 +185,22 @@ private:
     StringList code_output_queue;			// queue of lines for the code file
     StringList user_code_output_queue;		// queue of lines for the user code file
 
-
     int term_level;
     ASTNode* ast_node_temp;
     int previous_directive;
     bool action_since_last_term;
 
-    // global structures and variables (that generally persist into the parser)
-    Identifier ids[MAX_IDENTIFIERS];
-    uint16_t id_idx;
-
-
+    //XXX these got confused with ids Identeifers (plural) used directly
+    // Global structures and variables (that generally persist into the parser)
+    //Identifier ids[MAX_IDENTIFIERS];
+    //uint16_t id_idx;
 
 public:
     Lexer();
     virtual ~Lexer();
 
     // Max size and counters for various items to constrain memory use in the parser
-    int max_enum_string_array_string_size;
+    //int max_enum_string_array_string_size;
     int max_identifier_label_size;
     int max_ast_label_size;
     int max_ast_action_size;
@@ -222,7 +224,6 @@ public:
     char* GetErrorString(char* error_str);
 
     AST ast;
-
 
 protected:
 	void Process_D_UNKNOWN(void);

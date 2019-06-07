@@ -523,8 +523,8 @@ typedef enum {
 	M81,
 	M82,
 	M83,
-	M84,
-	M85,
+	M_CONFIGURE_BLOCK_ERROR,
+	M_SETUP_ON_BLOCK_NOT_DISABLED_INIT,
 	M_HACK_MON_OUT_WARM,
 	M_HACK_SCH_WATERING_BOTTOM_SCHEDULE,
 	M_HACK_MON_BOT_COLD,
@@ -624,8 +624,8 @@ static const StringArray message_strings[LAST_MESSAGE] = {
 	14, { "M81",								"M81" },
 	14, { "M82",								"M82" },
 	14, { "M83",								"M83" },
-	14, { "M84",								"M84" },
-	14, { "M85",								"M85" },
+	14, { "ConfigureBlock Reported an Error.",	"M84" },
+	14, { "Setup on block that is not STATUS_DISABLED_INIT",							"M85" },
 	14, { "HACK: MON_OUT_WARM Value Hacks Applied",										"M86" },
 	14, { "HACK: Bottom Watering with duration override",								"M87" },
 	14, { "HACK: MON_BOT_COLD Value Hacks Applied",										"M88" },
@@ -788,6 +788,7 @@ enum {						// Block states
 	STATUS_ENABLED_VALID_DATA,
 	STATUS_ENABLED_INVALID_DATA,
 	STATUS_DISABLED,
+	STATUS_DISABLED_INIT,
 	STATUS_DISABLED_ERROR,
 	STATUS_DISABLED_ADMIN,
 	LAST_STATUS,
@@ -804,6 +805,7 @@ static const SimpleStringArray status_strings[LAST_STATUS] = {
 	"STATUS_ENABLED_VALID_DATA",
 	"STATUS_ENABLED_INVALID_DATA",
 	"STATUS_DISABLED",
+	"STATUS_DISABLED_INIT",
 	"STATUS_DISABLED_ERROR",
 	"STATUS_DISABLED_ADMIN",
 
@@ -858,13 +860,15 @@ char *strcat_misc(char *dest, uint8_t src);
 
 /********* Properly Formed Overloaded Generics Accommodating PROGMEM **************/
 char *strcpy_hal(char *dest, const char *src);
-int strcmp_hal(char *dest, const char *src);
+char *strcat_hal(char *dest, const char *src);
+int strcmp_hal(const char *s1, const char *s2);
 #ifdef ARDUINO
 char *strcpy_hal(char *dest, const __FlashStringHelper *src);
-int strcmp_hal(char *dest, const __FlashStringHelper *src);
+char *strcat_hal(char *dest, const __FlashStringHelper *src);
+int strcmp_hal(const char *s1, const __FlashStringHelper *s2);
 #endif
 /**********************************************************************************/
-char *strcat_hal(char *dest, const char *src);
+//char *strcat_hal(char *dest, const char *src);
 void *memcpy_hal(void *dest, const void *src, size_t sz);
 
 /*

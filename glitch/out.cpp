@@ -65,159 +65,42 @@ uint16_t CallFunction(uint8_t func_xlat, ParamUnion params[]) {
 			ConfigSaveBinary();
 			break;
 		case 16:
-			ConfigBlockSystem(params[0].param_char_star, params[1].param_char_star);
-			break;
-		case 16:
-			ConfigBlockSystem(params[0].param_char_star, params[1].param_char_star);
-			break;
-		case 16:
-			ConfigBlockSystem(params[0].param_char_star, params[1].param_char_star);
-			break;
-		case 16:
-			ConfigBlockSystem(params[0].param_char_star, params[1].param_char_star);
-			break;
-		case 16:
-			ConfigBlockSystem(params[0].param_char_star, params[1].param_char_star);
-			break;
-		case 16:
-			ConfigBlockSystem(params[0].param_char_star, params[1].param_char_star);
+			ConfigBlockSystem(params[0].param_char_star, params[1].param_uint16_t, params[2].param_char_star);
 			break;
 		case 17:
-			ConfigBlockInput(params[0].param_char_star, params[1].param_char_star);
-			break;
-		case 17:
-			ConfigBlockInput(params[0].param_char_star, params[1].param_char_star);
-			break;
-		case 17:
-			ConfigBlockInput(params[0].param_char_star, params[1].param_char_star);
-			break;
-		case 17:
-			ConfigBlockInput(params[0].param_char_star, params[1].param_char_star);
-			break;
-		case 17:
-			ConfigBlockInput(params[0].param_char_star, params[1].param_char_star);
-			break;
-		case 17:
-			ConfigBlockInput(params[0].param_char_star, params[1].param_char_star);
-			break;
-		case 17:
-			ConfigBlockInput(params[0].param_char_star, params[1].param_char_star);
+			ConfigBlockInput(params[0].param_char_star, params[1].param_uint16_t, params[2].param_char_star);
 			break;
 		case 18:
-			ConfigBlockMonitor(params[0].param_char_star, params[1].param_char_star);
-			break;
-		case 18:
-			ConfigBlockMonitor(params[0].param_char_star, params[1].param_char_star);
-			break;
-		case 18:
-			ConfigBlockMonitor(params[0].param_char_star, params[1].param_char_star);
-			break;
-		case 18:
-			ConfigBlockMonitor(params[0].param_char_star, params[1].param_char_star);
-			break;
-		case 18:
-			ConfigBlockMonitor(params[0].param_char_star, params[1].param_char_star);
-			break;
-		case 18:
-			ConfigBlockMonitor(params[0].param_char_star, params[1].param_char_star);
-			break;
-		case 18:
-			ConfigBlockMonitor(params[0].param_char_star, params[1].param_char_star);
-			break;
-		case 18:
-			ConfigBlockMonitor(params[0].param_char_star, params[1].param_char_star);
-			break;
-		case 18:
-			ConfigBlockMonitor(params[0].param_char_star, params[1].param_char_star);
+			ConfigBlockMonitor(params[0].param_char_star, params[1].param_uint16_t, params[2].param_char_star);
 			break;
 		case 19:
-			ConfigBlockSchedule(params[0].param_char_star, params[1].param_char_star);
-			break;
-		case 19:
-			ConfigBlockSchedule(params[0].param_char_star, params[1].param_char_star);
-			break;
-		case 19:
-			ConfigBlockSchedule(params[0].param_char_star, params[1].param_char_star);
-			break;
-		case 19:
-			ConfigBlockSchedule(params[0].param_char_star, params[1].param_char_star);
-			break;
-		case 19:
-			ConfigBlockSchedule(params[0].param_char_star, params[1].param_char_star);
-			break;
-		case 19:
-			ConfigBlockSchedule(params[0].param_char_star, params[1].param_char_star);
-			break;
-		case 19:
-			ConfigBlockSchedule(params[0].param_char_star, params[1].param_char_star);
-			break;
-		case 19:
-			ConfigBlockSchedule(params[0].param_char_star, params[1].param_char_star);
+			ConfigBlockSchedule(params[0].param_char_star, params[1].param_uint16_t, params[2].param_char_star);
 			break;
 		case 20:
-			ConfigBlockRule(params[0].param_char_star, params[1].param_char_star);
-			break;
-		case 20:
-			ConfigBlockRule(params[0].param_char_star, params[1].param_char_star);
-			break;
-		case 20:
-			ConfigBlockRule(params[0].param_char_star, params[1].param_char_star);
-			break;
-		case 20:
-			ConfigBlockRule(params[0].param_char_star, params[1].param_char_star);
-			break;
-		case 20:
-			ConfigBlockRule(params[0].param_char_star, params[1].param_char_star);
-			break;
-		case 20:
-			ConfigBlockRule(params[0].param_char_star, params[1].param_char_star);
-			break;
-		case 20:
-			ConfigBlockRule(params[0].param_char_star, params[1].param_char_star);
+			ConfigBlockRule(params[0].param_char_star, params[1].param_uint16_t, params[2].param_char_star);
 			break;
 		case 21:
-			ConfigBlockController(params[0].param_char_star, params[1].param_char_star);
-			break;
-		case 21:
-			ConfigBlockController(params[0].param_char_star, params[1].param_char_star);
-			break;
-		case 21:
-			ConfigBlockController(params[0].param_char_star, params[1].param_char_star);
-			break;
-		case 21:
-			ConfigBlockController(params[0].param_char_star, params[1].param_char_star);
-			break;
-		case 21:
-			ConfigBlockController(params[0].param_char_star, params[1].param_char_star);
-			break;
-		case 21:
-			ConfigBlockController(params[0].param_char_star, params[1].param_char_star);
-			break;
-		case 21:
-			ConfigBlockController(params[0].param_char_star, params[1].param_char_star);
+			ConfigBlockController(params[0].param_char_star, params[1].param_uint16_t, params[2].param_char_star);
 			break;
 		case 22:
-			ConfigBlockOutput(params[0].param_char_star, params[1].param_char_star);
-			break;
-		case 22:
-			ConfigBlockOutput(params[0].param_char_star, params[1].param_char_star);
-			break;
-		case 22:
-			ConfigBlockOutput(params[0].param_char_star, params[1].param_char_star);
-			break;
-		case 22:
-			ConfigBlockOutput(params[0].param_char_star, params[1].param_char_star);
-			break;
-		case 22:
-			ConfigBlockOutput(params[0].param_char_star, params[1].param_char_star);
+			ConfigBlockOutput(params[0].param_char_star, params[1].param_uint16_t, params[2].param_char_star);
 			break;
 		case 23:
-			SystemReboot();
+			InitSetupAll();
 			break;
 		case 24:
-			BlockIDCmdOn(params[0].param_int16_t);
+			InitValidateAll();
 			break;
 		case 25:
+			InitDisableAll();
+			break;
+		case 26:
+			SystemReboot();
+			break;
+		case 27:
+			BlockIDCmdOn(params[0].param_int16_t);
+			break;
+		case 28:
 			BlockIDCmdOff(params[0].param_int16_t);
 			break;
 		default:
@@ -302,6 +185,104 @@ uint16_t LookupIdentifierMembers(uint16_t ident_xlat, char* lookup_string) {
 					memcpy_P(&temp, &command_strings[idx], sizeof(SimpleStringArray));
 				#else
 					memcpy(&temp, &command_strings[idx], sizeof(SimpleStringArray));
+				#endif
+				if(strcasecmp(lookup_string, temp.text) == 0) {
+					return idx;
+				}
+				idx++;
+			}
+		}
+			break;
+		case 2: {
+			while (idx < LAST_SYS_CONFIG) {
+				#ifdef ARDUINO
+					memcpy_P(&temp, &sys_config_keys[idx], sizeof(SimpleStringArray));
+				#else
+					memcpy(&temp, &sys_config_keys[idx], sizeof(SimpleStringArray));
+				#endif
+				if(strcasecmp(lookup_string, temp.text) == 0) {
+					return idx;
+				}
+				idx++;
+			}
+		}
+			break;
+		case 3: {
+			while (idx < LAST_IN_CONFIG) {
+				#ifdef ARDUINO
+					memcpy_P(&temp, &in_config_keys[idx], sizeof(SimpleStringArray));
+				#else
+					memcpy(&temp, &in_config_keys[idx], sizeof(SimpleStringArray));
+				#endif
+				if(strcasecmp(lookup_string, temp.text) == 0) {
+					return idx;
+				}
+				idx++;
+			}
+		}
+			break;
+		case 4: {
+			while (idx < LAST_MON_CONFIG) {
+				#ifdef ARDUINO
+					memcpy_P(&temp, &mon_config_keys[idx], sizeof(SimpleStringArray));
+				#else
+					memcpy(&temp, &mon_config_keys[idx], sizeof(SimpleStringArray));
+				#endif
+				if(strcasecmp(lookup_string, temp.text) == 0) {
+					return idx;
+				}
+				idx++;
+			}
+		}
+			break;
+		case 5: {
+			while (idx < LAST_SCH_CONFIG) {
+				#ifdef ARDUINO
+					memcpy_P(&temp, &sch_config_keys[idx], sizeof(SimpleStringArray));
+				#else
+					memcpy(&temp, &sch_config_keys[idx], sizeof(SimpleStringArray));
+				#endif
+				if(strcasecmp(lookup_string, temp.text) == 0) {
+					return idx;
+				}
+				idx++;
+			}
+		}
+			break;
+		case 6: {
+			while (idx < LAST_RL_CONFIG) {
+				#ifdef ARDUINO
+					memcpy_P(&temp, &rl_config_keys[idx], sizeof(SimpleStringArray));
+				#else
+					memcpy(&temp, &rl_config_keys[idx], sizeof(SimpleStringArray));
+				#endif
+				if(strcasecmp(lookup_string, temp.text) == 0) {
+					return idx;
+				}
+				idx++;
+			}
+		}
+			break;
+		case 7: {
+			while (idx < LAST_CON_CONFIG) {
+				#ifdef ARDUINO
+					memcpy_P(&temp, &con_config_keys[idx], sizeof(SimpleStringArray));
+				#else
+					memcpy(&temp, &con_config_keys[idx], sizeof(SimpleStringArray));
+				#endif
+				if(strcasecmp(lookup_string, temp.text) == 0) {
+					return idx;
+				}
+				idx++;
+			}
+		}
+			break;
+		case 8: {
+			while (idx < LAST_OUT_CONFIG) {
+				#ifdef ARDUINO
+					memcpy_P(&temp, &out_config_keys[idx], sizeof(SimpleStringArray));
+				#else
+					memcpy(&temp, &out_config_keys[idx], sizeof(SimpleStringArray));
 				#endif
 				if(strcasecmp(lookup_string, temp.text) == 0) {
 					return idx;

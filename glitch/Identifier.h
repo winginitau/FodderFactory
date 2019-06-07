@@ -42,6 +42,7 @@ public:
 
 	int Type;
 	int func_xlat;
+	bool action_built;
 
 	KeyValuePairList KeyValueList;
 	StringList SimpleList;

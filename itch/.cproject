@@ -59,10 +59,14 @@
 							</tool>
 						</toolChain>
 					</folderInfo>
+					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.1154591455.1073521732" name="grammar.orig" rcbsApplicability="disable" resourcePath="glitch/grammar.orig" toolsToInvoke=""/>
 					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.1154591455.671511396" name="out_bak.h" rcbsApplicability="disable" resourcePath="glitch/out_bak.h" toolsToInvoke=""/>
 					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.1154591455.1290271989" name="AST.h" rcbsApplicability="disable" resourcePath="glitch/AST.h" toolsToInvoke=""/>
+					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.1154591455.1920117451" name="grammar.wip" rcbsApplicability="disable" resourcePath="glitch/grammar.wip" toolsToInvoke=""/>
 					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.1154591455.1172383769" name="glitch_config.h" rcbsApplicability="disable" resourcePath="glitch/glitch_config.h" toolsToInvoke=""/>
 					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.1154591455.1782207193" name="ASTNode.h" rcbsApplicability="disable" resourcePath="glitch/ASTNode.h" toolsToInvoke=""/>
+					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.1154591455.1146007943" name="grammar.gf" rcbsApplicability="disable" resourcePath="glitch/grammar.gf" toolsToInvoke=""/>
+					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.1154591455.41036343" name="bucket" rcbsApplicability="disable" resourcePath="glitch/bucket" toolsToInvoke=""/>
 					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.1154591455.1789923560" name="Identifiers.h" rcbsApplicability="disable" resourcePath="glitch/Identifiers.h" toolsToInvoke=""/>
 					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.1154591455.552733825" name="Debug.h" rcbsApplicability="disable" resourcePath="glitch/Debug.h" toolsToInvoke=""/>
 					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.1154591455.681148466" name="KeyValuePairList.h" rcbsApplicability="disable" resourcePath="glitch/KeyValuePairList.h" toolsToInvoke=""/>
@@ -72,9 +76,10 @@
 					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.1154591455.1827801583" name="Identifier.h" rcbsApplicability="disable" resourcePath="glitch/Identifier.h" toolsToInvoke=""/>
 					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.1154591455.1587236149" name="Lexer.h" rcbsApplicability="disable" resourcePath="glitch/Lexer.h" toolsToInvoke=""/>
 					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.1154591455.2087666060" name="string_consts.h" rcbsApplicability="disable" resourcePath="glitch/string_consts.h" toolsToInvoke=""/>
+					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.1154591455.108118244" name="grammar.running" rcbsApplicability="disable" resourcePath="glitch/grammar.running" toolsToInvoke=""/>
 					<sourceEntries>
 						<entry excluding="glitch" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
-						<entry excluding="out_user_code2.cpp.bak|LineBuffer.h|LineBuffer.cpp|Lexer.h|Lexer.cpp|KeyValuePairList.h|KeyValuePairList.cpp|Identifiers.h|Identifiers.cpp|Identifier.h|Identifier.cpp|glitch.cpp|glitch_errors.h|glitch_config.h|Debug.h|Debug.cpp|config.h|ASTNode.h|ASTNode.cpp|AST.h|AST.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="glitch"/>
+						<entry excluding="hf_temp|grammar.wip|grammar.running|grammar.orig|grammar.gf|bucket|out_user_code2.cpp.bak|LineBuffer.h|LineBuffer.cpp|Lexer.h|Lexer.cpp|KeyValuePairList.h|KeyValuePairList.cpp|Identifiers.h|Identifiers.cpp|Identifier.h|Identifier.cpp|glitch.cpp|glitch_errors.h|glitch_config.h|Debug.h|Debug.cpp|config.h|ASTNode.h|ASTNode.cpp|AST.h|AST.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="glitch"/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>

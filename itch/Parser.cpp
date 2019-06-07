@@ -34,9 +34,10 @@ extern char g_debug_message[MAX_OUTPUT_LINE_SIZE];
 /******************************************************************************
  * Globals
  ******************************************************************************/
+extern char g_itch_replay_buf[MAX_INPUT_LINE_SIZE];
 
-char g_parser_in_buf[MAX_INPUT_LINE_SIZE]; 	// The subject of all parsing functions
-uint8_t g_parser_in_idx;					// Points to the next free char in the buffer
+char g_parser_parse_buf[MAX_INPUT_LINE_SIZE]; 	// The subject of all parsing functions
+uint8_t g_parser_buf_idx;						// Points to the next free char in the buffer
 P_FLAGS g_pflags;
 TokenList* g_parser_possible_list;
 TokenList* g_parser_param_list;
@@ -60,8 +61,10 @@ void ParserFinish() {
 
 void ParserResetLine(void) {
 
-	g_parser_in_buf[0] = '\0';
-	g_parser_in_idx = 0;
+	g_parser_parse_buf[0] = '\0';
+	g_parser_buf_idx = 0;
+
+	g_itch_replay_buf[0] = '\0';
 
 	g_pflags.error_on_line = 0;
 	g_pflags.parse_result = R_NONE;
@@ -86,7 +89,7 @@ uint16_t ParserActionDispatcher(uint16_t action_asta_id) {
 	// with the required params to go with the call.
 
 	char action_ident_str[MAX_AST_ACTION_SIZE];
-	ASTA temp_asta;
+	ASTA_Node temp_asta;
 
 	uint16_t func_xlat_call_id;
 	ParamUnion param_union_array[MAX_PARAM_COUNT];
@@ -150,8 +153,8 @@ uint16_t ParserActionDispatcher(uint16_t action_asta_id) {
 }
 
 void ParserBufferInject(char* inject_str) {
-	strcpy(g_parser_in_buf, inject_str);
-	g_parser_in_idx = strlen(g_parser_in_buf);
+	strcpy(g_parser_parse_buf, inject_str);
+	g_parser_buf_idx = strlen(g_parser_parse_buf);
 }
 
 void P_ESCAPE(char ch) {
@@ -217,7 +220,7 @@ uint8_t P_EOL() {
 				return R_ERROR;
 				break;
 			default:
-				if (g_parser_in_idx == 0) { // blank line - do nothing
+				if (g_parser_buf_idx == 0) { // blank line - do nothing
 					MapReset();
 					TLReset(g_parser_possible_list);
 					return R_COMPLETE;
@@ -271,7 +274,7 @@ uint8_t P_DOUBLE_QUOTE() {
 }
 
 uint8_t P_SPACE_TAB() {
-	if (g_parser_in_idx == 0) { 			// leading space or tab
+	if (g_parser_buf_idx == 0) { 			// leading space or tab
 		// just ignore it
 		return R_IGNORE;
 	} else {
@@ -294,10 +297,17 @@ uint8_t P_SPACE_TAB() {
 	}
 }
 
-void P_ADD_TO_BUFFER(char ch) {
-	g_parser_in_buf[g_parser_in_idx] = ch;
-	g_parser_in_buf[g_parser_in_idx + 1] = '\0';
-	g_parser_in_idx++;
+void P_ADD_TO_PARSE_BUFFER(char ch) {
+	g_parser_parse_buf[g_parser_buf_idx] = ch;
+	g_parser_parse_buf[g_parser_buf_idx + 1] = '\0';
+	g_parser_buf_idx++;
+}
+
+void P_ADD_TO_REPLAY_BUFFER(char ch) {
+	uint8_t length;
+	length = (uint8_t)strlen(g_itch_replay_buf);
+	g_itch_replay_buf[length] = ch;
+	g_itch_replay_buf[length+1] = ch = '\0';
 }
 
 uint8_t Parse(char ch) {
@@ -312,59 +322,67 @@ uint8_t Parse(char ch) {
 		M(g_debug_message);
 	#endif
 
+	// First deal with editing and formatting special cases
 	switch (ch) {
-		// Process escape sequences
-		case 0x1B:
-			P_ESCAPE(ch);
-			return R_IGNORE;
+		case 0x7F:				// Backspace ^H
+			return R_BACKSPACE;
 			break;
-		case '[':
+		case 0x1B: 				// ESC - Process ANSI escape sequences (eg "ESC[A" - up arrow)
+			P_ESCAPE(ch);		// Track escape sequence build
+			return R_DISCARD;	// Drop the ch
+			break;
+		case '[':				// if it follows ESC, track sequence build otherwise let pass
 			if(g_pflags.escape == 1) {
 				P_ESCAPE(ch);
-				return R_IGNORE;
+				return R_DISCARD;
 			}
+			P_ADD_TO_REPLAY_BUFFER(ch);
 			break;
-		case 'A':
-		case 'D':
+		case 'A':				// Potentially ESC[A (up arrow)?
 			if(g_pflags.escape == 2) {
 				g_pflags.escape = 0;
-				#ifdef ITCH_DEBUG
-					strcpy_itch_debug(g_debug_message, ITCH_DEBUG_PARSE_R_REPLAY);
-					M(g_debug_message);
-				#endif
 				return R_REPLAY;
 			}
+			P_ADD_TO_REPLAY_BUFFER(ch);
 			break;
-		case '\r':   // deal with \r\n combinations and trigger actions
-			if(g_pflags.eol_processed == 0) {
-				g_pflags.eol_processed = 1;
-				return	P_EOL();
+		case '\r':   								// deal with \r\n combinations and trigger actions
+		case '\n':
+			if(g_pflags.eol_processed == 0) { 		// have not just processed EOL
+				g_pflags.eol_processed = 1;			// flag that we are now
+				return	P_EOL();					// !!! Main parser response trigger
 			} else {
-				return R_IGNORE;
+				return R_DISCARD;					// redundant extra
 			}
 			break;
-		case '\n':	// deal with \r\n combinations and trigger actions
-			if(g_pflags.eol_processed == 0) {
-				g_pflags.eol_processed = 1;
-				return	P_EOL();
-			} else {
-				return R_IGNORE;
-			}
+		case '\"':
+			// Toggle string_litteral flag, continue
+			P_DOUBLE_QUOTE();
+			P_ADD_TO_REPLAY_BUFFER(ch);
+			return R_CONTINUE;
 			break;
-		case '\"':	// Toggle string_litteral flag, discard the char
-			return P_DOUBLE_QUOTE();	break;
 		case ' ':
 		case '\t':	// handle space and tab delimiters (and extras of them)
-			if (P_SPACE_TAB() == R_IGNORE) { return R_IGNORE; }
-			else						break; // R_CONTINUE
-		case '?':	// turn on help flag
-			g_pflags.help_active = 1;			break;
-		default:
+			if (P_SPACE_TAB() == R_IGNORE) {
+				P_ADD_TO_REPLAY_BUFFER(ch);		// keep it for replay anyway
+				return R_IGNORE;				// must have been superfluous
+			}
+			P_ADD_TO_REPLAY_BUFFER(ch);
+			break; 								// single - drop into buffer
+		case '?':	// turn on help flag, drop into parse in help active mode
+			g_pflags.help_active = 1;
+			P_ADD_TO_REPLAY_BUFFER(ch);
+			break;
+		default:						// catch unhandled escape sequences
+			if(g_pflags.escape == 2) {
+				g_pflags.escape = 0;
+				return R_DISCARD;
+			}
+			P_ADD_TO_REPLAY_BUFFER(ch);
 			break;
 	}
 
-	// whatever it is now, throw it in the buffer and continue
-	P_ADD_TO_BUFFER(ch);
+	// whatever it is now, throw it in the parse buffer and parse what we have, partial or complete
+	P_ADD_TO_PARSE_BUFFER(ch);
 
 	if (g_pflags.error_on_line == 1) {
 		// Error already flagged but need to discard buffered chars still coming before finishing
@@ -400,18 +418,15 @@ uint8_t ParserMatch(void) {
 	if (g_pflags.delim_reached && ((g_pflags.match_result == MR_UNIQUE) || (g_pflags.match_result == MR_ACTION_POSSIBLE))) {
 		ParserSaveTokenAsParameter();
 		// advance the nodemap past the delimiter
-		MapAdvance(g_parser_in_idx);
+		MapAdvance(g_parser_buf_idx);
 		g_pflags.delim_reached = 0;
 	}
 
 	// clear out previous matching possibilities
 	TLReset(g_parser_possible_list);
 
-	// preserve the in_buf for possible replay
-	strcpy(g_itch_replay_buff, g_parser_in_buf);
-
 	// run the next match process and return the result
-	return MapMatch(g_parser_in_buf, g_parser_possible_list);
+	return MapMatch(g_parser_parse_buf, g_parser_possible_list);
 }
 
 uint8_t ParserMatchEvaluate(void) {
@@ -551,7 +566,7 @@ void ParserSaveTokenAsParameter(void) {
 	char temp_str[MAX_OUTPUT_LINE_SIZE];
 	TokenNode* new_param;
 	//char temp_param[MAX_IDENTIFIER_LABEL_SIZE];
-	ASTA temp_asta;
+	ASTA_Node temp_asta;
 	uint16_t temp_asta_id;
 
 	// get the id of the last matched node

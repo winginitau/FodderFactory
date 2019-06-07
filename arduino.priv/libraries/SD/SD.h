@@ -27,6 +27,7 @@
 
 #define FILE_READ O_READ
 #define FILE_WRITE (O_READ | O_WRITE | O_CREAT)
+#define FILE_OVERWRITE (O_READ | O_WRITE | O_CREAT | O_TRUNC)
 
 class File : public Stream {
  private:

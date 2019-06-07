@@ -44,12 +44,14 @@ void ControllerSetup(BlockNode *b) {
 		case CON_ONOFF: {
 			b->active = 0;
 			b->last_update = TimeNow();
-			break;
+			b->status = STATUS_ENABLED_INIT;
 		}
+			break;
 
 		case CON_SYSTEM: {
-			break;
+			b->status = STATUS_ENABLED_INIT;
 		}
+			break;
 		default:
 			break;
 	}

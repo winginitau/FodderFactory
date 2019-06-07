@@ -51,9 +51,11 @@ void OutputSetup(BlockNode *b) {
 			#else
 				HALDigitalWrite (b->settings.out.if_num, DIG_LOW);
 			#endif
+			b->status = STATUS_ENABLED_INIT;
 			break;
 		}
 		case OUT_SYSTEM_CALL: {
+			b->status = STATUS_ENABLED_INIT;
 			break;
 		}
 		default:
