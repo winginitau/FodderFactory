@@ -29,8 +29,11 @@
 #include <U8x8lib.h>
 #endif // LCD_DISPLAY
 #include <RTClib.h>
-#include <SD.h>
-//#include <SdFat.h>
+#ifdef OLD_SD
+	#include <SD.h>
+#else
+	#include <SdFat.h>
+#endif // OLD_SD
 #include <time.h>
 #include "Wire.h"					// RTC talks ober i2c "Wire"
 #include <avr/wdt.h>				// Watchdog timer for reboot routine
@@ -221,6 +224,7 @@ uint8_t HALSaveEventBuffer(void) {
 	uint8_t save_success = 0;
 
 #ifdef FF_ARDUINO
+	#ifdef OLD_SD
 	File e_file;
 
 	// make sure that the default chip select pin is set to
@@ -235,9 +239,9 @@ uint8_t HALSaveEventBuffer(void) {
 	if (SD.begin(10, 11, 12, 13)) {
 //	if (SD.begin(10)) {
 
-#ifdef DEBUG
+	#ifdef DEBUG
 		//DebugLog(F("(HALSaveEventBuffer) DEBUG INFO sd.begin successful")); //cant use EventMsg
-#endif
+	#endif
 		EventNode* e;
 		char e_str[MAX_LOG_LINE_LENGTH];
 
@@ -270,7 +274,9 @@ uint8_t HALSaveEventBuffer(void) {
 	} else {
 		DebugLog(SSS, E_ERROR, M_SD_BEGIN_FAIL);
 	}
-#endif
+	#endif //OLD_SD
+#endif //FF_ARDUINO
+
 
 #ifdef FF_SIMULATOR
 	FILE *e_file;
@@ -395,7 +401,7 @@ uint8_t HALEventSerialSend(EventNode* e, uint8_t port) {
     	switch (port) {
     		case 0:
 				#ifdef USE_ITCH
-    			itch.WriteLineDirect(e_str);
+    			WriteLineDirect(e_str);
 				#else
     			Serial.println(e_str);
     	    	Serial.flush();
@@ -403,7 +409,7 @@ uint8_t HALEventSerialSend(EventNode* e, uint8_t port) {
     			break;
     		case 1:
 				#ifdef USE_ITCH
-    			itch.WriteLineDirect(e_str);
+    			WriteLineDirect(e_str);
 				#else
     			Serial1.println(e_str);
     	    	Serial1.flush();
@@ -411,7 +417,7 @@ uint8_t HALEventSerialSend(EventNode* e, uint8_t port) {
     			break;
     		case 2:
 				#ifdef USE_ITCH
-    			itch.WriteLineDirect(e_str);
+    			WriteLineDirect(e_str);
 				#else
     			Serial2.println(e_str);
     	    	Serial2.flush();
@@ -419,7 +425,7 @@ uint8_t HALEventSerialSend(EventNode* e, uint8_t port) {
     			break;
        		case 3:
     			#ifdef USE_ITCH
-        		itch.WriteLineDirect(e_str);
+        		WriteLineDirect(e_str);
     			#else
        			Serial3.println(e_str);
        	    	Serial3.flush();
@@ -450,7 +456,7 @@ void HALPollItch(void) {
 }
 
 void HALItchWriteLnImmediate(char *str) {
-	itch.WriteLineDirect(str);
+	WriteLineDirect(str);
 }
 
 void HALItchSetBufferStuffMode(void) {
@@ -662,7 +668,8 @@ float GetTemperature(int if_num) {
 #ifdef FF_TEMPERATURE_SIM
 #ifdef FF_RANDOM_TEMP_SIM
 #ifdef FF_ARDUINO
-	temp_c = random(FF_RANDOM_TEMP_MIN, FF_RANDOM_TEMP_MAX);
+	if_num=1;
+	temp_c = random(FF_RANDOM_TEMP_MIN, FF_RANDOM_TEMP_MAX) * (float)if_num;
 #endif //FF_ARDUINO
 #endif //FF_RANDOM_TEMP_SIM
 #endif //FF_TEMPERATURE_SIM

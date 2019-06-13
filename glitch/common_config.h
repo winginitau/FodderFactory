@@ -24,6 +24,7 @@ enum {
 	R_CONTINUE,
 	R_REPLAY,
 	R_BACKSPACE,
+	R_EXIT,
 };
 
 // AST types shared across grammar processor and parser

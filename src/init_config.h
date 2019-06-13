@@ -22,7 +22,8 @@
 
 void InitSystem(void);
 
-void InitConfigLoad(void);
+void ConfigParse(char* buf);
+void InitConfigLoad(uint8_t);
 void InitConfigLoadINI(void);
 void InitConfigLoadBinary(void);
 

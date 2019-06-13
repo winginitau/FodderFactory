@@ -129,7 +129,8 @@ bool IniFile::getValue(const char* section, const char* key,
 bool IniFile::getValue(const char* section, const char* key,
 			 char* buffer, size_t len, char *value, size_t vlen) const
 {
-  if (getValue(section, key, buffer, len) < 0)
+//if (getValue(section, key, buffer, len) < 0)
+  if (getValue(section, key, buffer, len))
     return false; // error
   if (strlen(buffer) >= vlen)
     return false;
@@ -143,7 +144,8 @@ bool IniFile::getValue(const char* section, const char* key,
 bool IniFile::getValue(const char* section, const char* key, 
 			  char* buffer, size_t len, bool& val) const
 {
-  if (getValue(section, key, buffer, len) < 0)
+//if (getValue(section, key, buffer, len) < 0)
+  if (getValue(section, key, buffer, len))
     return false; // error
   
   if (strcasecmp(buffer, "true") == 0 ||
@@ -164,7 +166,8 @@ bool IniFile::getValue(const char* section, const char* key,
 bool IniFile::getValue(const char* section, const char* key,
 			  char* buffer, size_t len, int& val) const
 {
-  if (getValue(section, key, buffer, len) < 0)
+//if (getValue(section, key, buffer, len) < 0)
+  if (getValue(section, key, buffer, len))
     return false; // error
   
   val = atoi(buffer);
@@ -184,7 +187,8 @@ bool IniFile::getValue(const char* section, const char* key,	\
 bool IniFile::getValue(const char* section, const char* key,
 			  char* buffer, size_t len, long& val) const
 {
-  if (getValue(section, key, buffer, len) < 0)
+//if (getValue(section, key, buffer, len) < 0)
+  if (getValue(section, key, buffer, len))
     return false; // error
   
   val = atol(buffer);
@@ -194,7 +198,8 @@ bool IniFile::getValue(const char* section, const char* key,
 bool IniFile::getValue(const char* section, const char* key,
 			  char* buffer, size_t len, unsigned long& val) const
 {
-  if (getValue(section, key, buffer, len) < 0)
+//if (getValue(section, key, buffer, len) < 0)
+  if (getValue(section, key, buffer, len))
     return false; // error
 
   char *endptr;
@@ -214,7 +219,8 @@ bool IniFile::getValue(const char* section, const char* key,
 bool IniFile::getValue(const char* section, const char* key,
 			  char* buffer, size_t len, float & val) const
 {
-  if (getValue(section, key, buffer, len) < 0)
+//if (getValue(section, key, buffer, len) < 0)
+  if (getValue(section, key, buffer, len))
     return false; // error
 
   char *endptr;

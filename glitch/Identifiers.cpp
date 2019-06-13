@@ -577,11 +577,12 @@ void Identifiers::WriteUserLookupFunctions(int header_or_code) {
 				output.EnQueue(out);
 				sprintf(out, "}\n\n");
 				output.EnQueue(out);
+				output.SetOutputAvailable();
 			}
 		}
 		idx++;
 	}
-	output.SetOutputAvailable();
+
 }
 
 

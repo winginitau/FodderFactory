@@ -16,7 +16,7 @@
 typedef struct SIMPLE_STRING_ARRAY_TYPE {
 	// Array of strings (usually labels and messages) relating to enums
 	// Inside this struct, extended intitaliser lists are ok
-	char text[MAX_MESSAGE_STRING_LENGTH];
+	char text[MAX_LABEL_LENGTH];
 } SimpleStringArray;
 
 #else

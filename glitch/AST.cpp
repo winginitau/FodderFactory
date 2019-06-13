@@ -634,14 +634,14 @@ int AST::BuildActionCode(Identifiers& idents) {
 	#ifdef USER_CODE_HINTS
 	sprintf(output_string, "\t// >>>\n");
 	user_code_output_queue.EnQueue(output_string);
-	sprintf(output_string, "\t// >>> Results Callback via ITCH.WriteLineCallback\n");
+	sprintf(output_string, "\t// >>> Results Callback via ITCH WriteLineCallback\n");
 	user_code_output_queue.EnQueue(output_string);
 	sprintf(output_string, "\t// >>>\n");
 	user_code_output_queue.EnQueue(output_string);
 	#endif //USER_CODE_HINTS
 
 	#ifdef USER_CODE_DEBUG
-	sprintf(output_string, "\titch.WriteLineCallback(temp);\n");
+	sprintf(output_string, "\tWriteLineCallback(temp);\n");
 	user_code_output_queue.EnQueue(output_string);
 	#endif //USER_CODE_DEBUG
 
@@ -672,7 +672,7 @@ int AST::BuildActionCode(Identifiers& idents) {
 
 	if (param_count == 0) {
 		// Just write the callback and close it
-		sprintf(temp, "itch.WriteLineCallback);\n");
+		sprintf(temp, "WriteLineCallback);\n");
 		strcat(output_string, temp);
 	} else {
 		// write the param list into the external call - including the last one
@@ -682,7 +682,7 @@ int AST::BuildActionCode(Identifiers& idents) {
 			strcat(output_string, temp);
 		}
 		// then the callback and close
-		sprintf(temp, "itch.WriteLineCallback);\n");
+		sprintf(temp, "WriteLineCallback);\n");
 		strcat(output_string, temp);
 	}
 

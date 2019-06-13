@@ -55,10 +55,10 @@
 
 
 
-#ifndef ARDUINO
-#include <iostream>
-using namespace std;
-#endif
+//#ifndef ARDUINO
+//#include <iostream.h>
+//using namespace std;
+//#endif
 
 /************************************************
  Includes
@@ -141,6 +141,8 @@ int main(void) {
 		//InitConfigSaveBinary();
 		//InitConfigLoadBinary();
 		//InitConfigSave();
+		DebugLog("Calling InitConfigLoad");
+		InitConfigLoad(1);
 
 	#else
 	#ifdef FF_SIM_PARSECONFIG

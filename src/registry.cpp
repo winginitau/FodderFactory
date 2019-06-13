@@ -601,7 +601,7 @@ BlockNode* AddBlockNode(BlockNode** head_ref, uint8_t block_cat, const char *blo
 					break;
 				case FF_SCHEDULE:
 					for (int i = 0; i < LAST_DAY; i++)
-						new_block->settings.sch.days[i] = UINT8_INIT;
+					new_block->settings.sch.days[i] = UINT8_INIT;
 					new_block->settings.sch.time_start = UINT32_INIT;
 					new_block->settings.sch.time_end = UINT32_INIT;
 					new_block->settings.sch.time_duration = 0;
@@ -630,6 +630,19 @@ BlockNode* AddBlockNode(BlockNode** head_ref, uint8_t block_cat, const char *blo
 	}
 	return AddBlockNode(&((*head_ref)->next_block), block_cat, block_label);
 
+}
+
+uint8_t GetBlockCatIDByName(char* name) {
+	uint8_t id = LAST_BLOCK_CAT - 1;
+	char cat_name[MAX_LABEL_LENGTH];
+
+ 	for (; id > 0; id--) {
+		strcpy_hal(cat_name, block_cat_names[id].text);
+		if (strcasecmp(name, cat_name) == 0) {
+			return id;
+		}
+	}
+	return id;
 }
 
 BlockNode* AddBlock(uint8_t block_cat, const char *block_label) {
@@ -1244,36 +1257,42 @@ void RegConfigReset(void(*Callback)(char*)) {
 
 
 void RegConfigLoad(void(*Callback)(char*)) {
-	InitConfigLoad();
+	(void)Callback; 		//not used
+	InitConfigLoad(1);
 }
 
 void RegConfigLoadBinary(void(*Callback)(char*)) {
+	(void)Callback; 		//not used
 	InitConfigLoadBinary();
 }
 
 void RegConfigLoadINI(void(*Callback)(char*)) {
+	(void)Callback; 		//not used
 	InitConfigLoadINI();
 }
 
 void RegConfigSave(void(*Callback)(char*)) {
+	(void)Callback; 		//not used
 	InitConfigSave();
 }
 
 void RegConfigSaveBinary(void(*Callback)(char*)) {
+	(void)Callback; 		//not used
 	InitConfigSaveBinary();
 }
 
 void RegConfigBlockSystem(char* param1_string, uint16_t SYS_CONFIG, char* param2_string, void(*Callback)(char*)) {
 	char out_str[MAX_MESSAGE_STRING_LENGTH];	// 80
+	char key[MAX_LABEL_LENGTH];
 
-	if (ConfigureBlock(FF_SYSTEM, param1_string, \
-			sys_config_keys[SYS_CONFIG].text, param2_string) == 0) {
+	strcpy_hal(key, sys_config_keys[SYS_CONFIG].text);
+	if (ConfigureBlock(FF_SYSTEM, param1_string, key, param2_string) == 0) {
 		GetMessageString(out_str, M_CONFIGURE_BLOCK_ERROR);
 		Callback(out_str);
 		strcpy_hal(out_str, F(" >>> CONFIG system "));
 		strcat(out_str, param1_string);
 		strcat_hal(out_str, F(" "));
-		strcat_hal(out_str, sys_config_keys[SYS_CONFIG].text);
+		strcat_hal(out_str, key);
 		strcat_hal(out_str, F(" "));
 		strcat(out_str, param2_string);
 		Callback(out_str);
@@ -1282,15 +1301,16 @@ void RegConfigBlockSystem(char* param1_string, uint16_t SYS_CONFIG, char* param2
 
 void RegConfigBlockInput(char* param1_string, uint16_t IN_CONFIG, char* param2_string, void(*Callback)(char*)) {
 	char out_str[MAX_MESSAGE_STRING_LENGTH];	// 80
+	char key[MAX_LABEL_LENGTH];
 
-	if (ConfigureBlock(FF_INPUT, param1_string, \
-			in_config_keys[IN_CONFIG].text, param2_string) == 0) {
+	strcpy_hal(key, in_config_keys[IN_CONFIG].text);
+	if (ConfigureBlock(FF_INPUT, param1_string, key, param2_string) == 0) {
 		GetMessageString(out_str, M_CONFIGURE_BLOCK_ERROR);
 		Callback(out_str);
 		strcpy_hal(out_str, F(" >>> CONFIG input "));
 		strcat(out_str, param1_string);
 		strcat_hal(out_str, F(" "));
-		strcat_hal(out_str, in_config_keys[IN_CONFIG].text);
+		strcat_hal(out_str, key);
 		strcat_hal(out_str, F(" "));
 		strcat(out_str, param2_string);
 		Callback(out_str);
@@ -1299,15 +1319,16 @@ void RegConfigBlockInput(char* param1_string, uint16_t IN_CONFIG, char* param2_s
 
 void RegConfigBlockMonitor(char* param1_string, uint16_t MON_CONFIG, char* param2_string, void(*Callback)(char*)) {
 	char out_str[MAX_MESSAGE_STRING_LENGTH];	// 80
+	char key[MAX_LABEL_LENGTH];
 
-	if (ConfigureBlock(FF_MONITOR, param1_string, \
-			mon_config_keys[MON_CONFIG].text, param2_string) == 0) {
+	strcpy_hal(key, mon_config_keys[MON_CONFIG].text);
+	if (ConfigureBlock(FF_MONITOR, param1_string, key, param2_string) == 0) {
 		GetMessageString(out_str, M_CONFIGURE_BLOCK_ERROR);
 		Callback(out_str);
 		strcpy_hal(out_str, F(" >>> CONFIG monitor "));
 		strcat(out_str, param1_string);
 		strcat_hal(out_str, F(" "));
-		strcat_hal(out_str, mon_config_keys[MON_CONFIG].text);
+		strcat_hal(out_str, key);
 		strcat_hal(out_str, F(" "));
 		strcat(out_str, param2_string);
 		Callback(out_str);
@@ -1316,15 +1337,16 @@ void RegConfigBlockMonitor(char* param1_string, uint16_t MON_CONFIG, char* param
 
 void RegConfigBlockSchedule(char* param1_string, uint16_t SCH_CONFIG, char* param2_string, void(*Callback)(char*)) {
 	char out_str[MAX_MESSAGE_STRING_LENGTH];	// 80
+	char key[MAX_LABEL_LENGTH];
 
-	if (ConfigureBlock(FF_SCHEDULE, param1_string, \
-			sch_config_keys[SCH_CONFIG].text, param2_string) == 0) {
+	strcpy_hal(key, sch_config_keys[SCH_CONFIG].text);
+	if (ConfigureBlock(FF_SCHEDULE, param1_string, key, param2_string) == 0) {
 		GetMessageString(out_str, M_CONFIGURE_BLOCK_ERROR);
 		Callback(out_str);
 		strcpy_hal(out_str, F(" >>> CONFIG schedule "));
 		strcat(out_str, param1_string);
 		strcat_hal(out_str, F(" "));
-		strcat_hal(out_str, sch_config_keys[SCH_CONFIG].text);
+		strcat_hal(out_str, key);
 		strcat_hal(out_str, F(" "));
 		strcat(out_str, param2_string);
 		Callback(out_str);
@@ -1333,15 +1355,16 @@ void RegConfigBlockSchedule(char* param1_string, uint16_t SCH_CONFIG, char* para
 
 void RegConfigBlockRule(char* param1_string, uint16_t RL_CONFIG, char* param2_string, void(*Callback)(char*)) {
 	char out_str[MAX_MESSAGE_STRING_LENGTH];	// 80
+	char key[MAX_LABEL_LENGTH];
 
-	if (ConfigureBlock(FF_RULE, param1_string, \
-			rl_config_keys[RL_CONFIG].text, param2_string) == 0) {
+	strcpy_hal(key, rl_config_keys[RL_CONFIG].text);
+	if (ConfigureBlock(FF_RULE, param1_string, key, param2_string) == 0) {
 		GetMessageString(out_str, M_CONFIGURE_BLOCK_ERROR);
 		Callback(out_str);
 		strcpy_hal(out_str, F(" >>> CONFIG rule "));
 		strcat(out_str, param1_string);
 		strcat_hal(out_str, F(" "));
-		strcat_hal(out_str, rl_config_keys[RL_CONFIG].text);
+		strcat_hal(out_str, key);
 		strcat_hal(out_str, F(" "));
 		strcat(out_str, param2_string);
 		Callback(out_str);
@@ -1350,15 +1373,16 @@ void RegConfigBlockRule(char* param1_string, uint16_t RL_CONFIG, char* param2_st
 
 void RegConfigBlockController(char* param1_string, uint16_t CON_CONFIG, char* param2_string, void(*Callback)(char*)) {
 	char out_str[MAX_MESSAGE_STRING_LENGTH];	// 80
+	char key[MAX_LABEL_LENGTH];
 
-	if (ConfigureBlock(FF_CONTROLLER, param1_string, \
-			con_config_keys[CON_CONFIG].text, param2_string) == 0) {
+	strcpy_hal(key, con_config_keys[CON_CONFIG].text);
+	if (ConfigureBlock(FF_CONTROLLER, param1_string, key, param2_string) == 0) {
 		GetMessageString(out_str, M_CONFIGURE_BLOCK_ERROR);
 		Callback(out_str);
 		strcpy_hal(out_str, F(" >>> CONFIG controller "));
 		strcat(out_str, param1_string);
 		strcat_hal(out_str, F(" "));
-		strcat_hal(out_str, con_config_keys[CON_CONFIG].text);
+		strcat_hal(out_str, key);
 		strcat_hal(out_str, F(" "));
 		strcat(out_str, param2_string);
 		Callback(out_str);
@@ -1367,15 +1391,16 @@ void RegConfigBlockController(char* param1_string, uint16_t CON_CONFIG, char* pa
 
 void RegConfigBlockOutput(char* param1_string, uint16_t OUT_CONFIG, char* param2_string, void(*Callback)(char*)) {
 	char out_str[MAX_MESSAGE_STRING_LENGTH];	// 80
+	char key[MAX_LABEL_LENGTH];
 
-	if (ConfigureBlock(FF_OUTPUT, param1_string, \
-			out_config_keys[OUT_CONFIG].text, param2_string) == 0) {
+	strcpy_hal(key, out_config_keys[OUT_CONFIG].text);
+	if (ConfigureBlock(FF_OUTPUT, param1_string, key, param2_string) == 0) {
 		GetMessageString(out_str, M_CONFIGURE_BLOCK_ERROR);
 		Callback(out_str);
 		strcpy_hal(out_str, F(" >>> CONFIG output "));
 		strcat(out_str, param1_string);
 		strcat_hal(out_str, F(" "));
-		strcat_hal(out_str, out_config_keys[OUT_CONFIG].text);
+		strcat_hal(out_str, key);
 		strcat_hal(out_str, F(" "));
 		strcat(out_str, param2_string);
 		Callback(out_str);
@@ -1384,22 +1409,25 @@ void RegConfigBlockOutput(char* param1_string, uint16_t OUT_CONFIG, char* param2
 
 
 void RegInitSetupAll(void(*Callback)(char*)) {
+	(void)Callback; 		//not used
 	ProcessDispatcher(Setup);
 }
 
 void RegInitValidateAll(void(*Callback)(char*)) {
+	(void)Callback; 		//not used
 	ProcessDispatcher(Validate);
 }
 
 void RegInitDisableAll(void(*Callback)(char*)) {
+	(void)Callback; 		//not used
 	ProcessDispatcher(InitDisable);
 }
 
 
 
 void RegSystemReboot(void(*Callback)(char*)) {
+	(void)Callback; 		//not used
 	HALReboot();
-	Callback(NULL); //stop compiler complaining
 }
 
 void RegBlockIDCmdOn(uint16_t block_id, void(*Callback)(char*)) {
@@ -1421,9 +1449,13 @@ UIDataSet* GetUIDataSet(void) {
 
 void UpdateStateRegister(uint16_t source, uint8_t msg_type, uint8_t msg_str, int32_t i_val, float f_val) {
 
+	(void)i_val;	// not used on the LCD
+
 	//TODO include further registry block logic update here
 
 	//TODO redo - remove hard coding perhaps **** INDEED
+
+	// 2019-06 Prob not needed for now - this was only used for the LCD display
 	const char* src_label;
 	src_label = GetBlockLabelString(source);
 

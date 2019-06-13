@@ -19,11 +19,11 @@
 /************************************************
  PLATFORM Directives
  ************************************************/
-//#define FF_ARDUINO
+#define FF_ARDUINO
 // AND Optionally
 //#define VE_DIRECT
 // OR
-#define FF_SIMULATOR
+//#define FF_SIMULATOR
 // Optionally with
 //#define FF_SIM_PARSECONFIG	//optional parse the TXT config (default -> read BIN)
 
@@ -38,7 +38,10 @@
 // Optionally:
 //#define FF_RPI_START_DELAY 30000	// Start delay to allow RPIs upstream to to get going
 
+// Use ITCH for CLI parsing ?
 #define USE_ITCH
+// OR only headers for enum arrary configs?
+//#define ITCH_HEADERS_ONLY
 
 //#define UI_ATTACHED			// is there a directly attached UI? LCD? Console in sim?
 
@@ -86,6 +89,8 @@
 #ifdef FF_ARDUINO
 #define USE_PROGMEM
 #define PROGMEM_BLOCK_DEFS
+//#define OLD_SD	//OR
+#define NEW_SD
 #endif
 
 #define EXCLUDE_DESCRIPTION			// to save .data segment and heap space on arduino
@@ -199,7 +204,7 @@
 #define DISPLAY_OUTSIDE_SOURCE_BLOCK "IN_OUTSIDE_TEMP"
 #define DISPLAY_WATER_SOURCE_BLOCK "IN_WATER_TEMP"
 
-#define EVENT_BUFFER_SIZE 5
+#define EVENT_BUFFER_SIZE 1
 
 #define UINT8_INIT 0xFF
 #define UINT16_INIT 0xFFFF
@@ -228,19 +233,19 @@
 #define EVENT_FILENAME "FFEVENTS.TXT"
 #define CONFIG_INI_FILENAME "FFCONFIG.TXT"
 #define CONFIG_BIN_FILENAME "FFCONFIG.BIN"
-#define CONFIG_TXT_FILENAME "CONFIG.TXT"
+#define CONFIG_TXT_FILENAME "CONFIGT.TXT"
 
 #define INI_FILE_MAX_LINE_LENGTH 150
 #define INI_ERROR_TYPES 9
 
-#define MAX_MESSAGE_STRING_LENGTH 80
-#define MAX_LOG_LINE_LENGTH 150
-#define MAX_DEBUG_LENGTH 150			//line buffer length for debug messages "stack smashing if too short"
+#define MAX_MESSAGE_STRING_LENGTH 80  //80
+#define MAX_LOG_LINE_LENGTH 150 //150
+#define MAX_DEBUG_LENGTH 150	//150		//line buffer length for debug messages "stack smashing if too short"
 #define MAX_LABEL_LENGTH 48
 #define MAX_DISPLAY_NAME_LENGTH 80
 #define MAX_DESCR_LENGTH 80
 //#define MAX_BLOCKS 255
-#define MAX_BLOCKS_PER_CATEGORY 32
+//#define MAX_BLOCKS_PER_CATEGORY 32
 #define MAX_CONF_KEYS_PER_BLOCK 12
 
 

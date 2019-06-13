@@ -46,6 +46,11 @@
 #include <out.h>
 #endif
 
+#ifdef ITCH_HEADERS_ONLY
+#include <itch.h>
+#include <out.h>
+#endif
+
 /**************************************************************
  * Platform Directives
  **************************************************************/
@@ -111,7 +116,7 @@ static const SimpleStringArray language_strings[LAST_LANGUAGE] = {
 };
 
 
-#ifndef USE_ITCH
+#if not defined USE_ITCH && not defined ITCH_HEADERS_ONLY
 /**************************************************************
  * Block Category Definitions
  **************************************************************/
@@ -518,11 +523,11 @@ typedef enum {
 	M_OUTPUT_DISABLED,
 	M77,
 	M78,
-	M79,
-	M80,
-	M81,
-	M82,
-	M83,
+	NO_CONFIG_FILE,
+	M_INI_LOAD_NOT_AVAIL,
+	M_BIN_LOAD_NOT_AVAIL,
+	M_BIN_SAVE_NOT_AVAIL,
+	M_CONFIG_LOAD_BY_DIRECT_PARSE,
 	M_CONFIGURE_BLOCK_ERROR,
 	M_SETUP_ON_BLOCK_NOT_DISABLED_INIT,
 	M_HACK_MON_OUT_WARM,
@@ -619,11 +624,11 @@ static const StringArray message_strings[LAST_MESSAGE] = {
 	14, { "Output Disabled by DISABLE_OUTPUTS directive",	"M76" },
 	14, { "M77",								"M77" },
 	14, { "M78",								"M78" },
-	14, { "M79",								"M79" },
-	14, { "M80",								"M80" },
-	14, { "M81",								"M81" },
-	14, { "M82",								"M82" },
-	14, { "M83",								"M83" },
+	14, { "Config file could not be opened",								"M79" },
+	14, { "INI Load not available on this platform",								"M80" },
+	14, { "Binary Load not available on this platform",								"M81" },
+	14, { "Binary Save not available on this platform",									"M82" },
+	14, { "Configuration loaded and parsed from file",									"M83" },
 	14, { "ConfigureBlock Reported an Error.",	"M84" },
 	14, { "Setup on block that is not STATUS_DISABLED_INIT",							"M85" },
 	14, { "HACK: MON_OUT_WARM Value Hacks Applied",										"M86" },
@@ -729,7 +734,7 @@ static const SimpleStringArray day_strings[LAST_DAY] = {
 };
 
 
-#ifndef USE_ITCH
+#if not defined USE_ITCH && not defined ITCH_HEADERS_ONLY
 
 enum OUTPUT_COMMANDS {
 	CMD_ERROR = 0,
@@ -844,11 +849,9 @@ void GetMessageString(char *str_buf, int message_enum);
 uint8_t GetLanguage(void);
 
 uint8_t DayStringArrayIndex(const char* key);
-
 uint8_t UnitStringArrayIndex(const char* key);
-
+uint8_t CommandStringArrayIndex(const char* key);
 uint8_t LanguageStringArrayIndex(const char* key);
-
 uint8_t InterfaceStringArrayIndex(const char* key);
 
 uint8_t BlockTypeStringArrayIndex(const char* key);

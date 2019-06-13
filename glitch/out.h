@@ -43,12 +43,12 @@
 typedef struct AST_ARRAY {
     uint8_t id;
     uint8_t type;
-    const char *label;
+    const char label[MAX_AST_LABEL_SIZE];
     uint8_t action;
     uint8_t parent;
     uint8_t first_child;
     uint8_t next_sibling;
-    const char *action_identifier;
+    const char action_identifier[MAX_AST_ACTION_SIZE];
 } ASTA;
 
 typedef struct AST_NODE {
@@ -63,7 +63,7 @@ typedef struct AST_NODE {
 } ASTA_Node;
 
 typedef struct XLAT_MAP {
-    const char *label;
+    char label[MAX_LABEL_LENGTH];
     uint16_t xlat_id;
 } XLATMap;
 
@@ -102,7 +102,7 @@ static const SimpleStringArray block_cat_names [LAST_BLOCK_CAT] = {
 	"MONITOR",
 	"SCHEDULE",
 	"RULE",
-	"CONROLLER",
+	"CONTROLLER",
 	"OUTPUT",
 };
 
@@ -159,6 +159,7 @@ enum {
 	IN_CONFIG_IF_NUM,
 	IN_CONFIG_LOG_RATE,
 	IN_CONFIG_DATA_UNITS,
+	IN_CONFIG_DATA_TYPE,
 	LAST_IN_CONFIG,
 };
 
@@ -175,6 +176,7 @@ static const SimpleStringArray in_config_keys [LAST_IN_CONFIG] = {
 	"if_num",
 	"log_rate",
 	"data_units",
+	"data_type",
 };
 
 enum {

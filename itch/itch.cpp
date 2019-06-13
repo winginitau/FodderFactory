@@ -62,7 +62,7 @@ char g_itch_replay_buf[MAX_INPUT_LINE_SIZE] = "\0";
 char g_itch_restuff_buf[MAX_INPUT_LINE_SIZE] = "\0";
 char *g_itch_restuff_buf_ptr = (char *)g_itch_restuff_buf;
 
-OutputBuffer g_itch_output_buff;		// General output buffer
+//OutputBuffer g_itch_output_buff;		// General output buffer
 //char g_out_str[MAX_OUTPUT_LINE_SIZE];	// Strings being assembled for output
 //char g_temp_str[MAX_OUTPUT_LINE_SIZE];	// General string temp
 //ASTA g_temp_asta;						// Temp asta node (and for the Progmem working copy)
@@ -167,6 +167,7 @@ void ITCH::SetMode(uint8_t new_mode) {
 	}
 }
 
+/*
 void ITCH::WriteOutputBuffer(void) {
 	// Iterate the output list and write contents till empty
 	while (g_itch_output_buff.OutputAvailable()) {
@@ -174,6 +175,7 @@ void ITCH::WriteOutputBuffer(void) {
 		WriteLineDirect(out_str);
 	}
 }
+*/
 
 void ITCH::PreserveReplay(void) {
 	// Preserve the replay buffer into the restuff buffer
@@ -252,14 +254,14 @@ void ITCH::Poll(void) {
 			return;
 		}
 		// if here, we have a ch to start or continue parsing
-		parse_result = Parse(ch);
+		parse_result = ParseProcess(ch);
 
 		switch (parse_result) {
 			case R_HELP:
-				WriteDirectCh('\n');
-				strcpy_itch_misc(out_str, ITCH_MISC_HELP_HEADING);
-				WriteLineDirect(out_str);
-				WriteOutputBuffer();		// show the help populated by the parser
+				//WriteDirectCh('\n');
+				//strcpy_itch_misc(out_str, ITCH_MISC_HELP_HEADING);
+				//WriteLineDirect(out_str);
+				//WriteOutputBuffer();		// show the help populated by the parser
 				PreserveReplay();
 				TrimReStuffBuffer();		// to remove ?
 
@@ -283,7 +285,7 @@ void ITCH::Poll(void) {
 				// Parser ignoring something irrelevant. Egs extra whitespace,
 				//  or the rest of anything that arrives after an error has been detected
 				// But - echo it back if echo_received is on
-				WriteOutputBuffer();
+				//WriteOutputBuffer();
 				if (iflags.echo_received == 1) {
 					WriteDirectCh(ch);		// echo the received char
 				}
@@ -291,13 +293,13 @@ void ITCH::Poll(void) {
 			case R_DISCARD:
 				// Parser ignoring an escape sequence or something that should not be
 				//  echoed back even if echo_received is on
-				WriteOutputBuffer();
+				//WriteOutputBuffer();
 				break; //continue
 			case R_CONTINUE:
 				// Parser processed something (eg toggle double quote) but
 				//	did not advance to the node mapping stage
 				// Potentially same as R_IGNORE???
-				WriteOutputBuffer();
+				//WriteOutputBuffer();
 				if (iflags.echo_received == 1) {
 					WriteDirectCh(ch);		// echo the received char
 				}
@@ -337,9 +339,9 @@ void ITCH::Poll(void) {
 				}
 				break;
 			case R_COMPLETE: {
-				WriteOutputBuffer();
+				//WriteOutputBuffer();
 				if (iflags.mode != ITCH_BUFFER_STUFF) {
-					WriteDirectCh('\n');
+					//WriteDirectCh('\n');
 					WriteDirect(prompt);
 				}
 				PreserveReplay();
@@ -382,27 +384,31 @@ void ITCH::Poll(void) {
 				}
 				ParserResetLine();		// reset parsing, start from beginning
 				break;
+			case R_EXIT:
+				SetMode(ITCH_TEXT_DATA);
+				break;
 		}
 	}
 }
 
-void ITCH::WriteLine(char* string) {
+/***********************************************************
+ * Static functions outside the ITCH class that
+ * can also be etern
+ ***********************************************************/
+
+void WriteLineCallback(char* string) {
+	WriteLineDirect(string);
+	/*
 	if(string != NULL) {
+		//g_itch_output_buff.AddString("\n");
 		g_itch_output_buff.AddString(string);
 		g_itch_output_buff.SetOutputAvailable();
 	}
-}
-
-void ITCH::WriteLineCallback(char* string) {
-	if(string != NULL) {
-		g_itch_output_buff.AddString("\n");
-		g_itch_output_buff.AddString(string);
-		g_itch_output_buff.SetOutputAvailable();
-	}
+	*/
 }
 
 
-void ITCH::WriteLineDirect(char* string) {
+void WriteLineDirect(char* string) {
 	// Add a newline and send the string to the output
 	strcat(string, "\n");
 	#ifdef ARDUINO
@@ -417,7 +423,7 @@ void ITCH::WriteLineDirect(char* string) {
 	#endif
 }
 
-void ITCH::WriteDirect(char* string) {
+void WriteDirect(char* string) {
 	// Send the string to the output
 	#ifdef ARDUINO
 		Serial.flush();
@@ -432,7 +438,7 @@ void ITCH::WriteDirect(char* string) {
 	#endif
 }
 
-void ITCH::WriteDirectCh(char ch) {
+void WriteDirectCh(char ch) {
 	#ifdef ARDUINO
 		Serial.flush();
 		//delay(500);

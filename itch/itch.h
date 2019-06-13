@@ -16,7 +16,7 @@
 
 #include "config.h"
 #include "LineBuffer.h"
-#include "OutputBuffer.h"
+//#include "OutputBuffer.h"
 #include "Parser.h"
 
 #include <stdio.h>
@@ -38,6 +38,12 @@ typedef struct ITCH_FLAGS {
 } I_FLAGS;
 
 
+void WriteLineCallback(char* string);
+void WriteLineDirect(char* string);
+void WriteDirect(char* string);
+void WriteDirectCh(char ch);
+
+
 class ITCH {
 private:
 	I_FLAGS iflags;
@@ -46,7 +52,7 @@ private:
 	char prompt[20];
 	char out_str[MAX_OUTPUT_LINE_SIZE];
 
-	void WriteOutputBuffer(void);
+	//void WriteOutputBuffer(void);
 	void PreserveReplay(void);
 	void TrimReStuffBuffer(void);
 
@@ -62,11 +68,10 @@ public:
 	void SetMode(uint8_t mode);
 	uint8_t StuffAndProcess(char* str);
 	void Poll();
-	static void WriteLine(char* string);
-	static void WriteLineCallback(char* string);
-	static void WriteLineDirect(char* string);
-	static void WriteDirect(char* string);
-	static void WriteDirectCh(char ch);
+	//static void WriteLineCallback(char* string);
+	//void WriteLineDirect(char* string);
+	//static void WriteDirect(char* string);
+	//static void WriteDirectCh(char ch);
 };
 
 

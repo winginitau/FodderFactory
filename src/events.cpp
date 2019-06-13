@@ -77,6 +77,10 @@ uint8_t EventSendSubscribers(EventNode* e) {
 	// XXX add logic to iterate a subscriber list and send to each
 	//Manual inclusions to start with - need to implement subscriber publisher registry functions
 
+	#ifdef SUPRESS_EVENT_MESSAGES
+	(void)e;
+	#endif
+
 	#ifndef SUPRESS_EVENT_MESSAGES
 	#ifdef EVENT_SERIAL
 		HALEventSerialSend(e, EVENT_SERIAL_PORT);
@@ -183,9 +187,10 @@ void EventMsg(uint16_t source, uint16_t destination, uint8_t msg_type, uint8_t m
 	event.int_val = i_val;
 	event.float_val = f_val;
 
-	EventBufferPush(event);
+	//EventBufferPush(event);
 	EventSendSubscribers(&event);
 
+	/*
 	if(EventBufferFull()) {
 		if (HALSaveEventBuffer()) {     			//write to file
 			//DebugLog("Events Saved to File");
@@ -194,6 +199,7 @@ void EventMsg(uint16_t source, uint16_t destination, uint8_t msg_type, uint8_t m
 			}
 		}
 	}
+	 */
 
 	#ifdef DEBUG
 		DebugLog(source, destination, msg_type, msg_str, i_val, f_val);

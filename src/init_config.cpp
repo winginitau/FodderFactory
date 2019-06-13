@@ -24,18 +24,50 @@
 #include <time.h>
 #include <filesystem.h>
 #include <HAL.h>
-#include <IniFile_ff.h>
 #include <registry.h>
 #include <string_consts.h>
 #include <utils.h>
 #include <validate.h>
 
-#ifdef FF_ARDUINO
-//#include <SdFat.h>
-#include <SD.h>
+#ifdef FF_SIMULATOR
+#include <IniFile_ff.h>
 #endif
 
+#ifdef FF_ARDUINO
+
+#ifdef OLD_SD
+#include <SD.h>
+#endif //OLD SD
+
+#ifdef NEW_SD
+#include <SPI.h>
+#include <SdFat.h>
+#include <SdFatConfig.h>
+#endif //NEW_SD
+
+#if ENABLE_SOFTWARE_SPI_CLASS  // Must be set in SdFat/SdFatConfig.h
+//
+// Pin numbers in templates must be constants.
+const uint8_t SOFT_MISO_PIN = 12;
+const uint8_t SOFT_MOSI_PIN = 11;
+const uint8_t SOFT_SCK_PIN  = 13;
+//
+// Chip select may be constant or RAM variable.
+const uint8_t SD_CHIP_SELECT_PIN = 10;
+
+// SdFat software SPI template
+SdFatSoftSpi<SOFT_MISO_PIN, SOFT_MOSI_PIN, SOFT_SCK_PIN> sd;
+#else  // ENABLE_SOFTWARE_SPI_CLASS
+#error ENABLE_SOFTWARE_SPI_CLASS must be set non-zero in SdFat/SdFatConfig.h
+#endif  //ENABLE_SOFTWARE_SPI_CLASS
+
+#endif //FF_ARDUINO
+
 #ifdef USE_ITCH
+#include "itch.h"
+#endif
+
+#ifdef ITCH_HEADERS_ONLY
 #include "itch.h"
 #endif
 
@@ -155,11 +187,18 @@ float floatRead(File *f) {
 
 
 void InitConfigLoadBinary(void) {
+//#ifdef OLD_SD
 	// Build the block list from a binary config file previously written
 	//  by InitConfigSaveBinary()
 	// NOTE: no existence or duplicate checking - this function assumes an empty (NULL)
 	//  block list therefore DropBlockList() is called first to make sure
 
+	#ifdef FF_ARDUINO
+		EventMsg(SSS, E_INFO, M_BIN_LOAD_NOT_AVAIL);
+		return;
+	#endif
+
+	#ifdef FF_SIMULATOR
 	BlockNode* b;
 	uint8_t b_cat; 	//used as read-ahead to test for eof before creating a new block
 	char temp_label[MAX_LABEL_LENGTH];
@@ -316,6 +355,7 @@ void InitConfigLoadBinary(void) {
 	// As a fresh block list, call validate and setup on each block too
 	ProcessDispatcher(Validate);
 	ProcessDispatcher(Setup);
+	#endif //FF_SIMULATOR
 }
 
 
@@ -371,7 +411,7 @@ uint8_t GetConfKeyIndex(uint8_t block_cat, const char* key_str) {
 	uint8_t last_key = UINT8_INIT;
 	uint8_t key_idx = 0; 			//see "string_consts.h" Zero is error.
 
-	char temp[MAX_LABEL_LENGTH];
+	//char temp[MAX_LABEL_LENGTH];
 	//lock the last key index to the appropriate block category
 
 	switch (block_cat) {
@@ -381,19 +421,22 @@ uint8_t GetConfKeyIndex(uint8_t block_cat, const char* key_str) {
 			break;
 		case FF_SYSTEM:
 			last_key = LAST_SYS_CONFIG;
-			while (key_idx <= last_key) {
-				strcpy_hal(temp, sys_config_keys[key_idx].text);
-				DebugLog(temp);
-				if (strcmp (key_str, temp) == 0) break;
+			while (strcmp_hal(key_str, sys_config_keys[key_idx].text) != 0) {
 				key_idx++;
+				if (key_idx == last_key) break;
 			}
+			//DebugLog("Match Block Category!");
 			break;
 		case FF_INPUT:
 			last_key = LAST_IN_CONFIG;
 			while (strcmp_hal(key_str, in_config_keys[key_idx].text) != 0) {
+				//DebugLog(key_str);
+				//strcpy_hal(temp, in_config_keys[key_idx].text);
+				//DebugLog(temp);
 				key_idx++;
 				if (key_idx == last_key) break;
 			}
+			//DebugLog("Match Block Category!");
 			break;
 		case FF_MONITOR:
 			last_key = LAST_MON_CONFIG;
@@ -432,7 +475,12 @@ uint8_t GetConfKeyIndex(uint8_t block_cat, const char* key_str) {
 			break;
 		default:
 			DebugLog(SSS, E_STOP, M_CONFKEY_LAST_BCAT);
-			while(1);
+			#ifdef FF_ARDUINO
+				while(1);
+			#endif
+			#ifdef FF_SIMULATOR
+				exit(-1);
+			#endif
 	}
 
 	//check that we have a key that matches one of the keys strings of the block category
@@ -453,13 +501,19 @@ uint8_t GetConfKeyIndex(uint8_t block_cat, const char* key_str) {
 
 	if (key_idx == last_key) {
 		DebugLog(SSS, E_STOP, M_CONFKEY_NOTIN_DEFS);
-		while(1);
+		#ifdef FF_ARDUINO
+			while(1);
+		#endif
+		#ifdef FF_SIMULATOR
+			exit(-1);
+		#endif
 	} else {
 		return key_idx;
 	}
 }
 
 uint8_t ConfigureCommonSetting(BlockNode* block_ptr, uint8_t key_idx, const char* value_str){
+
 	switch (key_idx) {
 		case SYS_ERROR_KEY:
 			// or any other (0) block cat error key
@@ -473,6 +527,7 @@ uint8_t ConfigureCommonSetting(BlockNode* block_ptr, uint8_t key_idx, const char
 			// or case RL_TYPE:
 			// or case CON_TYPE:
 			// or case OUT_TYPE:
+			//DebugLog("Switch on key_idx, matched case XXX_TYPE ");
 			block_ptr->block_type = BlockTypeStringArrayIndex(value_str);
 			break;
 		case SYS_DISPLAY_NAME:
@@ -540,16 +595,22 @@ uint8_t ConfigureINSetting(BlockNode* block_ptr, uint8_t key_idx, const char* va
 			break;
 		}
 		case IN_DATA_UNITS: {
+			block_ptr->settings.in.data_units = UnitStringArrayIndex(value_str);
+			if(block_ptr->settings.in.data_units == 0) {
+				DebugLog(SSS, E_ERROR, M_BAD_DATA_UNITS);
+			}
+			return block_ptr->settings.in.data_units;
+			/*
 			uint8_t u = 0;
-#ifdef USE_PROGMEM
+			#ifdef USE_PROGMEM
 			while (u < LAST_UNIT && strcmp_P(unit_strings[u].text, value_str)) {
 				u++;
 			}
-#else
+			#else
 			while (u < LAST_UNIT && strcmp(unit_strings[u].text, value_str)) {
 				u++;
 			}
-#endif
+			#endif
 			if (u < LAST_UNIT) {
 				block_ptr->settings.in.data_units = u;
 			} else {
@@ -557,10 +618,11 @@ uint8_t ConfigureINSetting(BlockNode* block_ptr, uint8_t key_idx, const char* va
 				DebugLog(SSS, E_ERROR, M_BAD_DATA_UNITS);
 				return 0;
 			}
+			*/
 			break;
 		}
 		case IN_DATA_TYPE:
-			//XXX so what - either float or int presently - inferred from block type, conider dropping
+			//XXX so what - either float or int presently - inferred from block type, consider dropping
 			break;
 		default:
 			DebugLog(SSS, E_ERROR, M_IN_BAD_DEF);
@@ -586,14 +648,15 @@ uint8_t ConfigureMONSetting(BlockNode* block_ptr, uint8_t key_idx, const char* v
 			break;
 		case MON_ACT_VAL:
 			// check first for IN_DIGITAL boolean values
-			if (strcmp(value_str, "HIGH") == 0) {
+			if (strcmp_hal(value_str, F("HIGH")) == 0) {
 				block_ptr->settings.mon.act_val = 1;
 			} else {
-				if (strcmp(value_str, "LOW") == 0) {
+				if (strcmp_hal(value_str, F("LOW")) == 0) {
 					block_ptr->settings.mon.act_val = 0;
 				} else {
 					// must be a numeric float value
-					sscanf(value_str, "%f", &(block_ptr->settings.mon.act_val));
+					//sscanf(value_str, "%f", &(block_ptr->settings.mon.act_val));
+					block_ptr->settings.mon.act_val = atof(value_str);
 				}
 			}
 			break;
@@ -606,7 +669,8 @@ uint8_t ConfigureMONSetting(BlockNode* block_ptr, uint8_t key_idx, const char* v
 					block_ptr->settings.mon.deact_val = 0;
 				} else {
 					// must be a numeric float value
-					sscanf(value_str, "%f", &(block_ptr->settings.mon.deact_val));
+					//sscanf(value_str, "%f", &(block_ptr->settings.mon.deact_val));
+					block_ptr->settings.mon.deact_val = atof(value_str);
 				}
 			}
 			break;
@@ -682,17 +746,24 @@ uint8_t ConfigureCONSetting(BlockNode* block_ptr, uint8_t key_idx, const char* v
 			block_ptr->settings.con.output = GetBlockIDByLabel(value_str, true);
 			break;
 		case CON_ACT_CMD: {
+			block_ptr->settings.con.act_cmd = CommandStringArrayIndex(value_str);
+			if(block_ptr->settings.con.act_cmd == 0) {
+				DebugLog(SSS, E_ERROR, M_ACT_CMD_UNKNOWN);
+			}
+			return block_ptr->settings.con.act_cmd;
+			break;
+			/*
 			uint8_t c = 0;
-#ifdef USE_PROGMEM
+			#ifdef USE_PROGMEM
 			while (c < LAST_COMMAND && strcmp_P(command_strings[c].text, value_str)) {
 				c++;
 			}
 
-#else
+			#else
 			while (c < LAST_COMMAND && strcmp(command_strings[c].text, value_str)) {
 				c++;
 			}
-#endif
+			#endif
 			if (c < LAST_COMMAND) {
 				block_ptr->settings.con.act_cmd = c;
 			} else {
@@ -701,8 +772,16 @@ uint8_t ConfigureCONSetting(BlockNode* block_ptr, uint8_t key_idx, const char* v
 				return 0;
 			}
 			break;
+			*/
 		}
 		case CON_DEACT_CMD: {
+			block_ptr->settings.con.deact_cmd = CommandStringArrayIndex(value_str);
+			if(block_ptr->settings.con.deact_cmd == 0) {
+				DebugLog(SSS, E_ERROR, M_DEACT_CMD_UNKNOWN);
+			}
+			return block_ptr->settings.con.deact_cmd;
+			break;
+			/*
 			uint8_t c = 0;
 			while (c < LAST_COMMAND && strcmp(command_strings[c].text, value_str)) {
 				c++;
@@ -715,6 +794,7 @@ uint8_t ConfigureCONSetting(BlockNode* block_ptr, uint8_t key_idx, const char* v
 				return 0;
 			}
 			break;
+			*/
 		}
 		default:
 			DebugLog(SSS, E_ERROR, M_CON_BAD_DEF);
@@ -746,6 +826,10 @@ uint8_t ConfigureBlock(uint8_t block_cat, const char *block_label, const char *k
 	// If it does not exist, create it first and then update key / value
 	// If called with key_str == NULL then just just create it and label it,
 	//	or report true if already exists.
+
+	//DebugLog(block_label);
+	//DebugLog(key_str);
+	//DebugLog(value_str);
 
 	BlockNode *block_ptr;
 	uint8_t return_value = 1;  	//error by exception
@@ -862,7 +946,7 @@ void HALWriteLine(FILE *f, const char* out_str) {
 #endif
 
 #ifdef FF_ARDUINO
-void HALWriteLine(File *f, const char* out_str) {
+void HALWriteLine(SdFile *f, const char* out_str) {
 	DebugLog(out_str);
 	f->println(out_str);
 }
@@ -872,7 +956,7 @@ void HALWriteLine(File *f, const char* out_str) {
 void WriteTextBlock(BlockNode *b, FILE *f, uint8_t reg_only) {
 #endif
 #ifdef FF_ARDUINO
-void WriteTextBlock(BlockNode *b, File *f, uint8_t reg_only) {
+void WriteTextBlock(BlockNode *b, SdFile *f, uint8_t reg_only) {
 #endif
 	// Called by FileIODispatcher on each block to write their
 	//  config to an itch parsable text file. To read and parse
@@ -1179,7 +1263,7 @@ void WriteBinaryBlock(BlockNode *b, FILE *f, uint8_t _option) {
 void FileIODispatcher(void(*func)(BlockNode*, FILE*, uint8_t), FILE* file, uint8_t option) {
 #endif
 #ifdef FF_ARDUINO
-void FileIODispatcher(void(*func)(BlockNode*, File*, uint8_t), File* file, uint8_t option) {
+void FileIODispatcher(void(*func)(BlockNode*, SdFile*, uint8_t), SdFile* file, uint8_t option) {
 #endif
 	BlockNode* block_ptr;
 
@@ -1203,15 +1287,16 @@ void InitConfigSave(void) {
 	#endif
 
 	#ifdef FF_ARDUINO
-	File f;
-	File *fp;
-	fp = &f;
-	pinMode(SS, OUTPUT);
-	pinMode(10, OUTPUT);
+	SdFile f;
+	//File *fp;
+	//fp = &f;
+	//pinMode(SS, OUTPUT);
+	//pinMode(10, OUTPUT);
 	//pinMode(53, OUTPUT);
 	#endif
 
 	#ifdef FF_ARDUINO
+	/*
 	if (SD.begin(10, 11, 12, 13)) {
 		f = SD.open(CONFIG_TXT_FILENAME, FILE_OVERWRITE);
 		if (!f) {
@@ -1227,12 +1312,40 @@ void InitConfigSave(void) {
 		DebugLog(temp_label);
 		while (1);
 	}
+	*/
+	// see if the card is present and can be initialized:
+	if (!sd.begin(SD_CHIP_SELECT_PIN)) {
+		char temp_label[MAX_LABEL_LENGTH];
+		strcpy_hal(temp_label, F("SD BEGIN FAILED"));
+		DebugLog(temp_label);
+		// Cannot do anything else
+		while (1);
+		//sd.initErrorHalt();
+	}
+
+	if (!f.open(CONFIG_TXT_FILENAME, O_WRITE | O_CREAT | O_TRUNC)) {
+		char temp_label[MAX_LABEL_LENGTH];
+		strcpy_hal(temp_label, F("F.OPEN CONFIG FAILED"));
+		DebugLog(temp_label);
+		while (1);
+		//sd.errorHalt(F("open failed"));
+	}
 	#endif
 
-	// First write block registrations only (option = 1)
-	FileIODispatcher(WriteTextBlock, fp, 1);
-	// Then write the rest of the settings (option = 0)
-	FileIODispatcher(WriteTextBlock, fp, 0);
+	#ifdef FF_SIMULATOR
+		// First write block registrations only (option = 1)
+		FileIODispatcher(WriteTextBlock, fp, 1);
+		// Then write the rest of the settings (option = 0)
+		FileIODispatcher(WriteTextBlock, fp, 0);
+	#endif
+
+	#ifdef FF_ARDUINO
+		// First write block registrations only (option = 1)
+		FileIODispatcher(WriteTextBlock, &f, 1);
+		// Then write the rest of the settings (option = 0)
+		FileIODispatcher(WriteTextBlock, &f, 0);
+	#endif
+
 
 	// write the command to enable everything
 	//HALWriteLine(fp, F("INIT ENABLE ALL"));
@@ -1243,7 +1356,7 @@ void InitConfigSave(void) {
 	#ifdef FF_ARDUINO
 	f.flush();
 	f.close();
-	SD.end();
+	//sd.end();
 	#endif
 
 }
@@ -1265,6 +1378,9 @@ void InitConfigSaveBinary(void) {
 	FileIODispatcher(WriteBinaryBlock, outfile, 0);
 	fclose(outfile);
 	#endif
+	#ifdef FF_ARDUINO
+		EventMsg(SSS, E_INFO, M_BIN_SAVE_NOT_AVAIL);
+	#endif
 }
 
 
@@ -1285,7 +1401,7 @@ char* GetINIError(uint8_t e, char* msg_buf) {
 }
 #endif
 
-
+#ifdef FF_SIMULATOR
 void InitConfFile(IniFile* cf) {
 	char key_value[INI_FILE_MAX_LINE_LENGTH];
 
@@ -1300,12 +1416,80 @@ void InitConfFile(IniFile* cf) {
 	if (!cf->validate(key_value, INI_FILE_MAX_LINE_LENGTH)) {
 		DebugLog(SSS, E_STOP, M_CONFIG_NOT_VALID);
 		// Cannot do anything else
-		while (1)
-			;
+		#ifdef FF_ARDUINO
+			while (1);
+		#endif
+		#ifdef FF_SIMULATOR
+			exit(-1);
+		#endif
 	}
 }
+#endif //FF_SIMULATOR
 
-void InitConfigLoad(void) {
+void ConfigParse(char* buf) {
+	// Put the tokens present in the line into word_list[]
+	// Treat anything in double quotes ("...") as a single token
+	// Assumes: there is at most one single string designated by double quotes
+	// Assumes: that any quoted string is at the end of the line
+	// Any number of tokens may precede the quoted string.
+
+	//char buf_preserve[INI_FILE_MAX_LINE_LENGTH];
+	char* wl[10];  			//XXX randomly selected max number of words
+	for (uint8_t i = 0 ; i < 10; i++) {
+		wl[i] = NULL;
+	}
+    uint8_t word_count = 0;
+
+	// Preserve the raw buffer for future use
+    //strcpy(buf_preserve, buf);
+
+    // Check if the buffer contains a double quote ("...") delimited string
+    char *pre_quotes;
+    char *in_quotes;
+    uint8_t quotes = 0;
+
+    pre_quotes = strtok(buf, "\"");
+    if (pre_quotes != NULL) {
+    	// its not an empty string
+    	in_quotes = strtok(NULL, "\"");
+    	if(in_quotes != NULL) {
+    		// quoted string now pointed to by in_quotes
+    		// with either eol or the next \" being null
+    		quotes = 1;
+    		//strcpy(quoted_string_buf, in_quotes);
+    	}
+    }
+
+    // buf still points to the start of string.
+    // buf now with the first \" turned to null - ie end of string
+    // or buf is unmodified if \" wasn't found.
+    int i = 0;
+    wl[i] = strtok(buf, TOKEN_DELIM);
+    while (wl[i] != NULL) {
+        i++;
+        wl[i] = strtok(0, TOKEN_DELIM);
+    }
+    if(quotes) {
+    	//strcpy(word_list[i], quoted_string_buf);
+    	wl[i] = in_quotes;
+    	i++;
+    }
+    word_count = i;
+
+    if (word_count == 5) {
+
+    	//DebugLog(wl[0]);
+    	//DebugLog(wl[1]);
+    	//DebugLog(wl[2]);
+    	//DebugLog(wl[3]);
+    	//DebugLog(wl[4]);
+
+    	ConfigureBlock(GetBlockCatIDByName(wl[1]), wl[2], wl[3], wl[4]);
+    }
+
+}
+
+void InitConfigLoad(uint8_t how) {
 	// Build the block list from a text config file previously written
 	//  by InitConfigSave()
 	// Read each line of the file and pass it to ITCH::StuffAndProcess() which will
@@ -1314,7 +1498,12 @@ void InitConfigLoad(void) {
 	// NOTE: no existence or duplicate checking - this function assumes an empty (NULL)
 	//  block list therefore DropBlockList() is called first to make sure
 
+	// XXX this whole routine and subs needs error handling
 
+//DebugLog("GOOD");
+	#ifndef USE_ITCH
+		(void)how;		// Not relevent if not using itch;
+	#endif
 
 	#ifdef FF_SIMULATOR
 	char* line_ptr = NULL;
@@ -1323,7 +1512,13 @@ void InitConfigLoad(void) {
 	FILE *fp;
 	fp = fopen(CONFIG_TXT_FILENAME, "r");
 
-	HALItchSetBufferStuffMode();
+	if (!fp) {
+		EventMsg(SSS, E_ERROR, NO_CONFIG_FILE);
+		return;
+	}
+	if (how == 0) {
+		HALItchSetBufferStuffMode();
+	}
 
 	while (1) {    //continue reading the file until EOF break
 		getline(&line_ptr, &len, fp);
@@ -1334,26 +1529,50 @@ void InitConfigLoad(void) {
 			break;
 		}
 
+		uint8_t slen;
+		slen = (uint8_t)strlen(line_ptr);
+		if (slen > 0) {
+			if ( (line_ptr[slen-1] == '\n') || (line_ptr[slen-1] == '\r')) {
+				line_ptr[slen-1] = '\0';
+			}
+		}
+		if (slen > 1) {
+			if ( (line_ptr[slen-2] == '\n') || (line_ptr[slen-2] == '\r')) {
+				line_ptr[slen-2] = '\0';
+			}
+		}
+
 		#ifdef USE_ITCH
-			HALItchStuffAndProcess(line_ptr);
-			//XXX no alternative if not using itch at this stage!
+			if (how == 0) {
+				HALItchStuffAndProcess(line_ptr);
+			} else {
+				DebugLog(line_ptr);
+				ConfigParse(line_ptr);
+			}
+
 		#endif
 			free(line_ptr);
 			line_ptr = NULL;
 			len = 0;
 	}
-	fclose(fp);
+	if(line_ptr) free(line_ptr);
+	line_ptr = NULL;
+	len = 0;
+	if (fp) fclose(fp);
 
-	HALItchSetTextDataMode();
+	if (how == 0) {
+		HALItchSetTextDataMode();
+	}
 
-	#endif
+	#endif // FF_SIMULATOR
 
 
-	#ifdef ARDUINO
+	#ifdef FF_ARDUINO
+	#ifdef OLD_SD
 	size_t lin_len = MAX_LABEL_LENGTH + 19 + MAX_DESCR_LENGTH;
 	char line[lin_len];
 	File f;
-
+	DebugLog("GOOD");
 	pinMode(SS, OUTPUT);
 	pinMode(10, OUTPUT);
 	//pinMode(53, OUTPUT);
@@ -1362,6 +1581,7 @@ void InitConfigLoad(void) {
 	if (SD.begin(10, 11, 12, 13)) {
 		//	if (SD.begin(10)) {
 		f = SD.open(CONFIG_TXT_FILENAME, FILE_READ);
+		DebugLog("GOOD");
 		if (!f) {
 			char temp_label[MAX_LABEL_LENGTH];
 			strcpy_hal(temp_label, F("NO CONFIG"));
@@ -1375,16 +1595,31 @@ void InitConfigLoad(void) {
 		DebugLog(temp_label);
 		while (1);
 	}
-	HALItchSetBufferStuffMode();
-	//char c;
-	//uint8_t count = 0;
-	//uint8_t index = 0;
+	#ifdef USE_ITCH
+		if (how == 0) {
+			HALItchSetBufferStuffMode();
+		}
+	#endif //USE_ITCH
+
 	while (1) {    //continue reading the file until EOF break
+
+		DebugLog("GOOD");
 		f.readBytesUntil('\n', line, lin_len);
+		DebugLog("GOOD");
 		#ifdef USE_ITCH
 			DebugLog(line);
-			HALItchStuffAndProcess(line);
-		#endif
+			if (how == 0) {
+				HALItchStuffAndProcess(line);
+			} else {
+				ConfigParse(line);
+			}
+		#else
+			DebugLog(line);
+			DebugLog("GOOD");
+			ConfigParse(line);
+			DebugLog("GOOD");
+		#endif //USE_ITCH
+
 		if (!f.available()) { //EOF
 			break;
 		}
@@ -1392,35 +1627,108 @@ void InitConfigLoad(void) {
 	f.close();
 	SD.end();
 
-	HALItchSetTextDataMode();
-	#endif
+	#ifdef USE_ITCH
+		if (how == 0) {
+			HALItchSetTextDataMode();
+		}
+	#endif //USE_ITCH
+	#endif // OLD_SD
 
+	#ifdef NEW_SD
+	size_t lin_len = MAX_LABEL_LENGTH + 19 + MAX_DESCR_LENGTH;
+	char *line_ptr;
+	char ch;
+	char line[lin_len];
+	SdFile f;
+	//DebugLog("GOOD");
 
-/*
-c = f.read();
-if (c == '\n' || c == '\r') {
-	if (count > 0) {
-		line[index] = '\0';
+	// see if the card is present and can be initialized:
+	if (!sd.begin(SD_CHIP_SELECT_PIN)) {
+		char temp_label[MAX_LABEL_LENGTH];
+		strcpy_hal(temp_label, F("SD BEGIN FAILED"));
+		DebugLog(temp_label);
+		// Cannot do anything else
+		while (1);
+		//sd.initErrorHalt();
+	}
 
-size_t index = 0;
-			while (index < length) {
-			    int c = timedRead();
-			    if (c < 0 || c == terminator) break;
-			    *buffer++ = (char)c;
-			    index++;
-			  }
-*/
+	if (!f.open(CONFIG_TXT_FILENAME, O_READ)) {
+		//char temp_label[MAX_LABEL_LENGTH];
+		EventMsg(SSS, E_ERROR, NO_CONFIG_FILE);
+		//strcpy_hal(temp_label, F("F.OPEN CONFIG FAILED"));
+		//DebugLog(temp_label);
+		return;
+		//while (1);
+		//sd.errorHalt(F("open failed"));
+	}
 
+	//DebugLog("GOOD");
 
+	#ifdef USE_ITCH
+	if (how == 0) {
+		HALItchSetBufferStuffMode();
+	}
+	#endif //USE_ITCH
 
+	while (1) {    //continue reading the file until EOF break
+		//DebugLog("GOOD");
+		line_ptr = line;
+		*line_ptr = '\0';
 
-	// As a fresh block list, call validate and setup on each block too
-	//ProcessDispatcher(Validate);
-	//ProcessDispatcher(Setup);
+		// Get first char
+		ch = f.read();
+		// Discard inital blank lines and extra \n \r from previous line
+		while ( (ch == '\r') || (ch == '\n')) {
+			//ignore it and read again
+			ch = f.read();
+		}
+		// only place normal chars in the buffer up to \r or \n
+		while ((ch > 0) && (ch != '\n') && (ch != '\r')) {
+			// add to line
+			*line_ptr = ch;
+			line_ptr++;
+			*line_ptr = '\0';
+			//DebugLog(line);
+			ch = f.read();
+		}
+		// ch was 0 or \n or \r, line complete continue
+		*line_ptr = '\0';
+		//DebugLog("GOOD");
+		#ifdef USE_ITCH
+			DebugLog(line);
+			if (how == 0) {
+				HALItchStuffAndProcess(line);
+			} else {
+				ConfigParse(line);
+			}
+		#else
+			DebugLog(line);
+			//DebugLog("GOOD");
+			ConfigParse(line);
+			//DebugLog("GOOD");
+		#endif //USE_ITCH
 
+		if (!f.available()) { //EOF
+			break;
+		}
+	}
+	f.close();
+	//sd.end();
+
+	#ifdef USE_ITCH
+		if (how == 0) {
+			HALItchSetTextDataMode();
+		}
+	#endif //USE_ITCH
+
+	#endif //NEW_SD
+	#endif //FF_ARDUINO
+
+	EventMsg(SSS, E_INFO, M_CONFIG_LOAD_BY_DIRECT_PARSE);
 }
 
 void InitConfigLoadINI(void) {
+#ifdef FF_SIMULATOR
 	// Create or update the block list and each block settings from stanzas and key / value
 	//	pairs in an INI file identified by CONFIG_FILENAME
 	// First read all the block label identifiers heading each block category section
@@ -1653,6 +1961,11 @@ void InitConfigLoadINI(void) {
 	}
 
 	cf.close();
+#endif //FF_SIMULATOR
+
+#ifdef FF_ARDUINO
+	EventMsg(SSS, E_INFO, M_INI_LOAD_NOT_AVAIL);
+#endif
 }
 
 

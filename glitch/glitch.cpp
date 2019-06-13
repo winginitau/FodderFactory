@@ -179,7 +179,7 @@ void ProcessGrammarFile() {
 		}
 		ch = fgetc(gf);
 	}
-	printf("// Lines Processed: %d\n\n", line_count);
+	printf("Lines Processed: %d\n\n", line_count);
 }
 
 int ArgsAndFiles(int argc, char* argv[]) {

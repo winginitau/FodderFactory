@@ -28,8 +28,8 @@ extern char g_debug_message[MAX_OUTPUT_LINE_SIZE];
 
 M_FLAGS g_mflags;
 uint8_t g_map_line_pos;
-uint16_t g_map_id_current;		// currently matched node
-uint16_t g_map_id_walker;		// to walk through the asta array nodes by id
+uint8_t g_map_id_current;		// currently matched node
+uint8_t g_map_id_walker;		// to walk through the asta array nodes by id
 
 char g_map_last_target_str[MAX_AST_IDENTIFIER_SIZE];
 
@@ -70,38 +70,72 @@ void MapReset(void) {
 
 }
 
-uint16_t MapGetASTAByID(uint16_t asta_id, ASTA_Node* result) {
+uint8_t MapGetASTAByID(uint8_t asta_id, ASTA_Node* result) {
 	uint16_t asta_idx = 0;	// index into the asta array
 
 	// set up to walk the asta array
 	//size_t node_count = sizeof(asta)/sizeof(asta[0]);
 
-	uint16_t test;
+	uint8_t test;
 
 	// First, find the id_walker node and copy to temp_node (can't guarantee the array will be in id order)
 	while (asta_idx < AST_NODE_COUNT) {
-		#ifdef ARDUINO
+		memcpy_itch_hal(&test, &(asta[asta_idx].id), sizeof(test));
+		if (test == asta_id) {
+			/*
+			#ifdef ARDUINO
+			//ASTA temp_asta;
 			memcpy_P(&test, &(asta[asta_idx].id), sizeof(test));
+
+				//memcpy_P(&temp_asta, &(asta[asta_idx]), sizeof(ASTA));
+
+				//memcpy_P(result, &(asta[asta_idx]), sizeof(ASTA));
+
+				memcpy_P(&result->id, &asta[asta_idx].id, sizeof(result->id));
+
+				//strcpy_P(result->label, temp_asta.label);
+				//strcpy_P(result->label, (char*)pgm_read_word(asta[asta_idx].label));
+				//strcpy_P(result->label, asta[asta_idx].label);
+
+				strcpy(result->label, (char *)pgm_read_word(asta[asta_idx].label));
+
+				memcpy_P(&result->type, &asta[asta_idx].type, sizeof(result->type));
+				memcpy_P(&result->parent, &asta[asta_idx].parent, sizeof(result->parent));
+				memcpy_P(&result->next_sibling, &asta[asta_idx].next_sibling, sizeof(result->next_sibling));
+				memcpy_P(&result->first_child, &asta[asta_idx].first_child, sizeof(result->first_child));
+				memcpy_P(&result->action, &asta[asta_idx].action, sizeof(result->action));
+
+				strcpy(result->action_identifier, (char *)pgm_read_word(asta[asta_idx].action_identifier));
+
+				//strcpy_P(result->action_identifier, temp_asta.action_identifier);
+				//strcpy_P(result->action_identifier, (char*)pgm_read_word(asta[asta_idx].action_identifier));
+				//strcpy_P(result->action_identifier, asta[asta_idx].action_identifier);
+
+
+			//memcpy_P(&test, &(asta[asta_idx].id), sizeof(test));
 		#else
 			test = asta[asta_idx].id;
+			if (test == asta_id) {
+				//memcpy(result, &(asta[asta_idx]), sizeof(ASTA));
+
+				result->id = asta[asta_idx].id;
+				strcpy_itch_hal(result->label, asta[asta_idx].label);
+				result->type = asta[asta_idx].type;
+				result->parent = asta[asta_idx].parent;
+				result->next_sibling = asta[asta_idx].next_sibling;
+				result->first_child = asta[asta_idx].first_child;
+				result->action = asta[asta_idx].action;
+				strcpy_itch_hal(result->action_identifier, asta[asta_idx].action_identifier);
 		#endif
-		if (test == asta_id) {
-			result->id = asta[asta_idx].id;
-			strcpy_itch_hal(result->label, asta[asta_idx].label);
-			result->type = asta[asta_idx].type;
-			result->parent = asta[asta_idx].parent;
-			result->next_sibling = asta[asta_idx].next_sibling;
-			result->first_child = asta[asta_idx].first_child;
-			result->action = asta[asta_idx].action;
-			strcpy_itch_hal(result->action_identifier, asta[asta_idx].action_identifier);
-			/*
+		*/
+
 			#ifdef ARDUINO
 				memcpy_P(result, &(asta[asta_idx]), sizeof(ASTA));
 			#else
 				memcpy_itch_hal(result, &(asta[asta_idx]), sizeof(ASTA_Node));
 
 			#endif
-			*/
+
 			return PEME_NO_ERROR;
 		}
 		asta_idx++;
@@ -190,7 +224,7 @@ uint8_t Compare_N_PARAM_INTEGER(char* target, ASTA_Node* temp_node) {
 }
 
 uint8_t Compare_N_PARAM_STRING(char* target, ASTA_Node* temp_node) {
-
+	(void)target;
 	/*
 	if (isdigit(target[0])) {
 		// can't be keyword or ident or lookup
@@ -226,7 +260,7 @@ uint8_t Compare_N_LOOKUP(char* target, ASTA_Node* temp_node) {
 	// evaluation (ie is a possibility in the sibling list) then
 	// set the mflags.lookup_tbd flag to indicate.
 
-	uint16_t xlat;
+	uint8_t xlat;
 	xlat = LookupLookupMap(temp_node->label);
 	int lookup_result;
 	lookup_result = LookupLookupMembers(xlat, target);
@@ -240,7 +274,7 @@ uint8_t Compare_N_LOOKUP(char* target, ASTA_Node* temp_node) {
 }
 
 uint8_t Compare_N_IDENTIFIER(char* target, ASTA_Node* temp_node) {
-	uint16_t xlat;
+	uint8_t xlat;
 	uint8_t member_id;
 	//char target_upr[MAX_LABEL_LENGTH];
 
@@ -488,7 +522,7 @@ uint8_t MapEvaluateMatchedList(TokenList* matched_list) {
 	}
 }
 
-uint16_t MapMatchReduce(TokenList* list) {
+uint8_t MapMatchReduce(TokenList* list) {
 	// filter results based on matching precedence
 	// If any of these are present together in the matched
 	// list (of entered data, against the available nodes)
@@ -516,7 +550,7 @@ uint16_t MapMatchReduce(TokenList* list) {
 	// TODO how to trigger back an error from here more elegantly?
 	// else check for this condition during lexer
 
-	uint16_t count;
+	uint8_t count;
 	uint8_t type;
 
 	// Work through the types in order of precedence - one by one
@@ -590,7 +624,7 @@ char* MapGetLastTargetString(char* return_string) {
 	return strcpy(return_string, g_map_last_target_str);
 }
 
-uint16_t MapAdvance(uint8_t in_buf_idx) {
+uint8_t MapAdvance(uint8_t in_buf_idx) {
 	// Last_matched_id is the uniquely matched node
 	//
 	// Move to first child so that subsequent matching
@@ -615,7 +649,7 @@ uint16_t MapAdvance(uint8_t in_buf_idx) {
 	return g_map_id_current;
 }
 
-uint8_t MapGetAction(uint16_t asta_id, char* action_str) {
+uint8_t MapGetAction(uint8_t asta_id, char* action_str) {
 	ASTA_Node temp_asta;
 	uint8_t result;
 	result = MapGetASTAByID(asta_id, &temp_asta);
@@ -625,11 +659,11 @@ uint8_t MapGetAction(uint16_t asta_id, char* action_str) {
 	return result;
 }
 
-uint16_t MapGetLastMatchedID() {
+uint8_t MapGetLastMatchedID() {
 	return g_mflags.last_matched_id;
 }
 
-uint16_t MapGetErrorCode() {
+uint8_t MapGetErrorCode() {
 	return g_mflags.error_code;
 }
 

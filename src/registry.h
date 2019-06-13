@@ -156,6 +156,7 @@ void Setup(BlockNode *b);
 void ProcessDispatcher(void(*f)(BlockNode*));
 
 // Low Level Block List Operations
+uint8_t GetBlockCatIDByName(char* name);
 uint8_t SetCommand(uint16_t block_id, uint8_t cmd_msg);
 uint8_t IsActive(uint16_t block_id);
 uint8_t GetBVal(uint16_t block_id);

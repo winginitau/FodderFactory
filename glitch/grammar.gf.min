@@ -32,12 +32,12 @@
 typedef struct AST_ARRAY {
     uint8_t id;
     uint8_t type;
-    const char *label;
+    const char label[MAX_AST_LABEL_SIZE];
     uint8_t action;
     uint8_t parent;
     uint8_t first_child;
     uint8_t next_sibling;
-    const char *action_identifier;
+    const char action_identifier[MAX_AST_ACTION_SIZE];
 } ASTA;
 
 typedef struct AST_NODE {
@@ -52,7 +52,7 @@ typedef struct AST_NODE {
 } ASTA_Node;
 
 typedef struct XLAT_MAP {
-    char *label;
+    char label[MAX_LABEL_LENGTH];
     uint16_t xlat_id;
 } XLATMap;
 
@@ -95,7 +95,7 @@ FF_INPUT            "INPUT"
 FF_MONITOR          "MONITOR" 
 FF_SCHEDULE         "SCHEDULE"
 FF_RULE             "RULE" 
-FF_CONTROLLER       "CONROLLER"
+FF_CONTROLLER       "CONTROLLER"
 FF_OUTPUT           "OUTPUT"
 LAST_BLOCK_CAT
 %enum-end
@@ -136,6 +136,7 @@ IN_CONFIG_INTERFACE     "interface"
 IN_CONFIG_IF_NUM        "if_num"
 IN_CONFIG_LOG_RATE      "log_rate"
 IN_CONFIG_DATA_UNITS    "data_units"
+IN_CONFIG_DATA_TYPE     "data_type"
 LAST_IN_CONFIG
 %enum-end
 

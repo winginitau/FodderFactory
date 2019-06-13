@@ -35,6 +35,9 @@ extern char g_debug_message[MAX_OUTPUT_LINE_SIZE];
  * Globals
  ******************************************************************************/
 extern char g_itch_replay_buf[MAX_INPUT_LINE_SIZE];
+extern void WriteLineDirect(char* string);
+//extern void WriteDirect(char* string);
+extern void WriteDirectCh(char ch);
 
 char g_parser_parse_buf[MAX_INPUT_LINE_SIZE]; 	// The subject of all parsing functions
 uint8_t g_parser_buf_idx;						// Points to the next free char in the buffer
@@ -42,6 +45,7 @@ P_FLAGS g_pflags;
 TokenList* g_parser_possible_list;
 TokenList* g_parser_param_list;
 
+//char g_parser_pre_parse_buf[MAX_INPUT_LINE_SIZE];
 
 /******************************************************************************
  * Functions
@@ -63,6 +67,8 @@ void ParserResetLine(void) {
 
 	g_parser_parse_buf[0] = '\0';
 	g_parser_buf_idx = 0;
+
+	//g_parser_pre_parse_buf[0] = '\0';
 
 	g_itch_replay_buf[0] = '\0';
 
@@ -303,6 +309,16 @@ void P_ADD_TO_PARSE_BUFFER(char ch) {
 	g_parser_buf_idx++;
 }
 
+/*
+void P_ADD_TO_PRE_PARSE_BUFFER(char ch) {
+	char* idx = g_parser_pre_parse_buf;
+	while(*idx != '\0') idx++;
+	*idx = ch;
+	idx++;
+	*idx = '\0';
+}
+*/
+
 void P_ADD_TO_REPLAY_BUFFER(char ch) {
 	uint8_t length;
 	length = (uint8_t)strlen(g_itch_replay_buf);
@@ -310,18 +326,27 @@ void P_ADD_TO_REPLAY_BUFFER(char ch) {
 	g_itch_replay_buf[length+1] = ch = '\0';
 }
 
-uint8_t Parse(char ch) {
-	// Process incoming char in context of parse flags
-	// set from processing the previous char and match
-	// and results from the node map (if called on previous).
+/*
+uint8_t ParseLine(char *line) {
+	uint8_t result = R_COMPLETE;
+	uint8_t idx = 0;
+	g_pflags.reenter = 1;
+	while (line[idx] != '\0') {
+		result = ParseProcess(line[idx]);
+		idx++;
+	}
+	g_parser_pre_parse_buf[0]='\0';
+	if(g_pflags.reenter == 0) {
+		// must have been reset by a re-entered instance of this
+		return R_COMPLETE;
+	}
+	g_pflags.reenter = 0;
+	return result;
+}
+*/
 
-	#ifdef ITCH_DEBUG
-		char temp_str[MAX_OUTPUT_LINE_SIZE];
-		strcpy_itch_debug(temp_str, ITCH_DEBUG_PARSE_PROCESSING_CHAR);
-		sprintf(g_debug_message, "%s%c\n", temp_str, ch);
-		M(g_debug_message);
-	#endif
-
+/*
+uint8_t ParseChar(char ch) {
 	// First deal with editing and formatting special cases
 	switch (ch) {
 		case 0x7F:				// Backspace ^H
@@ -345,6 +370,123 @@ uint8_t Parse(char ch) {
 			}
 			P_ADD_TO_REPLAY_BUFFER(ch);
 			break;
+		case '\r':   									// deal with \r\n combinations and trigger actions
+		case '\n':
+			P_ADD_TO_PRE_PARSE_BUFFER(ch);
+			WriteDirectCh('\n');
+			return ParseLine(g_parser_pre_parse_buf);	// !!! Main parser response trigger
+			break;
+		case '\"':
+			P_ADD_TO_REPLAY_BUFFER(ch);
+			break;
+		case ' ':
+		case '\t':	// handle space and tab delimiters (and extras of them)
+			P_ADD_TO_REPLAY_BUFFER(ch);		// keep it for replay
+			break;
+		case '?':	// turn on help flag, drop into parse in help active mode
+			P_ADD_TO_REPLAY_BUFFER(ch);
+			break;
+		default:						// catch unhandled escape sequences
+			if(g_pflags.escape == 2) {
+				g_pflags.escape = 0;
+				return R_DISCARD;
+			}
+			P_ADD_TO_REPLAY_BUFFER(ch);
+			break;
+	}
+
+	// whatever it is now, throw it in the pre parse buffer
+	P_ADD_TO_PRE_PARSE_BUFFER(ch);
+	return R_CONTINUE;
+}
+*/
+
+uint8_t ParseProcess(char ch) {
+	// Process incoming char in context of parse flags
+	// set from processing the previous char and match
+	// and results from the node map (if called on previous).
+
+	#ifdef ITCH_DEBUG
+		char temp_str[MAX_OUTPUT_LINE_SIZE];
+		strcpy_itch_debug(temp_str, ITCH_DEBUG_PARSE_PROCESSING_CHAR);
+		sprintf(g_debug_message, "%s%c\n", temp_str, ch);
+		M(g_debug_message);
+	#endif
+
+	// First deal with editing and special cases
+	switch (ch) {
+		case 0x7F:				// Backspace ^H
+			return R_BACKSPACE;
+			break;
+		case 0x1B: 				// ESC - Process ANSI escape sequences (eg "ESC[A" - up arrow)
+			P_ESCAPE(ch);		// Track escape sequence build
+			return R_DISCARD;	// Drop the ch
+			break;
+		case '[':				// if it follows ESC, track sequence build otherwise let pass
+			if(g_pflags.escape == 1) {
+				P_ESCAPE(ch);
+				return R_DISCARD;
+			}
+			P_ADD_TO_REPLAY_BUFFER(ch);
+			break;
+		case 'A':				// Potentially ESC[A (up arrow)?
+			if(g_pflags.escape == 2) {
+				g_pflags.escape = 0;
+				return R_REPLAY;
+			}
+			P_ADD_TO_REPLAY_BUFFER(ch);
+			break;
+		case '\r':   								// deal with \r\n combinations and trigger actions
+		case '\n':
+			if(g_pflags.eol_processed == 0) { 		// have not just processed EOL
+				g_pflags.eol_processed = 1;			// flag that we are now
+				WriteDirectCh('\n');
+				return	P_EOL();					// !!! Main parser response trigger
+			} else {
+				return R_DISCARD;					// redundant extra
+			}
+			break;
+		case '\"':
+			// Toggle string_litteral flag, continue
+			P_DOUBLE_QUOTE();
+			P_ADD_TO_REPLAY_BUFFER(ch);
+			return R_CONTINUE;
+			break;
+		case ' ':
+		case '\t':	// handle space and tab delimiters (and extras of them)
+			if (P_SPACE_TAB() == R_IGNORE) {
+				P_ADD_TO_REPLAY_BUFFER(ch);		// keep it for replay anyway
+				return R_IGNORE;				// must have been superfluous
+			}
+			P_ADD_TO_REPLAY_BUFFER(ch);
+			break; 								// single - drop into buffer
+		case '?':	// turn on help flag, drop into parse in help active mode
+			g_pflags.help_active = 1;
+			P_ADD_TO_REPLAY_BUFFER(ch);
+			break;
+		case 0x03:	// ^C
+		case 0x04:	// ^D
+		case 0x18:	// ^X
+		case 0x1A: 	// ^Z
+			return R_EXIT;
+			break;
+		default:						// catch unhandled escape sequences
+			if(g_pflags.escape == 2) {
+				g_pflags.escape = 0;
+				return R_DISCARD;
+			}
+			P_ADD_TO_REPLAY_BUFFER(ch);
+			break;
+	}
+
+	// whatever it is now, throw it in the parse buffer and parse what we have, partial or complete
+	P_ADD_TO_PARSE_BUFFER(ch);
+
+
+/*
+	// Editing dealt with in pre-parse
+	// So only buffer contents can be ascii
+	switch (ch) {
 		case '\r':   								// deal with \r\n combinations and trigger actions
 		case '\n':
 			if(g_pflags.eol_processed == 0) { 		// have not just processed EOL
@@ -373,16 +515,12 @@ uint8_t Parse(char ch) {
 			P_ADD_TO_REPLAY_BUFFER(ch);
 			break;
 		default:						// catch unhandled escape sequences
-			if(g_pflags.escape == 2) {
-				g_pflags.escape = 0;
-				return R_DISCARD;
-			}
-			P_ADD_TO_REPLAY_BUFFER(ch);
 			break;
 	}
 
 	// whatever it is now, throw it in the parse buffer and parse what we have, partial or complete
 	P_ADD_TO_PARSE_BUFFER(ch);
+*/
 
 	if (g_pflags.error_on_line == 1) {
 		// Error already flagged but need to discard buffered chars still coming before finishing
@@ -402,9 +540,9 @@ uint8_t Parse(char ch) {
 	// evaluate the match results for what it means for parsing
 	g_pflags.parse_result = ParserMatchEvaluate();
 
-	g_itch_output_buff.SetOutputAvailable();
-	return g_pflags.parse_result;
+	//g_itch_output_buff.SetOutputAvailable();
 
+	return g_pflags.parse_result;
 }
 
 uint8_t ParserMatch(void) {
@@ -507,6 +645,9 @@ uint8_t ParserMatchEvaluate(void) {
 				M(g_debug_message);
 			#endif
 			TLToTop(g_parser_possible_list);
+			WriteDirectCh('\n');
+			strcpy_itch_misc(out_str, ITCH_MISC_HELP_HEADING);
+			WriteLineDirect(out_str);
 			for (uint16_t i = 0; i < TLGetSize(g_parser_possible_list); i++) {
 				TLCopyCurrentLabel(g_parser_possible_list, temp_str);
 				sprintf(out_str, "\t%s", temp_str);
@@ -514,10 +655,12 @@ uint8_t ParserMatchEvaluate(void) {
 					sprintf(g_debug_message, "DEBUG: %s", out_str);
 					M(g_debug_message);
 				#endif
-				g_itch_output_buff.EnQueue(out_str);
+				WriteLineDirect(out_str);
+				//g_itch_output_buff.EnQueue(out_str);
 				TLNext(g_parser_possible_list);
 			}
-			g_pflags.parse_result = R_UNFINISHED;
+			//g_pflags.parse_result = R_UNFINISHED;
+			g_pflags.parse_result = R_HELP;
 		}
 			break;
 

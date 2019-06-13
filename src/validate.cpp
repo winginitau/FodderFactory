@@ -76,6 +76,7 @@ void Validate(BlockNode* b) {
 
 	//char block_label[MAX_LABEL_LENGTH];
 		//not null
+	assert(b->block_label != NULL);
 	assert(b->block_label[0] != '\0');
 	//is unique
 		//matches block_id
@@ -138,15 +139,23 @@ void Validate(BlockNode* b) {
 	case MON_CONDITION_LOW:
 		assert(b->settings.mon.input1 != UINT16_INIT);
 		assert(b->settings.mon.input1 >= BLOCK_ID_BASE);
-
+		//DebugLog("Passed: input1");
 		assert(b->settings.mon.input2 == UINT16_INIT);
+		//DebugLog("Passed: input2");
 		assert(b->settings.mon.input3 == UINT16_INIT);
+		//DebugLog("Passed: input3");
 		assert(b->settings.mon.input4 == UINT16_INIT);
-		assert(b->settings.mon.act_val > -50);
-		assert(b->settings.mon.act_val < 50);
-		assert(b->settings.mon.deact_val > -50);
-		assert(b->settings.mon.deact_val < 50);
+		//DebugLog("Passed: input4");
+		assert(b->settings.mon.act_val > -50.0);
+		//DebugLog("Passed: act_val >");
+		assert(b->settings.mon.act_val < 50.0);
+		//DebugLog("Passed: act_val <");
+		assert(b->settings.mon.deact_val > -50.0);
+		//DebugLog("Passed: deact_val >");
+		assert(b->settings.mon.deact_val < 50.0);
+		//DebugLog("Passed: deact_val <");
 		assert(b->settings.mon.act_val < b->settings.mon.deact_val);
+		//DebugLog("Passed: act_val < deact_val");
 		break;
 
 	case MON_CONDITION_HIGH:
@@ -156,10 +165,10 @@ void Validate(BlockNode* b) {
 		assert(b->settings.mon.input2 == UINT16_INIT);
 		assert(b->settings.mon.input3 == UINT16_INIT);
 		assert(b->settings.mon.input4 == UINT16_INIT);
-		assert(b->settings.mon.act_val > -50);
-		assert(b->settings.mon.act_val < 50);
-		assert(b->settings.mon.deact_val > -50);
-		assert(b->settings.mon.deact_val < 50);
+		assert(b->settings.mon.act_val > -50.0);
+		assert(b->settings.mon.act_val < 50.0);
+		assert(b->settings.mon.deact_val > -50.0);
+		assert(b->settings.mon.deact_val < 50.0);
 		assert(b->settings.mon.act_val > b->settings.mon.deact_val);
 		break;
 
@@ -172,10 +181,10 @@ void Validate(BlockNode* b) {
 
 		assert(b->settings.mon.input3 == UINT16_INIT);
 		assert(b->settings.mon.input4 == UINT16_INIT);
-		assert(b->settings.mon.act_val > -50);
-		assert(b->settings.mon.act_val < 50);
-		assert(b->settings.mon.deact_val > -50);
-		assert(b->settings.mon.deact_val < 50);
+		assert(b->settings.mon.act_val > -50.0);
+		assert(b->settings.mon.act_val < 50.0);
+		assert(b->settings.mon.deact_val > -50.0);
+		assert(b->settings.mon.deact_val < 50.0);
 		assert(b->settings.mon.act_val < b->settings.mon.deact_val);
 		break;
 
@@ -188,10 +197,10 @@ void Validate(BlockNode* b) {
 
 		assert(b->settings.mon.input3 == UINT16_INIT);
 		assert(b->settings.mon.input4 == UINT16_INIT);
-		assert(b->settings.mon.act_val > -50);
-		assert(b->settings.mon.act_val < 50);
-		assert(b->settings.mon.deact_val > -50);
-		assert(b->settings.mon.deact_val < 50);
+		assert(b->settings.mon.act_val > -50.0);
+		assert(b->settings.mon.act_val < 50.0);
+		assert(b->settings.mon.deact_val > -50.0);
+		assert(b->settings.mon.deact_val < 50.0);
 		assert(b->settings.mon.act_val > b->settings.mon.deact_val);
 		break;
 

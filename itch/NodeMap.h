@@ -61,14 +61,14 @@ typedef struct MATCH_FLAGS {
  ******************************************************************************/
 
 void MapReset(void);
-uint16_t MapGetASTAByID(uint16_t ASTA_ID, ASTA_Node* result);
-uint16_t MapGetLastMatchedID();
+uint8_t MapGetASTAByID(uint8_t ASTA_ID, ASTA_Node* result);
+uint8_t MapGetLastMatchedID();
 uint8_t MapMatch(char* target, TokenList* match_list);
 char* MapGetLastTargetString(char* return_string);
-uint16_t MapAdvance(uint8_t in_buf_idx);
-uint8_t MapGetAction(uint16_t asta_id, char* action_str);
-uint16_t MapMatchReduce(TokenList* list);
-uint16_t MapGetErrorCode();
+uint8_t MapAdvance(uint8_t in_buf_idx);
+uint8_t MapGetAction(uint8_t asta_id, char* action_str);
+uint8_t MapMatchReduce(TokenList* list);
+uint8_t MapGetErrorCode();
 
 uint8_t MapDetermineTarget(uint8_t* target_size, char* target, char* line);
 void MapSelectMatchingNodes(char* target, TokenList* matched_list);

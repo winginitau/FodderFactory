@@ -75,6 +75,7 @@ bool StringList::EnQueue(const char * str) {
 
 char* StringList::DeQueue(char* str) {
 	if (head == NULL) {
+		strcpy(str, "");
 		return NULL;
 	} else {
 		// head exists

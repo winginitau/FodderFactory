@@ -15,16 +15,12 @@
 #include <string.h>
 #include <stdint.h>
 #include <string_consts.h>
+#include <debug_ff.h>
 
 /************************************************
   Globals
 ************************************************/
 
-#ifdef USE_PROGMEM
-// holder for strings copied from PROGMEM
-//static char temp_pgm_string_msg_type[MAX_MESSAGE_STRING_LENGTH];
-//static char temp_pgm_string_msg[MAX_MESSAGE_STRING_LENGTH];
-#endif
 
 /************************************************
   Functions
@@ -59,6 +55,7 @@ void GetMessageString(char *str_buf, int message_enum) {
 	//return temp_pgm_string_msg;
 }
 
+/*
 #ifdef USE_PROGMEM
 uint8_t DayStringArrayIndex(const char* key) {
 	SimpleStringArray temp;
@@ -70,19 +67,20 @@ uint8_t DayStringArrayIndex(const char* key) {
 	}
 	return UINT8_INIT;
 }
-#else
+*/
+
 uint8_t DayStringArrayIndex(const char* key) {
 	for (int i = 0; i < LAST_DAY; i++) {
-		if (strcmp(key, day_strings[i].text) == 0) {
+		if (strcmp_hal(key, day_strings[i].text) == 0) {
 			return i;
 		}
 	}
 	return UINT8_INIT;
 }
-#endif
+
 
 uint8_t UnitStringArrayIndex(const char* key) {
-	for (int i = 0; i < LAST_UNIT; i++) {
+	for (int i = LAST_UNIT -1; i > 0; i--) {
 		if (strcmp_hal(key, unit_strings[i].text) == 0) {
 			return i;
 		}
@@ -90,6 +88,17 @@ uint8_t UnitStringArrayIndex(const char* key) {
 	return UNIT_ERROR;
 }
 
+uint8_t CommandStringArrayIndex(const char* key) {
+	for (int i = LAST_COMMAND -1; i > 0; i--) {
+		if (strcmp_hal(key, command_strings[i].text) == 0) {
+			return i;
+		}
+	}
+	return CMD_ERROR;
+}
+
+
+/*
 #ifdef USE_PROGMEM
 uint8_t LanguageStringArrayIndex(const char* key) {
 	SimpleStringArray temp;
@@ -101,18 +110,19 @@ uint8_t LanguageStringArrayIndex(const char* key) {
 	}
 	return UINT8_INIT;
 }
-#else
+*/
+
 uint8_t LanguageStringArrayIndex(const char* key) {
 	for (int i = 0; i < LAST_LANGUAGE; i++) {
-		if (strcmp(key, language_strings[i].text) == 0) {
+		if (strcmp_hal(key, language_strings[i].text) == 0) {
 			return i;
 		}
 	}
 	return UINT8_INIT;
 }
-#endif
 
 
+/*
 #ifdef USE_PROGMEM
 uint8_t InterfaceStringArrayIndex(const char* key) {
 	//
@@ -123,19 +133,20 @@ uint8_t InterfaceStringArrayIndex(const char* key) {
 	}
 	return UINT8_INIT;
 }
-#else
+*/
+
 uint8_t InterfaceStringArrayIndex(const char* key) {
 	//
 	for (int i = 0; i < LAST_INTERFACE; i++) {
-		if (strcmp(key, interface_strings[i].text) == 0) {
+		if (strcmp_hal(key, interface_strings[i].text) == 0) {
 			return i;
 		}
 	}
 	return UINT8_INIT;
 }
-#endif
 
-#ifdef USE_PROGMEM
+
+/*
 uint8_t BlockTypeStringArrayIndex(const char* key) {
 	SimpleStringArray temp;
 	for (int i = 0; i < LAST_BLOCK_TYPE; i++) {
@@ -146,18 +157,49 @@ uint8_t BlockTypeStringArrayIndex(const char* key) {
 	}
 	return UINT8_INIT;
 }
+*/
 
-#else
 uint8_t BlockTypeStringArrayIndex(const char* key) {
-	//
-	for (int i = 0; i < LAST_BLOCK_TYPE; i++) {
-		if (strcmp(key, block_type_strings[i].text) == 0) {
-			return i;
+	/*
+	char temp[MAX_MESSAGE_STRING_LENGTH];
+	char temp2[MAX_MESSAGE_STRING_LENGTH];
+	char chhex[MAX_LABEL_LENGTH];
+	int len;
+	DebugLog("Getting BlockTypeStringArrayIndex(char* key). Key is:");
+	DebugLog(key);
+	len = strlen(key);
+	strcpy(temp2, "");
+	for (uint8_t i = 0; i < len; i++) {
+		sprintf(chhex, " %02x", key[i]);
+		strcat(temp2, chhex);
+	}
+	sprintf(temp, "Len: %d    Hex is: %s", len, temp2);
+	DebugLog(temp);
+	DebugLog("Iterating block_type_strings in reverse for match");
+	*/
+	for (int ii = LAST_BLOCK_TYPE - 1; ii > 0; ii--) {
+		/*
+		strcpy_hal(temp, block_type_strings[ii].text);
+		DebugLog(temp);
+		len = strlen(temp);
+		strcpy(temp2, "");
+		for (uint8_t i = 0; i < len; i++) {
+			sprintf(chhex, " %02x", temp[i]);
+			strcat(temp2, chhex);
+		}
+		sprintf(temp, "Len: %d    Hex is: %s", len, temp2);
+		DebugLog(temp);
+		*/
+
+		if (strcmp_hal(key, block_type_strings[ii].text) == 0) {
+			//DebugLog("Matched Block Type!");
+			// match
+			return ii;
 		}
 	}
 	return UINT8_INIT;
 }
-#endif
+
 
 /*
 uint8_t SimpleStringArrayIndex(const SimpleStringArray array[], const char* key) {
