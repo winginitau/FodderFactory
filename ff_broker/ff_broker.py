@@ -1,14 +1,14 @@
 
-import serial
+from serial import Serial
 from collections import deque
 from time import sleep
 from enum import Enum
 from threading import Thread
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 SERIAL_POLL_INTERVAL = 0.1      # Seconds between hardware serial polls pushing to serial queue
-BROKER_POLL_INTERVAL = 0.1
+BROKER_POLL_INTERVAL = 0.05
 SERIAL_TIMING_DELAY = 3.0
 MESSAGE_PARSE_INTERVAL = 1.0    # clearning serial queue and pushing to parse queue and updating UI data set
 MESSAGE_BROKER_INTERVAL = 1.0   # clearing parse queue and pushing to DB and file queues
@@ -23,8 +23,20 @@ MYSQL_POLL_INTERVAL = 3.0        # If enabled, how often UI data set is refreshe
 class InterfaceModes(Enum):
     CHAR = 0
     LINE = 1
-    BINARY = 2 
-
+    BINARY = 2
+    
+class Utils():
+    def __init__(self, **kwargs):
+        super(Utils, self).__init__(**kwargs)
+    def timeout_start(self, timeout_period=5):
+        self.time_start = datetime.now()
+        self.time_period = timedelta(seconds = timeout_period)
+    def timeout(self):
+        if (datetime.now() - self.time_start) > self.time_period:
+            return True 
+        else: return False 
+    
+    
 class Interface():
     def __init__(self, **kwargs):
         super(Interface, self).__init__(**kwargs)
@@ -53,11 +65,12 @@ class LinuxSerialPort(Interface):
         self.device = device
         self.speed = speed
     def connect(self):
-        self.connection = serial.Serial(self.device, self.speed)
-        sleep(0.3)
+        self.connection = Serial(self.device, self.speed)
+        #sleep(0.3)
         #self.connection.open()
         if self.connection.is_open: 
             self.connected = True
+            print("LinuxSerialPort Open")
             return True 
     def close(self):
         self.connection.close()
@@ -111,12 +124,12 @@ class LinuxSerialPort(Interface):
             if (len(self.txQ) > self.txQMax):
                 self.errorLog.append(self.name, "Serial TX Queue Full. Connection Problem?")
 
-    def run_rx(self):
+    def run(self):
         ''' as a thread'''
         while True:
             if self.connected:
                 while self.connection.in_waiting > 0:
-                    #self.readng = True 
+                    #print("connection.in_waiting > 0")
                     self.read_char = self.connection.read(size=1)
                     self.byte_count += 1
                     #print(self.read_char)
@@ -135,7 +148,7 @@ class LinuxSerialPort(Interface):
                     self.reading = False 
                 else:
                     ''' nothing in waiting - has it been a while? '''
-                    if self.timeSinceLastRXTX() > 1:
+                    if self.timeSinceLastRXTX() > 2:
                         '''still bytes in the input_array? '''
                         if self.byte_count > 0: 
                             ''' Assume an un terminated prompt'''
@@ -169,11 +182,13 @@ class Adaptor():
         self.brokerToInterfaceQ = deque()
         self.interfaceToBrokerQ = deque()
         self.last_line_sent = ""
-    def config(self, interfaceObj):
+    def config(self, interfaceObj, logQ, timeout=5):
         #self.name = name
         self.interface = interfaceObj
         self.interfaceRxQ = interfaceObj.rxQ
         self.interfaceTxQ = interfaceObj.txQ
+        self.log = logQ
+        self.timeout_period = timedelta(seconds=timeout)
     def connectInterface(self):
         self.interface.connect()
     def interfaceIsConnected(self):
@@ -198,15 +213,38 @@ class Adaptor():
         return self.interface.timeSinceLastRXTX()
     
         
-class FodderArduino(Adaptor):
+class FodderArduino(Adaptor, Utils):
     def __init__(self, **kwargs):
         super(FodderArduino, self).__init__(**kwargs)
         self.response = ""
         self.itchActivated = False 
         self.response_list = []
-        
+        self.command = "RunLinemode"
     def setup(self):
         self.interface.config("/dev/ttyACM0", 9600)
+    def mode_command(self, cmd="RunLinemode"):
+        self.command = cmd
+    def run(self):
+        ''' As a thread'''
+        while True:
+            if self.command == "RunLinemode":
+                if self.interfaceIsConnected():
+                    if self.lineAvailableFromInterface():
+                        #print("lineAvailableFromInterface")
+                        self.appendForBrokerCollection(self.getLineFromInterface())
+                    if len(self.brokerToInterfaceQ) > 0:
+                        self.sendNextLineToInterface()
+            elif self.command == "ActivateItch":
+                self.appendForBrokerCollection("Recieved ActivateItch Command")
+                self.activateItch()
+                self.appendForBrokerCollection("Returning to RunLinemode")
+                self.command = "RunLinemode"
+            elif self.command == "ConfigureDevice":
+                self.appendForBrokerCollection("Recieved ConfigureDevice Command")
+                self.processConfigCommands()
+                self.appendForBrokerCollection("Returning to RunLinemode After process config commands")
+                self.command = "RunLinemode"
+                
     def activateItch(self):
         if self.interfaceIsConnected():
             while self.timeSinceLastInterfaceRXTX() < 3: 
@@ -218,37 +256,65 @@ class FodderArduino(Adaptor):
                 ''' add timeout! '''
                 if self.lineAvailableFromInterface():
                     self.response = self.getLineFromInterface()
-                    print (self.response)
+                    #print (self.response)
+                    self.appendForBrokerCollection(self.response)
                 if self.response == "ITCH - Interactive Terminal Command sHell":
-                    print ("BINGO!")
+                    #print ("BINGO!")
+                    self.appendForBrokerCollection("ITCH Terminal mode detected by adaoptor")
                     self.itchActivated = True 
                     return True
     def processConfigCommands(self):
-        sleep(5)
+        if not self.itchActivated:
+            #self.log.append("Adaptor:FodderArduino:processConfigCommands itch is not activated on interface device")
+            print("Adaptor:FodderArduino:processConfigCommands itch is not activated on interface device")
+            return 
+        #check for commands in queue
+        self.timeout_start()
+        while True:
+            if len(self.brokerToInterfaceQ) > 0:
+                break
+            if self.timeout():
+                #self.log.append("Adaptor:FodderArduino:processConfigCommands timed out waiting for commands")
+                print("Adaptor:FodderArduino:processConfigCommands timed out waiting for commands")
+                return 
         while len(self.brokerToInterfaceQ) > 0:
-            #print ("Command Q > 0")
-            #while self.timeSinceLastInterfaceRXTX() < 1: sleep(0.5)
-            if self.itchActivated:
-                #print("Itch is activated")
-                #while self.timeSinceLastInterfaceRXTX() < 1: sleep(0.5)
-                #print("Sending Command")
-                self.sendNextLineToInterface()
-                self.response_list.append(self.last_line_sent)
-            while True:
-                ''' add timeout! Wait to see command echoed back'''
-                #while self.timeSinceLastInterfaceRXTX() < 2: pass
+            self.sendNextLineToInterface()
+            self.response_list.append(self.last_line_sent)
+            self.timeout_start()
+            while not self.timeout():
                 if self.lineAvailableFromInterface():
                     self.response = self.getLineFromInterface()
+                    self.appendForBrokerCollection(self.response)
                     if self.response in self.response_list:
-                        print (self.response)
-                        ''' good look for prompt return'''
-                        while self.response != "itch:$ ":
+                        #print("got echo")
+                        # echo of send now reieved back
+                        # look for command prompt return
+                        # ignoring anything else
+                        self.tries = 100
+                        while self.tries > 0:
                             if self.lineAvailableFromInterface():
+                                self.tries -= 1
                                 self.response = self.getLineFromInterface()
-                        print (self.response)
+                                #print("Got a line, sending it")
+                                self.appendForBrokerCollection(self.response)
+                                if self.response == "itch:$ ":
+                                    #print("got prompt again")
+                                    break
+                        else:
+                            self.appendForBrokerCollection("Adaptor:FodderArduino:processConfigCommands: "
+                                                           "100 reponses without command prompt return")
                         self.response_list.clear()
+                        #print("breaking timeout loop")
                         break
-                 
+                    else:
+                        break    
+                else: #line not yet avail
+                    pass
+            else: 
+                self.appendForBrokerCollection("Adaptor:FodderArduino:processConfigCommands: "
+                                               "Timed out waiting for reponse from command send")
+            sleep(0.300)
+
 class Broker():
     def __init__(self, **kwargs):
         super(Broker, self).__init__(**kwargs)
@@ -256,7 +322,9 @@ class Broker():
         self.adaptor = adaptorObj
     def attachBus(self, busObj):
         self.bus = busObj 
-    def run_rx(self):
+    def run(self):
+        # poll the adaptor - will perhaps wake the arduino will a DTR 
+        self.adaptor.appendForSendingToInterface("\n")
         while True:
             while len(self.bus) > 0:
                 self.adaptor.appendForSendingToInterface(self.bus.popleft())
@@ -268,57 +336,76 @@ class System():
     def __init__(self, **kwargs):
         super(System, self).__init__(**kwargs)
         self.mainBus = deque()
+        self.log_queue = deque()
     def config(self):
         ''' generalise later'''
          
         self.serialToBox = LinuxSerialPort()
         self.serialToBox.config("/dev/ttyACM0", 9600)
-        #self.interfaceThread = Thread(target=self.serialToBox.run_rx, args=(0,))
 
         self.FFAdaptor = FodderArduino();
-        self.FFAdaptor.config(self.serialToBox)
-        self.FFAdaptor.connectInterface()
+        self.FFAdaptor.config(self.serialToBox, self.log_queue)
+        self.FFAdaptor.connectInterface()    # Will init serial and connect
         
         self.FFBroker = Broker()
         self.FFBroker.attachAdaptor(self.FFAdaptor)
         self.FFBroker.attachBus(self.mainBus)
-        #self.brokerThread = Thread(target=self.FFBroker.run_rx, args=(0,))
 
         ''' Start threads '''
-        self.interfaceThread = Thread(target=self.serialToBox.run_rx)
-        self.interfaceThread.setDaemon(True)
-        self.interfaceThread.start()
-
-        self.brokerThread = Thread(target=self.FFBroker.run_rx)
-        self.brokerThread.setDaemon(True)
-        self.brokerThread.start()
+        self.interface_thread = Thread(target=self.serialToBox.run)
+        self.interface_thread.setDaemon(True)
+        self.interface_thread.start()
+        print("Interface thread started")
+        
+        self.adaptor_thread = Thread(target=self.FFAdaptor.run)
+        self.adaptor_thread.setDaemon(True)
+        self.adaptor_thread.start()
+        print("Adaptor thread started")
+        
+        self.broker_thread = Thread(target=self.FFBroker.run)
+        self.broker_thread.setDaemon(True)
+        self.broker_thread.start()
+        print("Broker thread started")
           
     def report(self, reportStr):
         print(reportStr)    
         
-    def run_rx(self):
+    def run(self):
         ''' Main loop, turn into thread later'''
-            #self.serialToBox.run_rx()
-            #self.FFBroker.run_rx()
+            #self.serialToBox.run()
+            #self.FFBroker.run()
+        sleep(20)
+        self.FFAdaptor.mode_command("ActivateItch")
         sleep(10)
-        if self.FFAdaptor.activateItch():
-            self.cf = open("/home/brendan/git/FodderFactory/ff_simulator/CONFIG.TXT", "r")
+        if self.FFAdaptor.itchActivated:
+            self.mainBus.append("init disable all")  #suppress messages
+            self.mainBus.append("config reset")
+            #self.cf = open("/home/brendan/git/FodderFactory/ff_simulator/CONFIG.TXT", "r")
+            self.cf = open("CONFIG.TXT", "r")
             self.cf_lines = self.cf.readlines();
             for self.input_string in self.cf_lines:
                 self.line_clean = self.input_string.rstrip('\n\r')
                 #print(self.line_clean)
                 self.mainBus.append(self.line_clean)
+            self.mainBus.append("config save")
+            self.mainBus.append("init val all")
+            self.mainBus.append("init set all")
+            self.mainBus.append("\x04")
             print("Commands Queued to mainBus")
-            self.FFAdaptor.processConfigCommands()
+            self.FFAdaptor.mode_command("ConfigureDevice")
         while True:
-            sleep(1)
+            print("System.Run Sleeping")
+            sleep(30)
                                
+
+def main():
+    app = System()
+    app.config()
+    app.run()
          
         
 if __name__ == '__main__':
-    app = System()
-    app.config()
-    app.run_rx()
+    main()
     
     '''
     Need: 

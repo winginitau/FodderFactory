@@ -1266,10 +1266,13 @@ void RegConfigLoadBinary(void(*Callback)(char*)) {
 	InitConfigLoadBinary();
 }
 
+/* 2019-06-14 Depreciated.
+See Comments in init_config.cpp, function InitConfigLoadINI()
 void RegConfigLoadINI(void(*Callback)(char*)) {
 	(void)Callback; 		//not used
 	InitConfigLoadINI();
 }
+*/
 
 void RegConfigSave(void(*Callback)(char*)) {
 	(void)Callback; 		//not used

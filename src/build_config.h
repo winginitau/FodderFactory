@@ -38,7 +38,7 @@
 // Optionally:
 //#define FF_RPI_START_DELAY 30000	// Start delay to allow RPIs upstream to to get going
 
-// Use ITCH for CLI parsing ?
+//Use ITCH for CLI parsing ?
 #define USE_ITCH
 // OR only headers for enum arrary configs?
 //#define ITCH_HEADERS_ONLY
@@ -117,9 +117,9 @@
 
 //#define DISABLE_OUTPUTS				// Allows full operation but the output relays don't activate
 
-#define TEST_CONFIG_FUNCS			// Read and write all config types - for development
+//#define TEST_CONFIG_FUNCS			// Read and write all config types - for development
 
-#define DEBUG			// Call debug output at all or not?
+//#define DEBUG			// Call debug output at all or not?
 
 #ifdef DEBUG
 //Optionallly:
@@ -233,7 +233,7 @@
 #define EVENT_FILENAME "FFEVENTS.TXT"
 #define CONFIG_INI_FILENAME "FFCONFIG.TXT"
 #define CONFIG_BIN_FILENAME "FFCONFIG.BIN"
-#define CONFIG_TXT_FILENAME "CONFIGT.TXT"
+#define CONFIG_TXT_FILENAME "CONFIG.TXT"
 
 #define INI_FILE_MAX_LINE_LENGTH 150
 #define INI_ERROR_TYPES 9
@@ -245,7 +245,7 @@
 #define MAX_DISPLAY_NAME_LENGTH 80
 #define MAX_DESCR_LENGTH 80
 //#define MAX_BLOCKS 255
-//#define MAX_BLOCKS_PER_CATEGORY 32
+#define MAX_BLOCKS_PER_CATEGORY 32
 #define MAX_CONF_KEYS_PER_BLOCK 12
 
 

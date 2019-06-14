@@ -90,7 +90,7 @@
 						<entry excluding="libraries/RTClib/1.2.0.mod|libraries/DallasTemperature/3.7.6.mod|libraries/SD/.github|libraries/OneWire/util|itch|glitch|src|libraries/?*/**/?xamples/**|libraries/?*/**/?xtras/**|libraries/?*/**/test*/**|libraries/?*/**/third-party/**|libraries/**/._*|libraries/?*/utility/*/*" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 						<entry excluding="out_user_code2.cpp.bak|gmon.out|grammar.gf|conf_term_grammar_wip.txt|command_syntax.txt|code_template.ct|bucket|hf_temp|LineBuffer.h|LineBuffer.cpp|Lexer.h|KeyValuePairList.h|Lexer.cpp|KeyValuePairList.cpp|Identifiers.h|Identifiers.cpp|Identifier.h|glitch.cpp|Identifier.cpp|glitch_errors.h|glitch_config.h|Debug.h|Debug.cpp|config.h|ASTNode.h|ASTNode.cpp|AST.h|AST.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="glitch"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="itch"/>
-						<entry excluding="IniFile_ff.h|IniFile_ff.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
+						<entry excluding="bucket.cpp|IniFile_ff.h|IniFile_ff.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>

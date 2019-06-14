@@ -94,15 +94,6 @@ typedef struct STRING_ARRAY_TYPE {
 #endif
 
 
-typedef struct BLOCK_CATS {
-	const uint8_t cat_id;
-	const char conf_section_label[MAX_LABEL_LENGTH];
-	const char conf_section_key_base[MAX_LABEL_LENGTH];
-	const char* const conf_keys[MAX_CONF_KEYS_PER_BLOCK];
-} BlockCatArray;
-
-
-
 /**************************************************************
  * Language Strings - Must Follow the typedef that defines it
  **************************************************************/
@@ -113,235 +104,6 @@ static const SimpleStringArray language_strings[LAST_LANGUAGE] = {
 #endif
 	"English",
 	"Deutsch",
-};
-
-
-#if not defined USE_ITCH && not defined ITCH_HEADERS_ONLY
-/**************************************************************
- * Block Category Definitions
- **************************************************************/
-//typedef
-enum {
-	FF_ERROR_CAT = 0,
-	FF_GENERIC_BLOCK,
-	FF_SYSTEM,
-	FF_INPUT,
-	FF_MONITOR,
-	FF_SCHEDULE,
-	FF_RULE,
-	FF_CONTROLLER,
-	FF_OUTPUT,
-	LAST_BLOCK_CAT,
-};//BlockCatEnum;
-#endif
-
-enum {
-	SYS_ERROR_KEY = 0,
-	SYS_TYPE,			//common to all block categories in this order
-	SYS_DISPLAY_NAME,	//common to all block categories in this order
-	SYS_DESCRIPTION,		//common to all block categories in this order
-	SYS_LANGUAGE,
-	SYS_TEMPERATURE,
-	SYS_WEEK_START,
-	LAST_SYS_KEY_TYPE,
-};
-
-enum {
-	IN_ERROR_KEY = 0,
-	IN_TYPE,			//common to all block categories in this order
-	IN_DISPLAY_NAME,	//common to all block categories in this order
-	IN_DESCRIPTION,		//common to all block categories in this order
-	IN_INTERFACE,
-	IN_IF_NUM,
-	IN_LOG_RATE,
-	IN_DATA_UNITS,
-	IN_DATA_TYPE,
-	LAST_IN_KEY_TYPE
-};// InputConfKeyList;
-
-enum {
-	MON_ERROR_KEY = 0,
-	MON_TYPE,			//common to all block categories in this order
-	MON_DISPLAY_NAME,	//common to all block categories in this order
-	MON_DESCRIPTION,	//common to all block categories in this order
-	MON_INPUT1,
-	MON_INPUT2,
-	MON_INPUT3,
-	MON_INPUT4,
-	MON_ACT_VAL,
-	MON_DEACT_VAL,
-	LAST_MON_KEY_TYPE
-};
-
-enum {
-	SCH_ERROR_KEY = 0,
-	SCH_TYPE,			//common to all block categories in this order
-	SCH_DISPLAY_NAME,	//common to all block categories in this order
-	SCH_DESCRIPTION,	//common to all block categories in this order
-	SCH_DAYS,
-	SCH_TIME_START,
-	SCH_TIME_END,
-	SCH_TIME_DURATION,
-	SCH_TIME_REPEAT,
-	LAST_SCH_KEY_TYPE
-};
-
-enum {
-	RL_ERROR_KEY = 0,
-	RL_TYPE,			//common to all block categories in this order
-	RL_DISPLAY_NAME,	//common to all block categories in this order
-	RL_DESCRIPTION,		//common to all block categories in this order
-	RL_PARAM_1,
-	RL_PARAM_2,
-	RL_PARAM_3,
-	RL_PARAM_NOT,
-	LAST_RL_KEY_TYPE
-};
-
-enum {
-	CON_ERROR_KEY = 0,
-	CON_TYPE,			//common to all block categories in this order
-	CON_DISPLAY_NAME,	//common to all block categories in this order
-	CON_DESCRIPTION,	//common to all block categories in this order
-	CON_RULE,
-	CON_OUTPUT,
-	CON_ACT_CMD,
-	CON_DEACT_CMD,
-	LAST_CON_KEY_TYPE
-};
-
-enum {
-	OUT_ERROR_TYPE = 0,
-	OUT_TYPE,			//common to all block categories in this order
-	OUT_DISPLAY_NAME,	//common to all block categories in this order
-	OUT_DESCRIPTION,	//common to all block categories in this order
-	OUT_INTERFACE,
-	OUT_IF_NUM,
-	LAST_OUT_KEY_TYPE
-};
-
-#ifdef PROGMEM_BLOCK_DEFS
-static const BlockCatArray block_cat_defs[LAST_BLOCK_CAT] PROGMEM = {
-#else
-static const BlockCatArray block_cat_defs[LAST_BLOCK_CAT] = {
-#endif
-
-	FF_ERROR_CAT,
-	"\0",
-	"\0",
-	{
-		"\0",
-	},
-
-	FF_GENERIC_BLOCK,
-	"\0",					// config headings in INI config - "inputs" "outputs" etc
-	"\0",					// config label singular - "input3" "CONFIG INPUT Input_name"
-	{
-		"",					// not used - dummy to skip error enum = 0
-		"type",				// Block Type - See block_type_strings
-		"display_name",		// Short user friendly display label (TODO: needs limit)
-		"description",		// Optional descriptive for design stage
-	},
-
-	FF_SYSTEM,
-	"system",
-	"system",
-	{
-		"",					// not used - dummy to skip error enum = 0
-		"type",				// See Generic Above
-		"display_name",		// See Generic Above
-		"description",		// See Generic Above
-		"language",			// TODO: Partially Implemented on message and debug strings
-		"temp_scale",		// TODO: Setable but ignored presently. Celisus assumed
-		"week_start",		// TODO: implement, currently hard coded
-	},
-
-	FF_INPUT,
-	"inputs",
-	"input",
-	{
-		"",					//not used - dummy to skip error enum = 0
-		"type",				// See Generic Above
-		"display_name",		// See Generic Above
-		"description",		// See Generic Above
-		"interface",
-		"if_num",
-		"log_rate",
-		"data_units",
-		"data_type"
-	},
-
-	FF_MONITOR,
-	"monitors",
-	"monitor",
-	{
-		"",					// not used - dummy to skip error enum = 0
-		"type",				// See Generic Above
-		"display_name",		// See Generic Above
-		"description",		// See Generic Above
-		"input1",
-		"input2",
-		"input3",
-		"input4",
-		"act_val",
-		"deact_val"
-	},
-
-	FF_SCHEDULE,
-	"schedules",
-	"schedule",
-	{
-		"",					// not used - dummy to skip error enum = 0
-		"type",				// See Generic Above
-		"display_name",		// See Generic Above
-		"description",		// See Generic Above
-		"days",
-		"time_start",
-		"time_end",
-		"time_duration",
-		"time_repeat",
-	},
-
-	FF_RULE,
-	"rules",
-	"rule",
-	{
-		"",					// not used - dummy to skip error enum = 0
-		"type",				// See Generic Above
-		"display_name",		// See Generic Above
-		"description",		// See Generic Above
-		"param1",
-		"param2",
-		"param3",
-		"param_not",
-	},
-
-	FF_CONTROLLER,
-	"controllers",
-	"controller",
-	{
-		"",					// not used - dummy to skip error enum = 0
-		"type",				// See Generic Above
-		"display_name",		// See Generic Above
-		"description",		// See Generic Above
-		"rule",
-		"output",
-		"act_cmd",
-		"deact_cmd",
-
-	},
-
-	FF_OUTPUT,
-	"outputs",
-	"output",
-	{
-		"",					// not used - dummy to skip error enum = 0
-		"type",				// See Generic Above
-		"display_name",		// See Generic Above
-		"description",		// See Generic Above
-		"interface",
-		"if_num",
-	},
 };
 
 
@@ -825,19 +587,6 @@ enum {
 
 #endif
 
-enum {						// Misc program strings
-	MISC_ERROR = 0,
-	LAST_MISC_STRING,
-};
-
-#ifdef USE_PROGMEM
-static const SimpleStringArray misc_strings[LAST_MISC_STRING] PROGMEM = {
-#else
-static const SimpleStringArray misc_strings[LAST_MISC_STRING] = {
-#endif
-	"MISC_STRING_ERROR",
-};
-
 
 /**************************************************************
  * String Access Functions Prototypes
@@ -874,12 +623,252 @@ int strcmp_hal(const char *s1, const __FlashStringHelper *s2);
 //char *strcat_hal(char *dest, const char *src);
 void *memcpy_hal(void *dest, const void *src, size_t sz);
 
-/*
-#ifdef DEBUG
-char *strcpy_debug(char *dest, uint8_t src);
-char *strcat_debug(char *dest, uint8_t src);
+
+
+/**********************************************************************************
+ * Depreciated code - either no longer used or moved to glitch generation
+**********************************************************************************/
+
+#if not defined USE_ITCH && not defined ITCH_HEADERS_ONLY
+
+typedef struct BLOCK_CATS {
+	const uint8_t cat_id;
+	const char conf_section_label[MAX_LABEL_LENGTH];
+	const char conf_section_key_base[MAX_LABEL_LENGTH];
+	const char* const conf_keys[MAX_CONF_KEYS_PER_BLOCK];
+} BlockCatArray;
+
+
+#ifdef PROGMEM_BLOCK_DEFS
+static const BlockCatArray block_cat_defs[LAST_BLOCK_CAT] PROGMEM = {
+#else
+static const BlockCatArray block_cat_defs[LAST_BLOCK_CAT] = {
 #endif
-*/
+
+	FF_ERROR_CAT,
+	"\0",
+	"\0",
+	{
+		"\0",
+	},
+
+	FF_GENERIC_BLOCK,
+	"\0",					// config headings in INI config - "inputs" "outputs" etc
+	"\0",					// config label singular - "input3" "CONFIG INPUT Input_name"
+	{
+		"",					// not used - dummy to skip error enum = 0
+		"type",				// Block Type - See block_type_strings
+		"display_name",		// Short user friendly display label (TODO: needs limit)
+		"description",		// Optional descriptive for design stage
+	},
+
+	FF_SYSTEM,
+	"system",
+	"system",
+	{
+		"",					// not used - dummy to skip error enum = 0
+		"type",				// See Generic Above
+		"display_name",		// See Generic Above
+		"description",		// See Generic Above
+		"language",			// TODO: Partially Implemented on message and debug strings
+		"temp_scale",		// TODO: Setable but ignored presently. Celisus assumed
+		"week_start",		// TODO: implement, currently hard coded
+	},
+
+	FF_INPUT,
+	"inputs",
+	"input",
+	{
+		"",					//not used - dummy to skip error enum = 0
+		"type",				// See Generic Above
+		"display_name",		// See Generic Above
+		"description",		// See Generic Above
+		"interface",
+		"if_num",
+		"log_rate",
+		"data_units",
+		"data_type"
+	},
+
+	FF_MONITOR,
+	"monitors",
+	"monitor",
+	{
+		"",					// not used - dummy to skip error enum = 0
+		"type",				// See Generic Above
+		"display_name",		// See Generic Above
+		"description",		// See Generic Above
+		"input1",
+		"input2",
+		"input3",
+		"input4",
+		"act_val",
+		"deact_val"
+	},
+
+	FF_SCHEDULE,
+	"schedules",
+	"schedule",
+	{
+		"",					// not used - dummy to skip error enum = 0
+		"type",				// See Generic Above
+		"display_name",		// See Generic Above
+		"description",		// See Generic Above
+		"days",
+		"time_start",
+		"time_end",
+		"time_duration",
+		"time_repeat",
+	},
+
+	FF_RULE,
+	"rules",
+	"rule",
+	{
+		"",					// not used - dummy to skip error enum = 0
+		"type",				// See Generic Above
+		"display_name",		// See Generic Above
+		"description",		// See Generic Above
+		"param1",
+		"param2",
+		"param3",
+		"param_not",
+	},
+
+	FF_CONTROLLER,
+	"controllers",
+	"controller",
+	{
+		"",					// not used - dummy to skip error enum = 0
+		"type",				// See Generic Above
+		"display_name",		// See Generic Above
+		"description",		// See Generic Above
+		"rule",
+		"output",
+		"act_cmd",
+		"deact_cmd",
+
+	},
+
+	FF_OUTPUT,
+	"outputs",
+	"output",
+	{
+		"",					// not used - dummy to skip error enum = 0
+		"type",				// See Generic Above
+		"display_name",		// See Generic Above
+		"description",		// See Generic Above
+		"interface",
+		"if_num",
+	},
+};
+
+/**************************************************************
+ * Block Category Definitions
+ **************************************************************/
+//typedef
+enum {
+	FF_ERROR_CAT = 0,
+	FF_GENERIC_BLOCK,
+	FF_SYSTEM,
+	FF_INPUT,
+	FF_MONITOR,
+	FF_SCHEDULE,
+	FF_RULE,
+	FF_CONTROLLER,
+	FF_OUTPUT,
+	LAST_BLOCK_CAT,
+};//BlockCatEnum;
+
+
+enum {
+	SYS_ERROR_KEY = 0,
+	SYS_TYPE,			//common to all block categories in this order
+	SYS_DISPLAY_NAME,	//common to all block categories in this order
+	SYS_DESCRIPTION,		//common to all block categories in this order
+	SYS_LANGUAGE,
+	SYS_TEMPERATURE,
+	SYS_WEEK_START,
+	LAST_SYS_KEY_TYPE,
+};
+
+enum {
+	IN_ERROR_KEY = 0,
+	IN_TYPE,			//common to all block categories in this order
+	IN_DISPLAY_NAME,	//common to all block categories in this order
+	IN_DESCRIPTION,		//common to all block categories in this order
+	IN_INTERFACE,
+	IN_IF_NUM,
+	IN_LOG_RATE,
+	IN_DATA_UNITS,
+	IN_DATA_TYPE,
+	LAST_IN_KEY_TYPE
+};// InputConfKeyList;
+
+enum {
+	MON_ERROR_KEY = 0,
+	MON_TYPE,			//common to all block categories in this order
+	MON_DISPLAY_NAME,	//common to all block categories in this order
+	MON_DESCRIPTION,	//common to all block categories in this order
+	MON_INPUT1,
+	MON_INPUT2,
+	MON_INPUT3,
+	MON_INPUT4,
+	MON_ACT_VAL,
+	MON_DEACT_VAL,
+	LAST_MON_KEY_TYPE
+};
+
+enum {
+	SCH_ERROR_KEY = 0,
+	SCH_TYPE,			//common to all block categories in this order
+	SCH_DISPLAY_NAME,	//common to all block categories in this order
+	SCH_DESCRIPTION,	//common to all block categories in this order
+	SCH_DAYS,
+	SCH_TIME_START,
+	SCH_TIME_END,
+	SCH_TIME_DURATION,
+	SCH_TIME_REPEAT,
+	LAST_SCH_KEY_TYPE
+};
+
+enum {
+	RL_ERROR_KEY = 0,
+	RL_TYPE,			//common to all block categories in this order
+	RL_DISPLAY_NAME,	//common to all block categories in this order
+	RL_DESCRIPTION,		//common to all block categories in this order
+	RL_PARAM_1,
+	RL_PARAM_2,
+	RL_PARAM_3,
+	RL_PARAM_NOT,
+	LAST_RL_KEY_TYPE
+};
+
+enum {
+	CON_ERROR_KEY = 0,
+	CON_TYPE,			//common to all block categories in this order
+	CON_DISPLAY_NAME,	//common to all block categories in this order
+	CON_DESCRIPTION,	//common to all block categories in this order
+	CON_RULE,
+	CON_OUTPUT,
+	CON_ACT_CMD,
+	CON_DEACT_CMD,
+	LAST_CON_KEY_TYPE
+};
+
+enum {
+	OUT_ERROR_TYPE = 0,
+	OUT_TYPE,			//common to all block categories in this order
+	OUT_DISPLAY_NAME,	//common to all block categories in this order
+	OUT_DESCRIPTION,	//common to all block categories in this order
+	OUT_INTERFACE,
+	OUT_IF_NUM,
+	LAST_OUT_KEY_TYPE
+};
+
+#endif
+
+
 
 
 #endif /* SRC_FF_STRINGS_H_ */

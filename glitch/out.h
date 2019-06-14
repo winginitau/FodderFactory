@@ -12,12 +12,12 @@
 #define MAX_AST_IDENTIFIER_SIZE 18
 #define MAX_AST_LABEL_SIZE 16
 #define MAX_AST_ACTION_SIZE 24
-#define AST_NODE_COUNT 63
+#define AST_NODE_COUNT 60
 #define MAX_PARAM_COUNT 3
 
 #define XLAT_IDENT_MAP_COUNT 9
 #define XLAT_LOOKUP_MAP_COUNT 1
-#define XLAT_FUNC_MAP_COUNT 29
+#define XLAT_FUNC_MAP_COUNT 26
 
 #define MAX_INPUT_LINE_SIZE 150
 #define MAX_OUTPUT_LINE_SIZE 150
@@ -328,10 +328,7 @@ void ShowDate(void);
 void SetDate(char* param1_date);
 void ConfigReset(void);
 void ConfigLoad(void);
-void ConfigLoadBinary(void);
-void ConfigLoadINI(void);
 void ConfigSave(void);
-void ConfigSaveBinary(void);
 void ConfigBlockSystem(char* param1_string, uint16_t SYS_CONFIG, char* param2_string);
 void ConfigBlockInput(char* param1_string, uint16_t IN_CONFIG, char* param2_string);
 void ConfigBlockMonitor(char* param1_string, uint16_t MON_CONFIG, char* param2_string);
@@ -348,9 +345,9 @@ void BlockIDCmdOff(int16_t param1_int);
 
 // id, type, label, actionable, parent, first_child, next_sibling, action_id
 #ifdef USE_PROGMEM
-static const ASTA asta [63] PROGMEM = {
+static const ASTA asta [60] PROGMEM = {
 #else
-static const ASTA asta [63] = {
+static const ASTA asta [60] = {
 #endif
 	1, 1, "SHOW", 0, 0, 2, 6, "",
 	2, 1, "BLOCKS", 1, 1, 0, 3, "SHOW_BLOCKS",
@@ -369,52 +366,49 @@ static const ASTA asta [63] = {
 	15, 1, "DATE", 1, 0, 16, 18, "SHOW_DATE",
 	16, 1, "SET", 0, 15, 17, 0, "",
 	17, 4, "param-date", 1, 16, 0, 0, "SET_DATE",
-	18, 1, "CONFIG", 0, 0, 19, 53, "",
+	18, 1, "CONFIG", 0, 0, 19, 50, "",
 	19, 1, "RESET", 1, 18, 0, 20, "CONFIG_RESET",
-	20, 1, "LOAD", 1, 18, 21, 23, "CONFIG_LOAD",
-	21, 1, "BINARY", 1, 20, 0, 22, "CONFIG_LOAD_BINARY",
-	22, 1, "INI", 1, 20, 0, 0, "CONFIG_LOAD_INI",
-	23, 1, "SAVE", 1, 18, 24, 25, "CONFIG_SAVE",
-	24, 1, "BINARY", 1, 23, 0, 0, "CONFIG_SAVE_BINARY",
-	25, 1, "system", 0, 18, 26, 29, "",
-	26, 13, "param-string", 0, 25, 27, 0, "",
-	27, 2, "sys_config_keys", 0, 26, 28, 0, "",
-	28, 13, "param-string", 1, 27, 0, 0, "CONFIG_BLOCK_SYSTEM",
-	29, 1, "input", 0, 18, 30, 33, "",
-	30, 13, "param-string", 0, 29, 31, 0, "",
-	31, 2, "in_config_keys", 0, 30, 32, 0, "",
-	32, 13, "param-string", 1, 31, 0, 0, "CONFIG_BLOCK_INPUT",
-	33, 1, "monitor", 0, 18, 34, 37, "",
-	34, 13, "param-string", 0, 33, 35, 0, "",
-	35, 2, "mon_config_keys", 0, 34, 36, 0, "",
-	36, 13, "param-string", 1, 35, 0, 0, "CONFIG_BLOCK_MONITOR",
-	37, 1, "schedule", 0, 18, 38, 41, "",
-	38, 13, "param-string", 0, 37, 39, 0, "",
-	39, 2, "sch_config_keys", 0, 38, 40, 0, "",
-	40, 13, "param-string", 1, 39, 0, 0, "CONFIG_BLOCK_SCHEDULE",
-	41, 1, "rule", 0, 18, 42, 45, "",
-	42, 13, "param-string", 0, 41, 43, 0, "",
-	43, 2, "rl_config_keys", 0, 42, 44, 0, "",
-	44, 13, "param-string", 1, 43, 0, 0, "CONFIG_BLOCK_RULE",
-	45, 1, "controller", 0, 18, 46, 49, "",
-	46, 13, "param-string", 0, 45, 47, 0, "",
-	47, 2, "con_config_keys", 0, 46, 48, 0, "",
-	48, 13, "param-string", 1, 47, 0, 0, "CONFIG_BLOCK_CONTROLLER",
-	49, 1, "output", 0, 18, 50, 0, "",
-	50, 13, "param-string", 0, 49, 51, 0, "",
-	51, 2, "out_config_keys", 0, 50, 52, 0, "",
-	52, 13, "param-string", 1, 51, 0, 0, "CONFIG_BLOCK_OUTPUT",
-	53, 1, "INIT", 0, 0, 54, 60, "",
-	54, 1, "SETUP", 0, 53, 55, 56, "",
-	55, 1, "ALL", 1, 54, 0, 0, "INIT_SETUP_ALL",
-	56, 1, "VALIDATE", 0, 53, 57, 58, "",
-	57, 1, "ALL", 1, 56, 0, 0, "INIT_VALIDATE_ALL",
-	58, 1, "DISABLE", 0, 53, 59, 0, "",
-	59, 1, "ALL", 1, 58, 0, 0, "INIT_DISABLE_ALL",
-	60, 1, "REBOOT", 1, 0, 0, 61, "REBOOT",
-	61, 6, "param-integer", 0, 0, 62, 0, "",
-	62, 1, "ON", 1, 61, 0, 63, "BLOCK_ID_CMD_ON",
-	63, 1, "OFF", 1, 61, 0, 0, "BLOCK_ID_CMD_OFF",
+	20, 1, "LOAD", 1, 18, 0, 21, "CONFIG_LOAD",
+	21, 1, "SAVE", 1, 18, 0, 22, "CONFIG_SAVE",
+	22, 1, "system", 0, 18, 23, 26, "",
+	23, 13, "param-string", 0, 22, 24, 0, "",
+	24, 2, "sys_config_keys", 0, 23, 25, 0, "",
+	25, 13, "param-string", 1, 24, 0, 0, "CONFIG_BLOCK_SYSTEM",
+	26, 1, "input", 0, 18, 27, 30, "",
+	27, 13, "param-string", 0, 26, 28, 0, "",
+	28, 2, "in_config_keys", 0, 27, 29, 0, "",
+	29, 13, "param-string", 1, 28, 0, 0, "CONFIG_BLOCK_INPUT",
+	30, 1, "monitor", 0, 18, 31, 34, "",
+	31, 13, "param-string", 0, 30, 32, 0, "",
+	32, 2, "mon_config_keys", 0, 31, 33, 0, "",
+	33, 13, "param-string", 1, 32, 0, 0, "CONFIG_BLOCK_MONITOR",
+	34, 1, "schedule", 0, 18, 35, 38, "",
+	35, 13, "param-string", 0, 34, 36, 0, "",
+	36, 2, "sch_config_keys", 0, 35, 37, 0, "",
+	37, 13, "param-string", 1, 36, 0, 0, "CONFIG_BLOCK_SCHEDULE",
+	38, 1, "rule", 0, 18, 39, 42, "",
+	39, 13, "param-string", 0, 38, 40, 0, "",
+	40, 2, "rl_config_keys", 0, 39, 41, 0, "",
+	41, 13, "param-string", 1, 40, 0, 0, "CONFIG_BLOCK_RULE",
+	42, 1, "controller", 0, 18, 43, 46, "",
+	43, 13, "param-string", 0, 42, 44, 0, "",
+	44, 2, "con_config_keys", 0, 43, 45, 0, "",
+	45, 13, "param-string", 1, 44, 0, 0, "CONFIG_BLOCK_CONTROLLER",
+	46, 1, "output", 0, 18, 47, 0, "",
+	47, 13, "param-string", 0, 46, 48, 0, "",
+	48, 2, "out_config_keys", 0, 47, 49, 0, "",
+	49, 13, "param-string", 1, 48, 0, 0, "CONFIG_BLOCK_OUTPUT",
+	50, 1, "INIT", 0, 0, 51, 57, "",
+	51, 1, "SETUP", 0, 50, 52, 53, "",
+	52, 1, "ALL", 1, 51, 0, 0, "INIT_SETUP_ALL",
+	53, 1, "VALIDATE", 0, 50, 54, 55, "",
+	54, 1, "ALL", 1, 53, 0, 0, "INIT_VALIDATE_ALL",
+	55, 1, "DISABLE", 0, 50, 56, 0, "",
+	56, 1, "ALL", 1, 55, 0, 0, "INIT_DISABLE_ALL",
+	57, 1, "REBOOT", 1, 0, 0, 58, "REBOOT",
+	58, 6, "param-integer", 0, 0, 59, 0, "",
+	59, 1, "ON", 1, 58, 0, 60, "BLOCK_ID_CMD_ON",
+	60, 1, "OFF", 1, 58, 0, 0, "BLOCK_ID_CMD_OFF",
 };
 
 #ifdef USE_PROGMEM
@@ -442,9 +436,9 @@ static const XLATMap lookup_map [1] = {
 };
 
 #ifdef USE_PROGMEM
-static const XLATMap func_map [29] PROGMEM = {
+static const XLATMap func_map [26] PROGMEM = {
 #else
-static const XLATMap func_map [29] = {
+static const XLATMap func_map [26] = {
 #endif
 	"SHOW_BLOCKS", 0,
 	"SHOW_SYSTEM", 1,
@@ -458,23 +452,20 @@ static const XLATMap func_map [29] = {
 	"SET_DATE", 9,
 	"CONFIG_RESET", 10,
 	"CONFIG_LOAD", 11,
-	"CONFIG_LOAD_BINARY", 12,
-	"CONFIG_LOAD_INI", 13,
-	"CONFIG_SAVE", 14,
-	"CONFIG_SAVE_BINARY", 15,
-	"CONFIG_BLOCK_SYSTEM", 16,
-	"CONFIG_BLOCK_INPUT", 17,
-	"CONFIG_BLOCK_MONITOR", 18,
-	"CONFIG_BLOCK_SCHEDULE", 19,
-	"CONFIG_BLOCK_RULE", 20,
-	"CONFIG_BLOCK_CONTROLLER", 21,
-	"CONFIG_BLOCK_OUTPUT", 22,
-	"INIT_SETUP_ALL", 23,
-	"INIT_VALIDATE_ALL", 24,
-	"INIT_DISABLE_ALL", 25,
-	"REBOOT", 26,
-	"BLOCK_ID_CMD_ON", 27,
-	"BLOCK_ID_CMD_OFF", 28,
+	"CONFIG_SAVE", 12,
+	"CONFIG_BLOCK_SYSTEM", 13,
+	"CONFIG_BLOCK_INPUT", 14,
+	"CONFIG_BLOCK_MONITOR", 15,
+	"CONFIG_BLOCK_SCHEDULE", 16,
+	"CONFIG_BLOCK_RULE", 17,
+	"CONFIG_BLOCK_CONTROLLER", 18,
+	"CONFIG_BLOCK_OUTPUT", 19,
+	"INIT_SETUP_ALL", 20,
+	"INIT_VALIDATE_ALL", 21,
+	"INIT_DISABLE_ALL", 22,
+	"REBOOT", 23,
+	"BLOCK_ID_CMD_ON", 24,
+	"BLOCK_ID_CMD_OFF", 25,
 };
 
 uint16_t LookupIdentMap (char* key);

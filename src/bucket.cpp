@@ -9,6 +9,10 @@
 /*******************************************************************************************
  * Linksys analog temp code example
  *
+CONFIG schedule SCH_WATER_TOP_COLD type SCH_START_DURATION_REPEAT
+CONFIG schedule SCH_WATER_TOP_COLD type SCH_START_DURATION
+SCH_WATER_TOP_COLD 19
+SCH_START_DURATION_REPEAT
 
 //TMP36 Pin Variables
 int sensorPin = 0; //the analog pin the TMP36's Vout (sense) pin is connected to

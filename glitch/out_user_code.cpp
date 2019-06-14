@@ -55,20 +55,8 @@ void ConfigLoad(void) {
 	RegConfigLoad(WriteLineCallback);
 }
 
-void ConfigLoadBinary(void) {
-	RegConfigLoadBinary(WriteLineCallback);
-}
-
-void ConfigLoadINI(void) {
-	RegConfigLoadINI(WriteLineCallback);
-}
-
 void ConfigSave(void) {
 	RegConfigSave(WriteLineCallback);
-}
-
-void ConfigSaveBinary(void) {
-	RegConfigSaveBinary(WriteLineCallback);
 }
 
 void ConfigBlockSystem(char* param1_string, uint16_t SYS_CONFIG, char* param2_string) {

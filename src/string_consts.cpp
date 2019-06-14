@@ -213,21 +213,6 @@ uint8_t SimpleStringArrayIndex(const SimpleStringArray array[], const char* key)
 }
 */
 
-char *strcpy_misc(char *dest, uint8_t src) {
-	#ifdef ARDUINO
-		return strcpy_P(dest, misc_strings[src].text);
-	#else
-		return strcpy(dest, misc_strings[src].text);
-	#endif
-}
-
-char *strcat_misc(char *dest, uint8_t src) {
-	#ifdef ARDUINO
-		return strcat_P(dest, misc_strings[src].text);
-	#else
-		return strcat(dest, misc_strings[src].text);
-	#endif
-}
 
 
 /**************************************************************************

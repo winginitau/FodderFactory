@@ -285,10 +285,10 @@ LAST_OUT_CONFIG
 
 %action-define CONFIG_RESET ConfigReset
 %action-define CONFIG_LOAD ConfigLoad
-%action-define CONFIG_LOAD_BINARY ConfigLoadBinary
-%action-define CONFIG_LOAD_INI ConfigLoadINI
+%#action-define CONFIG_LOAD_BINARY ConfigLoadBinary
+%#action-define CONFIG_LOAD_INI ConfigLoadINI
 %action-define CONFIG_SAVE ConfigSave
-%action-define CONFIG_SAVE_BINARY ConfigSaveBinary
+%#action-define CONFIG_SAVE_BINARY ConfigSaveBinary
 
 %action-define CONFIG_BLOCK_SYSTEM ConfigBlockSystem
 %action-define CONFIG_BLOCK_INPUT ConfigBlockInput 
@@ -305,14 +305,8 @@ LAST_OUT_CONFIG
 %action CONFIG_RESET
 %2 keyword LOAD
 %action CONFIG_LOAD
-%3 keyword BINARY
-%action CONFIG_LOAD_BINARY
-%3 keyword INI
-%action CONFIG_LOAD_INI
 %2 keyword SAVE
 %action CONFIG_SAVE
-%3 keyword BINARY
-%action CONFIG_SAVE_BINARY
 
 %2 keyword system
 %3 param-string

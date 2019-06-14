@@ -515,12 +515,12 @@ uint8_t GetConfKeyIndex(uint8_t block_cat, const char* key_str) {
 uint8_t ConfigureCommonSetting(BlockNode* block_ptr, uint8_t key_idx, const char* value_str){
 
 	switch (key_idx) {
-		case SYS_ERROR_KEY:
+		case SYS_CONFIG_ERROR:
 			// or any other (0) block cat error key
 			DebugLog(SSS, E_STOP, M_KEY_IDX_ZERO);
 			while(1);
 			break;
-		case SYS_TYPE:
+		case SYS_CONFIG_TYPE:
 			// or case IN_TYPE
 			// or case MON_TYPE:
 			// or case SCH_TYPE:
@@ -530,7 +530,7 @@ uint8_t ConfigureCommonSetting(BlockNode* block_ptr, uint8_t key_idx, const char
 			//DebugLog("Switch on key_idx, matched case XXX_TYPE ");
 			block_ptr->block_type = BlockTypeStringArrayIndex(value_str);
 			break;
-		case SYS_DISPLAY_NAME:
+		case SYS_CONFIG_DISPLAY_NAME:
 			// or case IN_DISPLAY_NAME
 			// or case MON_DISPLAY_NAME:
 			// or case SCH_DISPLAY_NAME:
@@ -541,7 +541,7 @@ uint8_t ConfigureCommonSetting(BlockNode* block_ptr, uint8_t key_idx, const char
 			UpdateDisplayName(block_ptr, value_str);
 #endif
 			break;
-		case SYS_DESCRIPTION:
+		case SYS_CONFIG_DESCRIPTION:
 			// or case IN_DESCRIPTION
 			// or case MON_DESCRIPTION:
 			// or case SCH_DESCRIPTION:
@@ -561,15 +561,15 @@ uint8_t ConfigureCommonSetting(BlockNode* block_ptr, uint8_t key_idx, const char
 
 uint8_t ConfigureSYSSetting(BlockNode* block_ptr, uint8_t key_idx, const char* value_str) {
 	switch (key_idx) {
-		case SYS_LANGUAGE:
+		case SYS_CONFIG_LANGUAGE:
 			block_ptr->settings.sys.language = LanguageStringArrayIndex(value_str);
 			break;
-		case SYS_TEMPERATURE:
+		case SYS_CONFIG_TEMP_SCALE:
 			block_ptr->settings.sys.temp_scale = UnitStringArrayIndex(value_str);
 			return block_ptr->settings.sys.temp_scale;
 			// XXX testing threading of error results
 			break;
-		case SYS_WEEK_START:
+		case SYS_CONFIG_WEEK_START:
 			block_ptr->settings.sys.week_start = DayStringArrayIndex(value_str);
 			break;
 		default:
@@ -582,19 +582,19 @@ uint8_t ConfigureSYSSetting(BlockNode* block_ptr, uint8_t key_idx, const char* v
 
 uint8_t ConfigureINSetting(BlockNode* block_ptr, uint8_t key_idx, const char* value_str) {
 	switch (key_idx) {
-		case IN_INTERFACE:
+		case IN_CONFIG_INTERFACE:
 			block_ptr->settings.in.interface = InterfaceStringArrayIndex(value_str);
 			break;
-		case IN_IF_NUM:
+		case IN_CONFIG_IF_NUM:
 			block_ptr->settings.in.if_num = atoi(value_str);
 			break;
-		case IN_LOG_RATE: {
+		case IN_CONFIG_LOG_RATE: {
 			//tm time_tm;
 			//strptime(value_str, "%H:%M:%S", &time_tm);
 			block_ptr->settings.in.log_rate = StrToTV(value_str);
 			break;
 		}
-		case IN_DATA_UNITS: {
+		case IN_CONFIG_DATA_UNITS: {
 			block_ptr->settings.in.data_units = UnitStringArrayIndex(value_str);
 			if(block_ptr->settings.in.data_units == 0) {
 				DebugLog(SSS, E_ERROR, M_BAD_DATA_UNITS);
@@ -621,7 +621,7 @@ uint8_t ConfigureINSetting(BlockNode* block_ptr, uint8_t key_idx, const char* va
 			*/
 			break;
 		}
-		case IN_DATA_TYPE:
+		case IN_CONFIG_DATA_TYPE:
 			//XXX so what - either float or int presently - inferred from block type, consider dropping
 			break;
 		default:
@@ -634,19 +634,19 @@ uint8_t ConfigureINSetting(BlockNode* block_ptr, uint8_t key_idx, const char* va
 
 uint8_t ConfigureMONSetting(BlockNode* block_ptr, uint8_t key_idx, const char* value_str) {
 	switch (key_idx) {
-		case MON_INPUT1:
+		case MON_CONFIG_INPUT1:
 			block_ptr->settings.mon.input1 = GetBlockIDByLabel(value_str, true);
 			break;
-		case MON_INPUT2:
+		case MON_CONFIG_INPUT2:
 			block_ptr->settings.mon.input2 = GetBlockIDByLabel(value_str, true);
 			break;
-		case MON_INPUT3:
+		case MON_CONFIG_INPUT3:
 			block_ptr->settings.mon.input3 = GetBlockIDByLabel(value_str, true);
 			break;
-		case MON_INPUT4:
+		case MON_CONFIG_INPUT4:
 			block_ptr->settings.mon.input4 = GetBlockIDByLabel(value_str, true);
 			break;
-		case MON_ACT_VAL:
+		case MON_CONFIG_ACT_VAL:
 			// check first for IN_DIGITAL boolean values
 			if (strcmp_hal(value_str, F("HIGH")) == 0) {
 				block_ptr->settings.mon.act_val = 1;
@@ -660,7 +660,7 @@ uint8_t ConfigureMONSetting(BlockNode* block_ptr, uint8_t key_idx, const char* v
 				}
 			}
 			break;
-		case MON_DEACT_VAL:
+		case MON_CONFIG_DEACT_VAL:
 			// check first for IN_DIGITAL boolean values
 			if (strcmp(value_str, "HIGH") == 0) {
 				block_ptr->settings.mon.deact_val = 1;
@@ -684,24 +684,24 @@ uint8_t ConfigureMONSetting(BlockNode* block_ptr, uint8_t key_idx, const char* v
 
 uint8_t ConfigureSCHSetting(BlockNode* block_ptr, uint8_t key_idx, const char* value_str) {
 	switch (key_idx) {
-		case SCH_DAYS:
+		case SCH_CONFIG_DAYS:
 			if (DayStrToFlag(block_ptr->settings.sch.days, value_str) != 1) {
 				DebugLog(SSS, E_WARNING, M_DAY_FLAG_EMPTY);
 			}
 			break;
-		case SCH_TIME_START: {
+		case SCH_CONFIG_TIME_START: {
 			block_ptr->settings.sch.time_start = StrToTV(value_str);
 			break;
 		}
-		case SCH_TIME_END: {
+		case SCH_CONFIG_TIME_END: {
 			block_ptr->settings.sch.time_end = StrToTV(value_str);
 			break;
 		}
-		case SCH_TIME_DURATION: {
+		case SCH_CONFIG_TIME_DURATION: {
 			block_ptr->settings.sch.time_duration = StrToTV(value_str);
 			break;
 		}
-		case SCH_TIME_REPEAT: {
+		case SCH_CONFIG_TIME_REPEAT: {
 			block_ptr->settings.sch.time_repeat = StrToTV(value_str);
 			break;
 		}
@@ -716,16 +716,16 @@ uint8_t ConfigureSCHSetting(BlockNode* block_ptr, uint8_t key_idx, const char* v
 
 uint8_t ConfigureRLSetting(BlockNode* block_ptr, uint8_t key_idx, const char* value_str) {
 	switch (key_idx) {
-		case RL_PARAM_1:
+		case RL_CONFIG_PARAM1:
 			block_ptr->settings.rl.param1 = GetBlockIDByLabel(value_str, true);
 			break;
-		case RL_PARAM_2:
+		case RL_CONFIG_PARAM2:
 			block_ptr->settings.rl.param2 = GetBlockIDByLabel(value_str, true);
 			break;
-		case RL_PARAM_3:
+		case RL_CONFIG_PARAM3:
 			block_ptr->settings.rl.param3 = GetBlockIDByLabel(value_str, true);
 			break;
-		case RL_PARAM_NOT:
+		case RL_CONFIG_PARAM_NOT:
 			block_ptr->settings.rl.param_not = GetBlockIDByLabel(value_str, true);
 			break;
 		default:
@@ -739,13 +739,13 @@ uint8_t ConfigureRLSetting(BlockNode* block_ptr, uint8_t key_idx, const char* va
 
 uint8_t ConfigureCONSetting(BlockNode* block_ptr, uint8_t key_idx, const char* value_str) {
 	switch (key_idx) {
-		case CON_RULE:
+		case CON_CONFIG_RULE:
 			block_ptr->settings.con.rule = GetBlockIDByLabel(value_str, true);
 			break;
-		case CON_OUTPUT:
+		case CON_CONFIG_OUTPUT:
 			block_ptr->settings.con.output = GetBlockIDByLabel(value_str, true);
 			break;
-		case CON_ACT_CMD: {
+		case CON_CONFIG_ACT_CMD: {
 			block_ptr->settings.con.act_cmd = CommandStringArrayIndex(value_str);
 			if(block_ptr->settings.con.act_cmd == 0) {
 				DebugLog(SSS, E_ERROR, M_ACT_CMD_UNKNOWN);
@@ -774,7 +774,7 @@ uint8_t ConfigureCONSetting(BlockNode* block_ptr, uint8_t key_idx, const char* v
 			break;
 			*/
 		}
-		case CON_DEACT_CMD: {
+		case CON_CONFIG_DEACT_CMD: {
 			block_ptr->settings.con.deact_cmd = CommandStringArrayIndex(value_str);
 			if(block_ptr->settings.con.deact_cmd == 0) {
 				DebugLog(SSS, E_ERROR, M_DEACT_CMD_UNKNOWN);
@@ -806,10 +806,10 @@ uint8_t ConfigureCONSetting(BlockNode* block_ptr, uint8_t key_idx, const char* v
 
 uint8_t ConfigureOUTSetting(BlockNode* block_ptr, uint8_t key_idx, const char* value_str) {
 	switch (key_idx) {
-		case OUT_INTERFACE:
+		case OUT_CONFIG_INTERFACE:
 			block_ptr->settings.out.interface = InterfaceStringArrayIndex(value_str);
 			break;
-		case OUT_IF_NUM:
+		case OUT_CONFIG_IF_NUM:
 			block_ptr->settings.out.if_num = atoi(value_str);
 			break;
 		default:
@@ -852,7 +852,7 @@ uint8_t ConfigureBlock(uint8_t block_cat, const char *block_label, const char *k
 
 		key_idx = GetConfKeyIndex(block_cat, key_str);
 
-		if (key_idx <= SYS_DESCRIPTION) {
+		if (key_idx <= SYS_CONFIG_DESCRIPTION) {
 			return (ConfigureCommonSetting(block_ptr, key_idx, value_str));
 		}
 
@@ -972,7 +972,7 @@ void WriteTextBlock(BlockNode *b, SdFile *f, uint8_t reg_only) {
 
 	// set up base string for all "CONFIG <block_cat> <block_label> "
 	strcpy_hal(base_str, F("CONFIG "));
-	strcat_hal(base_str, block_cat_defs[b->block_cat].conf_section_key_base);
+	strcat_hal(base_str, block_cat_names[b->block_cat].text);
 	strcat_hal(base_str, F(" "));
 	strcat(base_str, b->block_label);
 	strcat_hal(base_str, F(" "));
@@ -1433,15 +1433,12 @@ void ConfigParse(char* buf) {
 	// Assumes: that any quoted string is at the end of the line
 	// Any number of tokens may precede the quoted string.
 
-	//char buf_preserve[INI_FILE_MAX_LINE_LENGTH];
 	char* wl[10];  			//XXX randomly selected max number of words
 	for (uint8_t i = 0 ; i < 10; i++) {
 		wl[i] = NULL;
 	}
     uint8_t word_count = 0;
 
-	// Preserve the raw buffer for future use
-    //strcpy(buf_preserve, buf);
 
     // Check if the buffer contains a double quote ("...") delimited string
     char *pre_quotes;
@@ -1635,10 +1632,12 @@ void InitConfigLoad(uint8_t how) {
 	#endif // OLD_SD
 
 	#ifdef NEW_SD
-	size_t lin_len = MAX_LABEL_LENGTH + 19 + MAX_DESCR_LENGTH;
+//CONFIG schedule SCH_WATER_BOT type SCH_START_DURATION_REPEAT
+	//size_t lin_len = MAX_LABEL_LENGTH + 19 + MAX_DESCR_LENGTH;
+	//size_t lin_len = 120
 	char *line_ptr;
 	char ch;
-	char line[lin_len];
+	char line[120];
 	SdFile f;
 	//DebugLog("GOOD");
 
@@ -1727,6 +1726,11 @@ void InitConfigLoad(uint8_t how) {
 	EventMsg(SSS, E_INFO, M_CONFIG_LOAD_BY_DIRECT_PARSE);
 }
 
+/*
+2019-06-14 INI files depreciated and block_cat_defs denormalised into config keys
+To retain this code it will need some re-writing to use the config keys glitch
+generated structures.
+
 void InitConfigLoadINI(void) {
 #ifdef FF_SIMULATOR
 	// Create or update the block list and each block settings from stanzas and key / value
@@ -1763,7 +1767,7 @@ void InitConfigLoadINI(void) {
 	//Read and process the system block for
 	//global settings - language and scale etc
 	block_cat = (FF_SYSTEM);
-	last_key = LAST_SYS_KEY_TYPE;
+	last_key = LAST_SYS_CONFIG;
 
 	//DebugLog(SSS, E_INFO, M_RP_CONFIG);
 	//DebugLog(SSS, E_VERBOSE, M_PROC_SYS_BLK);
@@ -1806,7 +1810,6 @@ void InitConfigLoadINI(void) {
 	uint8_t last_found = 0;					//set flag on first read error
 											//TODO this can fail if lists are not numbered correctly
 	DebugLog(SSS, E_VERBOSE, M_CONF_REG_BLKS);
-
 
 	for (; block_cat < LAST_BLOCK_CAT; block_cat++) { //iterate through each block category
 		last_found = 0;
@@ -1890,22 +1893,22 @@ void InitConfigLoadINI(void) {
 
 				switch (block_cat) {
 				case FF_INPUT:
-					last_key = LAST_IN_KEY_TYPE;
+					last_key = LAST_IN_CONFIG;
 					break;
 				case FF_MONITOR:
-					last_key = LAST_MON_KEY_TYPE;
+					last_key = LAST_MON_CONFIG;
 					break;
 				case FF_SCHEDULE:
-					last_key = LAST_SCH_KEY_TYPE;
+					last_key = LAST_SCH_CONFIG;
 					break;
 				case FF_RULE:
-					last_key = LAST_RL_KEY_TYPE;
+					last_key = LAST_RL_CONFIG;
 					break;
 				case FF_CONTROLLER:
-					last_key = LAST_CON_KEY_TYPE;
+					last_key = LAST_CON_CONFIG;
 					break;
 				case FF_OUTPUT:
-					last_key = LAST_OUT_KEY_TYPE;
+					last_key = LAST_OUT_CONFIG;
 					break;
 
 				default:
@@ -1968,6 +1971,6 @@ void InitConfigLoadINI(void) {
 #endif
 }
 
-
+*/
 
 

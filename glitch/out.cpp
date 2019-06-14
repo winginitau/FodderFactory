@@ -53,54 +53,45 @@ uint16_t CallFunction(uint8_t func_xlat, ParamUnion params[]) {
 			ConfigLoad();
 			break;
 		case 12:
-			ConfigLoadBinary();
-			break;
-		case 13:
-			ConfigLoadINI();
-			break;
-		case 14:
 			ConfigSave();
 			break;
-		case 15:
-			ConfigSaveBinary();
-			break;
-		case 16:
+		case 13:
 			ConfigBlockSystem(params[0].param_char_star, params[1].param_uint16_t, params[2].param_char_star);
 			break;
-		case 17:
+		case 14:
 			ConfigBlockInput(params[0].param_char_star, params[1].param_uint16_t, params[2].param_char_star);
 			break;
-		case 18:
+		case 15:
 			ConfigBlockMonitor(params[0].param_char_star, params[1].param_uint16_t, params[2].param_char_star);
 			break;
-		case 19:
+		case 16:
 			ConfigBlockSchedule(params[0].param_char_star, params[1].param_uint16_t, params[2].param_char_star);
 			break;
-		case 20:
+		case 17:
 			ConfigBlockRule(params[0].param_char_star, params[1].param_uint16_t, params[2].param_char_star);
 			break;
-		case 21:
+		case 18:
 			ConfigBlockController(params[0].param_char_star, params[1].param_uint16_t, params[2].param_char_star);
 			break;
-		case 22:
+		case 19:
 			ConfigBlockOutput(params[0].param_char_star, params[1].param_uint16_t, params[2].param_char_star);
 			break;
-		case 23:
+		case 20:
 			InitSetupAll();
 			break;
-		case 24:
+		case 21:
 			InitValidateAll();
 			break;
-		case 25:
+		case 22:
 			InitDisableAll();
 			break;
-		case 26:
+		case 23:
 			SystemReboot();
 			break;
-		case 27:
+		case 24:
 			BlockIDCmdOn(params[0].param_int16_t);
 			break;
-		case 28:
+		case 25:
 			BlockIDCmdOff(params[0].param_int16_t);
 			break;
 		default:

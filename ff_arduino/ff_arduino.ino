@@ -155,7 +155,12 @@ int main(void) {
 		// Read the binary configuration file previously created with
 		// ff_config. Note, this build and the ff_config build must use exactly
 		// the same pre-processor and compiler directives to ensure binary portability
-		InitConfigLoadBinary();
+		//InitConfigLoadBinary();
+
+		//Load config from parsable text file replaces loading from binary.
+		DebugLog("Calling InitConfigLoad");
+		InitConfigLoad(1);
+
 	#endif
 	#endif
 	#endif

@@ -31,7 +31,7 @@ uint8_t g_map_line_pos;
 uint8_t g_map_id_current;		// currently matched node
 uint8_t g_map_id_walker;		// to walk through the asta array nodes by id
 
-char g_map_last_target_str[MAX_AST_IDENTIFIER_SIZE];
+char g_map_last_target_str[MAX_LABEL_LENGTH];
 
 //extern ASTA g_temp_asta;
 
