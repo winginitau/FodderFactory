@@ -108,7 +108,7 @@ void Setup(BlockNode *b) {
 		UpdateUI();
 		#endif //UI_ATTACHED
 
-		#ifdef VE_DIRECT
+		#if defined VE_DIRECT && defined FF_ARDUINO
 		// XXX VE Hack
 		if (HALVEDirectInit()) {
 			VE_last_logged = TimeNow();
@@ -269,7 +269,7 @@ void Operate(BlockNode *b) {
 		UpdateUI();
 		#endif
 
-		#ifdef VE_DIRECT
+		#if defined VE_DIRECT && defined FF_ARDUINO
 		// XXX VE Hack
 			if ((VE_status > STATUS_ERROR) && (VE_status < STATUS_DISABLED)) {
 				time_t VE_now = TimeNow();

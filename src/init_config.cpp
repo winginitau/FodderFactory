@@ -1383,7 +1383,8 @@ void InitConfigSaveBinary(void) {
 	#endif
 }
 
-
+/*
+2019-06-15 - INI Config Depreciated
 #ifdef USE_PROGMEM
 char* GetINIError(uint8_t e, char* msg_buf) {
 	//SimpleStringArray temp;
@@ -1400,6 +1401,8 @@ char* GetINIError(uint8_t e, char* msg_buf) {
 	return msg_buf;
 }
 #endif
+*/
+
 
 #ifdef FF_SIMULATOR
 void InitConfFile(IniFile* cf) {

@@ -85,6 +85,7 @@ typedef union {
 %enum-array-member-label text
 %enum-array-type SimpleStringArray
 
+%#------------------------------------ BLOCK CATEGORIES--------------------
 %enum-identifier BLOCK_CATEGORY
 %enum-array-instance block_cat_names
 %enum-start
@@ -100,6 +101,34 @@ FF_OUTPUT           "OUTPUT"
 LAST_BLOCK_CAT
 %enum-end
 
+%#------------------------------------ BLOCK TYPES--------------------
+%enum-identifier BLOCK_TYPES
+%enum-array-instance block_type_strings
+%enum-start
+BT_ERROR                    "BT_ERROR"
+SYS_SYSTEM                  "SYS_SYSTEM"
+IN_ONEWIRE                  "IN_ONEWIRE"
+IN_DIGITAL                  "IN_DIGITAL"
+MON_CONDITION_LOW           "MON_CONDITION_LOW"
+MON_CONDITION_HIGH          "MON_CONDITION_HIGH"
+MON_AVERAGE_CONDITION_LOW   "MON_AVERAGE_CONDITION_LOW"
+MON_AVERAGE_CONDITION_HIGH  "MON_AVERAGE_CONDITION_HIGH"
+MON_TRIGGER                 "MON_TRIGGER"
+SCH_START_STOP              "SCH_START_STOP"
+SCH_ONE_SHOT                "SCH_ONE_SHOT"
+SCH_START_DURATION_REPEAT   "SCH_START_DURATION_REPEAT"
+RL_LOGIC_ANDNOT             "RL_LOGIC_ANDNOT"
+RL_LOGIC_SINGLE             "RL_LOGIC_SINGLE"
+RL_LOGIC_AND                "RL_LOGIC_AND"
+RL_LOGIC_SINGLENOT          "RL_LOGIC_SINGLENOT"
+CON_ONOFF                   "CON_ONOFF"
+CON_SYSTEM                  "CON_SYSTEM"
+OUT_DIGITAL                 "OUT_DIGITAL"
+OUT_SYSTEM_CALL             "OUT_SYSTEM_CALL"
+LAST_BLOCK_TYPE
+%enum-end
+
+%#------------------------------------ COMMAND STRINGS --------------------
 %enum-identifier COMMAND_STRING
 %enum-array-instance command_strings
 %enum-start
@@ -110,8 +139,70 @@ CMD_RESET_MIN_MAX   "CMD_RESET_MIN_MAX"
 LAST_COMMAND
 %enum-end
 
-%# -----Config Keys-------------------------------------------------
+%#------------------------------------ UNITS --------------------
+%enum-identifier UNIT_STRINGS
+%enum-array-instance unit_strings
+%enum-start
+UNIT_ERROR      "UnitTypeError"
+CELSIUS         "Celsius",
+FAHRENHEIT      "Fahrenheit",
+KELVIN          "Kelvin",
+REL_HUM         "Relative Humidity",
+CUBIC_M         "Cubic Metres",
+LITRES          "litres",
+PPM             "Parts per Million",
+ONOFF           "ONOFF",
+RPM             "Revolutions per Minute"
+LAST_UNIT
+%enum-end
 
+%#------------------------------------ DAYS of WEEK --------------------
+%enum-identifier DAY_STRINGS
+%enum-array-instance day_strings
+%enum-start
+SUN    "SUN"
+MON    "MON"
+TUE    "TUE"
+WED    "WED"
+THU    "THU"
+FRI    "FRI"
+SAT    "SAT"
+LAST_DAY
+%enum-end
+
+%#------------------------------------ INTERFACES --------------------
+%enum-identifier INTERFACE_STRINGS
+%enum-array-instance interface_strings
+%enum-start
+IF_ERROR            "IF_ERROR"
+IF_PWM_IN           "PWM_IN"
+IF_PWM_OUT          "PWM_OUT"
+IF_PPM_IN           "PPM_IN"
+IF_PPM_OUT          "PPM_OUT"
+IF_ONEWIRE          "ONEWIRE"
+IF_DIG_PIN_IN       "DIG_PIN_IN"
+IF_DIG_PIN_OUT      "DIG_PIN_OUT"
+IF_SYSTEM_FUNCTION  "SYSTEM_FUNCTION"
+LAST_INTERFACE
+%enum-end
+
+%#------------------------------------ BLOCK STATUS --------------------
+%enum-identifier STATUS_STRINGS
+%enum-array-instance status_strings
+%enum-start
+STATUS_ERROR                    "STATUS_ERROR"
+STATUS_ENABLED                  "STATUS_ENABLED"
+STATUS_ENABLED_INIT             "STATUS_ENABLED_INIT"
+STATUS_ENABLED_VALID_DATA       "STATUS_ENABLED_VALID_DATA"
+STATUS_ENABLED_INVALID_DATA     "STATUS_ENABLED_INVALID_DATA"
+STATUS_DISABLED                 "STATUS_DISABLED"
+STATUS_DISABLED_INIT            "STATUS_DISABLED_INIT"
+STATUS_DISABLED_ERROR           "STATUS_DISABLED_ERROR"
+STATUS_DISABLED_ADMIN           "STATUS_DISABLED_ADMIN"
+LAST_STATUS
+%enum-end
+
+%# -------------------------------------CONFIG KEYS---------------------
 %enum-identifier SYS_CONFIG
 %enum-array-instance sys_config_keys
 %enum-start

@@ -9,13 +9,13 @@
 #ifndef OUT_H_
 #define OUT_H_
 
-#define MAX_AST_IDENTIFIER_SIZE 18
-#define MAX_AST_LABEL_SIZE 16
+#define MAX_AST_IDENTIFIER_SIZE 28
+#define MAX_AST_LABEL_SIZE 19
 #define MAX_AST_ACTION_SIZE 24
 #define AST_NODE_COUNT 60
 #define MAX_PARAM_COUNT 3
 
-#define XLAT_IDENT_MAP_COUNT 9
+#define XLAT_IDENT_MAP_COUNT 14
 #define XLAT_LOOKUP_MAP_COUNT 1
 #define XLAT_FUNC_MAP_COUNT 26
 
@@ -107,6 +107,57 @@ static const SimpleStringArray block_cat_names [LAST_BLOCK_CAT] = {
 };
 
 enum {
+	BT_ERROR = 0,
+	SYS_SYSTEM,
+	IN_ONEWIRE,
+	IN_DIGITAL,
+	MON_CONDITION_LOW,
+	MON_CONDITION_HIGH,
+	MON_AVERAGE_CONDITION_LOW,
+	MON_AVERAGE_CONDITION_HIGH,
+	MON_TRIGGER,
+	SCH_START_STOP,
+	SCH_ONE_SHOT,
+	SCH_START_DURATION_REPEAT,
+	RL_LOGIC_ANDNOT,
+	RL_LOGIC_SINGLE,
+	RL_LOGIC_AND,
+	RL_LOGIC_SINGLENOT,
+	CON_ONOFF,
+	CON_SYSTEM,
+	OUT_DIGITAL,
+	OUT_SYSTEM_CALL,
+	LAST_BLOCK_TYPE,
+};
+
+#ifdef USE_PROGMEM
+static const SimpleStringArray block_type_strings [LAST_BLOCK_TYPE] PROGMEM = {
+#else
+static const SimpleStringArray block_type_strings [LAST_BLOCK_TYPE] = {
+#endif
+	"BT_ERROR",
+	"SYS_SYSTEM",
+	"IN_ONEWIRE",
+	"IN_DIGITAL",
+	"MON_CONDITION_LOW",
+	"MON_CONDITION_HIGH",
+	"MON_AVERAGE_CONDITION_LOW",
+	"MON_AVERAGE_CONDITION_HIGH",
+	"MON_TRIGGER",
+	"SCH_START_STOP",
+	"SCH_ONE_SHOT",
+	"SCH_START_DURATION_REPEAT",
+	"RL_LOGIC_ANDNOT",
+	"RL_LOGIC_SINGLE",
+	"RL_LOGIC_AND",
+	"RL_LOGIC_SINGLENOT",
+	"CON_ONOFF",
+	"CON_SYSTEM",
+	"OUT_DIGITAL",
+	"OUT_SYSTEM_CALL",
+};
+
+enum {
 	CMD_ERROR = 0,
 	CMD_OUTPUT_OFF,
 	CMD_OUTPUT_ON,
@@ -123,6 +174,120 @@ static const SimpleStringArray command_strings [LAST_COMMAND] = {
 	"CMD_OUTPUT_OFF",
 	"CMD_OUTPUT_ON",
 	"CMD_RESET_MIN_MAX",
+};
+
+enum {
+	UNIT_ERROR = 0,
+	CELSIUS,
+	FAHRENHEIT,
+	KELVIN,
+	REL_HUM,
+	CUBIC_M,
+	LITRES,
+	PPM,
+	ONOFF,
+	RPM,
+	LAST_UNIT,
+};
+
+#ifdef USE_PROGMEM
+static const SimpleStringArray unit_strings [LAST_UNIT] PROGMEM = {
+#else
+static const SimpleStringArray unit_strings [LAST_UNIT] = {
+#endif
+	"UnitTypeError",
+	"Celsius",
+	"Fahrenheit",
+	"Kelvin",
+	"Relative Humidity",
+	"Cubic Metres",
+	"litres",
+	"Parts per Million",
+	"ONOFF",
+	"Revolutions per Minute",
+};
+
+enum {
+	SUN = 0,
+	MON,
+	TUE,
+	WED,
+	THU,
+	FRI,
+	SAT,
+	LAST_DAY,
+};
+
+#ifdef USE_PROGMEM
+static const SimpleStringArray day_strings [LAST_DAY] PROGMEM = {
+#else
+static const SimpleStringArray day_strings [LAST_DAY] = {
+#endif
+	"SUN",
+	"MON",
+	"TUE",
+	"WED",
+	"THU",
+	"FRI",
+	"SAT",
+};
+
+enum {
+	IF_ERROR = 0,
+	IF_PWM_IN,
+	IF_PWM_OUT,
+	IF_PPM_IN,
+	IF_PPM_OUT,
+	IF_ONEWIRE,
+	IF_DIG_PIN_IN,
+	IF_DIG_PIN_OUT,
+	IF_SYSTEM_FUNCTION,
+	LAST_INTERFACE,
+};
+
+#ifdef USE_PROGMEM
+static const SimpleStringArray interface_strings [LAST_INTERFACE] PROGMEM = {
+#else
+static const SimpleStringArray interface_strings [LAST_INTERFACE] = {
+#endif
+	"IF_ERROR",
+	"PWM_IN",
+	"PWM_OUT",
+	"PPM_IN",
+	"PPM_OUT",
+	"ONEWIRE",
+	"DIG_PIN_IN",
+	"DIG_PIN_OUT",
+	"SYSTEM_FUNCTION",
+};
+
+enum {
+	STATUS_ERROR = 0,
+	STATUS_ENABLED,
+	STATUS_ENABLED_INIT,
+	STATUS_ENABLED_VALID_DATA,
+	STATUS_ENABLED_INVALID_DATA,
+	STATUS_DISABLED,
+	STATUS_DISABLED_INIT,
+	STATUS_DISABLED_ERROR,
+	STATUS_DISABLED_ADMIN,
+	LAST_STATUS,
+};
+
+#ifdef USE_PROGMEM
+static const SimpleStringArray status_strings [LAST_STATUS] PROGMEM = {
+#else
+static const SimpleStringArray status_strings [LAST_STATUS] = {
+#endif
+	"STATUS_ERROR",
+	"STATUS_ENABLED",
+	"STATUS_ENABLED_INIT",
+	"STATUS_ENABLED_VALID_DATA",
+	"STATUS_ENABLED_INVALID_DATA",
+	"STATUS_DISABLED",
+	"STATUS_DISABLED_INIT",
+	"STATUS_DISABLED_ERROR",
+	"STATUS_DISABLED_ADMIN",
 };
 
 enum {
@@ -412,19 +577,24 @@ static const ASTA asta [60] = {
 };
 
 #ifdef USE_PROGMEM
-static const XLATMap ident_map [9] PROGMEM = {
+static const XLATMap ident_map [14] PROGMEM = {
 #else
-static const XLATMap ident_map [9] = {
+static const XLATMap ident_map [14] = {
 #endif
 	"block_cat_names", 0,
-	"command_strings", 1,
-	"sys_config_keys", 2,
-	"in_config_keys", 3,
-	"mon_config_keys", 4,
-	"sch_config_keys", 5,
-	"rl_config_keys", 6,
-	"con_config_keys", 7,
-	"out_config_keys", 8,
+	"block_type_strings", 1,
+	"command_strings", 2,
+	"unit_strings", 3,
+	"day_strings", 4,
+	"interface_strings", 5,
+	"status_strings", 6,
+	"sys_config_keys", 7,
+	"in_config_keys", 8,
+	"mon_config_keys", 9,
+	"sch_config_keys", 10,
+	"rl_config_keys", 11,
+	"con_config_keys", 12,
+	"out_config_keys", 13,
 };
 
 #ifdef USE_PROGMEM

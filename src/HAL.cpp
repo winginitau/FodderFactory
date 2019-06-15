@@ -103,7 +103,7 @@ ITCH itch;
  Functions
 ************************************************/
 
-#ifdef VE_DIRECT
+#if defined VE_DIRECT && defined FF_ARDUINO
 uint8_t HALVEDirectInit(void) {
 	// XXX hack for energy monitoring
 	Serial3.begin(19200);

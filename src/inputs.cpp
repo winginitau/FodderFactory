@@ -32,7 +32,6 @@
 ************************************************/
 
 
-
 /************************************************
   Input Processing Functions
 ************************************************/
@@ -81,7 +80,6 @@ void InputSetup(BlockNode *b) {
 		default:
 			break;
 	}
-
 }
 
 void InputOperate(BlockNode *b) {

@@ -7,26 +7,30 @@
 
  Explanatory notes:
  - General approach is to concentrate all strings
-   here as static consts so they will be loaded into
-   ROM on embedded systems with Von Neuemann architctures.
- - For Harvard architectures (AtMel AVR Arduino), the
-   PROGMEM modifier is used (if USE_PROGMEM is defined)
-   so that strings are loaded into the .text section
-   which is the same memory used for program memory.
+   here as static consts so they will be pre initialised
+   on embedded systems with Von Neuemann architctures.
+ - For Harvard architectures (AtMel AVR / Arduino), the
+   PROGMEM modifier is used (if #USE_PROGMEM is defined)
+   to load into the .text / program section of flash memory .
  - All strings and lists are accessed via associated
-   enums thereby leaving the run-time with memory and
+   enums thereby leaving the run-time with memory efficient and
    CPU efficient types for performance, and referring to
-   the string data only as needed for use (from ROM or
-   PROGMEM as the case may be).
+   the string data only as needed for use.
+ - String arrays in PROGMEM space have overloaded getter
+   and index functions to address and return them from PROGMEM.
+   If #USE_PROGMEM is not defined these functions simply
+   return the string / index.
  - enums are defined with:
     - Zero (0) element being a reserved error to
-      catch via debug / error reporting any iterations
+      catch via debug and error reporting any iterations
       or evaluations that return 0 unintentionally.
     - The last element is always defined as LAST_<type>
       as a fall through catch in loops and iterations
       and allowing nicely written loops eg:
       while (iterator < LAST_TYPE) {iterator++;};
-
+- 2019-06-15 all 1D SimpleStringArray's have been moved
+  to the glitch grammar definition file to provide a single
+  source for configuration, maintenance and feature additions
 
  ************************************************/
 #ifndef SRC_FF_STRINGS_H_
@@ -61,8 +65,8 @@
 /**************************************************************
  * Languages Enum - Must Precede typedefs that use it
  **************************************************************/
-// We don't have an "error language" to start the enum here
-// as it would bloat every multi language StringArrayType
+// An "error language", enum 0 not used here
+// It would bloat every multi language StringArrayType
 // with an extra useless dimension.
 
 typedef enum LANG_TYPE {
@@ -72,27 +76,16 @@ typedef enum LANG_TYPE {
 } LanguageType;
 
 /**************************************************************
- * String array typedefs
+ * Multi Language String array typedef
  **************************************************************/
-
-#ifdef USE_PROGMEM
 typedef struct STRING_ARRAY_TYPE {
 	// Longest length of this string in all languages
-	int max_len;
-	// Array of pointers to each language-specific string of type
+	// Not used - hang over from earlier iteration
+	// TODO - fix
+	uint8_t max_len;
+	// Array of strings to each language-specific string of type
 	char text[LAST_LANGUAGE][MAX_MESSAGE_STRING_LENGTH];
 } StringArray;
-
-#else
-typedef struct STRING_ARRAY_TYPE {
-	// Longest length of this string in all languages
-	int max_len;
-	// Array of pointers to each language-specific string of type
-	//const char* const text[LAST_LANGUAGE];
-	char text[LAST_LANGUAGE][MAX_MESSAGE_STRING_LENGTH];
-} StringArray;
-#endif
-
 
 /**************************************************************
  * Language Strings - Must Follow the typedef that defines it
@@ -106,68 +99,9 @@ static const SimpleStringArray language_strings[LAST_LANGUAGE] = {
 	"Deutsch",
 };
 
-
 /**************************************************************
- * Block Types
+ * Message Types
  **************************************************************/
-
-enum {
-	BT_ERROR = 0,
-	SYS_SYSTEM,
-	IN_ONEWIRE,
-	IN_DIGITAL,
-	MON_CONDITION_LOW,
-	MON_CONDITION_HIGH,
-	MON_AVERAGE_CONDITION_LOW,
-	MON_AVERAGE_CONDITION_HIGH,
-	MON_TRIGGER,
-	SCH_START_STOP,
-	SCH_ONE_SHOT,
-	SCH_START_DURATION_REPEAT,
-	RL_LOGIC_ANDNOT,
-	RL_LOGIC_SINGLE,
-	RL_LOGIC_AND,
-	RL_LOGIC_SINGLENOT,
-	CON_ONOFF,
-	CON_SYSTEM,
-	OUT_DIGITAL,
-	OUT_SYSTEM_CALL,
-	LAST_BLOCK_TYPE
-}; // BlockTypes;
-
-
-#ifdef USE_PROGMEM
-static const SimpleStringArray block_type_strings[LAST_BLOCK_TYPE] PROGMEM = {
-#else
-static const SimpleStringArray block_type_strings[LAST_BLOCK_TYPE] = {
-#endif
-	"BT_ERROR",
-	"SYS_SYSTEM",
-	"IN_ONEWIRE",
-	"IN_DIGITAL",
-	"MON_CONDITION_LOW",
-	"MON_CONDITION_HIGH",
-	"MON_AVERAGE_CONDITION_LOW",
-	"MON_AVERAGE_CONDITION_HIGH",
-	"MON_TRIGGER",
-	"SCH_START_STOP",
-	"SCH_ONE_SHOT",
-	"SCH_START_DURATION_REPEAT",
-	"RL_LOGIC_ANDNOT",
-	"RL_LOGIC_SINGLE",
-	"RL_LOGIC_AND",
-	"RL_LOGIC_SINGLENOT",
-	"CON_ONOFF",
-	"CON_SYSTEM",
-	"OUT_DIGITAL",
-	"OUT_SYSTEM_CALL",
-};
-
-
-/**************************************************************
- * Event / Message / Debug Types
- **************************************************************/
-
 typedef enum {
 	E_ZERO_ERROR = 0,
 	E_DEBUG_MSG,
@@ -400,192 +334,9 @@ static const StringArray message_strings[LAST_MESSAGE] = {
 	14, { "HACK: RL_CIRC_IF_TOP_HOT_BOT_COLD Changed Type to RL_LOGIC_AND",				"M90" },
 	14, { "HACK: SCH_WATER_TOP_COLD Duration Hack Applied",								"M91" },
 	14, { "HACK: SCH_WATER_BOT_COLD Duration Hack Applied",								"M92" },
-
-};
-
-/*
-// INI Error enum defined in IniFile Class per following
-enum {
-	errorNoError = 0,
-	errorFileNotFound,
-	errorFileNotOpen,
-	errorBufferTooSmall,
-	errorSeekError,
-	errorSectionNotFound,
-	errorKeyNotFound,
-	errorEndOfFile,
-	errorUnknownError,
-};
-*/
-
-#ifdef USE_PROGMEM
-static const SimpleStringArray ini_error_strings[INI_ERROR_TYPES] PROGMEM = {
-#else
-static const SimpleStringArray ini_error_strings[INI_ERROR_TYPES] = {
-#endif
-	"No Error",
-	"Config file not found",
-	"Config File Not Open",
-	"INI Line Buffer Too Small",
-	"Config File Seek Error",
-	"Config Section Not Found",
-	"Config Key Not Found",
-	"Reached end of Config File Unexpectedly",
-	"Config Unknown Error",
 };
 
 
-/**************************************************************
- * Units, Scales & Interfaces
- **************************************************************/
-
-typedef enum {
-	UNIT_ERROR,
-	CELSIUS,
-	FAHRENHEIT,
-	KELVIN,
-	REL_HUM,
-	CUBIC_M,
-	LITRES,
-	PPM,
-	ONOFF,
-	RPM,
-	LAST_UNIT
-} UnitsEnum;
-
-#ifdef USE_PROGMEM
-static const SimpleStringArray unit_strings[LAST_UNIT] PROGMEM = {
-#else
-static const SimpleStringArray unit_strings[LAST_UNIT] = {
-#endif
-	"UnitTypeError",
-	"Celsius",
-	"Fahrenheit",
-	"Kelvin",
-	"Relative Humidity",
-	"Cubic Metres",
-	"litres",
-	"Parts per Million",
-	"ONOFF",
-	"Revolutions per Minute"
-};
-
-enum {				// TODO: Code presently assumes SUN = 0
-	SUN = 0,
-	MON,
-	TUE,
-	WED,
-	THU,
-	FRI,
-	SAT,
-	LAST_DAY
-};
-
-#ifdef USE_PROGMEM
-static const SimpleStringArray day_strings[LAST_DAY] PROGMEM = {
-#else
-static const SimpleStringArray day_strings[LAST_DAY] = {
-#endif
-	"SUN",
-	"MON",
-	"TUE",
-	"WED",
-	"THU",
-	"FRI",
-	"SAT",
-};
-
-
-#if not defined USE_ITCH && not defined ITCH_HEADERS_ONLY
-
-enum OUTPUT_COMMANDS {
-	CMD_ERROR = 0,
-	CMD_OUTPUT_OFF,
-	CMD_OUTPUT_ON,
-	CMD_RESET_MIN_MAX,
-	LAST_COMMAND
-};
-
-#ifdef USE_PROGMEM
-static const SimpleStringArray command_strings[LAST_COMMAND] PROGMEM = {
-#else
-static const SimpleStringArray command_strings[LAST_COMMAND] = {
-#endif
-	"CMD_ERROR",
-	"CMD_OUTPUT_OFF",
-	"CMD_OUTPUT_ON",
-	"CMD_RESET_MIN_MAX",
-};
-
-#endif //ifndef USE_ITCH
-
-enum {						// Interface Types
-	IF_ERROR = 0,
-	IF_PWM_IN,
-	IF_PWM_OUT,
-	IF_PPM_IN,
-	IF_PPM_OUT,
-	IF_ONEWIRE,
-	IF_DIG_PIN_IN,
-	IF_DIG_PIN_OUT,
-	IF_SYSTEM_FUNCTION,
-	LAST_INTERFACE
-};
-
-#ifdef USE_PROGMEM
-static const SimpleStringArray interface_strings[LAST_INTERFACE] PROGMEM = {
-#else
-static const SimpleStringArray interface_strings[LAST_INTERFACE] = {
-#endif
-	"IF_ERROR",
-	"PWM_IN",
-	"PWM_OUT",
-	"PPM_IN",
-	"PPM_OUT",
-	"ONEWIRE",
-	"DIG_PIN_IN",
-	"DIG_PIN_OUT",
-	"SYSTEM_FUNCTION",
-};
-
-enum {						// Block states
-	STATUS_ERROR = 0,
-	STATUS_ENABLED,
-	STATUS_ENABLED_INIT,
-	STATUS_ENABLED_VALID_DATA,
-	STATUS_ENABLED_INVALID_DATA,
-	STATUS_DISABLED,
-	STATUS_DISABLED_INIT,
-	STATUS_DISABLED_ERROR,
-	STATUS_DISABLED_ADMIN,
-	LAST_STATUS,
-};
-
-#ifdef USE_PROGMEM
-static const SimpleStringArray status_strings[LAST_STATUS] PROGMEM = {
-#else
-static const SimpleStringArray status_strings[LAST_STATUS] = {
-#endif
-	"STATUS_ERROR",
-	"STATUS_ENABLED",
-	"STATUS_ENABLED_INIT",
-	"STATUS_ENABLED_VALID_DATA",
-	"STATUS_ENABLED_INVALID_DATA",
-	"STATUS_DISABLED",
-	"STATUS_DISABLED_INIT",
-	"STATUS_DISABLED_ERROR",
-	"STATUS_DISABLED_ADMIN",
-
-};
-
-#ifndef FF_ARDUINO
-
-enum {
-//	LOW = 0,
-//	HIGH
-};
-
-#endif
 
 
 /**************************************************************
@@ -763,6 +514,86 @@ static const BlockCatArray block_cat_defs[LAST_BLOCK_CAT] = {
 	},
 };
 
+
+/**************************************************************
+ * Block Types
+ **************************************************************/
+
+
+enum {
+	BT_ERROR = 0,
+	SYS_SYSTEM,
+	IN_ONEWIRE,
+	IN_DIGITAL,
+	MON_CONDITION_LOW,
+	MON_CONDITION_HIGH,
+	MON_AVERAGE_CONDITION_LOW,
+	MON_AVERAGE_CONDITION_HIGH,
+	MON_TRIGGER,
+	SCH_START_STOP,
+	SCH_ONE_SHOT,
+	SCH_START_DURATION_REPEAT,
+	RL_LOGIC_ANDNOT,
+	RL_LOGIC_SINGLE,
+	RL_LOGIC_AND,
+	RL_LOGIC_SINGLENOT,
+	CON_ONOFF,
+	CON_SYSTEM,
+	OUT_DIGITAL,
+	OUT_SYSTEM_CALL,
+	LAST_BLOCK_TYPE
+}; // BlockTypes;
+
+
+
+#ifdef USE_PROGMEM
+static const SimpleStringArray block_type_strings[LAST_BLOCK_TYPE] PROGMEM = {
+#else
+static const SimpleStringArray block_type_strings[LAST_BLOCK_TYPE] = {
+#endif
+	"BT_ERROR",
+	"SYS_SYSTEM",
+	"IN_ONEWIRE",
+	"IN_DIGITAL",
+	"MON_CONDITION_LOW",
+	"MON_CONDITION_HIGH",
+	"MON_AVERAGE_CONDITION_LOW",
+	"MON_AVERAGE_CONDITION_HIGH",
+	"MON_TRIGGER",
+	"SCH_START_STOP",
+	"SCH_ONE_SHOT",
+	"SCH_START_DURATION_REPEAT",
+	"RL_LOGIC_ANDNOT",
+	"RL_LOGIC_SINGLE",
+	"RL_LOGIC_AND",
+	"RL_LOGIC_SINGLENOT",
+	"CON_ONOFF",
+	"CON_SYSTEM",
+	"OUT_DIGITAL",
+	"OUT_SYSTEM_CALL",
+};
+
+
+enum OUTPUT_COMMANDS {
+	CMD_ERROR = 0,
+	CMD_OUTPUT_OFF,
+	CMD_OUTPUT_ON,
+	CMD_RESET_MIN_MAX,
+	LAST_COMMAND
+};
+
+#ifdef USE_PROGMEM
+static const SimpleStringArray command_strings[LAST_COMMAND] PROGMEM = {
+#else
+static const SimpleStringArray command_strings[LAST_COMMAND] = {
+#endif
+	"CMD_ERROR",
+	"CMD_OUTPUT_OFF",
+	"CMD_OUTPUT_ON",
+	"CMD_RESET_MIN_MAX",
+};
+
+
 /**************************************************************
  * Block Category Definitions
  **************************************************************/
@@ -865,6 +696,158 @@ enum {
 	OUT_IF_NUM,
 	LAST_OUT_KEY_TYPE
 };
+
+
+/*
+// INI Error enum defined in IniFile Class per following
+enum {
+	errorNoError = 0,
+	errorFileNotFound,
+	errorFileNotOpen,
+	errorBufferTooSmall,
+	errorSeekError,
+	errorSectionNotFound,
+	errorKeyNotFound,
+	errorEndOfFile,
+	errorUnknownError,
+};
+*/
+
+#ifdef USE_PROGMEM
+static const SimpleStringArray ini_error_strings[INI_ERROR_TYPES] PROGMEM = {
+#else
+static const SimpleStringArray ini_error_strings[INI_ERROR_TYPES] = {
+#endif
+	"No Error",
+	"Config file not found",
+	"Config File Not Open",
+	"INI Line Buffer Too Small",
+	"Config File Seek Error",
+	"Config Section Not Found",
+	"Config Key Not Found",
+	"Reached end of Config File Unexpectedly",
+	"Config Unknown Error",
+};
+
+/**************************************************************
+ * Units, Scales & Interfaces
+ **************************************************************/
+typedef enum {
+	UNIT_ERROR,
+	CELSIUS,
+	FAHRENHEIT,
+	KELVIN,
+	REL_HUM,
+	CUBIC_M,
+	LITRES,
+	PPM,
+	ONOFF,
+	RPM,
+	LAST_UNIT
+} UnitsEnum;
+
+#ifdef USE_PROGMEM
+static const SimpleStringArray unit_strings[LAST_UNIT] PROGMEM = {
+#else
+static const SimpleStringArray unit_strings[LAST_UNIT] = {
+#endif
+	"UnitTypeError",
+	"Celsius",
+	"Fahrenheit",
+	"Kelvin",
+	"Relative Humidity",
+	"Cubic Metres",
+	"litres",
+	"Parts per Million",
+	"ONOFF",
+	"Revolutions per Minute"
+};
+
+enum {				// TODO: Code presently assumes SUN = 0
+	SUN = 0,
+	MON,
+	TUE,
+	WED,
+	THU,
+	FRI,
+	SAT,
+	LAST_DAY
+};
+
+#ifdef USE_PROGMEM
+static const SimpleStringArray day_strings[LAST_DAY] PROGMEM = {
+#else
+static const SimpleStringArray day_strings[LAST_DAY] = {
+#endif
+	"SUN",
+	"MON",
+	"TUE",
+	"WED",
+	"THU",
+	"FRI",
+	"SAT",
+};
+
+enum {						// Interface Types
+	IF_ERROR = 0,
+	IF_PWM_IN,
+	IF_PWM_OUT,
+	IF_PPM_IN,
+	IF_PPM_OUT,
+	IF_ONEWIRE,
+	IF_DIG_PIN_IN,
+	IF_DIG_PIN_OUT,
+	IF_SYSTEM_FUNCTION,
+	LAST_INTERFACE
+};
+
+#ifdef USE_PROGMEM
+static const SimpleStringArray interface_strings[LAST_INTERFACE] PROGMEM = {
+#else
+static const SimpleStringArray interface_strings[LAST_INTERFACE] = {
+#endif
+	"IF_ERROR",
+	"PWM_IN",
+	"PWM_OUT",
+	"PPM_IN",
+	"PPM_OUT",
+	"ONEWIRE",
+	"DIG_PIN_IN",
+	"DIG_PIN_OUT",
+	"SYSTEM_FUNCTION",
+};
+
+enum {						// Block states
+	STATUS_ERROR = 0,
+	STATUS_ENABLED,
+	STATUS_ENABLED_INIT,
+	STATUS_ENABLED_VALID_DATA,
+	STATUS_ENABLED_INVALID_DATA,
+	STATUS_DISABLED,
+	STATUS_DISABLED_INIT,
+	STATUS_DISABLED_ERROR,
+	STATUS_DISABLED_ADMIN,
+	LAST_STATUS,
+};
+
+#ifdef USE_PROGMEM
+static const SimpleStringArray status_strings[LAST_STATUS] PROGMEM = {
+#else
+static const SimpleStringArray status_strings[LAST_STATUS] = {
+#endif
+	"STATUS_ERROR",
+	"STATUS_ENABLED",
+	"STATUS_ENABLED_INIT",
+	"STATUS_ENABLED_VALID_DATA",
+	"STATUS_ENABLED_INVALID_DATA",
+	"STATUS_DISABLED",
+	"STATUS_DISABLED_INIT",
+	"STATUS_DISABLED_ERROR",
+	"STATUS_DISABLED_ADMIN",
+
+};
+
+
 
 #endif
 

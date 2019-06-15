@@ -19,11 +19,11 @@
 /************************************************
  PLATFORM Directives
  ************************************************/
-#define FF_ARDUINO
+//#define FF_ARDUINO
 // AND Optionally
-//#define VE_DIRECT
+#define VE_DIRECT
 // OR
-//#define FF_SIMULATOR
+#define FF_SIMULATOR
 // Optionally with
 //#define FF_SIM_PARSECONFIG	//optional parse the TXT config (default -> read BIN)
 
@@ -31,12 +31,12 @@
 //#define FF_CONFIG
 
 // Optionally:
-#define FF_TEMPERATURE_SIM
+//#define FF_TEMPERATURE_SIM
 // OR with FF_ARDUINO
 //#define FF_TEMP_SIM_WITH_DALLAS
 
 // Optionally:
-//#define FF_RPI_START_DELAY 30000	// Start delay to allow RPIs upstream to to get going
+#define FF_RPI_START_DELAY 30000	// Start delay to allow RPIs upstream to to get going
 
 //Use ITCH for CLI parsing ?
 #define USE_ITCH

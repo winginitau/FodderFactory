@@ -377,22 +377,34 @@ class System():
         sleep(20)
         self.FFAdaptor.mode_command("ActivateItch")
         sleep(10)
-        if self.FFAdaptor.itchActivated:
-            self.mainBus.append("init disable all")  #suppress messages
-            self.mainBus.append("config reset")
-            #self.cf = open("/home/brendan/git/FodderFactory/ff_simulator/CONFIG.TXT", "r")
-            self.cf = open("CONFIG.TXT", "r")
-            self.cf_lines = self.cf.readlines();
-            for self.input_string in self.cf_lines:
-                self.line_clean = self.input_string.rstrip('\n\r')
-                #print(self.line_clean)
-                self.mainBus.append(self.line_clean)
-            self.mainBus.append("config save")
-            self.mainBus.append("init val all")
-            self.mainBus.append("init set all")
-            self.mainBus.append("\x04")
-            print("Commands Queued to mainBus")
-            self.FFAdaptor.mode_command("ConfigureDevice")
+        self.command_retry = 3
+        self.command_finished = False 
+        while (self.command_retry > 0) and (not self.command_finished):
+            if self.FFAdaptor.itchActivated:
+                self.mainBus.append("init disable all")  #suppress messages
+                self.mainBus.append("config reset")
+                #self.cf = open("/home/brendan/git/FodderFactory/ff_simulator/CONFIG.TXT", "r")
+                self.cf = open("CONFIG.TXT", "r")
+                self.cf_lines = self.cf.readlines();
+                for self.input_string in self.cf_lines:
+                    self.line_clean = self.input_string.rstrip('\n\r')
+                    #print(self.line_clean)
+                    self.mainBus.append(self.line_clean)
+                self.mainBus.append("config save")
+                self.mainBus.append("init val all")
+                self.mainBus.append("init set all")
+                self.mainBus.append("\x04")
+                print("Commands Queued to mainBus")
+                self.FFAdaptor.mode_command("ConfigureDevice")
+                self.command_finished = True
+                break 
+            else:
+                print("Error sending commands. ITCH Not activated. Retrying in 20 seconds")
+                self.command_retry -= 1
+                sleep(20)
+        else:
+            print("Error waiting for itch. Giving up")
+            exit(0)
         while True:
             print("System.Run Sleeping")
             sleep(30)
