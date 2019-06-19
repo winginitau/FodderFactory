@@ -2,6 +2,8 @@
 *.d
 *.mk
 
+.*
+
 # Compiled Object files
 *.slo
 *.lo
@@ -39,8 +41,14 @@
 .cproject
 .settings
 
-# Eclipse Build Directories
+# Eclispe Project Files
+*/.project
+*/.pydevproject
+*/.gitignore.swp
+*/.cproject
+*/.settings
 
+# Eclipse Build Directories
 /Debug/
 /Release/
 /ff_simulator/Release/
