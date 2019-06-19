@@ -20,6 +20,7 @@
 #include <schedules.h>
 #include <string_consts.h>
 #include <time.h>
+#include <block_common.h>
 
 #ifdef FF_SIMULATOR
 //#include <stdio.h>
@@ -75,6 +76,7 @@ void RuleSetup(BlockNode *b) {
 			break;
 		}
 		default:
+			EventMsg(SSS, E_ERROR, M_UNKNOWN_BLOCK_TYPE);
 			break;
 
 	}
@@ -153,12 +155,58 @@ void RuleOperate(BlockNode *b) {
 			break;
 		}
 		default:
+			EventMsg(SSS, E_ERROR, M_UNKNOWN_BLOCK_TYPE);
 			break;
 
 	}
 
 }
 
+void RuleShow(BlockNode *b, void(Callback(char *))) {
+	char out_str[MAX_MESSAGE_STRING_LENGTH];
+	char fmt_str[MAX_LABEL_LENGTH];
+	const char* label_ptr;
 
+	CommonShow(b, Callback);
+
+	strcpy_hal(out_str, F("Rule:"));
+	Callback(out_str);
+
+	if (b->settings.rl.param1 == BLOCK_ID_INIT) {
+		strcpy_hal(out_str, F(" param1:       BLOCK_ID_INIT"));
+	} else {
+		strcpy_hal(fmt_str, F(" param1:       %s (%d)"));
+		label_ptr = GetBlockLabelString(b->settings.rl.param1);
+		sprintf(out_str, fmt_str, label_ptr, b->settings.rl.param1);
+	}
+	Callback(out_str);
+
+	if (b->settings.rl.param2 == BLOCK_ID_INIT) {
+		strcpy_hal(out_str, F(" param2:       BLOCK_ID_INIT"));
+	} else {
+		strcpy_hal(fmt_str, F(" param2:       %s (%d)"));
+		label_ptr = GetBlockLabelString(b->settings.rl.param2);
+		sprintf(out_str, fmt_str, label_ptr, b->settings.rl.param2);
+	}
+	Callback(out_str);
+
+	if (b->settings.rl.param3 == BLOCK_ID_INIT) {
+		strcpy_hal(out_str, F(" param3:       BLOCK_ID_INIT"));
+	} else {
+		strcpy_hal(fmt_str, F(" param3:       %s (%d)"));
+		label_ptr = GetBlockLabelString(b->settings.rl.param3);
+		sprintf(out_str, fmt_str, label_ptr, b->settings.rl.param3);
+	}
+	Callback(out_str);
+
+	if (b->settings.rl.param_not == BLOCK_ID_INIT) {
+		strcpy_hal(out_str, F(" param_not:       BLOCK_ID_INIT"));
+	} else {
+		strcpy_hal(fmt_str, F(" param_not     %s (%d)"));
+		label_ptr = GetBlockLabelString(b->settings.rl.param_not);
+		sprintf(out_str, fmt_str, label_ptr, b->settings.rl.param_not);
+	}
+	Callback(out_str);
+}
 
 

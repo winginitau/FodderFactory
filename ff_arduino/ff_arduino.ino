@@ -6,12 +6,10 @@
 // Description :
 //============================================================================
 
-//XXX Architectural Matters for Resolution
-//	Validation of fundamental concepts - "blocks"
+// TODO Architectural Matters for Resolution
 //	Operational Data exchange
 //		Push vs Pull or Both?
 //		Text vs Binary
-//		Placement of itch in above
 //		Transport options - LORA, IP, Serial
 //		Error correcting
 //		Distributed message bussing - roll own? MQTT? Other?
@@ -28,11 +26,8 @@
 //		Dumb start / disconnected start / online start
 //		Cascading of configs
 //		Reconfiguration of configs for HA and failure mode workarounds
-//		Immediate management of Fodder config
-//			Moving off the INI file and its binary form
-//			Moving to the Cisco like version
-//			Cisco model generally
-//			+++ and switching between message protocol and itch (or is it the same)
+//		Add in non-terminal config mode
+//		Move to Binary protocol
 //	User Tools
 //		Design modelling -> Configuration management
 //			Web app? Download win app? Mac app? iThing and Android apps?
@@ -40,47 +35,25 @@
 //			Touch screen for fodder - or should it be an app? or both?
 //			Genericising the user app - Design process also deploys an app?
 //	Immediate needs (fodder and frustrations)
-//		<done> current sensor dropout bug
-//		Fodder assurance
 //		Arduinos and RPIs
-//			Serial interaction model
-//		Getting control of the config
-//		Remote tweaking and rule changes
-//		Present data analysis and visualisation - for rule tuning
+//			<WIP> Serial interaction model
+//		<WIP> Getting control of the config
+//		Move Victron VE to a library and incorporate as an input blocl
 //		Collecting energy system data - physical interface done, need SW
-//			To support decisions on heating and lighting run times
-//		Priorities for which line of C code should be written next
-//		In general - targets or free form prioritisation
-//		If we need "project management" then we're not having fun anymore
 
 
-
-//#ifndef ARDUINO
-//#include <iostream.h>
-//using namespace std;
-//#endif
 
 /************************************************
  Includes
  ************************************************/
 #include <build_config.h>
 #include <string_consts.h>
-
-
-//#include "src/ff_utils.h"
-//#include <ff_inputs.h>
-//#include <ff_outputs.h>
-//#include <ff_controllers.h>
-//#include <ff_display.h>
-
 #include <validate.h>
 #include <registry.h>
 #include <debug_ff.h>
 #include <stdio.h>
 #include <HAL.h>
-
 #include <init_config.h>
-
 
 /************************************************
  Main Functions
@@ -91,11 +64,9 @@ void loop() {
 	ProcessDispatcher(Operate);
 	//TODO - remove dead and/or requested blocks from the run-time in
 	// a larger continuously running system
-
 	#ifdef USE_ITCH
 		HALPollItch();
 	#endif
-
 }
 
 #ifdef FF_ARDUINO
@@ -116,8 +87,9 @@ int main(void) {
 
 	//Moving the sr (State register) to a tolled persistence store is
 	// currently seems the best way to provide a long-term stateful machine
-	// though startup / init still neeeds to be handled for any blocks coming
+	// though startup / init still needs to be handled for any blocks coming
 	// online during run-time.
+	// 2019-06 - mostly addressed with status levels and conditional code.
 
 	// Init the Serial coms
 	// TODO and sockets etc later
@@ -134,51 +106,18 @@ int main(void) {
 
 	// Set up the basic run-time environment - state vector, event buffer, rtc, etc
 	InitSystem();
+	// TODO Consider moving to setup function on the system block
 
-	// Read the config file, parse it and create a block list in memory
-	#ifdef TEST_CONFIG_FUNCS
-		//InitConfigLoadINI();	//from INI config file
-		//InitConfigSaveBinary();
-		//InitConfigLoadBinary();
-		//InitConfigSave();
-		DebugLog("Calling InitConfigLoad");
-		InitConfigLoad(1);
-
-	#else
-	#ifdef FF_SIM_PARSECONFIG
-		// from INI source
-		InitConfigLoadINI();	//from INI config file
-	#else
-	#ifdef FF_CONFIG
-		InitConfigLoadINI();	//from INI config file
-	#else
-		// Read the binary configuration file previously created with
-		// ff_config. Note, this build and the ff_config build must use exactly
-		// the same pre-processor and compiler directives to ensure binary portability
-		//InitConfigLoadBinary();
-
-		//Load config from parsable text file replaces loading from binary.
-		DebugLog("Calling InitConfigLoad");
-		InitConfigLoad(1);
-
-	#endif
-	#endif
-	#endif
+	//Load config from parsable text file replaces loading from binary.
+	DebugLog("Calling InitConfigLoad");
+	InitConfigLoad(1);
 
 	// Run the Validate function on each block
 	// currently uses assert() - which will bomb the run if failed on embedded
-	// XXX Temp disabled for TESE_CONFIG_FUNCS
 	ProcessDispatcher(Validate);
 	// TODO implement assert()-like exception handling for embedded
 	// while using assert, its safe to declare success (if not correctness) if we get this far
 	DebugLog(SSS, E_INFO, M_DISP_VALIDATE);
-
-	#ifdef FF_CONFIG
-	//Write out a binary config file (for consumption by ReadProcessedConfig() in embedded builds
-	InitConfigSaveBinary();
-	DebugLog("Created Binary Configuration File. Done.");
-	return 0;
-	#endif
 
 	// 1. make sure each block is in an appropriate state to start execution
 	//		(if not already set during block registration and configuration
@@ -187,18 +126,16 @@ int main(void) {
 	DebugLog(SSS, E_INFO, M_DISP_SETUP);
 	ProcessDispatcher(Setup);
 
-	// TODO would be nice to re-run validate with a post setup modality
+	// TODO would re-run validate with a post setup modality
+	// Checking for valid array index values
 	//ProcessDispatcher(Validate);
 
 	// perform a single pass through the block list in operate mode
-	// before handing off to a processing loop or (TODO) interrupt
-	// handler. Provides opportunity for further validation during
-	// development and (at scale) a de-activation filtering of blocks
-	// that may cause problems in continuous run.
+	// before handing off to a processing loop or. This provides a
+	// Convenient stop point for development.
 	DebugLog(SSS, E_INFO, M_DISP_OPER_1ST);
 	ProcessDispatcher(Operate);
 	DebugLog(SSS, E_INFO, M_DISP_OPER_LOOP);
-
 
 	#ifdef FF_SIMULATOR
 	//for (int n = 0; n < 10000; n++) {
@@ -208,7 +145,6 @@ int main(void) {
 	while (1) loop();
 	return 0;
 	#endif
-
 	// On Arduino loop() is now called automatically forever
 }
 

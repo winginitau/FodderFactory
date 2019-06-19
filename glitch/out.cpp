@@ -47,7 +47,7 @@ uint16_t CallFunction(uint8_t func_xlat, ParamUnion params[]) {
 			SetDate(params[0].param_char_star);
 			break;
 		case 10:
-			ConfigReset();
+			ConfigClear();
 			break;
 		case 11:
 			ConfigLoad();
@@ -79,19 +79,28 @@ uint16_t CallFunction(uint8_t func_xlat, ParamUnion params[]) {
 		case 20:
 			InitSetupAll();
 			break;
+		case 23:
+			InitSetupBID(params[0].param_int16_t);
+			break;
 		case 21:
 			InitValidateAll();
+			break;
+		case 24:
+			InitValidateBID(params[0].param_int16_t);
 			break;
 		case 22:
 			InitDisableAll();
 			break;
-		case 23:
+		case 25:
+			InitDisableBID(params[0].param_int16_t);
+			break;
+		case 26:
 			SystemReboot();
 			break;
-		case 24:
+		case 27:
 			BlockIDCmdOn(params[0].param_int16_t);
 			break;
-		case 25:
+		case 28:
 			BlockIDCmdOff(params[0].param_int16_t);
 			break;
 		default:
@@ -213,6 +222,20 @@ uint16_t LookupIdentifierMembers(uint16_t ident_xlat, char* lookup_string) {
 		}
 			break;
 		case 4: {
+			while (idx < LAST_UNIT_ABBR) {
+				#ifdef ARDUINO
+					memcpy_P(&temp, &unit_abbr_strings[idx], sizeof(SimpleStringArray));
+				#else
+					memcpy(&temp, &unit_abbr_strings[idx], sizeof(SimpleStringArray));
+				#endif
+				if(strcasecmp(lookup_string, temp.text) == 0) {
+					return idx;
+				}
+				idx++;
+			}
+		}
+			break;
+		case 5: {
 			while (idx < LAST_DAY) {
 				#ifdef ARDUINO
 					memcpy_P(&temp, &day_strings[idx], sizeof(SimpleStringArray));
@@ -226,7 +249,7 @@ uint16_t LookupIdentifierMembers(uint16_t ident_xlat, char* lookup_string) {
 			}
 		}
 			break;
-		case 5: {
+		case 6: {
 			while (idx < LAST_INTERFACE) {
 				#ifdef ARDUINO
 					memcpy_P(&temp, &interface_strings[idx], sizeof(SimpleStringArray));
@@ -240,7 +263,7 @@ uint16_t LookupIdentifierMembers(uint16_t ident_xlat, char* lookup_string) {
 			}
 		}
 			break;
-		case 6: {
+		case 7: {
 			while (idx < LAST_STATUS) {
 				#ifdef ARDUINO
 					memcpy_P(&temp, &status_strings[idx], sizeof(SimpleStringArray));
@@ -254,7 +277,7 @@ uint16_t LookupIdentifierMembers(uint16_t ident_xlat, char* lookup_string) {
 			}
 		}
 			break;
-		case 7: {
+		case 8: {
 			while (idx < LAST_SYS_CONFIG) {
 				#ifdef ARDUINO
 					memcpy_P(&temp, &sys_config_keys[idx], sizeof(SimpleStringArray));
@@ -268,7 +291,7 @@ uint16_t LookupIdentifierMembers(uint16_t ident_xlat, char* lookup_string) {
 			}
 		}
 			break;
-		case 8: {
+		case 9: {
 			while (idx < LAST_IN_CONFIG) {
 				#ifdef ARDUINO
 					memcpy_P(&temp, &in_config_keys[idx], sizeof(SimpleStringArray));
@@ -282,7 +305,7 @@ uint16_t LookupIdentifierMembers(uint16_t ident_xlat, char* lookup_string) {
 			}
 		}
 			break;
-		case 9: {
+		case 10: {
 			while (idx < LAST_MON_CONFIG) {
 				#ifdef ARDUINO
 					memcpy_P(&temp, &mon_config_keys[idx], sizeof(SimpleStringArray));
@@ -296,7 +319,7 @@ uint16_t LookupIdentifierMembers(uint16_t ident_xlat, char* lookup_string) {
 			}
 		}
 			break;
-		case 10: {
+		case 11: {
 			while (idx < LAST_SCH_CONFIG) {
 				#ifdef ARDUINO
 					memcpy_P(&temp, &sch_config_keys[idx], sizeof(SimpleStringArray));
@@ -310,7 +333,7 @@ uint16_t LookupIdentifierMembers(uint16_t ident_xlat, char* lookup_string) {
 			}
 		}
 			break;
-		case 11: {
+		case 12: {
 			while (idx < LAST_RL_CONFIG) {
 				#ifdef ARDUINO
 					memcpy_P(&temp, &rl_config_keys[idx], sizeof(SimpleStringArray));
@@ -324,7 +347,7 @@ uint16_t LookupIdentifierMembers(uint16_t ident_xlat, char* lookup_string) {
 			}
 		}
 			break;
-		case 12: {
+		case 13: {
 			while (idx < LAST_CON_CONFIG) {
 				#ifdef ARDUINO
 					memcpy_P(&temp, &con_config_keys[idx], sizeof(SimpleStringArray));
@@ -338,7 +361,7 @@ uint16_t LookupIdentifierMembers(uint16_t ident_xlat, char* lookup_string) {
 			}
 		}
 			break;
-		case 13: {
+		case 14: {
 			while (idx < LAST_OUT_CONFIG) {
 				#ifdef ARDUINO
 					memcpy_P(&temp, &out_config_keys[idx], sizeof(SimpleStringArray));

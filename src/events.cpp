@@ -61,11 +61,13 @@ const char* FormatEventMessage (EventNode* e, char* e_str) {
 	strftime(ymd_str, 14, fmt_str, localtime(&(e->time_stamp)));
 	strcpy_hal(fmt_str, F("%H:%M:%S"));
 	strftime(hms_str, 12, fmt_str, localtime(&(e->time_stamp)));
+
 	source_str = GetBlockLabelString(e->source);
 	destination_str = GetBlockLabelString(e->destination);
 	GetMessageTypeString(msg_type_str, e->message_type);
 	GetMessageString(msg_str, e->message);
 	FFFloatToCString(float_str, e->float_val);
+
 	strcpy_hal(fmt_str, F("%s,%s,%s,%s,%s,%s,%ld,%s"));
 	sprintf(e_str, fmt_str, ymd_str, hms_str, source_str, destination_str, msg_type_str, msg_str, e->int_val, float_str);
 

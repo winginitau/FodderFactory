@@ -12,12 +12,12 @@
 #define MAX_AST_IDENTIFIER_SIZE 28
 #define MAX_AST_LABEL_SIZE 19
 #define MAX_AST_ACTION_SIZE 24
-#define AST_NODE_COUNT 60
+#define AST_NODE_COUNT 63
 #define MAX_PARAM_COUNT 3
 
-#define XLAT_IDENT_MAP_COUNT 14
+#define XLAT_IDENT_MAP_COUNT 15
 #define XLAT_LOOKUP_MAP_COUNT 1
-#define XLAT_FUNC_MAP_COUNT 26
+#define XLAT_FUNC_MAP_COUNT 29
 
 #define MAX_INPUT_LINE_SIZE 150
 #define MAX_OUTPUT_LINE_SIZE 150
@@ -81,6 +81,7 @@ enum {
 	FF_ERROR_CAT = 0,
 	FF_GENERIC_BLOCK,
 	FF_SYSTEM,
+	FF_INTERFACE,
 	FF_INPUT,
 	FF_MONITOR,
 	FF_SCHEDULE,
@@ -98,6 +99,7 @@ static const SimpleStringArray block_cat_names [LAST_BLOCK_CAT] = {
 	"ERROR_CAT",
 	"GENERIC",
 	"SYSTEM",
+	"INTERFACE",
 	"INPUT",
 	"MONITOR",
 	"SCHEDULE",
@@ -111,6 +113,7 @@ enum {
 	SYS_SYSTEM,
 	IN_ONEWIRE,
 	IN_DIGITAL,
+	IN_VEDIRECT,
 	MON_CONDITION_LOW,
 	MON_CONDITION_HIGH,
 	MON_AVERAGE_CONDITION_LOW,
@@ -139,6 +142,7 @@ static const SimpleStringArray block_type_strings [LAST_BLOCK_TYPE] = {
 	"SYS_SYSTEM",
 	"IN_ONEWIRE",
 	"IN_DIGITAL",
+	"IN_VEDIRECT",
 	"MON_CONDITION_LOW",
 	"MON_CONDITION_HIGH",
 	"MON_AVERAGE_CONDITION_LOW",
@@ -187,6 +191,11 @@ enum {
 	PPM,
 	ONOFF,
 	RPM,
+	MILLI_VOLTS,
+	VOLTS,
+	WATTS,
+	DECI_PERCENT,
+	PERCENT,
 	LAST_UNIT,
 };
 
@@ -199,12 +208,58 @@ static const SimpleStringArray unit_strings [LAST_UNIT] = {
 	"Celsius",
 	"Fahrenheit",
 	"Kelvin",
-	"Relative Humidity",
-	"Cubic Metres",
-	"litres",
-	"Parts per Million",
+	"RelativeHumidity%",
+	"MetresCubed",
+	"Litres",
+	"PartsPerMillion",
+	"BinaryOnOff",
+	"RevolutionsPerMinute",
+	"MilliVolts",
+	"Volts",
+	"Watts",
+	"DeciPercent",
+	"Percent",
+};
+
+enum {
+	ABBR_UNIT_ERROR = 0,
+	ABBR_CELSIUS,
+	ABBR_FAHRENHEIT,
+	ABBR_KELVIN,
+	ABBR_REL_HUM,
+	ABBR_CUBIC_M,
+	ABBR_LITRES,
+	ABBR_PPM,
+	ABBR_ONOFF,
+	ABBR_RPM,
+	ABBR_MILLI_VOLTS,
+	ABBR_VOLTS,
+	ABBR_WATTS,
+	ABBR_DECI_PERCENT,
+	ABBR_PERCENT,
+	LAST_UNIT_ABBR,
+};
+
+#ifdef USE_PROGMEM
+static const SimpleStringArray unit_abbr_strings [LAST_UNIT_ABBR] PROGMEM = {
+#else
+static const SimpleStringArray unit_abbr_strings [LAST_UNIT_ABBR] = {
+#endif
+	"UnitAbbrTypeError",
+	"°C",
+	"°F",
+	"°K",
+	"%",
+	"m3",
+	"l",
+	"PPM",
 	"ONOFF",
-	"Revolutions per Minute",
+	"RPM",
+	"mV",
+	"V",
+	"W",
+	"deci%",
+	"%",
 };
 
 enum {
@@ -242,6 +297,7 @@ enum {
 	IF_DIG_PIN_IN,
 	IF_DIG_PIN_OUT,
 	IF_SYSTEM_FUNCTION,
+	IF_VEDIRECT,
 	LAST_INTERFACE,
 };
 
@@ -259,6 +315,7 @@ static const SimpleStringArray interface_strings [LAST_INTERFACE] = {
 	"DIG_PIN_IN",
 	"DIG_PIN_OUT",
 	"SYSTEM_FUNCTION",
+	"IF_VEDIRECT",
 };
 
 enum {
@@ -298,6 +355,7 @@ enum {
 	SYS_CONFIG_LANGUAGE,
 	SYS_CONFIG_TEMP_SCALE,
 	SYS_CONFIG_WEEK_START,
+	SYS_CONFIG_START_DELAY,
 	LAST_SYS_CONFIG,
 };
 
@@ -313,6 +371,7 @@ static const SimpleStringArray sys_config_keys [LAST_SYS_CONFIG] = {
 	"language",
 	"temp_scale",
 	"week_start",
+	"start_delay",
 };
 
 enum {
@@ -323,6 +382,7 @@ enum {
 	IN_CONFIG_INTERFACE,
 	IN_CONFIG_IF_NUM,
 	IN_CONFIG_LOG_RATE,
+	IN_CONFIG_POLL_RATE,
 	IN_CONFIG_DATA_UNITS,
 	IN_CONFIG_DATA_TYPE,
 	LAST_IN_CONFIG,
@@ -340,6 +400,7 @@ static const SimpleStringArray in_config_keys [LAST_IN_CONFIG] = {
 	"interface",
 	"if_num",
 	"log_rate",
+	"poll_rate",
 	"data_units",
 	"data_type",
 };
@@ -491,7 +552,7 @@ void ShowTime(void);
 void SetTime(char* param1_time);
 void ShowDate(void);
 void SetDate(char* param1_date);
-void ConfigReset(void);
+void ConfigClear(void);
 void ConfigLoad(void);
 void ConfigSave(void);
 void ConfigBlockSystem(char* param1_string, uint16_t SYS_CONFIG, char* param2_string);
@@ -502,17 +563,20 @@ void ConfigBlockRule(char* param1_string, uint16_t RL_CONFIG, char* param2_strin
 void ConfigBlockController(char* param1_string, uint16_t CON_CONFIG, char* param2_string);
 void ConfigBlockOutput(char* param1_string, uint16_t OUT_CONFIG, char* param2_string);
 void InitSetupAll(void);
+void InitSetupBID(int16_t param1_int);
 void InitValidateAll(void);
+void InitValidateBID(int16_t param1_int);
 void InitDisableAll(void);
+void InitDisableBID(int16_t param1_int);
 void SystemReboot(void);
 void BlockIDCmdOn(int16_t param1_int);
 void BlockIDCmdOff(int16_t param1_int);
 
 // id, type, label, actionable, parent, first_child, next_sibling, action_id
 #ifdef USE_PROGMEM
-static const ASTA asta [60] PROGMEM = {
+static const ASTA asta [63] PROGMEM = {
 #else
-static const ASTA asta [60] = {
+static const ASTA asta [63] = {
 #endif
 	1, 1, "SHOW", 0, 0, 2, 6, "",
 	2, 1, "BLOCKS", 1, 1, 0, 3, "SHOW_BLOCKS",
@@ -532,7 +596,7 @@ static const ASTA asta [60] = {
 	16, 1, "SET", 0, 15, 17, 0, "",
 	17, 4, "param-date", 1, 16, 0, 0, "SET_DATE",
 	18, 1, "CONFIG", 0, 0, 19, 50, "",
-	19, 1, "RESET", 1, 18, 0, 20, "CONFIG_RESET",
+	19, 1, "CLEAR", 1, 18, 0, 20, "CONFIG_CLEAR",
 	20, 1, "LOAD", 1, 18, 0, 21, "CONFIG_LOAD",
 	21, 1, "SAVE", 1, 18, 0, 22, "CONFIG_SAVE",
 	22, 1, "system", 0, 18, 23, 26, "",
@@ -563,38 +627,42 @@ static const ASTA asta [60] = {
 	47, 13, "param-string", 0, 46, 48, 0, "",
 	48, 2, "out_config_keys", 0, 47, 49, 0, "",
 	49, 13, "param-string", 1, 48, 0, 0, "CONFIG_BLOCK_OUTPUT",
-	50, 1, "INIT", 0, 0, 51, 57, "",
-	51, 1, "SETUP", 0, 50, 52, 53, "",
-	52, 1, "ALL", 1, 51, 0, 0, "INIT_SETUP_ALL",
-	53, 1, "VALIDATE", 0, 50, 54, 55, "",
-	54, 1, "ALL", 1, 53, 0, 0, "INIT_VALIDATE_ALL",
-	55, 1, "DISABLE", 0, 50, 56, 0, "",
-	56, 1, "ALL", 1, 55, 0, 0, "INIT_DISABLE_ALL",
-	57, 1, "REBOOT", 1, 0, 0, 58, "REBOOT",
-	58, 6, "param-integer", 0, 0, 59, 0, "",
-	59, 1, "ON", 1, 58, 0, 60, "BLOCK_ID_CMD_ON",
-	60, 1, "OFF", 1, 58, 0, 0, "BLOCK_ID_CMD_OFF",
+	50, 1, "INIT", 0, 0, 51, 60, "",
+	51, 1, "SETUP", 0, 50, 52, 54, "",
+	52, 1, "ALL", 1, 51, 0, 53, "INIT_SETUP_ALL",
+	53, 6, "param-integer", 1, 51, 0, 0, "INIT_SETUP_BID",
+	54, 1, "VALIDATE", 0, 50, 55, 57, "",
+	55, 1, "ALL", 1, 54, 0, 56, "INIT_VALIDATE_ALL",
+	56, 6, "param-integer", 1, 54, 0, 0, "INIT_VALIDATE_BID",
+	57, 1, "DISABLE", 0, 50, 58, 0, "",
+	58, 1, "ALL", 1, 57, 0, 59, "INIT_DISABLE_ALL",
+	59, 6, "param-integer", 1, 57, 0, 0, "INIT_DISABLE_BID",
+	60, 1, "REBOOT", 1, 0, 0, 61, "REBOOT",
+	61, 6, "param-integer", 0, 0, 62, 0, "",
+	62, 1, "ON", 1, 61, 0, 63, "BLOCK_ID_CMD_ON",
+	63, 1, "OFF", 1, 61, 0, 0, "BLOCK_ID_CMD_OFF",
 };
 
 #ifdef USE_PROGMEM
-static const XLATMap ident_map [14] PROGMEM = {
+static const XLATMap ident_map [15] PROGMEM = {
 #else
-static const XLATMap ident_map [14] = {
+static const XLATMap ident_map [15] = {
 #endif
 	"block_cat_names", 0,
 	"block_type_strings", 1,
 	"command_strings", 2,
 	"unit_strings", 3,
-	"day_strings", 4,
-	"interface_strings", 5,
-	"status_strings", 6,
-	"sys_config_keys", 7,
-	"in_config_keys", 8,
-	"mon_config_keys", 9,
-	"sch_config_keys", 10,
-	"rl_config_keys", 11,
-	"con_config_keys", 12,
-	"out_config_keys", 13,
+	"unit_abbr_strings", 4,
+	"day_strings", 5,
+	"interface_strings", 6,
+	"status_strings", 7,
+	"sys_config_keys", 8,
+	"in_config_keys", 9,
+	"mon_config_keys", 10,
+	"sch_config_keys", 11,
+	"rl_config_keys", 12,
+	"con_config_keys", 13,
+	"out_config_keys", 14,
 };
 
 #ifdef USE_PROGMEM
@@ -606,9 +674,9 @@ static const XLATMap lookup_map [1] = {
 };
 
 #ifdef USE_PROGMEM
-static const XLATMap func_map [26] PROGMEM = {
+static const XLATMap func_map [29] PROGMEM = {
 #else
-static const XLATMap func_map [26] = {
+static const XLATMap func_map [29] = {
 #endif
 	"SHOW_BLOCKS", 0,
 	"SHOW_SYSTEM", 1,
@@ -620,7 +688,7 @@ static const XLATMap func_map [26] = {
 	"SET_TIME", 7,
 	"SHOW_DATE", 8,
 	"SET_DATE", 9,
-	"CONFIG_RESET", 10,
+	"CONFIG_CLEAR", 10,
 	"CONFIG_LOAD", 11,
 	"CONFIG_SAVE", 12,
 	"CONFIG_BLOCK_SYSTEM", 13,
@@ -633,9 +701,12 @@ static const XLATMap func_map [26] = {
 	"INIT_SETUP_ALL", 20,
 	"INIT_VALIDATE_ALL", 21,
 	"INIT_DISABLE_ALL", 22,
-	"REBOOT", 23,
-	"BLOCK_ID_CMD_ON", 24,
-	"BLOCK_ID_CMD_OFF", 25,
+	"INIT_SETUP_BID", 23,
+	"INIT_VALIDATE_BID", 24,
+	"INIT_DISABLE_BID", 25,
+	"REBOOT", 26,
+	"BLOCK_ID_CMD_ON", 27,
+	"BLOCK_ID_CMD_OFF", 28,
 };
 
 uint16_t LookupIdentMap (char* key);

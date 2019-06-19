@@ -27,6 +27,6 @@
 
 void OutputSetup(BlockNode *b);
 void OutputOperate(BlockNode *b);
-
+void OutputShow(BlockNode *b, void(Callback(char *)));
 
 #endif /* SRC_FF_OUTPUTS_H_ */

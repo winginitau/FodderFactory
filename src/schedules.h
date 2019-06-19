@@ -20,6 +20,6 @@
 
 void ScheduleOperate(BlockNode *b);
 void ScheduleSetup(BlockNode *b);
-
+void ScheduleShow(BlockNode *b, void(Callback(char *)));
 
 #endif /* SCHEDULES_H_ */

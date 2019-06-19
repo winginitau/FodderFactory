@@ -32,6 +32,11 @@
 	</natures>
 	<linkedResources>
 		<link>
+			<name>VictronVEDirectArduino</name>
+			<type>2</type>
+			<location>/home/brendan/git/Arduinolib/VictronVEDirectArduino</location>
+		</link>
+		<link>
 			<name>glitch</name>
 			<type>2</type>
 			<location>/home/brendan/git/FodderFactory/glitch</location>

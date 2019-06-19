@@ -15,15 +15,11 @@
 
 #include <registry.h>
 
-//#ifdef FF_ARDUINO
-//#include "Arduino.h"
-//#endif
-
 /************************************************
   Function prototypes
 ************************************************/
 void InputOperate(BlockNode *b);
 void InputSetup(BlockNode *b);
-
+void InputShow(BlockNode *b, void(Callback(char *)));
 
 #endif /* INPUTS_H_ */

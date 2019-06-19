@@ -84,30 +84,6 @@ FFDateTime FFDT(uint16_t year, uint8_t month, uint8_t day, uint8_t hour, uint8_t
 */
 
 
-TV_TYPE StrToTV(const char* time_str) {
-	int hh, mm, ss;
-	TV_TYPE tv = 0;
-	char fmt_str[10];
-
-	strcpy_hal(fmt_str, F("%d:%d:%d"));
-	if (sscanf(time_str, fmt_str, &hh, &mm, &ss) == 3) {
-		tv = ss + (mm * 60) + (hh * 60 * 60);
-		return tv;
-	} else {
-		DebugLog(SSS, E_WARNING, M_BAD_TIME_STR);
-		tv = UINT32_INIT;
-		return tv;
-	}
-}
-
-char* TVToHMSString(char *HMSStr, const time_t tv) {
-	//char hms_str[12];
-	char fmt_str[9];
-	strcpy_hal(fmt_str, F("%H:%M:%S"));
-	//strftime(HMSStr, 12, fmt_str, localtime(&tv));
-	strftime(HMSStr, 12, fmt_str, gmtime(&tv));
-	return HMSStr;
-}
 
 /*
 const char* FormatEventMessage (EventNode* e, char* e_str) {

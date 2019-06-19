@@ -29,6 +29,6 @@
 
 void MonitorSetup(BlockNode *b);
 void MonitorOperate(BlockNode *b);
-
+void MonitorShow(BlockNode *b, void(Callback(char *)));
 
 #endif /* MONITORS_H_ */

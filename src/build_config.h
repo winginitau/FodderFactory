@@ -19,11 +19,46 @@
 /************************************************
  PLATFORM Directives
  ************************************************/
-//#define FF_ARDUINO
-// AND Optionally
-#define VE_DIRECT
-// OR
-#define FF_SIMULATOR
+#define FF_ARDUINO
+//or
+//#define FF_SIMULATOR
+
+#ifdef BOARD_TAG
+
+#endif
+
+#ifdef FF_ARDUINO
+#define TARGET_PLATFORM_ARDUINO
+#ifdef TARGET_PLATFORM_ARDUINO
+#define TARGET_BOARD_ARDUINO_MEGA2560
+#endif
+#endif
+
+#ifdef FF_SIMULATOR
+#define TARGET_PLATFORM_LINUX
+#endif
+
+
+/****************************************************************************
+ PLATFORM INTERFACES - To be scripted for "build to order" firmware
+ ***************************************************************************/
+//#define UI_ATTACHED			// is there a directly attached UI? LCD? Console in sim?
+
+#ifdef TARGET_PLATFORM_ARDUINO
+	#define ASSERT(x,y) ASSERT_ARDUINO(x,y)
+	#define VE_DIRECT
+	#define IF_ARDUINO_VEDIRECT
+#endif //TARGET_PLATFORM_ARDUINO
+
+
+#ifdef TARGET_PLATFORM_LINUX
+//#define ASSERT(x) assert(x)
+#define ASSERT(x,y) ASSERT_ARDUINO(x,y)
+#endif
+
+//#define RESURRECT_DEPRECIATED
+
+//#define FF_SIMULATOR
 // Optionally with
 //#define FF_SIM_PARSECONFIG	//optional parse the TXT config (default -> read BIN)
 
@@ -35,15 +70,10 @@
 // OR with FF_ARDUINO
 //#define FF_TEMP_SIM_WITH_DALLAS
 
-// Optionally:
-#define FF_RPI_START_DELAY 30000	// Start delay to allow RPIs upstream to to get going
-
 //Use ITCH for CLI parsing ?
 #define USE_ITCH
 // OR only headers for enum arrary configs?
 //#define ITCH_HEADERS_ONLY
-
-//#define UI_ATTACHED			// is there a directly attached UI? LCD? Console in sim?
 
 #ifdef FF_CONFIG
 #define FF_SIMULATOR
@@ -115,9 +145,7 @@
 									// as the set time on device restart - use once to set then exclude
 									// and immediately reflash with it disabled.
 
-//#define DISABLE_OUTPUTS				// Allows full operation but the output relays don't activate
-
-//#define TEST_CONFIG_FUNCS			// Read and write all config types - for development
+//#define DISABLE_OUTPUTS			// Allows full operation but the output relays don't activate
 
 //#define DEBUG			// Call debug output at all or not?
 
@@ -206,12 +234,15 @@
 
 #define EVENT_BUFFER_SIZE 1
 
+// Initialisers
 #define UINT8_INIT 0xFF
 #define UINT16_INIT 0xFFFF
 #define UINT32_INIT 0xFFFFFFFF
 #define INT16_INIT (int16_t)0xFFFF
 #define INT32_INIT (int32_t)0xFFFFFFFF
 #define FLOAT_INIT (float)255.000000
+#define BLOCK_ID_INIT UINT16_INIT
+#define CMD_INIT UINT8_INIT
 
 //Reserved block IDs
 #define BLOCK_ID_BASE 1000

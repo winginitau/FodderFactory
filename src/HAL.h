@@ -28,8 +28,6 @@
 /************************************************
  Function Prototypes
 ************************************************/
-uint8_t HALVEDirectInit(void);
-int32_t HALReadVEData(uint16_t data_type);
 
 uint8_t HALSaveEventBuffer(void);
 uint8_t HALInitSerial(uint8_t port, uint16_t baudrate);

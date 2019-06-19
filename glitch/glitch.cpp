@@ -409,8 +409,9 @@ void WriteOutputFilePreambles(void) {
 
 	// Callback function forward declaration
 	//sprintf(out, "extern void ITCHWriteLine(char *str);\n\n");
-	sprintf(out, "extern ITCH itch;\n\n");
-	SendToOutput(Q_USER_CODE, out);
+	// 2019-06-16 Not needed - itch instaniated from calling application
+	//sprintf(out, "extern ITCH itch;\n\n");
+	//SendToOutput(Q_USER_CODE, out);
 }
 
 void WriteFileTails(void) {

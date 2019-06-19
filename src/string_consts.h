@@ -217,8 +217,8 @@ typedef enum {
 	M_SYS_HEART_BEAT,
 	M_VE_INIT_ERROR,
 	M_OUTPUT_DISABLED,
-	M77,
-	M78,
+	M_START_DELAY_ACTIVE,
+	M_ASSERT_FAILED,
 	NO_CONFIG_FILE,
 	M_INI_LOAD_NOT_AVAIL,
 	M_BIN_LOAD_NOT_AVAIL,
@@ -226,13 +226,13 @@ typedef enum {
 	M_CONFIG_LOAD_BY_DIRECT_PARSE,
 	M_CONFIGURE_BLOCK_ERROR,
 	M_SETUP_ON_BLOCK_NOT_DISABLED_INIT,
-	M_HACK_MON_OUT_WARM,
-	M_HACK_SCH_WATERING_BOTTOM_SCHEDULE,
-	M_HACK_MON_BOT_COLD,
-	M_HACK_RL_EXHAUST_IF_TOP_HOT_BOT_HOT,
-	M_HACK_RL_CIRC_IF_TOP_HOT_BOT_COLD,
-	M_HACK_SCH_WATER_TOP_COLD,
-	M_HACK_SCH_WATER_BOT_COLD,
+	M_UNKNOWN_BLOCK_TYPE,
+	M87,
+	M88,
+	M89,
+	M90,
+	M91,
+	M92,
 	LAST_MESSAGE
 } MessageEnum;
 
@@ -318,22 +318,22 @@ static const StringArray message_strings[LAST_MESSAGE] = {
 	14, { "System Heart Beat",								"M74" },
 	14, { "Failed to Initialise VE.Direct Connection",		"M75" },
 	14, { "Output Disabled by DISABLE_OUTPUTS directive",	"M76" },
-	14, { "M77",								"M77" },
-	14, { "M78",								"M78" },
-	14, { "Config file could not be opened",								"M79" },
-	14, { "INI Load not available on this platform",								"M80" },
-	14, { "Binary Load not available on this platform",								"M81" },
-	14, { "Binary Save not available on this platform",									"M82" },
-	14, { "Configuration loaded and parsed from file",									"M83" },
+	14, { "Start-up Delay Active",							"M77" },
+	14, { "ASSERT FAILED**************************",		"M78" },
+	14, { "Config file could not be opened",				"M79" },
+	14, { "INI Load not available on this platform",		"M80" },
+	14, { "Binary Load not available on this platform",		"M81" },
+	14, { "Binary Save not available on this platform",		"M82" },
+	14, { "Configuration loaded and parsed from file",		"M83" },
 	14, { "ConfigureBlock Reported an Error.",	"M84" },
-	14, { "Setup on block that is not STATUS_DISABLED_INIT",							"M85" },
-	14, { "HACK: MON_OUT_WARM Value Hacks Applied",										"M86" },
-	14, { "HACK: Bottom Watering with duration override",								"M87" },
-	14, { "HACK: MON_BOT_COLD Value Hacks Applied",										"M88" },
-	14, { "HACK: RL_EXHAUST_IF_TOP_HOT_BOT_HOT Changed Type to RL_LOGIC_SINGLENOT",		"M89" },
-	14, { "HACK: RL_CIRC_IF_TOP_HOT_BOT_COLD Changed Type to RL_LOGIC_AND",				"M90" },
-	14, { "HACK: SCH_WATER_TOP_COLD Duration Hack Applied",								"M91" },
-	14, { "HACK: SCH_WATER_BOT_COLD Duration Hack Applied",								"M92" },
+	14, { "Setup on block that is not STATUS_DISABLED_INIT","M85" },
+	14, { "Unknown Block Type in Setup or Operate Loop",	"M86" },
+	14, { "M87",								"M87" },
+	14, { "M88",								"M88" },
+	14, { "M89",								"M89" },
+	14, { "M90",								"M90" },
+	14, { "M91",								"M91" },
+	14, { "M92",								"M92" },
 };
 
 
@@ -409,7 +409,7 @@ static const BlockCatArray block_cat_defs[LAST_BLOCK_CAT] = {
 	{
 		"",					// not used - dummy to skip error enum = 0
 		"type",				// Block Type - See block_type_strings
-		"display_name",		// Short user friendly display label (TODO: needs limit)
+		"display_name",		// Short user friendly display label
 		"description",		// Optional descriptive for design stage
 	},
 

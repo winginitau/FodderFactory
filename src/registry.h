@@ -25,12 +25,14 @@ typedef struct FF_SYSTEM_SETTINGS {
 	uint8_t temp_scale;
 	uint8_t language;
 	uint8_t week_start;
+	uint16_t start_delay;
 } SystemSettings;
 
 typedef struct FF_INPUT_SETTINGS {
 	uint8_t interface;
 	uint8_t if_num;
 	TV_TYPE log_rate;
+	TV_TYPE poll_rate;
 	uint8_t data_units;
 	uint8_t data_type;		// float, int
 } InputSettings;
@@ -193,7 +195,7 @@ void RegShowDate(void(*Callback)(char*));
 void RegSetDate(char* date_str, void(*Callback)(char*));
 void RegSystemReboot(void(*Callback)(char*));
 
-void RegConfigReset(void(*Callback)(char*));
+void RegConfigClear(void(*Callback)(char*));
 void RegConfigLoad(void(*Callback)(char*));
 void RegConfigLoadBinary(void(*Callback)(char*));
 void RegConfigLoadINI(void(*Callback)(char*));
@@ -209,8 +211,11 @@ void RegConfigBlockController(char* param1_string, uint16_t CON_CONFIG, char* pa
 void RegConfigBlockOutput(char* param1_string, uint16_t OUT_CONFIG, char* param2_string, void(*Callback)(char*));
 
 void RegInitSetupAll(void(*Callback)(char*));
+void RegInitSetupBID(uint16_t block_id, void(*Callback)(char*));
 void RegInitValidateAll(void(*Callback)(char*));
+void RegInitValidateBID(uint16_t block_id, void(*Callback)(char*));
 void RegInitDisableAll(void(*Callback)(char*));
+void RegInitDisableBID(uint16_t block_id, void(*Callback)(char*));
 
 void RegSystemReboot(void(*Callback)(char*));
 void RegBlockIDCmdOn(uint16_t block_id, void(*Callback)(char*));

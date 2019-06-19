@@ -37,16 +37,17 @@
 //cool macro for easier string handling
 //#define WriteMessageType(X) WriteMessageType(GetMessageTypeString((X)))
 
+uint8_t VarianceExceedsPercent(int32_t old_val, int32_t new_val, uint8_t thres_pc);
+uint8_t VarianceExceedsAbsolute(int32_t old_val, int32_t new_val, uint16_t thres_abs);
+
 uint8_t DayStrToFlag(uint8_t day_flag[7], const char* day_str);
 char* FFFloatToCString(char* buf, float f);
 char* FlagToDayStr(char* day_str, uint8_t day_flag[7]);
+char* CTimeToISODateTimeString(char *iso_str, time_t t);
+char* CTimeToLocalTimeString(char *t_str, time_t t);
 
-/*
-#ifdef FF_ARDUINO
-String FFFloatString(float f);
-#endif
-*/
-
+TV_TYPE StringToTimeValue(const char* time_str);
+char* TimeValueToTimeString(char *HMSStr, const time_t tv);
 
 
 #endif /* UTILS_H_ */

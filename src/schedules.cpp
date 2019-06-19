@@ -12,7 +12,7 @@
   Includes
 ************************************************/
 #include <build_config.h>
-#include <datetime_ff.h>
+//#include <datetime_ff.h>
 #include <debug_ff.h>
 #include <events.h>
 #include <HAL.h>
@@ -21,6 +21,8 @@
 #include <time.h>
 #include <string.h>
 #include <string_consts.h>
+#include <block_common.h>
+#include <utils.h>
 
 #ifdef FF_SIMULATOR
 #include <stdio.h>
@@ -74,6 +76,7 @@ void ScheduleSetup(BlockNode *b) {
 			break;
 
 		default:
+			EventMsg(SSS, E_ERROR, M_UNKNOWN_BLOCK_TYPE);
 			break;
 	}
 
@@ -118,7 +121,6 @@ void ScheduleOperate(BlockNode *b) {
 	uint8_t target_state = UINT8_INIT;
 	uint8_t today_num = now_tm->tm_wday;
 	uint8_t yesterday_num = ((today_num - 1) + 7) % 7;
-
 
 	switch (b->block_type) {
 		case SCH_START_STOP: {
@@ -264,9 +266,66 @@ void ScheduleOperate(BlockNode *b) {
 			break;
 		}
 		default:
+			EventMsg(SSS, E_ERROR, M_UNKNOWN_BLOCK_TYPE);
 			break;
 	}
 
 }
+
+void ScheduleShow(BlockNode *b, void(Callback(char *))) {
+	char out_str[MAX_MESSAGE_STRING_LENGTH];
+	char fmt_str[MAX_LABEL_LENGTH];
+	char label_str[MAX_LABEL_LENGTH];
+
+	CommonShow(b, Callback);
+
+	strcpy_hal(out_str, F("Schedule:"));
+	Callback(out_str);
+
+	strcpy_hal(out_str, F(" days:         "));
+	FlagToDayStr(label_str, b->settings.sch.days);
+	strcat(out_str, label_str);
+	strcat_hal(out_str, F(" ( "));
+	for (uint8_t i = 0; i < 7; i++) {
+		strcpy_hal(fmt_str, F("%d "));
+		sprintf(label_str, fmt_str, b->settings.sch.days[i]);
+		strcat(out_str, label_str);
+	}
+	strcat_hal(out_str, F(")"));
+	Callback(out_str);
+
+	strcpy_hal(fmt_str, F(" time_start:   %s (%lu)"));
+	TimeValueToTimeString(label_str, b->settings.sch.time_start);
+	sprintf(out_str, fmt_str, label_str, (unsigned long)b->settings.sch.time_start);
+	Callback(out_str);
+
+	if (b->settings.sch.time_end == TV_TYPE_INIT) {
+		strcpy_hal(out_str, F(" time_end:     TV_TYPE_INIT"));
+	} else {
+		strcpy_hal(fmt_str, F(" time_end:     %s (%lu)"));
+		TimeValueToTimeString(label_str, b->settings.sch.time_end);
+		sprintf(out_str, fmt_str, label_str, (unsigned long)b->settings.sch.time_end);
+	}
+	Callback(out_str);
+
+	if(b->settings.sch.time_duration == TV_TYPE_INIT) {
+		strcpy_hal(out_str, F(" time_duration:TV_TYPE_INIT"));
+	} else {
+		strcpy_hal(fmt_str, F(" time_duration:%s (%lu)"));
+		TimeValueToTimeString(label_str, b->settings.sch.time_duration);
+		sprintf(out_str, fmt_str, label_str, (unsigned long)b->settings.sch.time_duration);
+	}
+	Callback(out_str);
+
+	if(b->settings.sch.time_repeat == TV_TYPE_INIT) {
+		strcpy_hal(out_str, F(" time_repeat:  TV_TYPE_INIT"));
+	} else {
+		strcpy_hal(fmt_str, F(" time_repeat:  %s (%lu)"));
+		TimeValueToTimeString(label_str, b->settings.sch.time_repeat);
+		sprintf(out_str, fmt_str, label_str, (unsigned long)b->settings.sch.time_repeat);
+	}
+	Callback(out_str);
+}
+
 
 

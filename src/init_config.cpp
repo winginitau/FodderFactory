@@ -572,6 +572,9 @@ uint8_t ConfigureSYSSetting(BlockNode* block_ptr, uint8_t key_idx, const char* v
 		case SYS_CONFIG_WEEK_START:
 			block_ptr->settings.sys.week_start = DayStringArrayIndex(value_str);
 			break;
+		case SYS_CONFIG_START_DELAY:
+			block_ptr->settings.sys.start_delay = atoi(value_str);
+			break;
 		default:
 			DebugLog(SSS, E_ERROR, M_SYS_BAD_DEF);
 			return 0;
@@ -588,12 +591,13 @@ uint8_t ConfigureINSetting(BlockNode* block_ptr, uint8_t key_idx, const char* va
 		case IN_CONFIG_IF_NUM:
 			block_ptr->settings.in.if_num = atoi(value_str);
 			break;
-		case IN_CONFIG_LOG_RATE: {
-			//tm time_tm;
-			//strptime(value_str, "%H:%M:%S", &time_tm);
-			block_ptr->settings.in.log_rate = StrToTV(value_str);
+		case IN_CONFIG_LOG_RATE:
+			block_ptr->settings.in.log_rate = StringToTimeValue(value_str);
 			break;
-		}
+		case IN_CONFIG_POLL_RATE:
+			block_ptr->settings.in.poll_rate = StringToTimeValue(value_str);
+			break;
+
 		case IN_CONFIG_DATA_UNITS: {
 			block_ptr->settings.in.data_units = UnitStringArrayIndex(value_str);
 			if(block_ptr->settings.in.data_units == 0) {
@@ -690,19 +694,19 @@ uint8_t ConfigureSCHSetting(BlockNode* block_ptr, uint8_t key_idx, const char* v
 			}
 			break;
 		case SCH_CONFIG_TIME_START: {
-			block_ptr->settings.sch.time_start = StrToTV(value_str);
+			block_ptr->settings.sch.time_start = StringToTimeValue(value_str);
 			break;
 		}
 		case SCH_CONFIG_TIME_END: {
-			block_ptr->settings.sch.time_end = StrToTV(value_str);
+			block_ptr->settings.sch.time_end = StringToTimeValue(value_str);
 			break;
 		}
 		case SCH_CONFIG_TIME_DURATION: {
-			block_ptr->settings.sch.time_duration = StrToTV(value_str);
+			block_ptr->settings.sch.time_duration = StringToTimeValue(value_str);
 			break;
 		}
 		case SCH_CONFIG_TIME_REPEAT: {
-			block_ptr->settings.sch.time_repeat = StrToTV(value_str);
+			block_ptr->settings.sch.time_repeat = StringToTimeValue(value_str);
 			break;
 		}
 		default:
@@ -1022,6 +1026,11 @@ void WriteTextBlock(BlockNode *b, SdFile *f, uint8_t reg_only) {
 		strcat_hal(out_str, day_strings[b->settings.sys.week_start].text);
 		HALWriteLine(f, out_str);
 
+		strcpy(out_str, base_str);
+		strcat_hal(out_str, F("start_delay "));
+		sprintf(temp_str, "%s%d", out_str, b->settings.sys.start_delay);
+		HALWriteLine(f, temp_str);
+
 		break;
 
 	case FF_INPUT:
@@ -1037,7 +1046,12 @@ void WriteTextBlock(BlockNode *b, SdFile *f, uint8_t reg_only) {
 
 		strcpy(out_str, base_str);
 		strcat_hal(out_str, F("log_rate "));
-		strcat(out_str, TVToHMSString(hms_str, b->settings.in.log_rate));
+		strcat(out_str, TimeValueToTimeString(hms_str, b->settings.in.log_rate));
+		HALWriteLine(f, out_str);
+
+		strcpy(out_str, base_str);
+		strcat_hal(out_str, F("poll_rate "));
+		strcat(out_str, TimeValueToTimeString(hms_str, b->settings.in.poll_rate));
 		HALWriteLine(f, out_str);
 
 		strcpy(out_str, base_str);
@@ -1096,27 +1110,27 @@ void WriteTextBlock(BlockNode *b, SdFile *f, uint8_t reg_only) {
 
 		strcpy(out_str, base_str);
 		strcat_hal(out_str, F("time_start "));
-		strcat(out_str, TVToHMSString(hms_str, b->settings.sch.time_start));
+		strcat(out_str, TimeValueToTimeString(hms_str, b->settings.sch.time_start));
 		HALWriteLine(f, out_str);
 
 		if (b->settings.sch.time_end != UINT32_INIT) {
 			strcpy(out_str, base_str);
 			strcat_hal(out_str, F("time_end "));
-			strcat(out_str, TVToHMSString(hms_str, b->settings.sch.time_end));
+			strcat(out_str, TimeValueToTimeString(hms_str, b->settings.sch.time_end));
 			HALWriteLine(f, out_str);
 		}
 
 		if (b->settings.sch.time_duration != UINT32_INIT) {
 			strcpy(out_str, base_str);
 			strcat_hal(out_str, F("time_duration "));
-			strcat(out_str, TVToHMSString(hms_str, b->settings.sch.time_duration));
+			strcat(out_str, TimeValueToTimeString(hms_str, b->settings.sch.time_duration));
 			HALWriteLine(f, out_str);
 		}
 
 		if (b->settings.sch.time_repeat != UINT32_INIT) {
 			strcpy(out_str, base_str);
 			strcat_hal(out_str, F("time_repeat "));
-			strcat(out_str, TVToHMSString(hms_str, b->settings.sch.time_repeat));
+			strcat(out_str, TimeValueToTimeString(hms_str, b->settings.sch.time_repeat));
 			HALWriteLine(f, out_str);
 		}
 		break;
@@ -1190,7 +1204,7 @@ void WriteTextBlock(BlockNode *b, SdFile *f, uint8_t reg_only) {
 	}
 }
 
-#ifdef FF_SIMULATOR
+#ifdef RESURRECT_DEPRECIATED
 void WriteBinaryBlock(BlockNode *b, FILE *f, uint8_t _option) {
 	// Called by FileIODispatcher on each block to write their
 	//  config to a binary file
@@ -1257,7 +1271,7 @@ void WriteBinaryBlock(BlockNode *b, FILE *f, uint8_t _option) {
 		break;
 	}
 }
-#endif
+#endif //RESURRECT_DEPRECIATED
 
 #ifdef FF_SIMULATOR
 void FileIODispatcher(void(*func)(BlockNode*, FILE*, uint8_t), FILE* file, uint8_t option) {
@@ -1361,7 +1375,7 @@ void InitConfigSave(void) {
 
 }
 
-
+#ifdef RESURRECT_DEPRECIATED
 void InitConfigSaveBinary(void) {
 	// Write the running config (block list) to a binary file which can be
 	//  more efficiently ingested in an avr environment by not needing the
@@ -1382,6 +1396,7 @@ void InitConfigSaveBinary(void) {
 		EventMsg(SSS, E_INFO, M_BIN_SAVE_NOT_AVAIL);
 	#endif
 }
+#endif //RESURRECT_DEPRECIATED
 
 /*
 2019-06-15 - INI Config Depreciated

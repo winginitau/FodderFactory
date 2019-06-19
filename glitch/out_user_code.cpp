@@ -5,8 +5,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-extern ITCH itch;
-
 void ShowBlocks(void) {
 	RegShowBlocks(WriteLineCallback);
 }
@@ -47,8 +45,8 @@ void SetDate(char* param1_date) {
 	RegSetDate(param1_date, WriteLineCallback);
 }
 
-void ConfigReset(void) {
-	RegConfigReset(WriteLineCallback);
+void ConfigClear(void) {
+	RegConfigClear(WriteLineCallback);
 }
 
 void ConfigLoad(void) {
@@ -91,12 +89,24 @@ void InitSetupAll(void) {
 	RegInitSetupAll(WriteLineCallback);
 }
 
+void InitSetupBID(int16_t param1_int) {
+	RegInitSetupBID(param1_int, WriteLineCallback);
+}
+
 void InitValidateAll(void) {
 	RegInitValidateAll(WriteLineCallback);
 }
 
+void InitValidateBID(int16_t param1_int) {
+	RegInitValidateBID(param1_int, WriteLineCallback);
+}
+
 void InitDisableAll(void) {
 	RegInitDisableAll(WriteLineCallback);
+}
+
+void InitDisableBID(int16_t param1_int) {
+	RegInitDisableBID(param1_int, WriteLineCallback);
 }
 
 void SystemReboot(void) {

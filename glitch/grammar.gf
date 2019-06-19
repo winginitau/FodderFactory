@@ -92,6 +92,7 @@ typedef union {
 FF_ERROR_CAT        "ERROR_CAT"
 FF_GENERIC_BLOCK    "GENERIC"
 FF_SYSTEM           "SYSTEM"
+FF_INTERFACE        "INTERFACE"
 FF_INPUT            "INPUT"
 FF_MONITOR          "MONITOR" 
 FF_SCHEDULE         "SCHEDULE"
@@ -109,6 +110,7 @@ BT_ERROR                    "BT_ERROR"
 SYS_SYSTEM                  "SYS_SYSTEM"
 IN_ONEWIRE                  "IN_ONEWIRE"
 IN_DIGITAL                  "IN_DIGITAL"
+IN_VEDIRECT                 "IN_VEDIRECT"
 MON_CONDITION_LOW           "MON_CONDITION_LOW"
 MON_CONDITION_HIGH          "MON_CONDITION_HIGH"
 MON_AVERAGE_CONDITION_LOW   "MON_AVERAGE_CONDITION_LOW"
@@ -147,13 +149,40 @@ UNIT_ERROR      "UnitTypeError"
 CELSIUS         "Celsius",
 FAHRENHEIT      "Fahrenheit",
 KELVIN          "Kelvin",
-REL_HUM         "Relative Humidity",
-CUBIC_M         "Cubic Metres",
-LITRES          "litres",
-PPM             "Parts per Million",
-ONOFF           "ONOFF",
-RPM             "Revolutions per Minute"
+REL_HUM         "RelativeHumidity%",
+CUBIC_M         "MetresCubed",
+LITRES          "Litres",
+PPM             "PartsPerMillion",
+ONOFF           "BinaryOnOff",
+RPM             "RevolutionsPerMinute"
+MILLI_VOLTS     "MilliVolts"
+VOLTS           "Volts"
+WATTS           "Watts"
+DECI_PERCENT    "DeciPercent
+PERCENT         "Percent"
 LAST_UNIT
+%enum-end
+
+%#------------------------------------ UNITS ABBREVIATIONS ----------
+%enum-identifier UNIT_ABBR_STRINGS
+%enum-array-instance unit_abbr_strings
+%enum-start
+ABBR_UNIT_ERROR      "UnitAbbrTypeError"
+ABBR_CELSIUS         "°C",
+ABBR_FAHRENHEIT      "°F",
+ABBR_KELVIN          "°K",
+ABBR_REL_HUM         "%",
+ABBR_CUBIC_M         "m3",
+ABBR_LITRES          "l",
+ABBR_PPM             "PPM",
+ABBR_ONOFF           "ONOFF",
+ABBR_RPM             "RPM"
+ABBR_MILLI_VOLTS     "mV"
+ABBR_VOLTS           "V"
+ABBR_WATTS           "W"
+ABBR_DECI_PERCENT    "deci%
+ABBR_PERCENT         "%"
+LAST_UNIT_ABBR
 %enum-end
 
 %#------------------------------------ DAYS of WEEK --------------------
@@ -183,6 +212,7 @@ IF_ONEWIRE          "ONEWIRE"
 IF_DIG_PIN_IN       "DIG_PIN_IN"
 IF_DIG_PIN_OUT      "DIG_PIN_OUT"
 IF_SYSTEM_FUNCTION  "SYSTEM_FUNCTION"
+IF_VEDIRECT         "IF_VEDIRECT"
 LAST_INTERFACE
 %enum-end
 
@@ -213,6 +243,7 @@ SYS_CONFIG_DESCRIPTION  "description"
 SYS_CONFIG_LANGUAGE     "language"
 SYS_CONFIG_TEMP_SCALE   "temp_scale"
 SYS_CONFIG_WEEK_START   "week_start"
+SYS_CONFIG_START_DELAY  "start_delay"
 LAST_SYS_CONFIG
 %enum-end
 
@@ -226,6 +257,7 @@ IN_CONFIG_DESCRIPTION   "description"
 IN_CONFIG_INTERFACE     "interface"
 IN_CONFIG_IF_NUM        "if_num"
 IN_CONFIG_LOG_RATE      "log_rate"
+IN_CONFIG_POLL_RATE     "poll_rate"
 IN_CONFIG_DATA_UNITS    "data_units"
 IN_CONFIG_DATA_TYPE     "data_type"
 LAST_IN_CONFIG
@@ -374,11 +406,12 @@ LAST_OUT_CONFIG
 %3 param-date
 %action SET_DATE
 
-%action-define CONFIG_RESET ConfigReset
+%action-define CONFIG_CLEAR ConfigClear
 %action-define CONFIG_LOAD ConfigLoad
+%action-define CONFIG_SAVE ConfigSave
+
 %#action-define CONFIG_LOAD_BINARY ConfigLoadBinary
 %#action-define CONFIG_LOAD_INI ConfigLoadINI
-%action-define CONFIG_SAVE ConfigSave
 %#action-define CONFIG_SAVE_BINARY ConfigSaveBinary
 
 %action-define CONFIG_BLOCK_SYSTEM ConfigBlockSystem
@@ -392,8 +425,8 @@ LAST_OUT_CONFIG
 %# ----Config Commands---------------------------------------------------
  
 %1 keyword CONFIG
-%2 keyword RESET
-%action CONFIG_RESET
+%2 keyword CLEAR
+%action CONFIG_CLEAR
 %2 keyword LOAD
 %action CONFIG_LOAD
 %2 keyword SAVE
@@ -473,18 +506,29 @@ LAST_OUT_CONFIG
 %action-define INIT_VALIDATE_ALL InitValidateAll
 %action-define INIT_DISABLE_ALL InitDisableAll
 
+%action-define INIT_SETUP_BID InitSetupBID
+%action-define INIT_VALIDATE_BID InitValidateBID
+%action-define INIT_DISABLE_BID InitDisableBID
+
 %1 keyword INIT
+
 %2 keyword SETUP
 %3 keyword ALL
 %action INIT_SETUP_ALL
+%3 param-integer
+%action INIT_SETUP_BID
 
 %2 keyword VALIDATE
 %3 keyword ALL
 %action INIT_VALIDATE_ALL
+%3 param-integer
+%action INIT_VALIDATE_BID
 
 %2 keyword DISABLE
 %3 keyword ALL
 %action INIT_DISABLE_ALL
+%3 param-integer
+%action INIT_DISABLE_BID
 
 %#action-define DISABLE_BLOCK_CAT_N BlockDisableByBlockCatN
 %#action-define DISABLE_BLOCK_LABEL BlockDisableByLabel

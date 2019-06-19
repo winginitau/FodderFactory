@@ -18,6 +18,8 @@
 #include <monitors.h>
 #include <registry.h>
 #include <string_consts.h>
+#include <block_common.h>
+#include <utils.h>
 
 #ifdef FF_SIMULATOR
 #include <stdio.h>
@@ -72,6 +74,7 @@ void MonitorSetup(BlockNode *b) {
 			break;
 
 		default:
+			EventMsg(SSS, E_ERROR, M_UNKNOWN_BLOCK_TYPE);
 			break;
 	}
 
@@ -218,6 +221,7 @@ void MonitorOperate(BlockNode *b) {
 			break;
 		}
 		default:
+			EventMsg(SSS, E_ERROR, M_UNKNOWN_BLOCK_TYPE);
 			break;
 	}
 	if(b->status != start_status) {
@@ -232,5 +236,63 @@ void MonitorOperate(BlockNode *b) {
 #endif
 		DebugLog(debug_msg);
 	}
+}
+
+void MonitorShow(BlockNode *b, void(Callback(char *))) {
+	char out_str[MAX_MESSAGE_STRING_LENGTH];
+	char fmt_str[MAX_LABEL_LENGTH];
+	char label_str[MAX_LABEL_LENGTH];
+	const char* label_ptr;
+
+	CommonShow(b, Callback);
+
+	strcpy_hal(out_str, F("Monitor:"));
+	Callback(out_str);
+
+	if (b->settings.mon.input1 == BLOCK_ID_INIT) {
+		strcpy_hal(out_str, F(" input1:       BLOCK_ID_INIT"));
+	} else {
+		strcpy_hal(fmt_str, F(" input1:       %s (%d)"));
+		label_ptr = GetBlockLabelString(b->settings.mon.input1);
+		sprintf(out_str, fmt_str, label_ptr, b->settings.mon.input1);
+	}
+	Callback(out_str);
+
+	if (b->settings.mon.input2 == BLOCK_ID_INIT) {
+		strcpy_hal(out_str, F(" input2:       BLOCK_ID_INIT"));
+	} else {
+		strcpy_hal(fmt_str, F(" input2:       %s (%d)"));
+		label_ptr = GetBlockLabelString(b->settings.mon.input2);
+		sprintf(out_str, fmt_str, label_ptr, b->settings.mon.input2);
+	}
+	Callback(out_str);
+
+	if (b->settings.mon.input3 == BLOCK_ID_INIT) {
+		strcpy_hal(out_str, F(" input3:       BLOCK_ID_INIT"));
+	} else {
+		strcpy_hal(fmt_str, F(" input3:       %s (%d)"));
+		label_ptr = GetBlockLabelString(b->settings.mon.input3);
+		sprintf(out_str, fmt_str, label_ptr, b->settings.mon.input3);
+	}
+	Callback(out_str);
+
+	if (b->settings.mon.input4 == BLOCK_ID_INIT) {
+		strcpy_hal(out_str, F(" input4:       BLOCK_ID_INIT"));
+	} else {
+		strcpy_hal(fmt_str, F(" input4:       %s (%d)"));
+		label_ptr = GetBlockLabelString(b->settings.mon.input4);
+		sprintf(out_str, fmt_str, label_ptr, b->settings.mon.input4);
+	}
+	Callback(out_str);
+
+	FFFloatToCString(label_str, b->settings.mon.act_val);
+	strcpy_hal(fmt_str, F(" act_val:      %s"));
+	sprintf(out_str, fmt_str, label_str);   //float
+	Callback(out_str);
+
+	FFFloatToCString(label_str, b->settings.mon.deact_val);
+	strcpy_hal(fmt_str, F(" deact_val:    %s"));
+	sprintf(out_str, fmt_str, label_str);  //float
+	Callback(out_str);
 
 }

@@ -24,12 +24,13 @@ void InitSystem(void);
 
 void ConfigParse(char* buf);
 void InitConfigLoad(uint8_t);
-void InitConfigLoadINI(void);
-void InitConfigLoadBinary(void);
 
 void InitConfigSave(void);
+#ifdef RESURRECT_DEPRECIATED
 void InitConfigSaveBinary(void);
-
+void InitConfigLoadINI(void);
+void InitConfigLoadBinary(void);
+#endif
 uint8_t ConfigureBlock(uint8_t block_cat, const char *block_label, const char *key_str, const char *value_str);
 
 

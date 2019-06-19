@@ -16,6 +16,7 @@
 #include <outputs.h>
 #include <registry.h>
 #include <string_consts.h>
+#include <block_common.h>
 
 #ifdef FF_SIMULATOR
 #include <string.h>
@@ -59,7 +60,8 @@ void OutputSetup(BlockNode *b) {
 			break;
 		}
 		default:
-			;
+			EventMsg(SSS, E_ERROR, M_UNKNOWN_BLOCK_TYPE);
+			break;
 	}
 
 
@@ -100,8 +102,38 @@ void OutputOperate(BlockNode *b) {
 			break;
 		}
 		default:
+			EventMsg(SSS, E_ERROR, M_UNKNOWN_BLOCK_TYPE);
 			break;
 	}
 
+}
+
+void OutputShow(BlockNode *b, void(Callback(char *))) {
+	char out_str[MAX_MESSAGE_STRING_LENGTH];
+	char fmt_str[MAX_LABEL_LENGTH];
+	char label_str[MAX_LABEL_LENGTH];
+
+	CommonShow(b, Callback);
+
+	strcpy_hal(out_str, F("Output:"));
+	Callback(out_str);
+
+	strcpy_hal(fmt_str, F(" interface:    %s (%d)"));
+	strcpy_hal(label_str, interface_strings[b->settings.out.interface].text);
+	sprintf(out_str, fmt_str, label_str, b->settings.out.interface);
+	Callback(out_str);
+
+	strcpy_hal(fmt_str, F(" if_num:       %d"));
+	sprintf(out_str, fmt_str, b->settings.out.if_num);
+	Callback(out_str);
+
+	if (b->settings.out.command == CMD_INIT) {
+		strcpy_hal(out_str, F(" command:      CMD_INIT"));
+	} else {
+		strcpy_hal(fmt_str, F(" command:      %s (%d)"));
+		strcpy_hal(label_str, command_strings[b->settings.out.command].text);
+		sprintf(out_str, fmt_str, label_str, b->settings.out.command);
+	}
+	Callback(out_str);
 }
 

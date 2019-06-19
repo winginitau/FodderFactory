@@ -1,5 +1,4 @@
 /******************************************************************
-
  glitch - Grammar Lexer and Interactive Terminal Command sHell
 
  Copyright 2018, 2019, Brendan McLearie

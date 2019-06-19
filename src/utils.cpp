@@ -18,10 +18,12 @@
 #include <string.h>
 #include <string_consts.h>
 #include <utils.h>
+#include <debug_ff.h>
 
 #ifdef FF_SIMULATOR
 #include <stdint.h>
 #include <stdio.h>
+#include <time.h>
 #endif
 
 /************************************************
@@ -37,6 +39,26 @@
 /************************************************
   Utility and System Functions
 ************************************************/
+
+uint8_t VarianceExceedsPercent(int32_t old_val, int32_t new_val, uint8_t thres_pc) {
+	int32_t var_abs;
+	int32_t thres_abs;
+	var_abs = old_val - new_val;
+	var_abs = var_abs * ((var_abs > 0) - (var_abs < 0));
+
+	thres_abs = old_val * thres_pc / 100;
+	thres_abs = thres_abs * ((thres_abs > 0) - (thres_abs < 0));
+
+	return (var_abs > thres_abs);
+}
+
+uint8_t VarianceExceedsAbsolute(int32_t old_val, int32_t new_val, uint16_t thres_abs) {
+	int32_t var_abs;
+	var_abs = old_val - new_val;
+	var_abs = var_abs * ((var_abs > 0) - (var_abs < 0));
+	return (var_abs > thres_abs);
+}
+
 
 char* FlagToDayStr(char* day_str, uint8_t day_flag[7]) {
 	uint8_t count = 0;
@@ -158,6 +180,61 @@ char* FFFloatToCString(char* buf, float f) {
 	return buf;
 }
 #endif
+
+char* CTimeToISODateTimeString(char *iso_str, time_t t) {
+	char ymd_str[14];
+	char hms_str[12];
+	char fmt_str[9];
+
+	strcpy_hal(fmt_str, F("%Y-%m-%d"));
+	strftime(ymd_str, 14, fmt_str, localtime(&(t)));
+	strcpy_hal(fmt_str, F("%H:%M:%S"));
+	strftime(hms_str, 12, fmt_str, localtime(&(t)));
+
+	strcpy_hal(fmt_str, F("%s, %s"));
+	sprintf(iso_str, fmt_str, ymd_str, hms_str);
+
+	return iso_str;
+}
+
+char* CTimeToLocalTimeString(char *t_str, time_t t) {
+	char hms_str[12];
+	char fmt_str[9];
+
+	strcpy_hal(fmt_str, F("%H:%M:%S"));
+	strftime(hms_str, 12, fmt_str, localtime(&(t)));
+
+	strcpy_hal(fmt_str, F("%s"));
+	sprintf(t_str, fmt_str, hms_str);
+
+	return t_str;
+}
+
+TV_TYPE StringToTimeValue(const char* time_str) {
+	int hh, mm, ss;
+	TV_TYPE tv = 0;
+	char fmt_str[10];
+
+	strcpy_hal(fmt_str, F("%d:%d:%d"));
+	if (sscanf(time_str, fmt_str, &hh, &mm, &ss) == 3) {
+		tv = ss + (mm * 60) + (hh * 60 * 60);
+		return tv;
+	} else {
+		DebugLog(SSS, E_WARNING, M_BAD_TIME_STR);
+		tv = UINT32_INIT;
+		return tv;
+	}
+}
+
+char* TimeValueToTimeString(char *HMSStr, const time_t tv) {
+	//char hms_str[12];
+	char fmt_str[9];
+	strcpy_hal(fmt_str, F("%H:%M:%S"));
+	//strftime(HMSStr, 12, fmt_str, localtime(&tv));
+	strftime(HMSStr, 12, fmt_str, gmtime(&tv));
+	return HMSStr;
+}
+
 
 
 /*

@@ -14,7 +14,7 @@
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="rm -rf" description="" id="cdt.managedbuild.config.gnu.exe.debug.591242930" name="Glitch_Debug" parent="cdt.managedbuild.config.gnu.exe.debug">
+				<configuration artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="rm -rf" description="" id="cdt.managedbuild.config.gnu.exe.debug.591242930" name="Glitch_Debug" optionalBuildProperties="org.eclipse.cdt.docker.launcher.containerbuild.property.selectedvolumes=,org.eclipse.cdt.docker.launcher.containerbuild.property.volumes=" parent="cdt.managedbuild.config.gnu.exe.debug">
 					<folderInfo id="cdt.managedbuild.config.gnu.exe.debug.591242930." name="/" resourcePath="">
 						<toolChain id="cdt.managedbuild.toolchain.gnu.exe.debug.1058904073" name="Linux GCC" superClass="cdt.managedbuild.toolchain.gnu.exe.debug">
 							<targetPlatform id="cdt.managedbuild.target.gnu.platform.exe.debug.677011244" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.exe.debug"/>
@@ -48,12 +48,12 @@
 							</tool>
 						</toolChain>
 					</folderInfo>
+					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.591242930.885886826" name="bucket" rcbsApplicability="disable" resourcePath="bucket" toolsToInvoke=""/>
 					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.591242930.814984138" name="grammar.orig" rcbsApplicability="disable" resourcePath="grammar.orig" toolsToInvoke=""/>
 					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.591242930.1121905564" name="out_bak.h" rcbsApplicability="disable" resourcePath="out_bak.h" toolsToInvoke=""/>
+					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.591242930.2082700135" name="ICLI.h" rcbsApplicability="disable" resourcePath="ICLI.h" toolsToInvoke=""/>
 					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.591242930.395547140" name="grammar.gf.good" rcbsApplicability="disable" resourcePath="grammar.gf.good" toolsToInvoke=""/>
 					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.591242930.1761366611" name="grammar.wip" rcbsApplicability="disable" resourcePath="grammar.wip" toolsToInvoke=""/>
-					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.591242930.885886826" name="bucket" rcbsApplicability="disable" resourcePath="bucket" toolsToInvoke=""/>
-					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.591242930.2082700135" name="ICLI.h" rcbsApplicability="disable" resourcePath="ICLI.h" toolsToInvoke=""/>
 					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.591242930.1372270318" name="LICENSE.txt" rcbsApplicability="disable" resourcePath="LICENSE.txt" toolsToInvoke=""/>
 					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.591242930.289875843" name="grammar.gf" rcbsApplicability="disable" resourcePath="grammar.gf.min" toolsToInvoke=""/>
 					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.591242930.1373193506" name="NodeMap.h" rcbsApplicability="disable" resourcePath="NodeMap.h" toolsToInvoke=""/>
@@ -61,7 +61,7 @@
 					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.591242930.1753549864" name="MapNode.h" rcbsApplicability="disable" resourcePath="MapNode.h" toolsToInvoke=""/>
 					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.591242930.349307985" name="grammar.running" rcbsApplicability="disable" resourcePath="grammar.running" toolsToInvoke=""/>
 					<sourceEntries>
-						<entry excluding="LICENSE.txt|grammar.gf.good|grammar.wip|grammar.running|grammar.orig|grammar.gf|hf_temp|out_user_code2.cpp.bak|out_user_code2_backup.cpp|out_user_code_bak.cpp|out_bak.h|out_bak.cpp|out_user_code.cpp|out.h|out.cpp|processor_out.cpp|processor_out.c|MapNode.cpp|MapNode.h|NodeMap.cpp|NodeMap.h|Parser.cpp|Parser.h|ICLI.h|ICLI.cpp|processor_out.h|icli_test.cpp|ff_sys_config.h|icli.cpp|ff_string_consts.h|ff_string_consts.cpp|bucket" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="grammar.gf.min|LICENSE.txt|grammar.gf.good|grammar.wip|grammar.running|grammar.orig|grammar.gf|hf_temp|out_user_code2.cpp.bak|out_user_code2_backup.cpp|out_user_code_bak.cpp|out_bak.h|out_bak.cpp|out_user_code.cpp|out.h|out.cpp|processor_out.cpp|processor_out.c|MapNode.cpp|MapNode.h|NodeMap.cpp|NodeMap.h|Parser.cpp|Parser.h|ICLI.h|ICLI.cpp|processor_out.h|icli_test.cpp|ff_sys_config.h|icli.cpp|ff_string_consts.h|ff_string_consts.cpp|bucket" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>

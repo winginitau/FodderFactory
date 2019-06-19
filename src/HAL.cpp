@@ -79,16 +79,15 @@ U8G2_ST7920_128X64_1_SW_SPI lcd_128_64(U8G2_R0, /* clock=*/ 40 /* A4 */ , /* dat
 //U8X8_ST7920_128X64_SW_SPI u8x8(40, 42, 44, U8X8_PIN_NONE);
 #endif
 
-RTC_DS1307 rtc;
+RTC_DS1307 rtc;				// Global singleton
 unsigned long g_last_milli_val;	// used to pad calls to TimeNow so that the RTC isn't smashed
-//DateTime g_last_rtc_DT;
 time_t g_epoch_time;
 #endif
 
 uint8_t rtc_status = 0;		// assume dead until we can find it and talk to it
 
 #ifdef USE_ITCH
-ITCH itch;
+ITCH itch;					// Global singleton
 #endif
 
 #ifdef FF_ARDUINO
@@ -103,119 +102,9 @@ ITCH itch;
  Functions
 ************************************************/
 
+
+
 #if defined VE_DIRECT && defined FF_ARDUINO
-uint8_t HALVEDirectInit(void) {
-	// XXX hack for energy monitoring
-	Serial3.begin(19200);
-	if (Serial3) {
-		delay(500);
-		if(Serial3.available()) {
-			Serial3.flush();
-			Serial3.end();
-			return 1;
-		}
-	}
-	return 0;
-}
-
-int32_t HALReadVEData(uint16_t data_type) {
-	// XXX remove hard coding of serial port
-
-	int32_t ret = INT32_INIT;
-	char VE_line[MAX_LABEL_LENGTH];
-	//char temp_str[MAX_LABEL_LENGTH];
-	char* label;
-	char* value;
-	uint8_t buf_idx = 0;
-
-	const char delim[2] = "\t";
-	// state machine
-	uint8_t block_count = 0;
-	uint8_t cr = 0;
-	uint8_t checksum = 0;
-	uint8_t b;
-	//int16_t loop_count = 0;
-
-	Serial3.begin(19200);
-
-	if (Serial3) {
-
-		while (block_count < 3) {	// BMV transmits 2x blocks to deliver all data - read 3 to make sure we get all values
-
-			if (Serial3.available()) {
-				b = Serial3.read();
-				switch (b) {
-					case '\n':  // start of newline - reset buffer
-						cr = 0;
-						VE_line[0] = '\0';
-						buf_idx = 0;
-						break;
-					case '\r': // eol - terminate the buffer
-						cr = 1;
-						VE_line[buf_idx] = '\0';
-						buf_idx++;
-						break;
-					default: // Check special case "Checksum" or throw it in the buffer
-						if (checksum) {
-							//TODO: ignore it and preceding tab for now, assume eol, reset and inc block_count
-							if (b != '\t') {
-								cr = 0;
-								VE_line[0] = '\0';
-								buf_idx = 0;
-								block_count++;
-								checksum = 0;
-							}
-						} else {
-							cr = 0;
-							//nl = 0;
-							VE_line[buf_idx] = b;
-							buf_idx++;
-							if (strncmp(VE_line, "Checksum", 8) == 0) {
-								checksum = 1;
-							}
-						}
-				}
-			}
-			if (cr && buf_idx) { // whole line in buffer
-				label = strtok(VE_line, delim);
-				value = strtok(0, delim);
-
-				switch (data_type) {
-					case M_VE_SOC:
-						if (strcmp(label, "SOC") == 0) {
-							//ret = atoi(value);
-							sscanf(value, "%ld", &ret);
-							return ret;
-						}
-						break;
-					case M_VE_VOLTAGE:
-						if (strcmp(label, "V") == 0) {
-							sscanf(value, "%ld", &ret);
-							return ret;
-						}
-						break;
-					case M_VE_POWER:
-						if (strcmp(label, "P") == 0) {
-							sscanf(value, "%ld", &ret);
-							return ret;
-						}
-						break;
-					case M_VE_CURRENT:
-						if (strcmp(label, "I") == 0) {
-							sscanf(value, "%ld", &ret);
-							return ret;
-						}
-						break;
-					default:
-						break;
-				}
-			}
-		}
-		Serial3.flush();
-		Serial3.end();
-	}
-	return ret;
-}
 #endif //VE_DIRECT
 
 

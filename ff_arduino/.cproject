@@ -12,7 +12,7 @@
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration artifactName="${ProjName}" buildProperties="" description="" id="io.sloeber.core.toolChain.release.1923527009" name="Release" optionalBuildProperties="" parent="org.eclipse.cdt.build.core.emptycfg">
+				<configuration artifactName="${ProjName}" buildProperties="" description="" id="io.sloeber.core.toolChain.release.1923527009" name="Release" optionalBuildProperties="org.eclipse.cdt.docker.launcher.containerbuild.property.volumes=,org.eclipse.cdt.docker.launcher.containerbuild.property.selectedvolumes=" parent="org.eclipse.cdt.build.core.emptycfg">
 					<folderInfo id="io.sloeber.core.toolChain.release.1923527009.337879387" name="/" resourcePath="">
 						<toolChain id="io.sloeber.core.toolChain.release.303432458" name="Arduino Toolchain (Sloeber edition)" superClass="io.sloeber.core.toolChain.release">
 							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="io.sloeber.targetplatform.525799772" name="Arduino Target" osList="all" superClass="io.sloeber.targetplatform"/>
@@ -30,6 +30,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/SPI/src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/Wire/src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/SdFat/src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/VictronVEDirectArduino}&quot;"/>
 								</option>
 								<inputType id="io.sloeber.compiler.cpp.sketch.input.1479664372" name="CPP source files" superClass="io.sloeber.compiler.cpp.sketch.input"/>
 							</tool>
@@ -46,6 +47,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/SPI/src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/Wire/src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/SdFat/src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/VictronVEDirectArduino}&quot;"/>
 								</option>
 								<inputType id="io.sloeber.compiler.c.sketch.input.951723203" name="C Source Files" superClass="io.sloeber.compiler.c.sketch.input"/>
 							</tool>
@@ -62,6 +64,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/SPI/src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/Wire/src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/SdFat/src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/VictronVEDirectArduino}&quot;"/>
 								</option>
 								<inputType id="io.sloeber.compiler.S.sketch.input.1581110193" name="Assembly source files" superClass="io.sloeber.compiler.S.sketch.input"/>
 							</tool>
@@ -87,14 +90,17 @@
 					<fileInfo id="io.sloeber.core.toolChain.release.1923527009.309059592" name="out.h" rcbsApplicability="disable" resourcePath="glitch/out.h" toolsToInvoke=""/>
 					<fileInfo id="io.sloeber.core.toolChain.release.1923527009.474712256" name="IniFile_ff.h" rcbsApplicability="disable" resourcePath="src/IniFile_ff.h" toolsToInvoke=""/>
 					<sourceEntries>
-						<entry excluding="libraries/RTClib/1.2.0.mod|libraries/DallasTemperature/3.7.6.mod|libraries/SD/.github|libraries/OneWire/util|itch|glitch|src|libraries/?*/**/?xamples/**|libraries/?*/**/?xtras/**|libraries/?*/**/test*/**|libraries/?*/**/third-party/**|libraries/**/._*|libraries/?*/utility/*/*" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="VictronVEDirectArduino|libraries/RTClib/1.2.0.mod|libraries/DallasTemperature/3.7.6.mod|libraries/SD/.github|libraries/OneWire/util|itch|glitch|src|libraries/?*/**/?xamples/**|libraries/?*/**/?xtras/**|libraries/?*/**/test*/**|libraries/?*/**/third-party/**|libraries/**/._*|libraries/?*/utility/*/*" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="sloeber.ino.cpp|example.ino" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="VictronVEDirectArduino"/>
 						<entry excluding="out_user_code2.cpp.bak|gmon.out|grammar.gf|conf_term_grammar_wip.txt|command_syntax.txt|code_template.ct|bucket|hf_temp|LineBuffer.h|LineBuffer.cpp|Lexer.h|KeyValuePairList.h|Lexer.cpp|KeyValuePairList.cpp|Identifiers.h|Identifiers.cpp|Identifier.h|glitch.cpp|Identifier.cpp|glitch_errors.h|glitch_config.h|Debug.h|Debug.cpp|config.h|ASTNode.h|ASTNode.cpp|AST.h|AST.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="glitch"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="itch"/>
 						<entry excluding="bucket.cpp|IniFile_ff.h|IniFile_ff.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
-			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
+			<storageModule moduleId="org.eclipse.cdt.core.externalSettings">
+				<externalSettings containerId="VictronVEDirectArduino;" factoryId="org.eclipse.cdt.core.cfg.export.settings.sipplier"/>
+			</storageModule>
 			<storageModule moduleId="ilg.gnuarmeclipse.managedbuild.packs"/>
 		</cconfiguration>
 	</storageModule>

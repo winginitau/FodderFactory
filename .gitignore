@@ -33,11 +33,11 @@
 *.app
 
 # Eclispe Project Files
-#.project
-#.pydevproject
-#.gitignore.swp
-#.cproject
-#.settings
+.project
+.pydevproject
+.gitignore.swp
+.cproject
+.settings
 
 # Eclipse Build Directories
 

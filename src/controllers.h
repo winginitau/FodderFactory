@@ -28,6 +28,7 @@
 
 void ControllerSetup(BlockNode *b);
 void ControllerOperate(BlockNode *b);
+void ControllerShow(BlockNode *b, void(Callback(char *)));
 
 
 #endif /* SRC_FF_CONTROLLERS_H_ */

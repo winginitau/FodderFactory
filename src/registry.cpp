@@ -11,6 +11,7 @@
  Includes
 ************************************************/
 #include <build_config.h>
+#include <system.h>
 #include <controllers.h>
 #include <debug_ff.h>
 #include <display.h>
@@ -26,6 +27,8 @@
 #include <string_consts.h>
 #include <time.h>
 #include <utils.h>
+#include <block_common.h>
+
 
 #ifndef FF_ARDUINO
 #include <stdio.h>
@@ -42,12 +45,6 @@
 /************************************************
  Data Structures
 ************************************************/
-
-//typedef struct BLOCK_TYPE {
-//	char label[MAX_LABEL_LENGTH];
-//	uint8_t active;
-//} Block;
-
 
 typedef struct FF_STATE_REGISTER {
 	//system config and flags
@@ -66,17 +63,8 @@ typedef struct FF_STATE_REGISTER {
 ************************************************/
 
 static FFStateRegister sr;
-static uint16_t block_count = 0;
-static BlockNode *bll = NULL;		//Block Linked List - variant record block list
-
-// XXX HACK VE Direct
-time_t VE_last_polled;
-time_t VE_last_logged;
-TV_TYPE VE_log_rate;
-TV_TYPE VE_poll_rate;
-int32_t VE_soc, VE_power;
-int32_t VE_voltage, VE_current;
-uint8_t VE_status;
+static uint16_t block_count = 0;	// Increments to assign block_id. TODO remove once static BIDs is implemented
+static BlockNode *bll = NULL;		// Block Linked List - variant record block list
 
 /************************************************
  Functions
@@ -96,33 +84,10 @@ void Setup(BlockNode *b) {
 
 	switch (b->block_cat) {
 	case FF_SYSTEM:
-		//EventMsg(SSS, E_DEBUG_MSG, M_SYS_HEART_BEAT);
-		//HALInitItch(); // moved to head file - needs to start first
-		#ifdef FF_ARDUINO
-		#ifdef FF_RPI_START_DELAY
-			delay(FF_RPI_START_DELAY); //XXX kludge to allow the rpi to boot and establish ppp to the controller before sending data
-		#endif
-		#endif
-
 		#ifdef UI_ATTACHED
 		UpdateUI();
 		#endif //UI_ATTACHED
-
-		#if defined VE_DIRECT && defined FF_ARDUINO
-		// XXX VE Hack
-		if (HALVEDirectInit()) {
-			VE_last_logged = TimeNow();
-			VE_last_polled = TV_TYPE_INIT;
-			VE_log_rate = VE_LOG_RATE;
-			VE_poll_rate = VE_POLL_RATE;
-			VE_status = STATUS_ENABLED_INIT;
-			EventMsg(SSS, E_INFO, M_VE_INIT);
-		} else {
-			VE_status = STATUS_DISABLED_ERROR;
-			EventMsg(SSS, E_ERROR, M_VE_INIT_ERROR);
-
-		}
-		#endif //VE_DIRECT
+		SystemSetup(b);
 		break;
 	case FF_INPUT:
 		if (b->status == STATUS_DISABLED_INIT) {
@@ -132,35 +97,6 @@ void Setup(BlockNode *b) {
 		}
 		break;
 	case FF_MONITOR:
-
-		// Hack to tweak MON_TOP_HOT
-		// 	deact from 21.4 to 20.5 to bring cold night time bottom up via circ
-		//	act from 21.8 to 21.5 to bring top down overall
-		// ***watch for exh race condition
-		//if(strcmp_hal(b->block_label, F("MON_TOP_HOT")) == 0) {
-		//	b->settings.mon.deact_val = 20.5;
-		//	b->settings.mon.act_val = 21.5;
-		//	EventMsg(SSS, E_WARNING, M_HACK_MON_TOP_HOT);
-		//}
-
-		// Hack to tweak MON_OUT_WARM to activate cold water
-		//	act from 21.00 to 16.50 to limit top overheat during day
-		// 	deact from 20.90 to 16.40
-		if(strcmp_hal(b->block_label, F("MON_OUT_WARM")) == 0) {
-			b->settings.mon.act_val = 16.50;
-			b->settings.mon.deact_val = 16.40;
-			EventMsg(SSS, E_WARNING, M_HACK_MON_OUT_WARM);
-		}
-
-		// Hack to tweak MON_BOT_COLD
-		// deact from 20.60 to 19.50
-		// fix CIRC running too long while top stays too hot
-		if(strcmp_hal(b->block_label, F("MON_BOT_COLD")) == 0) {
-			b->settings.mon.deact_val = 19.50;
-			//b->settings.mon.act_val = 18.00;
-			EventMsg(SSS, E_WARNING, M_HACK_MON_BOT_COLD);
-		}
-
 		if (b->status == STATUS_DISABLED_INIT) {
 			MonitorSetup(b);
 		} else {
@@ -168,17 +104,6 @@ void Setup(BlockNode *b) {
 		}
 		break;
 	case FF_SCHEDULE: {
-
-		//Hack to adjust boost run time
-		if(strcmp_hal(b->block_label, F("SCH_WATER_TOP_COLD")) == 0) {
-			b->settings.sch.time_duration = 30;
-			EventMsg(SSS, E_WARNING, M_HACK_SCH_WATER_TOP_COLD);
-		}
-		if(strcmp_hal(b->block_label, F("SCH_WATER_BOT_COLD")) == 0) {
-			b->settings.sch.time_duration = 60;
-			EventMsg(SSS, E_WARNING, M_HACK_SCH_WATER_BOT_COLD);
-		}
-
 		if (b->status == STATUS_DISABLED_INIT) {
 			ScheduleSetup(b);
 		} else {
@@ -187,22 +112,6 @@ void Setup(BlockNode *b) {
 	}
 		break;
 	case FF_RULE: {
-
-		// XXX HACK to fix config error on RL_CIRC_IF_TOP_HOT_BOT_COLD
-		//if (strcmp_hal(b->block_label, F("RL_CIRC_IF_TOP_HOT_BOT_COLD")) == 0) {
-		//	b->block_type = RL_LOGIC_AND;
-		//	b->settings.rl.param2 = GetBlockIDByLabel("MON_INSIDE_BOTTOM_TOO_COLD");
-		//	EventMsg(SSS, E_WARNING, M_HACK_RL_CIRC_IF_TOP_HOT_BOT_COLD);
-		//}
-
-		// XXX HACK to make config change on RL_EXHAUST_IF_TOP_HOT_BOT_HOT
-		//if (strcmp_hal(b->block_label, F("RL_EXHAUST_IF_TOP_HOT_BOT_HOT")) == 0) {
-		//	b->block_type = RL_LOGIC_SINGLENOT;
-		//	b->settings.rl.param1 = GetBlockIDByLabel("MON_INSIDE_TOP_TOO_HOT");
-		//	b->settings.rl.param_not = GetBlockIDByLabel("MON_INSIDE_BOTTOM_TOO_COLD");
-		//	EventMsg(SSS, E_WARNING, M_HACK_RL_EXHAUST_IF_TOP_HOT_BOT_HOT);
-		//}
-
 		if (b->status == STATUS_DISABLED_INIT) {
 			RuleSetup(b);
 		} else {
@@ -231,26 +140,6 @@ void Setup(BlockNode *b) {
 }
 
 
-//XXX move to utility
-uint8_t VarianceExceedsPercent(int32_t old_val, int32_t new_val, uint8_t thres_pc) {
-	int32_t var_abs;
-	int32_t thres_abs;
-	var_abs = old_val - new_val;
-	var_abs = var_abs * ((var_abs > 0) - (var_abs < 0));
-
-	thres_abs = old_val * thres_pc / 100;
-	thres_abs = thres_abs * ((thres_abs > 0) - (thres_abs < 0));
-
-	return (var_abs > thres_abs);
-}
-
-uint8_t VarianceExceedsAbsolute(int32_t old_val, int32_t new_val, uint16_t thres_abs) {
-	int32_t var_abs;
-	var_abs = old_val - new_val;
-	var_abs = var_abs * ((var_abs > 0) - (var_abs < 0));
-	return (var_abs > thres_abs);
-}
-
 void Operate(BlockNode *b) {
 	// Calls the appropriate operate function on the block based on its category
 	// Called from process dispatcher with each block in the list.
@@ -263,45 +152,10 @@ void Operate(BlockNode *b) {
 
 	switch (b->block_cat) {
 	case FF_SYSTEM: {
-		//EventMsg(SSS, E_DEBUG_MSG, M_SYS_HEART_BEAT);
-
 		#ifdef UI_ATTACHED
 		UpdateUI();
 		#endif
-
-		#if defined VE_DIRECT && defined FF_ARDUINO
-		// XXX VE Hack
-			if ((VE_status > STATUS_ERROR) && (VE_status < STATUS_DISABLED)) {
-				time_t VE_now = TimeNow();
-				time_t VE_next_poll;
-				time_t VE_next_log;
-				uint32_t new_current;
-				VE_next_log = VE_last_logged + VE_log_rate;
-				VE_next_poll = VE_last_polled + VE_poll_rate;
-				if (VE_now >= VE_next_poll) {
-					VE_last_polled = TimeNow();
-
-					VE_soc = HALReadVEData(M_VE_SOC);
-					VE_power = HALReadVEData(M_VE_POWER);
-					VE_voltage = HALReadVEData(M_VE_VOLTAGE);
-
-					new_current = HALReadVEData(M_VE_CURRENT);
-					if (VarianceExceedsAbsolute(VE_current, new_current, 1000)) {
-						VE_next_log = TimeNow() - 5; // set logging to earlier to trigger test
-					}
-					VE_current = new_current;
-
-				}
-				if (VE_now >= VE_next_log) {
-					VE_last_logged = TimeNow();
-					VE_status = STATUS_ENABLED_VALID_DATA;
-					EventMsg(SSS, E_DATA, M_VE_SOC, VE_soc, 0);
-					EventMsg(SSS, E_DATA, M_VE_VOLTAGE, VE_voltage, 0);
-					EventMsg(SSS, E_DATA, M_VE_POWER, VE_power, 0);
-					EventMsg(SSS, E_DATA, M_VE_CURRENT, VE_current, 0);
-				}
-			}
-		#endif //VE_DIRECT
+		SystemOperate(b);
 		break;
 	}
 	case FF_INPUT:
@@ -374,8 +228,8 @@ BlockNode* GetLastBlockAddr(void) {
 }
 
 BlockNode* GetBlockByID(BlockNode *head, uint16_t block_id) {
-	// re-written iteratively
-
+	// Iterative rather than recursive to save stack space
+	// Returns NULL if end of block list reached without matching
 	BlockNode* walker;
 	walker = head;
 	while(walker != NULL) {
@@ -387,19 +241,6 @@ BlockNode* GetBlockByID(BlockNode *head, uint16_t block_id) {
 	}
 	return walker;
 }
-/*
-	if(head == NULL) {   //empty list
-		return NULL;
-	} else {
-		if (head->block_id == block_id) {
-			return head;
-		} else {
-			head = GetBlockByID(head->next_block, block_id);
-		}
-	}
-	return head;
-*/
-
 
 uint8_t SetCommand(uint16_t block_id, uint8_t cmd_msg) {
 	BlockNode *b;
@@ -583,19 +424,21 @@ BlockNode* AddBlockNode(BlockNode** head_ref, uint8_t block_cat, const char *blo
 					new_block->settings.sys.language = UINT8_INIT;
 					new_block->settings.sys.temp_scale = UINT8_INIT;
 					new_block->settings.sys.week_start = UINT8_INIT;
+					new_block->settings.sys.start_delay = UINT16_INIT;
 					break;
 				case FF_INPUT:
 					new_block->settings.in.interface = LAST_INTERFACE;
 					new_block->settings.in.if_num = UINT8_INIT;
-					new_block->settings.in.log_rate = 0;
+					new_block->settings.in.log_rate = TV_TYPE_INIT;
+					new_block->settings.in.poll_rate = TV_TYPE_INIT;
 					new_block->settings.in.data_units = UINT8_INIT;
 					new_block->settings.in.data_type = UINT8_INIT;
 					break;
 				case FF_MONITOR:
-					new_block->settings.mon.input1 = UINT16_INIT;
-					new_block->settings.mon.input2 = UINT16_INIT;
-					new_block->settings.mon.input3 = UINT16_INIT;
-					new_block->settings.mon.input4 = UINT16_INIT;
+					new_block->settings.mon.input1 = BLOCK_ID_INIT;
+					new_block->settings.mon.input2 = BLOCK_ID_INIT;
+					new_block->settings.mon.input3 = BLOCK_ID_INIT;
+					new_block->settings.mon.input4 = BLOCK_ID_INIT;
 					new_block->settings.mon.act_val = FLOAT_INIT;
 					new_block->settings.mon.deact_val = FLOAT_INIT;
 					break;
@@ -608,14 +451,14 @@ BlockNode* AddBlockNode(BlockNode** head_ref, uint8_t block_cat, const char *blo
 					new_block->settings.sch.time_repeat = 0;
 					break;
 				case FF_RULE:
-					new_block->settings.rl.param1 = UINT16_INIT;
-					new_block->settings.rl.param2 = UINT16_INIT;
-					new_block->settings.rl.param3 = UINT16_INIT;
-					new_block->settings.rl.param_not = UINT16_INIT;
+					new_block->settings.rl.param1 = BLOCK_ID_INIT;
+					new_block->settings.rl.param2 = BLOCK_ID_INIT;
+					new_block->settings.rl.param3 = BLOCK_ID_INIT;
+					new_block->settings.rl.param_not = BLOCK_ID_INIT;
 					break;
 				case FF_CONTROLLER:
-					new_block->settings.con.rule = UINT16_INIT;
-					new_block->settings.con.output = UINT16_INIT;
+					new_block->settings.con.rule = BLOCK_ID_INIT;
+					new_block->settings.con.output = BLOCK_ID_INIT;
 					new_block->settings.con.act_cmd = UINT8_INIT;
 					new_block->settings.con.deact_cmd = UINT8_INIT;
 					break;
@@ -841,17 +684,42 @@ uint8_t RegLookupBlockLabel(char* lookup_string) {
 void RegShowBlocks(void(*Callback)(char *)) {
 	BlockNode* b;
 	b = bll;
-	char out[MAX_MESSAGE_STRING_LENGTH];
+	char out[MAX_LOG_LINE_LENGTH];
 	char fmt_str[20];
+
 	if (b == NULL) {
 		strcpy_hal(out, F("Empty List"));
 		Callback(out);
 	} else {
-		strcpy_hal(out, F("\tBID\tCAT\tTYPE\tLABEL"));
+		strcpy_hal(out, F("\tBID\tLABEL\t\tCAT\t\tTYPE"));
 		Callback(out);
 		while(b != NULL) {
-			strcpy_hal(fmt_str, F("\t%d\t%d\t%d\t%s"));
-			sprintf(out, fmt_str, b->block_id, b->block_cat, b->block_type, b->block_label);
+			//strcpy_hal(fmt_str, F("\t%d\t%d\t%d\t%s"));
+			strcpy_hal(fmt_str, F("\t%d\t"));
+			sprintf(out, fmt_str, b->block_id);
+
+			strcat(out, b->block_label);
+
+			if (strlen(out) <= 20) {
+				strcat_hal(out, F("\t\t"));
+			} else {
+				strcat_hal(out, F("\t"));
+			}
+
+			strcat_hal(out, block_cat_names[b->block_cat].text);
+
+			if (strlen(out) > 31) {
+				strcat_hal(out, F("\t"));
+			} else {
+				//if (strlen(out) > 29) {
+					strcat_hal(out, F("\t\t"));
+				//} else {
+				//	strcat_hal(out, F("\t\t\t"));
+				//}
+			}
+			strcat_hal(out, block_type_strings[b->block_type].text);
+
+			//sprintf(out, fmt_str, b->block_id, b->block_cat, b->block_type, b->block_label);
 			Callback(out);
 			b = b->next_block;
 		}
@@ -868,8 +736,8 @@ void RegShowBlockByLabel(char* block_label, void(*Callback)(char *)) {
 
 void RegShowBlockByID(uint16_t id, void (*Callback)(char *)) {
 	char out_str[MAX_MESSAGE_STRING_LENGTH];	// 80
-	char fmt_str[MAX_MESSAGE_STRING_LENGTH];
-	char temp_str[10];
+	char fmt_str[MAX_LABEL_LENGTH];
+	//char label_str[MAX_LABEL_LENGTH];
 
 	BlockNode *b;
 	b = GetBlockByID(bll, id);
@@ -880,182 +748,27 @@ void RegShowBlockByID(uint16_t id, void (*Callback)(char *)) {
 		Callback(out_str);
 	} else {
 
-		strcpy_hal(out_str, F("Base Data"));
-		Callback(out_str);
-		strcpy_hal(fmt_str, F(" block_id:     %d"));
-		sprintf(out_str, fmt_str, b->block_id);
-		Callback(out_str);
-		strcpy_hal(fmt_str, F(" block_cat:    %d"));
-		sprintf(out_str, fmt_str, b->block_cat);
-		Callback(out_str);
-		strcpy_hal(fmt_str, F(" block_type:   %d"));
-		sprintf(out_str, fmt_str, b->block_type);
-		Callback(out_str);
-		strcpy_hal(fmt_str, F(" block_label:  %s"));
-		sprintf(out_str, fmt_str, b->block_label);
-		Callback(out_str);
-
-#ifndef EXCLUDE_DISPLAYNAME
-		strcpy_hal(fmt_str, F(" display_name: %s"));
-		sprintf(out_str, fmt_str, b->display_name);
-		Callback(out_str);
-#endif
-#ifndef EXCLUDE_DESCRIPTION
-		strcpy_hal(fmt_str, F(" description:  %s"));
-		sprintf(out_str, fmt_str, b->description);
-		Callback(out_str);
-#endif
-
-		strcpy_hal(out_str, F("Operational Data"));
-		Callback(out_str);
-		strcpy_hal(fmt_str, F(" active:       %d"));
-		sprintf(out_str, fmt_str, b->active);
-		Callback(out_str);
-		strcpy_hal(fmt_str, F(" bool_val:     %d"));
-		sprintf(out_str, fmt_str, b->bool_val);
-		Callback(out_str);
-		strcpy_hal(fmt_str, F(" int_val:      %ld"));
-		sprintf(out_str, fmt_str, b->int_val);
-		Callback(out_str);
-		FFFloatToCString(temp_str, b->f_val);
-		strcpy_hal(fmt_str, F(" f_val:        %s"));
-		sprintf(out_str, fmt_str, temp_str);
-		Callback(out_str);
-		strcpy_hal(fmt_str, F(" last_update:  %lu"));
-		sprintf(out_str, fmt_str, b->last_update);
-		Callback(out_str);
-		strcpy_hal(fmt_str, F(" status:       %d"));
-		sprintf(out_str, fmt_str, b->status);
-		Callback(out_str);
-
-		strcpy_hal(out_str, F("Block Category Specific Data"));
-		Callback(out_str);
-
 		switch (b->block_cat) {
 			case (FF_SYSTEM):
-				strcpy_hal(out_str, F("System:"));
-				Callback(out_str);
-				strcpy_hal(fmt_str, F(" temp_scale:   %d"));
-				sprintf(out_str, fmt_str, b->settings.sys.temp_scale);
-				Callback(out_str);
-				strcpy_hal(fmt_str, F(" language:     %d"));
-				sprintf(out_str, fmt_str, b->settings.sys.language);
-				Callback(out_str);
-				strcpy_hal(fmt_str, F(" week_start    %d"));
-				sprintf(out_str, fmt_str, b->settings.sys.week_start);
-				Callback(out_str);
+				SystemShow(b, Callback);
 				break;
 			case FF_INPUT:
-				strcpy_hal(out_str, F("Input:"));
-				Callback(out_str);
-				strcpy_hal(fmt_str, F(" interface:    %d"));
-				sprintf(out_str, fmt_str, b->settings.in.interface);
-				Callback(out_str);
-				strcpy_hal(fmt_str, F(" if_num:       %d"));
-				sprintf(out_str, fmt_str, b->settings.in.if_num);
-				Callback(out_str);
-				strcpy_hal(fmt_str, F(" log_rate:     %lu"));
-				sprintf(out_str, fmt_str, (unsigned long) b->settings.in.log_rate); //TV_TYPE
-				Callback(out_str);
-				strcpy_hal(fmt_str, F(" data_unit:    %d"));
-				sprintf(out_str, fmt_str, b->settings.in.data_units);
-				Callback(out_str);
-				strcpy_hal(fmt_str, F(" data_type:    %d"));
-				sprintf(out_str, fmt_str, b->settings.in.data_type);		// float, int
-				Callback(out_str);
+				InputShow(b, Callback);
 				break;
 			case FF_MONITOR:
-				strcpy_hal(out_str, F("Monitor:"));
-				Callback(out_str);
-				strcpy_hal(fmt_str, F(" input1:       %d"));
-				sprintf(out_str, fmt_str, b->settings.mon.input1);
-				Callback(out_str);
-				strcpy_hal(fmt_str, F(" input2:       %d"));
-				sprintf(out_str, fmt_str, b->settings.mon.input2);
-				Callback(out_str);
-				strcpy_hal(fmt_str, F(" input3:       %d"));
-				sprintf(out_str, fmt_str, b->settings.mon.input3);
-				Callback(out_str);
-				strcpy_hal(fmt_str, F(" input4:       %d"));
-				sprintf(out_str, fmt_str, b->settings.mon.input4);
-				Callback(out_str);
-				FFFloatToCString(temp_str, b->settings.mon.act_val);
-				strcpy_hal(fmt_str, F(" act_val:      %s"));
-				sprintf(out_str, fmt_str, temp_str);   //float
-				Callback(out_str);
-				FFFloatToCString(temp_str, b->settings.mon.deact_val);
-				strcpy_hal(fmt_str, F(" deact_val:    %s"));
-				sprintf(out_str, fmt_str, temp_str);  //float
-				Callback(out_str);
+				MonitorShow(b, Callback);
 				break;
-			case FF_SCHEDULE: {
-				strcpy_hal(out_str, F("Schedule:"));
-				Callback(out_str);
-				strcpy_hal(out_str, F(" days:         "));
-				for (uint8_t i = 0; i < 7; i++) {
-					strcpy_hal(fmt_str, F("%d "));
-					sprintf(temp_str, fmt_str, b->settings.sch.days[i]);
-					strcat(out_str, temp_str);
-				}
-				Callback(out_str);
-				strcpy_hal(fmt_str, F(" time_start:   %lu"));
-				sprintf(out_str, fmt_str, b->settings.sch.time_start);
-				Callback(out_str);
-				strcpy_hal(fmt_str, F(" time_end:     %lu"));
-				sprintf(out_str, fmt_str, b->settings.sch.time_end);
-				Callback(out_str);
-				strcpy_hal(fmt_str, F(" time_duration:%lu"));
-				sprintf(out_str, fmt_str, (unsigned long) b->settings.sch.time_duration);
-				Callback(out_str);
-				strcpy_hal(fmt_str, F(" time_repeat:  %lu"));
-				sprintf(out_str, fmt_str, (unsigned long) b->settings.sch.time_repeat);
-				Callback(out_str);
-			}
+			case FF_SCHEDULE:
+				ScheduleShow(b, Callback);
 				break;
 			case FF_RULE:
-				strcpy_hal(out_str, F("Rule:"));
-				Callback(out_str);
-				strcpy_hal(fmt_str, F(" param1:       %d"));
-				sprintf(out_str, fmt_str, b->settings.rl.param1);
-				Callback(out_str);
-				strcpy_hal(fmt_str, F(" param2:       %d"));
-				sprintf(out_str, fmt_str, b->settings.rl.param2);
-				Callback(out_str);
-				strcpy_hal(fmt_str, F(" param3:       %d"));
-				sprintf(out_str, fmt_str, b->settings.rl.param3);
-				Callback(out_str);
-				strcpy_hal(fmt_str, F(" param_not     %d"));
-				sprintf(out_str, fmt_str, b->settings.rl.param_not);
-				Callback(out_str);
+				RuleShow(b, Callback);
 				break;
 			case FF_CONTROLLER:
-				strcpy_hal(out_str, F("Controller:"));
-				Callback(out_str);
-				strcpy_hal(fmt_str, F(" rule:         %d"));
-				sprintf(out_str, fmt_str, b->settings.con.rule);
-				Callback(out_str);
-				strcpy_hal(fmt_str, F(" output:       %d"));
-				sprintf(out_str, fmt_str, b->settings.con.output);
-				Callback(out_str);
-				strcpy_hal(fmt_str, F(" act_cmd:      %d"));
-				sprintf(out_str, fmt_str, b->settings.con.act_cmd);
-				Callback(out_str);
-				strcpy_hal(fmt_str, F(" deact_cmd:    %d"));
-				sprintf(out_str, fmt_str, b->settings.con.deact_cmd);
-				Callback(out_str);
+				ControllerShow(b, Callback);
 				break;
 			case FF_OUTPUT:
-				strcpy_hal(out_str, F("Output:"));
-				Callback(out_str);
-				strcpy_hal(fmt_str, F(" interface:    %d"));
-				sprintf(out_str, fmt_str, b->settings.out.interface);
-				Callback(out_str);
-				strcpy_hal(fmt_str, F(" if_num:       %d"));
-				sprintf(out_str, fmt_str, b->settings.out.if_num);
-				Callback(out_str);
-				strcpy_hal(fmt_str, F(" command:      %d"));
-				sprintf(out_str, fmt_str, b->settings.out.command);
-				Callback(out_str);
+				OutputShow(b, Callback);
 				break;
 		}
 	}
@@ -1247,7 +960,7 @@ void RegSetDate(char* date_str, void(*Callback)(char*)) {
 
 }
 
-void RegConfigReset(void(*Callback)(char*)) {
+void RegConfigClear(void(*Callback)(char*)) {
 	char out_str[MAX_MESSAGE_STRING_LENGTH];	// 80
 
 	DropBlockList();
@@ -1261,10 +974,12 @@ void RegConfigLoad(void(*Callback)(char*)) {
 	InitConfigLoad(1);
 }
 
+#ifdef RESURRECT_DEPRECIATED
 void RegConfigLoadBinary(void(*Callback)(char*)) {
 	(void)Callback; 		//not used
 	InitConfigLoadBinary();
 }
+#endif //RESURRECT_DEPRECIATED
 
 /* 2019-06-14 Depreciated.
 See Comments in init_config.cpp, function InitConfigLoadINI()
@@ -1279,10 +994,12 @@ void RegConfigSave(void(*Callback)(char*)) {
 	InitConfigSave();
 }
 
+#ifdef RESURRECT_DEPRECIATED
 void RegConfigSaveBinary(void(*Callback)(char*)) {
 	(void)Callback; 		//not used
 	InitConfigSaveBinary();
 }
+#endif //RESURRECT_DEPRECIATED
 
 void RegConfigBlockSystem(char* param1_string, uint16_t SYS_CONFIG, char* param2_string, void(*Callback)(char*)) {
 	char out_str[MAX_MESSAGE_STRING_LENGTH];	// 80
@@ -1416,9 +1133,33 @@ void RegInitSetupAll(void(*Callback)(char*)) {
 	ProcessDispatcher(Setup);
 }
 
+void RegInitSetupBID(uint16_t block_id, void(*Callback)(char*)) {
+	char out_str[MAX_MESSAGE_STRING_LENGTH];
+	BlockNode *b;
+	b = GetBlockByID(bll, block_id);
+	if (b != NULL) {
+		Setup(b);
+	} else {
+		strcpy_hal(out_str, F("Unknown Block ID"));
+		Callback(out_str);
+	}
+}
+
 void RegInitValidateAll(void(*Callback)(char*)) {
 	(void)Callback; 		//not used
 	ProcessDispatcher(Validate);
+}
+
+void RegInitValidateBID(uint16_t block_id, void(*Callback)(char*)) {
+	char out_str[MAX_MESSAGE_STRING_LENGTH];
+	BlockNode *b;
+	b = GetBlockByID(bll, block_id);
+	if (b != NULL) {
+		Validate(b);
+	} else {
+		strcpy_hal(out_str, F("Unknown Block ID"));
+		Callback(out_str);
+	}
 }
 
 void RegInitDisableAll(void(*Callback)(char*)) {
@@ -1426,7 +1167,17 @@ void RegInitDisableAll(void(*Callback)(char*)) {
 	ProcessDispatcher(InitDisable);
 }
 
-
+void RegInitDisableBID(uint16_t block_id, void(*Callback)(char*)) {
+	char out_str[MAX_MESSAGE_STRING_LENGTH];
+	BlockNode *b;
+	b = GetBlockByID(bll, block_id);
+	if (b != NULL) {
+		InitDisable(b);
+	} else {
+		strcpy_hal(out_str, F("Unknown Block ID"));
+		Callback(out_str);
+	}
+}
 
 void RegSystemReboot(void(*Callback)(char*)) {
 	(void)Callback; 		//not used
