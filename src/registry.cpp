@@ -388,6 +388,7 @@ BlockNode* AddBlockNode(BlockNode** head_ref, uint8_t block_cat, const char *blo
 		new_block->int_val = INT32_INIT;
 		new_block->f_val = FLOAT_INIT;
 		new_block->last_update = UINT32_INIT;
+		new_block->last_logged = UINT32_INIT;
 		// New blocks are disabled by default
 		new_block->status = STATUS_DISABLED_INIT;
 
@@ -421,17 +422,17 @@ BlockNode* AddBlockNode(BlockNode** head_ref, uint8_t block_cat, const char *blo
 
 			switch (block_cat) {
 				case FF_SYSTEM:
-					new_block->settings.sys.language = UINT8_INIT;
-					new_block->settings.sys.temp_scale = UINT8_INIT;
-					new_block->settings.sys.week_start = UINT8_INIT;
-					new_block->settings.sys.start_delay = UINT16_INIT;
+					new_block->settings.sys.language = ENGLISH;
+					new_block->settings.sys.temp_scale = UNIT_ERROR;
+					new_block->settings.sys.week_start = SUN;
+					new_block->settings.sys.start_delay = 0;
 					break;
 				case FF_INPUT:
-					new_block->settings.in.interface = LAST_INTERFACE;
+					new_block->settings.in.interface = IF_ERROR;
 					new_block->settings.in.if_num = UINT8_INIT;
 					new_block->settings.in.log_rate = TV_TYPE_INIT;
 					new_block->settings.in.poll_rate = TV_TYPE_INIT;
-					new_block->settings.in.data_units = UINT8_INIT;
+					new_block->settings.in.data_units = UNIT_ERROR;
 					new_block->settings.in.data_type = UINT8_INIT;
 					break;
 				case FF_MONITOR:
@@ -459,11 +460,11 @@ BlockNode* AddBlockNode(BlockNode** head_ref, uint8_t block_cat, const char *blo
 				case FF_CONTROLLER:
 					new_block->settings.con.rule = BLOCK_ID_INIT;
 					new_block->settings.con.output = BLOCK_ID_INIT;
-					new_block->settings.con.act_cmd = UINT8_INIT;
-					new_block->settings.con.deact_cmd = UINT8_INIT;
+					new_block->settings.con.act_cmd = CMD_ERROR;
+					new_block->settings.con.deact_cmd = CMD_ERROR;
 					break;
 				case FF_OUTPUT:
-					new_block->settings.out.interface = LAST_INTERFACE;
+					new_block->settings.out.interface = IF_ERROR;
 					new_block->settings.out.if_num = UINT8_INIT;
 					break;
 			} //switch
@@ -1179,16 +1180,48 @@ void RegInitDisableBID(uint16_t block_id, void(*Callback)(char*)) {
 	}
 }
 
+void RegAdminDisableBID(uint16_t block_id, void(*Callback)(char*)) {
+	char out_str[MAX_MESSAGE_STRING_LENGTH];
+	BlockNode *b;
+	b = GetBlockByID(bll, block_id);
+	if (b != NULL) {
+		b->status = STATUS_DISABLED_ADMIN;
+	} else {
+		strcpy_hal(out_str, F("Unknown Block ID"));
+		Callback(out_str);
+	}
+}
+
+void RegAdminEnableBID(uint16_t block_id, void(*Callback)(char*)) {
+	char out_str[MAX_MESSAGE_STRING_LENGTH];
+	BlockNode *b;
+	b = GetBlockByID(bll, block_id);
+	if (b != NULL) {
+		b->status = STATUS_DISABLED_INIT;
+	} else {
+		strcpy_hal(out_str, F("Unknown Block ID"));
+		Callback(out_str);
+	}
+}
+
+void RegAdminDeleteBID(uint16_t block_id, void(*Callback)(char*)) {
+	(void)block_id;
+	char out_str[MAX_MESSAGE_STRING_LENGTH];
+	strcpy_hal(out_str, F("Not Yet Implemented"));
+	Callback(out_str);
+}
+
+
 void RegSystemReboot(void(*Callback)(char*)) {
 	(void)Callback; 		//not used
 	HALReboot();
 }
 
-void RegBlockIDCmdOn(uint16_t block_id, void(*Callback)(char*)) {
+void RegAdminCmdOnBID(uint16_t block_id, void(*Callback)(char*)) {
 	RegSendCommandToBlockID(block_id, CMD_OUTPUT_ON, Callback);
 }
 
-void RegBlockIDCmdOff(uint16_t block_id, void(*Callback)(char*)) {
+void RegAdminCmdOffBID(uint16_t block_id, void(*Callback)(char*)) {
 	RegSendCommandToBlockID(block_id, CMD_OUTPUT_OFF, Callback);
 }
 

@@ -95,13 +95,22 @@ uint16_t CallFunction(uint8_t func_xlat, ParamUnion params[]) {
 			InitDisableBID(params[0].param_int16_t);
 			break;
 		case 26:
-			SystemReboot();
+			AdminDisableBID(params[0].param_int16_t);
 			break;
 		case 27:
-			BlockIDCmdOn(params[0].param_int16_t);
+			AdminEnableBID(params[0].param_int16_t);
 			break;
 		case 28:
-			BlockIDCmdOff(params[0].param_int16_t);
+			AdminDeleteBID(params[0].param_int16_t);
+			break;
+		case 29:
+			AdminCmdOnBID(params[0].param_int16_t);
+			break;
+		case 30:
+			AdminCmdOffBID(params[0].param_int16_t);
+			break;
+		case 31:
+			SystemReboot();
 			break;
 		default:
 			return PE_FUNC_XLAT_NOT_MATCHED_IN_CALLFUNCTION;

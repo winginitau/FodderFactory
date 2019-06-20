@@ -344,6 +344,10 @@ void HALPollItch(void) {
 	itch.Poll();
 }
 
+void HALItchWriteLnImmediate(const char *str) {
+	WriteLineDirect(str);
+}
+// XXX work around to handle consts and non consts
 void HALItchWriteLnImmediate(char *str) {
 	WriteLineDirect(str);
 }
@@ -922,15 +926,17 @@ void HALInitRTC(void) {
 }
 
 void HALReboot(void) {
-#ifdef FF_ARDUINO
+	#ifdef TARGET_PLATFORM_ARDUINO
 	MCUSR = 0;  // clear out any flags of prior resets.
 	wdt_enable(WDTO_500MS); // turn on the WatchDog and don't stroke it.
 	for(;;) {
 	  // do nothing and wait for the eventual...
 	}
-	#else
-		exit(0);
-	#endif
+	#endif //TARGET_PLATFORM_ARDUINO
 
+	#ifdef TARGET_PLATFORM_LINUX
+		itch.RestoreTermAndExit();
+		exit(0);
+	#endif //TARGET_PLATFORM_LINUX
 }
 

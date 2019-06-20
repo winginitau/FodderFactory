@@ -382,7 +382,7 @@ class System():
         while (self.command_retry > 0) and (not self.command_finished):
             if self.FFAdaptor.itchActivated:
                 self.mainBus.append("init disable all")  #suppress messages
-                self.mainBus.append("config reset")
+                #self.mainBus.append("config reset")
                 #self.cf = open("/home/brendan/git/FodderFactory/ff_simulator/CONFIG.TXT", "r")
                 self.cf = open("CONFIG.TXT", "r")
                 self.cf_lines = self.cf.readlines();
@@ -391,8 +391,8 @@ class System():
                     #print(self.line_clean)
                     self.mainBus.append(self.line_clean)
                 self.mainBus.append("config save")
-                self.mainBus.append("init val all")
-                self.mainBus.append("init set all")
+                #self.mainBus.append("init val all")
+                #self.mainBus.append("init set all")
                 self.mainBus.append("\x04")
                 print("Commands Queued to mainBus")
                 self.FFAdaptor.mode_command("ConfigureDevice")

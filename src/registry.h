@@ -111,7 +111,8 @@ typedef struct BLOCK_NODE {
 	uint8_t bool_val;	// generic holder for a boolean value (representing some real world status)
 	int32_t int_val;	// generic holder of an int value (representing some real world status)
 	float f_val;		// generic holder of a float value (representing some real world status)
-	time_t last_update;	// the time the block was last updated / operated / etc
+	time_t last_update;	// The time the block was last updated / operated / polled etc
+	time_t last_logged; // The time the block last logged a message (if applicable)
 	uint8_t status;		// generic status flag (eg for MON cat to indicate if the last input read was valid)
 
 	// union of block_type specific settings
@@ -193,7 +194,6 @@ void RegShowTime(void(*Callback)(char*));
 void RegSetTime(char* time_str, void(*Callback)(char*));
 void RegShowDate(void(*Callback)(char*));
 void RegSetDate(char* date_str, void(*Callback)(char*));
-void RegSystemReboot(void(*Callback)(char*));
 
 void RegConfigClear(void(*Callback)(char*));
 void RegConfigLoad(void(*Callback)(char*));
@@ -217,9 +217,13 @@ void RegInitValidateBID(uint16_t block_id, void(*Callback)(char*));
 void RegInitDisableAll(void(*Callback)(char*));
 void RegInitDisableBID(uint16_t block_id, void(*Callback)(char*));
 
+void RegAdminDisableBID(uint16_t block_id, void(*Callback)(char*));
+void RegAdminEnableBID(uint16_t block_id, void(*Callback)(char*));
+void RegAdminDeleteBID(uint16_t block_id, void(*Callback)(char*));
+void RegAdminCmdOnBID(uint16_t block_id, void(*Callback)(char*));
+void RegAdminCmdOffBID(uint16_t block_id, void(*Callback)(char*));
+
 void RegSystemReboot(void(*Callback)(char*));
-void RegBlockIDCmdOn(uint16_t block_id, void(*Callback)(char*));
-void RegBlockIDCmdOff(uint16_t block_id, void(*Callback)(char*));
 
 
 void UpdateStateRegister(uint16_t source, uint8_t msg_type, uint8_t msg_str, int i_val, float f_val);

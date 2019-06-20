@@ -500,13 +500,17 @@ uint8_t GetConfKeyIndex(uint8_t block_cat, const char* key_str) {
 	*/
 
 	if (key_idx == last_key) {
-		DebugLog(SSS, E_STOP, M_CONFKEY_NOTIN_DEFS);
+		EventMsg(SSS, E_ERROR, M_CONFKEY_NOTIN_DEFS);
+		HALItchWriteLnImmediate(key_str);
+		return 0; //error
+/*
 		#ifdef FF_ARDUINO
 			while(1);
 		#endif
 		#ifdef FF_SIMULATOR
 			exit(-1);
 		#endif
+*/
 	} else {
 		return key_idx;
 	}
@@ -517,8 +521,8 @@ uint8_t ConfigureCommonSetting(BlockNode* block_ptr, uint8_t key_idx, const char
 	switch (key_idx) {
 		case SYS_CONFIG_ERROR:
 			// or any other (0) block cat error key
-			DebugLog(SSS, E_STOP, M_KEY_IDX_ZERO);
-			while(1);
+			EventMsg(SSS, E_ERROR, M_KEY_IDX_ZERO);
+			return 0;
 			break;
 		case SYS_CONFIG_TYPE:
 			// or case IN_TYPE
@@ -527,9 +531,26 @@ uint8_t ConfigureCommonSetting(BlockNode* block_ptr, uint8_t key_idx, const char
 			// or case RL_TYPE:
 			// or case CON_TYPE:
 			// or case OUT_TYPE:
-			//DebugLog("Switch on key_idx, matched case XXX_TYPE ");
 			block_ptr->block_type = BlockTypeStringArrayIndex(value_str);
 			break;
+		case SYS_CONFIG_DISABLE:
+			// or case IN_DISABLE
+			// or case MON_DISABLE:
+			// or case SCH_DISABLE:
+			// or case RL_DISABLE:
+			// or case CON_DISABLE:
+			// or case OUT_DISABLE:
+			if (strcasecmp_hal(value_str, F("True")) == 0) {
+				block_ptr->status = STATUS_DISABLED_ADMIN;
+			} else {
+				if (strcasecmp_hal(value_str, F("False")) == 0) {
+					block_ptr->status = STATUS_DISABLED_INIT;
+				} else {
+					return 0; //error
+				}
+			}
+			break;
+
 		case SYS_CONFIG_DISPLAY_NAME:
 			// or case IN_DISPLAY_NAME
 			// or case MON_DISPLAY_NAME:
@@ -981,7 +1002,7 @@ void WriteTextBlock(BlockNode *b, SdFile *f, uint8_t reg_only) {
 	strcat(base_str, b->block_label);
 	strcat_hal(base_str, F(" "));
 
-	// Key value pairs common to all blocks - build them and write them
+	// Key value pair "type" common to all blocks - build them and write them
 	strcpy(out_str, base_str);
 	strcat_hal(out_str, F("type "));
 	strcat_hal(out_str, block_type_strings[b->block_type].text);
@@ -989,6 +1010,15 @@ void WriteTextBlock(BlockNode *b, SdFile *f, uint8_t reg_only) {
 
 	// register the block labels and types only
 	if (reg_only == 1 ) return;
+
+	// Write the block status only if it is admin disabled
+	// so that it persists between reboots
+	if(b->status == STATUS_DISABLED_ADMIN) {
+		strcpy(out_str, base_str);
+		strcat_hal(out_str, F("disable "));
+		strcat_hal(out_str, F("True"));
+		HALWriteLine(f, out_str);
+	}
 
 	#ifndef	EXCLUDE_DISPLAYNAME
 		if (b->display_name[0] != '\0') {
@@ -1291,9 +1321,7 @@ void FileIODispatcher(void(*func)(BlockNode*, SdFile*, uint8_t), SdFile* file, u
 
 void InitConfigSave(void) {
 	// Write the running config to a text file in the form of parse-able
-	//  CONFIG statements that can be read by itch in file processing mode
-
-	//char temp_label[MAX_LABEL_LENGTH];
+	//  CONFIG statements that can be read by itch in buffer stuffing mode
 
 	#ifdef FF_SIMULATOR
 	FILE *fp;
@@ -1310,23 +1338,6 @@ void InitConfigSave(void) {
 	#endif
 
 	#ifdef FF_ARDUINO
-	/*
-	if (SD.begin(10, 11, 12, 13)) {
-		f = SD.open(CONFIG_TXT_FILENAME, FILE_OVERWRITE);
-		if (!f) {
-			char temp_label[MAX_LABEL_LENGTH];
-			strcpy_hal(temp_label, F("TEXT CONFIG FILE COULD NOT BE OPENED FOR WRITING (STOP)"));
-			DebugLog(temp_label);
-			// Cannot do anything else
-			while (1);
-		}
-	} else {
-		char temp_label[MAX_LABEL_LENGTH];
-		strcpy_hal(temp_label, F("SD FAIL"));
-		DebugLog(temp_label);
-		while (1);
-	}
-	*/
 	// see if the card is present and can be initialized:
 	if (!sd.begin(SD_CHIP_SELECT_PIN)) {
 		char temp_label[MAX_LABEL_LENGTH];
@@ -1359,10 +1370,6 @@ void InitConfigSave(void) {
 		// Then write the rest of the settings (option = 0)
 		FileIODispatcher(WriteTextBlock, &f, 0);
 	#endif
-
-
-	// write the command to enable everything
-	//HALWriteLine(fp, F("INIT ENABLE ALL"));
 
 	#ifdef FF_SIMULATOR
 	fclose(fp);

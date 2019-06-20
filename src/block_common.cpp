@@ -122,6 +122,15 @@ void CommonShow(BlockNode *b, void(Callback(char *))) {
 	}
 	Callback(out_str);
 
+	if (b->last_logged == TV_TYPE_INIT) {
+		strcpy_hal(out_str, F(" last_logged:  TV_TYPE_INIT"));
+	} else {
+		strcpy_hal(fmt_str, F(" last_logged:  %s (%lu)"));
+		CTimeToISODateTimeString(label_str, b->last_logged);
+		sprintf(out_str, fmt_str, label_str, b->last_logged);
+	}
+	Callback(out_str);
+
 	strcpy_hal(fmt_str, F(" status:       %s (%d)"));
 	strcpy_hal(label_str, status_strings[b->status].text);
 	sprintf(out_str, fmt_str, label_str, b->status);

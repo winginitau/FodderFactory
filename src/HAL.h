@@ -36,6 +36,7 @@ uint8_t HALEventSerialSend(EventNode* e, uint8_t port);
 #ifdef USE_ITCH
 void HALInitItch(void);
 void HALPollItch(void);
+void HALItchWriteLnImmediate(const char *str);
 void HALItchWriteLnImmediate(char *str);
 void HALItchSetBufferStuffMode(void);
 void HALItchSetTextDataMode(void);

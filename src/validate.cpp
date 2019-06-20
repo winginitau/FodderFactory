@@ -65,60 +65,50 @@ void Validate(BlockNode* b) {
 		//struct BLOCK_NODE *next_block - assume ok
 
 	//uint8_t block_cat;
-		//is not null
-		//is a valid category
+	ASSERT(b->block_cat != FF_ERROR_CAT, b);
 	ASSERT(b->block_cat < LAST_BLOCK_CAT, b);
 
 	//uint16_t block_type;
-		//is not null
-		//is a valid type
 	ASSERT(b->block_type < LAST_BLOCK_TYPE, b);
 	ASSERT(b->block_type != BT_ERROR, b);
-		//type belongs to category
+	// TODO type belongs to category
 
 	//uint16_t block_id;
-		//not null
 	ASSERT(b->block_id != UINT16_INIT, b);
 	ASSERT(b->block_id >= SSS, b);
-		//is unique
-		//matches the block_label
+	// TODO is unique
 
 	//char block_label[MAX_LABEL_LENGTH];
-		//not null
 	ASSERT(b->block_label != NULL, b);
 	ASSERT(b->block_label[0] != '\0', b);
-	//is unique
-		//matches block_id
 
+	#ifndef	EXCLUDE_DISPLAYNAME
 	//char display_name[MAX_LABEL_LENGTH];
-		//is not null
-#ifndef	EXCLUDE_DISPLAYNAME
 	ASSERT(b->display_name[0] != '\0', b);
-#endif
-	//is short
+	// TODO is short
+	#endif
 
 	//char description[MAX_DESCR_LENGTH];
-		//optional
+	// TODO checks
 
 	//uint8_t active;
-		//is 0
 	ASSERT(b->active == 0, b);
 
 	//uint8_t bool_val;
-		//init state
+	//init state
 	ASSERT(b->bool_val == 0, b);
 
 	//uint8_t int_val;
-		//init state
+	//init state
 	ASSERT(b->int_val == INT32_INIT, b);
 
 	//float f_val;
-		//init state
+	//init state
 	ASSERT(b->f_val == FLOAT_INIT, b);
 
 	//FFTime last_update
 	ASSERT(b->last_update == UINT32_INIT, b);
-
+	ASSERT(b->last_logged == UINT32_INIT, b);
 
 	//Settings
 
@@ -133,16 +123,23 @@ void Validate(BlockNode* b) {
 	case IN_ONEWIRE:
 		ASSERT(b->settings.in.interface == IF_ONEWIRE, b);
 		ASSERT(b->settings.in.if_num < UINT8_INIT, b);
+		ASSERT(b->settings.in.data_units != UNIT_ERROR, b);
 		ASSERT(b->settings.in.data_units < LAST_UNIT, b);
+		ASSERT(b->settings.in.log_rate < TV_TYPE_INIT, b);
 		//uint8_t data_type;		// float, int
 		//Prob derived from block type - consider dropping
 		break;
 
 	case IN_VEDIRECT:
-		ASSERT(b->settings.in.interface == IF_VEDIRECT, b);
+		ASSERT( (b->settings.in.interface == IF_VED_VOLTAGE) || \
+				(b->settings.in.interface == IF_VED_CURRENT) || \
+				(b->settings.in.interface == IF_VED_POWER) || \
+				(b->settings.in.interface == IF_VED_SOC) ,b);
 		ASSERT(b->settings.in.if_num < UINT8_INIT, b);
+		ASSERT(b->settings.in.data_units != UNIT_ERROR, b);
 		ASSERT(b->settings.in.data_units < LAST_UNIT, b);
 		ASSERT(b->settings.in.poll_rate < TV_TYPE_INIT, b);
+		ASSERT(b->settings.in.log_rate < TV_TYPE_INIT, b);
 		break;
 
 	case IN_DIGITAL:
@@ -156,23 +153,14 @@ void Validate(BlockNode* b) {
 	case MON_CONDITION_LOW:
 		ASSERT(b->settings.mon.input1 != UINT16_INIT, b);
 		ASSERT(b->settings.mon.input1 >= BLOCK_ID_BASE, b);
-		//DebugLog("Passed: input1");
 		ASSERT(b->settings.mon.input2 == UINT16_INIT, b);
-		//DebugLog("Passed: input2");
 		ASSERT(b->settings.mon.input3 == UINT16_INIT, b);
-		//DebugLog("Passed: input3");
 		ASSERT(b->settings.mon.input4 == UINT16_INIT, b);
-		//DebugLog("Passed: input4");
 		ASSERT(b->settings.mon.act_val > -50.0, b);
-		//DebugLog("Passed: act_val >");
 		ASSERT(b->settings.mon.act_val < 50.0, b);
-		//DebugLog("Passed: act_val <");
 		ASSERT(b->settings.mon.deact_val > -50.0, b);
-		//DebugLog("Passed: deact_val >");
 		ASSERT(b->settings.mon.deact_val < 50.0, b);
-		//DebugLog("Passed: deact_val <");
 		ASSERT(b->settings.mon.act_val < b->settings.mon.deact_val, b);
-		//DebugLog("Passed: act_val < deact_val");
 		break;
 
 	case MON_CONDITION_HIGH:

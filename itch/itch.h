@@ -10,16 +10,18 @@
 #ifndef ITCH_H_
 #define ITCH_H_
 
+#include "config.h"
+#include "LineBuffer.h"
+#include "Parser.h"
+#include <stdio.h>
+
 #ifdef ARDUINO
 #include <Arduino.h>
 #endif
 
-#include "config.h"
-#include "LineBuffer.h"
-//#include "OutputBuffer.h"
-#include "Parser.h"
-
-#include <stdio.h>
+#ifdef TARGET_PLATFORM_LINUX
+#include <termios.h>
+#endif //TARGET_PLATFORM_LINUX
 
 enum ITCH_SESSION_FLAGS {
 	ITCH_INIT,
@@ -39,6 +41,7 @@ typedef struct ITCH_FLAGS {
 
 
 void WriteLineCallback(char* string);
+void WriteLineDirect(const char* string);
 void WriteLineDirect(char* string);
 void WriteDirect(char* string);
 void WriteDirectCh(char ch);
@@ -56,6 +59,11 @@ private:
 	void PreserveReplay(void);
 	void TrimReStuffBuffer(void);
 
+	#ifdef TARGET_PLATFORM_LINUX
+	// Start up terminal settings
+	struct termios old_tio;
+	#endif //TARGET_PLATFORM_LINUX
+
 public:
 	ITCH();
 	virtual ~ITCH();
@@ -72,6 +80,9 @@ public:
 	//void WriteLineDirect(char* string);
 	//static void WriteDirect(char* string);
 	//static void WriteDirectCh(char ch);
+	#ifdef TARGET_PLATFORM_LINUX
+	void RestoreTermAndExit();
+	#endif // TARGET_PLATFORM_LINUX
 };
 
 

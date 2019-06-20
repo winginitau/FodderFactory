@@ -89,7 +89,8 @@ void InputSetup(BlockNode *b) {
 
 			if (ve.begin()) {
 				//VE_last_logged = TimeNow();
-				b->last_update = TimeNow();
+				b->last_update = TimeNow();  	// poll_rate
+				b->last_logged = TimeNow();		// log_rate
 				//VE_last_polled = TV_TYPE_INIT;
 				//VE_log_rate = VE_LOG_RATE;
 				//VE_poll_rate = VE_POLL_RATE;
@@ -110,6 +111,8 @@ void InputSetup(BlockNode *b) {
 			break;
 	}
 }
+
+
 
 void InputOperate(BlockNode *b) {
 	time_t now = TimeNow();
@@ -160,6 +163,74 @@ void InputOperate(BlockNode *b) {
 			break;
 		}
 
+		case IN_VEDIRECT: {
+			#ifdef IF_ARDUINO_VEDIRECT
+			//	State of Charge (SOC): 999    9.99   %
+			//	Power:                 -27    27     W
+			//	Voltage                25954  25.954 mV -> V
+			//	Current                -955   0.955  mA -> A
+
+
+			if ((b->status > STATUS_ERROR) && (b->status < STATUS_DISABLED)) {
+				// Test for poll_rate - is it time?
+				if (TimeNow() >= (b->last_update + b->settings.in.poll_rate)) {
+					VEDirect ve(Serial3);
+					if (ve.begin()) {
+						// Update the poll time to now
+						b->last_update = TimeNow();
+						switch(b->settings.in.interface) {
+							case IF_VED_VOLTAGE:
+								b->int_val = ve.read(VE_VOLTAGE);
+								break;
+
+							case IF_VED_CURRENT: {
+								int32_t new_current = ve.read(VE_CURRENT);
+								// Test if it differs substantially from previous (load on/of)
+								if (VarianceExceedsAbsolute(b->int_val, new_current, 1000)) {
+									// Trigger it to log next loop by setting last_logged back
+									b->last_logged = TimeNow() - b->settings.in.log_rate;
+								}
+								b->int_val = new_current;
+							}
+								break;
+
+							case IF_VED_POWER:
+								b->int_val = ve.read(VE_POWER);
+								break;
+
+							case IF_VED_SOC:
+								b->int_val = ve.read(VE_SOC);
+								break;
+						} //switch
+
+						if (TimeNow() >= (b->last_logged + b->settings.in.log_rate)) {
+							b->last_logged = TimeNow();
+							b->status = STATUS_ENABLED_VALID_DATA;
+							// XXX Update source "SSS" to BID after RPI update
+							if(b->settings.in.interface == IF_VED_VOLTAGE) {
+								EventMsg(SSS, E_DATA, M_VE_VOLTAGE, b->int_val, 0);
+							}
+							if(b->settings.in.interface == IF_VED_CURRENT) {
+								EventMsg(SSS, E_DATA, M_VE_CURRENT, b->int_val, 0);
+							}
+							if(b->settings.in.interface == IF_VED_POWER) {
+								EventMsg(SSS, E_DATA, M_VE_POWER, b->int_val, 0);
+							}
+							if(b->settings.in.interface == IF_VED_SOC) {
+								EventMsg(SSS, E_DATA, M_VE_SOC, b->int_val, 0);
+							}
+						}
+					} else {
+						// begin failed
+						EventMsg(b->block_id, E_ERROR, M_VE_FAILED);
+						b->status = STATUS_DISABLED_ERROR;
+					}
+				}
+			}
+			#endif //IF_ARDUINO_VEDIRECT
+			break;
+		}
+
 		default:
 			EventMsg(SSS, E_ERROR, M_UNKNOWN_BLOCK_TYPE);
 			break;
@@ -195,7 +266,7 @@ void InputShow(BlockNode *b, void(Callback(char *))) {
 	sprintf(out_str, fmt_str, label_str, (unsigned long) b->settings.in.poll_rate); //TV_TYPE
 	Callback(out_str);
 
-	strcpy_hal(fmt_str, F(" data_unit:    %s (%d)"));
+	strcpy_hal(fmt_str, F(" data_units:   %s (%d)"));
 	strcpy_hal(label_str, unit_strings[b->settings.in.data_units].text);
 	sprintf(out_str, fmt_str, label_str, b->settings.in.data_units);
 	Callback(out_str);

@@ -184,32 +184,32 @@ typedef enum {
 	M_GBV_NULL,
 	M_INI_SR,
 	M_SAVE_EMPTY_BUF,
-	M_CONFKEY_ERROR_CAT,
-	M_CONFKEY_LAST_BCAT,
-	M_CONFKEY_NOTIN_DEFS,
-	M_EVENTMSG_BEFORE_INIT,
-	M_BUF_NOT_EMPTY,
-	M_INIT_EVENT_BUF,
-	M_SYS_BAD_DEF,
-	M_DAY_FLAG_EMPTY,
-	M_SCH_BAD_DEF,
-	M_MON_BAD_DEF,
-	M_IN_BAD_DEF,
-	M_RL_BAD_DEF,
-	M_CON_BAD_DEF,
-	M_OUT_BAD_DEF,
-	M_BAD_DATA_UNITS,
-	M_ACT_CMD_UNKNOWN,
-	M_DEACT_CMD_UNKNOWN,
-	M_KEY_IDX_ZERO,
-	M_BAD_BLOCK_CAT,
-	M_ADDING_BLOCK,
-	M_BLOCK_READ_BINARY,
-	M_ADDBLOCK_ERROR,
-	CMD_RESET_MINMAX,
+	M_CONFKEY_ERROR_CAT,	//M44
+	M_CONFKEY_LAST_BCAT,	//M45
+	M_CONFKEY_NOTIN_DEFS,	//M46
+	M_EVENTMSG_BEFORE_INIT,	//M47
+	M_BUF_NOT_EMPTY,		//M48
+	M_INIT_EVENT_BUF,		//M49
+	M_SYS_BAD_DEF,			//M50
+	M_DAY_FLAG_EMPTY,		//M51
+	M_SCH_BAD_DEF,			//M52
+	M_MON_BAD_DEF,			//M53
+	M_IN_BAD_DEF,			//M54
+	M_RL_BAD_DEF,			//M55
+	M_CON_BAD_DEF,			//M56
+	M_OUT_BAD_DEF,			//M57
+	M_BAD_DATA_UNITS,		//M58
+	M_ACT_CMD_UNKNOWN,		//M59
+	M_DEACT_CMD_UNKNOWN,	//M60
+	M_KEY_IDX_ZERO,			//M61
+	M_BAD_BLOCK_CAT,		//M62
+	M_ADDING_BLOCK,			//M63
+	M_BLOCK_READ_BINARY,	//M64
+	M_ADDBLOCK_ERROR,		//M65
+	CMD_RESET_MINMAX,		//M66
 	M_SR_MINMAX_RESET,
 	M_BAD_TEMPERATURE_READ,
-	M_VE_INIT,
+	M_VE_INIT,				//M69
 	M_VE_SOC,
 	M_VE_POWER,
 	M_VE_VOLTAGE,
@@ -225,9 +225,9 @@ typedef enum {
 	M_BIN_SAVE_NOT_AVAIL,
 	M_CONFIG_LOAD_BY_DIRECT_PARSE,
 	M_CONFIGURE_BLOCK_ERROR,
-	M_SETUP_ON_BLOCK_NOT_DISABLED_INIT,
+	M_SETUP_ON_BLOCK_NOT_DISABLED_INIT,	//M85
 	M_UNKNOWN_BLOCK_TYPE,
-	M87,
+	M_VE_FAILED, 						//M87
 	M88,
 	M89,
 	M90,
@@ -287,7 +287,7 @@ static const StringArray message_strings[LAST_MESSAGE] = {
 	14, { "(HALSaveEventBuffer) Save empty buffer",			"M43" },
 	14, { "(GetConfKeyIndex) block_cat = FF_ERROR_CAT",		"M44" },
 	14, { "(GetConfKeyIndex) block_cat >= LAST_BLOCK_CAT",	"M45" },
-	14, { "(GetConfKeyIndex) Key not found in bcat defs",	"M46" },
+	14, { "(GetConfKeyIndex) Key not found in config defs",	"M46" },
 	14, { "(EventMsg) EventMsg Before Init",				"M47" },
 	14, { "(EventMsg) Buffer not empty after save",			"M48" },
 	14, { "Init Message Queue (Event Ring Buffer)",			"M49" },
@@ -326,9 +326,9 @@ static const StringArray message_strings[LAST_MESSAGE] = {
 	14, { "Binary Save not available on this platform",		"M82" },
 	14, { "Configuration loaded and parsed from file",		"M83" },
 	14, { "ConfigureBlock Reported an Error.",	"M84" },
-	14, { "Setup on block that is not STATUS_DISABLED_INIT","M85" },
-	14, { "Unknown Block Type in Setup or Operate Loop",	"M86" },
-	14, { "M87",								"M87" },
+	14, { "Setup not run on block that is not STATUS_DISABLED_INIT",	"M85" },
+	14, { "Unknown Block Type in Setup or Operate Loop",				"M86" },
+	14, { "VEDirect failed to begin in operate loop. Disabled",			"M87" },
 	14, { "M88",								"M88" },
 	14, { "M89",								"M89" },
 	14, { "M90",								"M90" },
@@ -365,11 +365,15 @@ char *strcat_misc(char *dest, uint8_t src);
 char *strcpy_hal(char *dest, const char *src);
 char *strcat_hal(char *dest, const char *src);
 int strcmp_hal(const char *s1, const char *s2);
+int strcasecmp_hal(const char *s1, const char *s2);
+
 #ifdef ARDUINO
 char *strcpy_hal(char *dest, const __FlashStringHelper *src);
 char *strcat_hal(char *dest, const __FlashStringHelper *src);
 int strcmp_hal(const char *s1, const __FlashStringHelper *s2);
+int strcasecmp_hal(const char *s1, const __FlashStringHelper *s2);
 #endif
+
 /**********************************************************************************/
 //char *strcat_hal(char *dest, const char *src);
 void *memcpy_hal(void *dest, const void *src, size_t sz);

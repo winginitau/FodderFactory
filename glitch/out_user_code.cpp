@@ -109,16 +109,28 @@ void InitDisableBID(int16_t param1_int) {
 	RegInitDisableBID(param1_int, WriteLineCallback);
 }
 
+void AdminDisableBID(int16_t param1_int) {
+	RegAdminDisableBID(param1_int, WriteLineCallback);
+}
+
+void AdminEnableBID(int16_t param1_int) {
+	RegAdminEnableBID(param1_int, WriteLineCallback);
+}
+
+void AdminDeleteBID(int16_t param1_int) {
+	RegAdminDeleteBID(param1_int, WriteLineCallback);
+}
+
+void AdminCmdOnBID(int16_t param1_int) {
+	RegAdminCmdOnBID(param1_int, WriteLineCallback);
+}
+
+void AdminCmdOffBID(int16_t param1_int) {
+	RegAdminCmdOffBID(param1_int, WriteLineCallback);
+}
+
 void SystemReboot(void) {
 	RegSystemReboot(WriteLineCallback);
-}
-
-void BlockIDCmdOn(int16_t param1_int) {
-	RegBlockIDCmdOn(param1_int, WriteLineCallback);
-}
-
-void BlockIDCmdOff(int16_t param1_int) {
-	RegBlockIDCmdOff(param1_int, WriteLineCallback);
 }
 
 uint8_t LookupBlockLabel(char* lookup_string) {

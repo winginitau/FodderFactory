@@ -18,11 +18,12 @@
 #endif //TARGET_PLATFORM_LINUX
 #ifdef TARGET_PLATFORM_ARDUINO
 #include <Arduino.h>
-#ifdef IF_ARDUINO_VEDIRECT
+#ifdef IF_ARDUINO_VEDIRECT_OLD
 #include <VEDirect.h>
 #endif //IF_ARDUINO_VEDIRECT
 #endif //TARGET_PLATFORM_ARDUINO
 
+#ifdef IF_ARDUINO_VEDIRECT_OLD
 // XXX HACK VE Direct
 time_t VE_last_polled;
 time_t VE_last_logged;
@@ -32,9 +33,8 @@ int32_t VE_soc, VE_power;
 int32_t VE_voltage, VE_current;
 uint8_t VE_status;
 
-#ifdef TARGET_PLATFORM_ARDUINO
 VEDirect ve(Serial3);
-#endif //TARGET_PLATFORM_ARDUINO
+#endif //IF_ARDUINO_VEDIRECT_OLD
 
 void SystemSetup(BlockNode* b) {
 
@@ -42,14 +42,14 @@ void SystemSetup(BlockNode* b) {
 		EventMsg(SSS, E_INFO, M_START_DELAY_ACTIVE);
 		#ifdef TARGET_PLATFORM_ARDUINO
 			// Milliseconds
-			delay(b->settings.sys.start_delay > 0);
+			delay(b->settings.sys.start_delay);
 		#endif
 		#ifdef TARGET_PLATFORM_LINUX
 			sleep(b->settings.sys.start_delay / 1000);
 		#endif
 	}
 
-#ifdef IF_ARDUINO_VEDIRECT
+#ifdef IF_ARDUINO_VEDIRECT_OLD
 #if defined VE_DIRECT && defined FF_ARDUINO
 // XXX VE Hack
 if (ve.begin()) {
@@ -71,7 +71,7 @@ if (ve.begin()) {
 void SystemOperate(BlockNode* b) {
 	(void)b;
 
-	#ifdef IF_ARDUINO_VEDIRECT
+	#ifdef IF_ARDUINO_VEDIRECT_OLD
 // XXX VE Hack
 
 //	State of Charge (SOC): 999    9.99   %

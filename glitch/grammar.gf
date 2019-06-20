@@ -156,6 +156,7 @@ PPM             "PartsPerMillion",
 ONOFF           "BinaryOnOff",
 RPM             "RevolutionsPerMinute"
 MILLI_VOLTS     "MilliVolts"
+MILLI_AMPS      "MilliAmps"
 VOLTS           "Volts"
 WATTS           "Watts"
 DECI_PERCENT    "DeciPercent
@@ -178,6 +179,7 @@ ABBR_PPM             "PPM",
 ABBR_ONOFF           "ONOFF",
 ABBR_RPM             "RPM"
 ABBR_MILLI_VOLTS     "mV"
+ABBR_MILLI_AMPS      "mA"
 ABBR_VOLTS           "V"
 ABBR_WATTS           "W"
 ABBR_DECI_PERCENT    "deci%
@@ -212,7 +214,10 @@ IF_ONEWIRE          "ONEWIRE"
 IF_DIG_PIN_IN       "DIG_PIN_IN"
 IF_DIG_PIN_OUT      "DIG_PIN_OUT"
 IF_SYSTEM_FUNCTION  "SYSTEM_FUNCTION"
-IF_VEDIRECT         "IF_VEDIRECT"
+IF_VED_VOLTAGE      "IF_VED_VOLTAGE"
+IF_VED_CURRENT      "IF_VED_CURRENT"
+IF_VED_POWER        "IF_VED_POWER"
+IF_VED_SOC          "IF_VED_SOC"
 LAST_INTERFACE
 %enum-end
 
@@ -237,7 +242,8 @@ LAST_STATUS
 %enum-array-instance sys_config_keys
 %enum-start
 SYS_CONFIG_ERROR        "SYS_CONFIG_ERROR"
-SYS_CONFIG_TYPE         "type"   
+SYS_CONFIG_TYPE         "type"
+SYS_CONFIG_DISABLE      "disable"   
 SYS_CONFIG_DISPLAY_NAME "display_name"
 SYS_CONFIG_DESCRIPTION  "description"
 SYS_CONFIG_LANGUAGE     "language"
@@ -252,6 +258,7 @@ LAST_SYS_CONFIG
 %enum-start
 IN_CONFIG_ERROR         "IN_CONFIG_ERROR"
 IN_CONFIG_TYPE          "type"
+IN_CONFIG_DISABLE       "disable"
 IN_CONFIG_DISPLAY_NAME  "display_name"
 IN_CONFIG_DESCRIPTION   "description"
 IN_CONFIG_INTERFACE     "interface"
@@ -268,6 +275,7 @@ LAST_IN_CONFIG
 %enum-start
 MON_CONFIG_ERROR            "MON_CONFIG_ERROR"
 MON_CONFIG_TYPE             "type"
+MON_CONFIG_DISABLE          "disable"
 MON_CONFIG_DISPLAY_NAME     "display_name
 MON_CONFIG_DESCRIPTION      "description"
 MON_CONFIG_INPUT1           "input1
@@ -284,6 +292,7 @@ LAST_MON_CONFIG
 %enum-start
 SCH_CONFIG_ERROR            "SCH_CONFIG_ERROR"
 SCH_CONFIG_TYPE             "type"
+SCH_CONFIG_DISABLE          "disable"
 SCH_CONFIG_DISPLAY_NAME     "display_name
 SCH_CONFIG_DESCRIPTION      "description"
 SCH_CONFIG_DAYS             "days"
@@ -299,6 +308,7 @@ LAST_SCH_CONFIG
 %enum-start
 RL_CONFIG_ERROR            "RL_CONFIG_ERROR"
 RL_CONFIG_TYPE             "type"
+RL_CONFIG_DISABLE          "disable"
 RL_CONFIG_DISPLAY_NAME     "display_name
 RL_CONFIG_DESCRIPTION      "description"
 RL_CONFIG_PARAM1            "param1"
@@ -313,6 +323,7 @@ LAST_RL_CONFIG
 %enum-start
 CON_CONFIG_ERROR            "CON_CONFIG_ERROR"
 CON_CONFIG_TYPE             "type"
+CON_CONFIG_DISABLE          "disable"
 CON_CONFIG_DISPLAY_NAME     "display_name
 CON_CONFIG_DESCRIPTION      "description"
 CON_CONFIG_RULE             "rule"
@@ -327,6 +338,7 @@ LAST_CON_CONFIG
 %enum-start
 OUT_CONFIG_ERROR            "OUT_CONFIG_ERROR"
 OUT_CONFIG_TYPE             "type"
+OUT_CONFIG_DISABLE          "disable"
 OUT_CONFIG_DISPLAY_NAME     "display_name
 OUT_CONFIG_DESCRIPTION      "description"
 OUT_CONFIG_INTERFACE        "interface"
@@ -474,12 +486,7 @@ LAST_OUT_CONFIG
 %5 param-string
 %action CONFIG_BLOCK_OUTPUT
 
-%# ---------------------------------------------------------
-
-%#1 keyword CONFIGURE
-%#2 keyword TERMINAL
-%#change-mode CONFIG_INTERACTIVE
-
+%# ---------------------------FUTURE WRITE / FILE------------------------------
 
 %#action-define WRITE_DEFAULT WriteToDefaultConfigFile
 %#action-define WRITE_INIT WriteEmptyDefaultConfigFile
@@ -501,6 +508,8 @@ LAST_OUT_CONFIG
 %#2 param-string
 %#3 param-string
 %#action COPY_FILE_FILE
+
+%# --------------------------- INIT------------------------------
 
 %action-define INIT_SETUP_ALL InitSetupAll
 %action-define INIT_VALIDATE_ALL InitValidateAll
@@ -530,72 +539,42 @@ LAST_OUT_CONFIG
 %3 param-integer
 %action INIT_DISABLE_BID
 
-%#action-define DISABLE_BLOCK_CAT_N BlockDisableByBlockCatN
-%#action-define DISABLE_BLOCK_LABEL BlockDisableByLabel
-%#action-define ENABLE_BLOCK_CAT_N BlockEnableByBlockCatN
-%#action-define ENABLE_BLOCK_LABEL BlockEnableByLabel
-%#action-define DELETE_BLOCK_CAT_N BlockDeleteByBlockCatN
-%#action-define DELETE_BLOCK_LABEL BlockDeleteByLabel
-%#action-define RENAME_BLOCK BlockRename
+%# --------------------------- ADMIN------------------------------
 
-%# DISABLE <block_label>         // enable and disable blocks from processing
-%# DISABLE <block_category> <INT>    
-%# ENABLE <block_label>
-%# ENABLE <block_category> <INT>
-%# DELETE <block_label>          // delete block from running config
-%# DELETE <block_category> <INT>
-%# RENAME <block_label> new_block_label  // only possible within block types and avoiding duplicates names
+%action-define ADMIN_DISABLE_BID AdminDisableBID
+%action-define ADMIN_ENABLE_BID AdminEnableBID
+%action-define ADMIN_DELETE_BID AdminDeleteBID
+%action-define ADMIN_CMD_ON_BID AdminCmdOnBID
+%action-define ADMIN_CMD_OFF_BID AdminCmdOffBID
 
-%#1 keyword DISABLE
-%#2 enum-array block_category
-%#3 param-integer
-%#action DISABLE_BLOCK_CAT_N
-%#2 param-string
-%#action DISABLE_BLOCK_LABEL
-%#1 keyword ENABLE
-%#2 enum-array block_category
-%#3 param-integer
-%#action ENABLE_BLOCK_CAT_N
-%#2 lookup block_label
-%#action ENABLE_BLOCK_LABEL
-%#1 keyword DELETE
-%#2 enum-array block_category
-%#3 param-integer
-%#action DELETE_BLOCK_CAT_N
-%#2 param-string
-%#action DELETE_BLOCK_LABEL
-%#1 keyword RENAME
-%#2 param-string
-%#3 param-string
-%#action RENAME_BLOCK
+%1 keyword ADMIN
 
-%#action-define EXIT TerminalExit
-%#action-define LOGOUT TerminalLogout
+%2 keyword DISABLE
+%3 param-integer
+%action ADMIN_DISABLE_BID
+
+%2 keyword ENABLE
+%3 param-integer
+%action ADMIN_ENABLE_BID
+
+%2 keyword DELETE
+%3 param-integer
+%action ADMIN_DELETE_BID
+
+%2 keyword ON
+%3 param-integer
+%action ADMIN_CMD_ON_BID
+%2 keyword OFF
+%3 param-integer
+%action ADMIN_CMD_OFF_BID
+
 
 %action-define REBOOT SystemReboot
-
-%# EXIT                          // close configuration section, move to enclosing scope
-%#                                // Also ! and CTRL-Z for same purpose
-%#                                // EXIT in termal mode (non config) implies LOGOUT 
-%# LOGOUT                                // disconnect this terminal
-%# REBOOT
-
-%#1 keyword EXIT
-%#action EXIT
-%#1 keyword LOGOUT
-%#action LOGOUT
 
 %1 keyword REBOOT
 %action REBOOT
 
-%action-define BLOCK_ID_CMD_ON BlockIDCmdOn
-%action-define BLOCK_ID_CMD_OFF BlockIDCmdOff
 
-%1 param-integer
-%2 keyword ON
-%action BLOCK_ID_CMD_ON
-%2 keyword OFF
-%action BLOCK_ID_CMD_OFF
 
 %grammar-end
 

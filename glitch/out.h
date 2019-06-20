@@ -12,12 +12,12 @@
 #define MAX_AST_IDENTIFIER_SIZE 28
 #define MAX_AST_LABEL_SIZE 19
 #define MAX_AST_ACTION_SIZE 24
-#define AST_NODE_COUNT 63
+#define AST_NODE_COUNT 71
 #define MAX_PARAM_COUNT 3
 
 #define XLAT_IDENT_MAP_COUNT 15
 #define XLAT_LOOKUP_MAP_COUNT 1
-#define XLAT_FUNC_MAP_COUNT 29
+#define XLAT_FUNC_MAP_COUNT 32
 
 #define MAX_INPUT_LINE_SIZE 150
 #define MAX_OUTPUT_LINE_SIZE 150
@@ -192,6 +192,7 @@ enum {
 	ONOFF,
 	RPM,
 	MILLI_VOLTS,
+	MILLI_AMPS,
 	VOLTS,
 	WATTS,
 	DECI_PERCENT,
@@ -215,6 +216,7 @@ static const SimpleStringArray unit_strings [LAST_UNIT] = {
 	"BinaryOnOff",
 	"RevolutionsPerMinute",
 	"MilliVolts",
+	"MilliAmps",
 	"Volts",
 	"Watts",
 	"DeciPercent",
@@ -233,6 +235,7 @@ enum {
 	ABBR_ONOFF,
 	ABBR_RPM,
 	ABBR_MILLI_VOLTS,
+	ABBR_MILLI_AMPS,
 	ABBR_VOLTS,
 	ABBR_WATTS,
 	ABBR_DECI_PERCENT,
@@ -256,6 +259,7 @@ static const SimpleStringArray unit_abbr_strings [LAST_UNIT_ABBR] = {
 	"ONOFF",
 	"RPM",
 	"mV",
+	"mA",
 	"V",
 	"W",
 	"deci%",
@@ -297,7 +301,10 @@ enum {
 	IF_DIG_PIN_IN,
 	IF_DIG_PIN_OUT,
 	IF_SYSTEM_FUNCTION,
-	IF_VEDIRECT,
+	IF_VED_VOLTAGE,
+	IF_VED_CURRENT,
+	IF_VED_POWER,
+	IF_VED_SOC,
 	LAST_INTERFACE,
 };
 
@@ -315,7 +322,10 @@ static const SimpleStringArray interface_strings [LAST_INTERFACE] = {
 	"DIG_PIN_IN",
 	"DIG_PIN_OUT",
 	"SYSTEM_FUNCTION",
-	"IF_VEDIRECT",
+	"IF_VED_VOLTAGE",
+	"IF_VED_CURRENT",
+	"IF_VED_POWER",
+	"IF_VED_SOC",
 };
 
 enum {
@@ -350,6 +360,7 @@ static const SimpleStringArray status_strings [LAST_STATUS] = {
 enum {
 	SYS_CONFIG_ERROR = 0,
 	SYS_CONFIG_TYPE,
+	SYS_CONFIG_DISABLE,
 	SYS_CONFIG_DISPLAY_NAME,
 	SYS_CONFIG_DESCRIPTION,
 	SYS_CONFIG_LANGUAGE,
@@ -366,6 +377,7 @@ static const SimpleStringArray sys_config_keys [LAST_SYS_CONFIG] = {
 #endif
 	"SYS_CONFIG_ERROR",
 	"type",
+	"disable",
 	"display_name",
 	"description",
 	"language",
@@ -377,6 +389,7 @@ static const SimpleStringArray sys_config_keys [LAST_SYS_CONFIG] = {
 enum {
 	IN_CONFIG_ERROR = 0,
 	IN_CONFIG_TYPE,
+	IN_CONFIG_DISABLE,
 	IN_CONFIG_DISPLAY_NAME,
 	IN_CONFIG_DESCRIPTION,
 	IN_CONFIG_INTERFACE,
@@ -395,6 +408,7 @@ static const SimpleStringArray in_config_keys [LAST_IN_CONFIG] = {
 #endif
 	"IN_CONFIG_ERROR",
 	"type",
+	"disable",
 	"display_name",
 	"description",
 	"interface",
@@ -408,6 +422,7 @@ static const SimpleStringArray in_config_keys [LAST_IN_CONFIG] = {
 enum {
 	MON_CONFIG_ERROR = 0,
 	MON_CONFIG_TYPE,
+	MON_CONFIG_DISABLE,
 	MON_CONFIG_DISPLAY_NAME,
 	MON_CONFIG_DESCRIPTION,
 	MON_CONFIG_INPUT1,
@@ -426,6 +441,7 @@ static const SimpleStringArray mon_config_keys [LAST_MON_CONFIG] = {
 #endif
 	"MON_CONFIG_ERROR",
 	"type",
+	"disable",
 	"display_name",
 	"description",
 	"input1",
@@ -439,6 +455,7 @@ static const SimpleStringArray mon_config_keys [LAST_MON_CONFIG] = {
 enum {
 	SCH_CONFIG_ERROR = 0,
 	SCH_CONFIG_TYPE,
+	SCH_CONFIG_DISABLE,
 	SCH_CONFIG_DISPLAY_NAME,
 	SCH_CONFIG_DESCRIPTION,
 	SCH_CONFIG_DAYS,
@@ -456,6 +473,7 @@ static const SimpleStringArray sch_config_keys [LAST_SCH_CONFIG] = {
 #endif
 	"SCH_CONFIG_ERROR",
 	"type",
+	"disable",
 	"display_name",
 	"description",
 	"days",
@@ -468,6 +486,7 @@ static const SimpleStringArray sch_config_keys [LAST_SCH_CONFIG] = {
 enum {
 	RL_CONFIG_ERROR = 0,
 	RL_CONFIG_TYPE,
+	RL_CONFIG_DISABLE,
 	RL_CONFIG_DISPLAY_NAME,
 	RL_CONFIG_DESCRIPTION,
 	RL_CONFIG_PARAM1,
@@ -484,6 +503,7 @@ static const SimpleStringArray rl_config_keys [LAST_RL_CONFIG] = {
 #endif
 	"RL_CONFIG_ERROR",
 	"type",
+	"disable",
 	"display_name",
 	"description",
 	"param1",
@@ -495,6 +515,7 @@ static const SimpleStringArray rl_config_keys [LAST_RL_CONFIG] = {
 enum {
 	CON_CONFIG_ERROR = 0,
 	CON_CONFIG_TYPE,
+	CON_CONFIG_DISABLE,
 	CON_CONFIG_DISPLAY_NAME,
 	CON_CONFIG_DESCRIPTION,
 	CON_CONFIG_RULE,
@@ -511,6 +532,7 @@ static const SimpleStringArray con_config_keys [LAST_CON_CONFIG] = {
 #endif
 	"CON_CONFIG_ERROR",
 	"type",
+	"disable",
 	"display_name",
 	"description",
 	"rule",
@@ -522,6 +544,7 @@ static const SimpleStringArray con_config_keys [LAST_CON_CONFIG] = {
 enum {
 	OUT_CONFIG_ERROR = 0,
 	OUT_CONFIG_TYPE,
+	OUT_CONFIG_DISABLE,
 	OUT_CONFIG_DISPLAY_NAME,
 	OUT_CONFIG_DESCRIPTION,
 	OUT_CONFIG_INTERFACE,
@@ -536,6 +559,7 @@ static const SimpleStringArray out_config_keys [LAST_OUT_CONFIG] = {
 #endif
 	"OUT_CONFIG_ERROR",
 	"type",
+	"disable",
 	"display_name",
 	"description",
 	"interface",
@@ -568,15 +592,18 @@ void InitValidateAll(void);
 void InitValidateBID(int16_t param1_int);
 void InitDisableAll(void);
 void InitDisableBID(int16_t param1_int);
+void AdminDisableBID(int16_t param1_int);
+void AdminEnableBID(int16_t param1_int);
+void AdminDeleteBID(int16_t param1_int);
+void AdminCmdOnBID(int16_t param1_int);
+void AdminCmdOffBID(int16_t param1_int);
 void SystemReboot(void);
-void BlockIDCmdOn(int16_t param1_int);
-void BlockIDCmdOff(int16_t param1_int);
 
 // id, type, label, actionable, parent, first_child, next_sibling, action_id
 #ifdef USE_PROGMEM
-static const ASTA asta [63] PROGMEM = {
+static const ASTA asta [71] PROGMEM = {
 #else
-static const ASTA asta [63] = {
+static const ASTA asta [71] = {
 #endif
 	1, 1, "SHOW", 0, 0, 2, 6, "",
 	2, 1, "BLOCKS", 1, 1, 0, 3, "SHOW_BLOCKS",
@@ -637,10 +664,18 @@ static const ASTA asta [63] = {
 	57, 1, "DISABLE", 0, 50, 58, 0, "",
 	58, 1, "ALL", 1, 57, 0, 59, "INIT_DISABLE_ALL",
 	59, 6, "param-integer", 1, 57, 0, 0, "INIT_DISABLE_BID",
-	60, 1, "REBOOT", 1, 0, 0, 61, "REBOOT",
-	61, 6, "param-integer", 0, 0, 62, 0, "",
-	62, 1, "ON", 1, 61, 0, 63, "BLOCK_ID_CMD_ON",
-	63, 1, "OFF", 1, 61, 0, 0, "BLOCK_ID_CMD_OFF",
+	60, 1, "ADMIN", 0, 0, 61, 71, "",
+	61, 1, "DISABLE", 0, 60, 62, 63, "",
+	62, 6, "param-integer", 1, 61, 0, 0, "ADMIN_DISABLE_BID",
+	63, 1, "ENABLE", 0, 60, 64, 65, "",
+	64, 6, "param-integer", 1, 63, 0, 0, "ADMIN_ENABLE_BID",
+	65, 1, "DELETE", 0, 60, 66, 67, "",
+	66, 6, "param-integer", 1, 65, 0, 0, "ADMIN_DELETE_BID",
+	67, 1, "ON", 0, 60, 68, 69, "",
+	68, 6, "param-integer", 1, 67, 0, 0, "ADMIN_CMD_ON_BID",
+	69, 1, "OFF", 0, 60, 70, 0, "",
+	70, 6, "param-integer", 1, 69, 0, 0, "ADMIN_CMD_OFF_BID",
+	71, 1, "REBOOT", 1, 0, 0, 0, "REBOOT",
 };
 
 #ifdef USE_PROGMEM
@@ -674,9 +709,9 @@ static const XLATMap lookup_map [1] = {
 };
 
 #ifdef USE_PROGMEM
-static const XLATMap func_map [29] PROGMEM = {
+static const XLATMap func_map [32] PROGMEM = {
 #else
-static const XLATMap func_map [29] = {
+static const XLATMap func_map [32] = {
 #endif
 	"SHOW_BLOCKS", 0,
 	"SHOW_SYSTEM", 1,
@@ -704,9 +739,12 @@ static const XLATMap func_map [29] = {
 	"INIT_SETUP_BID", 23,
 	"INIT_VALIDATE_BID", 24,
 	"INIT_DISABLE_BID", 25,
-	"REBOOT", 26,
-	"BLOCK_ID_CMD_ON", 27,
-	"BLOCK_ID_CMD_OFF", 28,
+	"ADMIN_DISABLE_BID", 26,
+	"ADMIN_ENABLE_BID", 27,
+	"ADMIN_DELETE_BID", 28,
+	"ADMIN_CMD_ON_BID", 29,
+	"ADMIN_CMD_OFF_BID", 30,
+	"REBOOT", 31,
 };
 
 uint16_t LookupIdentMap (char* key);

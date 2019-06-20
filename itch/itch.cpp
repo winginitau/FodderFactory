@@ -93,6 +93,12 @@ ITCH::~ITCH() {
 	// Auto-generated destructor stub
 }
 
+#ifdef TARGET_PLATFORM_LINUX
+void ITCH::RestoreTermAndExit() {
+	// Restore original terminal settings
+	tcsetattr(STDIN_FILENO,TCSANOW,&old_tio);
+}
+#endif // TARGET_PLATFORM_LINUX
 
 #ifdef ARDUINO
 void ITCH::Begin() {
@@ -104,18 +110,15 @@ void ITCH::Begin() {
 
 void ITCH::Begin(FILE* input_stream, FILE* output_stream) {
 
-	struct termios old_tio, new_tio;
-	/* get the terminal settings for stdin */
+	struct termios new_tio;
+	// Get the terminal settings for stdin
 	tcgetattr(STDIN_FILENO,&old_tio);
-	/* we want to keep the old setting to restore them a the end */
+	// Keep the old setting to restore at end
 	new_tio=old_tio;
-	/* disable canonical mode (buffered i/o) and local echo */
+	// Disable canonical mode (buffered i/o) and local echo
 	new_tio.c_lflag &=(~ICANON & ~ECHO);
-	/* set the new settings immediately */
+	// Set the new settings
 	tcsetattr(STDIN_FILENO,TCSANOW,&new_tio);
-
-	/* restore the former settings */
-	//tcsetattr(STDIN_FILENO,TCSANOW,&old_tio);
 
 	isp = input_stream;
 	osp = output_stream;
@@ -408,6 +411,26 @@ void WriteLineCallback(char* string) {
 }
 
 
+// XXX Work around for call backs being char* and
+// a calling function needing to pass a const char*
+void WriteLineDirect(const char* string) {
+	// Add a newline and send the string to the output
+	//strcat(string, "\n");
+	#ifdef ARDUINO
+		Serial.flush();
+		//delay(500);
+		Serial.write(string);
+		Serial.write('\n');
+		//delay(500);
+		Serial.flush();
+	#else
+		fputs(string, osp);
+		fputs("\n", osp);
+		fflush(stdout);
+	#endif
+}
+
+// XXX non const version
 void WriteLineDirect(char* string) {
 	// Add a newline and send the string to the output
 	strcat(string, "\n");
