@@ -15,11 +15,11 @@
 #include <debug_ff.h>
 #include <string_consts.h>
 
-#ifdef FF_ARDUINO
+#ifdef PLATFORM_ARDUINO
 #include <Arduino.h> //TODO get rid of this
-#endif
+#endif //PLATFORM_ARDUINO
 
-#ifdef FF_SIMULATOR
+#ifdef PLATFORM_LINUX
 #include <stdio.h>
 #endif
 
@@ -48,7 +48,7 @@
 
 #ifdef DEBUG
 
-#ifdef FF_ARDUINO
+#ifdef PLATFORM_ARDUINO
 #ifdef DEBUG_MEMORY
 char* GetMemPointers(char* str) {
 /* This function places the current value of the heap and stack pointers in the
@@ -74,29 +74,27 @@ char* GetMemPointers(char* str) {
 	return str;
 }
 #endif //DEBUG_MEMORY
-#endif
+#endif //PLATFORM_ARDUINO
 
 #ifdef DEBUG_SERIAL
 void DebugSerial(char *log_entry) {
-    //Serial.begin(DEBUG_SERIAL_BAUDRATE);
-
-#ifdef USE_ITCH
-	HALItchWriteLnImmediate(log_entry);
-#else
-    int loop = 5000;
-    while (loop > 0) {
-      loop--;
-      if (Serial) {
-        break;
-      };
-    };
-    if (loop > 0) {
-      //ie. connected before timeout
-      Serial.println(log_entry);
-      Serial.flush();
-    };
-    //Serial.end();
-#endif
+	#ifdef USE_ITCH
+		HALItchWriteLnImmediate(log_entry);
+	#else
+		int loop = 5000;
+		while (loop > 0) {
+		  loop--;
+		  if (Serial) {
+			break;
+		  };
+		};
+		if (loop > 0) {
+		  //ie. connected before timeout
+		  Serial.println(log_entry);
+		  Serial.flush();
+		};
+		//Serial.end();
+	#endif
 
 }
 #endif // DEBUG_SERIAL
@@ -127,14 +125,18 @@ void DebugLog(const char* log_message) {
 	strftime(dt, 24, fmt_str, localtime(&now));		//yyyy-mm-dd, 00:00:00
 	#ifdef DEBUG_MEMORY
 		char mem_str[MAX_DEBUG_LENGTH];
+		//WriteLineDirect(log_message);
+		//WriteLineDirect("Before GetMemPointers()");
 		GetMemPointers(mem_str);
+		//WriteLineDirect("After GetMemPointers()");
 		strcpy_hal(fmt_str, F("%s, DEBUG, (%s) %s"));
 		sprintf(log_entry, fmt_str, dt, mem_str, log_message);  				//assemble log entry with time stamp
 	#else
 		strcpy_hal(fmt_str, F("%s, DEBUG, %s"));
 		sprintf(log_entry, fmt_str, dt, log_message);  				//assemble log entry with time stamp
 	#endif
-
+		//WriteLineDirect(log_entry);
+		//WriteLineDirect("Before DebugSerial()");
 	#ifdef DEBUG_SERIAL
 		DebugSerial(log_entry);
 	#endif

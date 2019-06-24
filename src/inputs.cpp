@@ -21,12 +21,9 @@
 #include <block_common.h>
 #include <utils.h>
 
-#ifdef VE_DIRECT
+#ifdef ARDUINO_VEDIRECT
 #include <VEDirect.h>
-#endif //VE_DIRECT
-
-#ifdef FF_SIMULATOR
-#endif
+#endif //ARDUINO_VEDIRECT
 
 /************************************************
   Data Structures
@@ -84,7 +81,7 @@ void InputSetup(BlockNode *b) {
 			break;
 
 		case IN_VEDIRECT: {
-			#if defined VE_DIRECT && defined FF_ARDUINO
+			#ifdef ARDUINO_VEDIRECT
 			VEDirect ve(Serial3);
 
 			if (ve.begin()) {
@@ -102,7 +99,7 @@ void InputSetup(BlockNode *b) {
 				b->status = STATUS_DISABLED_ERROR;
 				EventMsg(SSS, E_ERROR, M_VE_INIT_ERROR);
 			}
-			#endif //VE_DIRECT
+			#endif //ARDUINO_VEDIRECT
 			break;
 		}
 
@@ -164,7 +161,7 @@ void InputOperate(BlockNode *b) {
 		}
 
 		case IN_VEDIRECT: {
-			#ifdef IF_ARDUINO_VEDIRECT
+			#ifdef ARDUINO_VEDIRECT
 			//	State of Charge (SOC): 999    9.99   %
 			//	Power:                 -27    27     W
 			//	Voltage                25954  25.954 mV -> V
@@ -227,7 +224,7 @@ void InputOperate(BlockNode *b) {
 					}
 				}
 			}
-			#endif //IF_ARDUINO_VEDIRECT
+			#endif //ARDUINO_VEDIRECT
 			break;
 		}
 
@@ -237,7 +234,7 @@ void InputOperate(BlockNode *b) {
 	}
 }
 
-void InputShow(BlockNode *b, void(Callback(char *))) {
+void InputShow(BlockNode *b, void(Callback(const char *))) {
 	char out_str[MAX_MESSAGE_STRING_LENGTH];
 	char fmt_str[MAX_LABEL_LENGTH];
 	char label_str[MAX_LABEL_LENGTH];

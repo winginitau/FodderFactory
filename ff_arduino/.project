@@ -34,22 +34,22 @@
 		<link>
 			<name>VictronVEDirectArduino</name>
 			<type>2</type>
-			<location>/home/brendan/git/Arduinolib/VictronVEDirectArduino</location>
+			<locationURI>PARENT-2-PROJECT_LOC/Arduinolib/VictronVEDirectArduino</locationURI>
 		</link>
 		<link>
 			<name>glitch</name>
 			<type>2</type>
-			<location>/home/brendan/git/FodderFactory/glitch</location>
+			<locationURI>PARENT-1-PROJECT_LOC/glitch</locationURI>
 		</link>
 		<link>
 			<name>itch</name>
 			<type>2</type>
-			<location>/home/brendan/git/FodderFactory/itch</location>
+			<locationURI>PARENT-1-PROJECT_LOC/itch</locationURI>
 		</link>
 		<link>
 			<name>src</name>
 			<type>2</type>
-			<location>/home/brendan/git/FodderFactory/src</location>
+			<locationURI>PARENT-1-PROJECT_LOC/src</locationURI>
 		</link>
 		<link>
 			<name>core/core</name>
@@ -64,7 +64,7 @@
 		<link>
 			<name>libraries/DallasTemperature</name>
 			<type>2</type>
-			<location>/home/brendan/git/FodderFactory/arduino.priv/libraries/DallasTemperature</location>
+			<locationURI>PARENT-1-PROJECT_LOC/arduino.priv/libraries/DallasTemperature</locationURI>
 		</link>
 		<link>
 			<name>libraries/OneWire</name>
@@ -74,7 +74,7 @@
 		<link>
 			<name>libraries/RTClib</name>
 			<type>2</type>
-			<location>/home/brendan/git/FodderFactory/arduino.priv/libraries/RTClib</location>
+			<locationURI>PARENT-1-PROJECT_LOC/arduino.priv/libraries/RTClib</locationURI>
 		</link>
 		<link>
 			<name>libraries/SPI</name>

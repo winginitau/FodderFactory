@@ -46,7 +46,8 @@ enum {
 	D_SUB_SECTION_CLOSE,
 	D_REDUNDANT_CLOSE_AS_COMMENT,
 	D_IGNORE_CASE,
-	D_ESCAPE_SEQUENCE,
+	D_TERM_ESCAPE_SEQUENCE,
+	D_CCC_ESCAPE_SEQUENCE,
 	D_ENUM_TERMINATING_MEMBER,
 	D_ENUM_PLUS_LIST_ARRAY,
 	D_ENUM_NO_ERROR_MEMBER,
@@ -94,7 +95,8 @@ static const EnumStringArray grammar_directives[LAST_DIRECTIVE] = {
 		"%sub-section-close",
 		"%redundant-close-as-comment",
 		"%ignore-case",
-		"%escape-sequence",
+		"%term-escape-sequence",
+		"%ccc-escape-sequence",
 		"%enum-terminating-member",
 		"%enum-plus-list-array",
 		"%enum-no-error-member",
@@ -167,7 +169,8 @@ private:
     StringList sub_section_closes;      //initialised in constructor
     bool redundant_close_as_comment;
     bool ignore_case;
-    char escape_sequence[MAX_BUFFER_WORD_LENGTH];            //initialised in constructor
+    char term_escape_sequence[MAX_BUFFER_WORD_LENGTH];            //initialised in constructor
+    char ccc_escape_sequence[MAX_BUFFER_WORD_LENGTH];            //initialised in constructor
     bool enum_terminating_member;
     bool enum_plus_list_array;
     char enum_start_value[MAX_BUFFER_WORD_LENGTH];
@@ -235,7 +238,8 @@ protected:
 	void Process_D_SUB_SECTION_CLOSE(void);
 	void Process_D_REDUNDANT_CLOSE_AS_COMMENT(void);
 	void Process_D_IGNORE_CASE(void);
-	void Process_D_ESCAPE_SEQUENCE(void);
+	void Process_D_TERM_ESCAPE_SEQUENCE(void);
+	void Process_D_CCC_ESCAPE_SEQUENCE(void);
 	void Process_D_ENUM_TERMINATING_MEMBER(void);
 	void Process_D_ENUM_PLUS_LIST_ARRAY(void);
 	void Process_D_ENUM_NO_TERMINATING_MEMBER(void);

@@ -8,12 +8,12 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#ifdef FF_ARDUINO
+#ifdef PLATFORM_ARDUINO
 //#include <SdFat.h>
 #include "SD.h"
 //#include "Ethernet.h"
-#endif
-#ifdef FF_SIMULATOR
+#endif //PLATFORM_ARDUINO
+#ifdef PLATFORM_LINUX
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -44,11 +44,11 @@ public:
   static const uint8_t maxFilenameLen;
 
   // Create an IniFile object. It isn't opened until open() is called on it.
-#ifdef FF_ARDUINO
+#ifdef PLATFORM_ARDUINO
   IniFile(const char* filename, uint8_t mode = FILE_READ, bool caseSensitive = false);
   ~IniFile();
-#endif
-#ifdef FF_SIMULATOR
+#endif //PLATFORM_ARDUINO
+#ifdef PLATFORM_LINUX
   IniFile(const char* filename, char* mode, bool caseSensitive = false);
    ~IniFile();
 #endif
@@ -61,10 +61,10 @@ public:
   inline error_t getError(void) const;
   inline void clearError(void) const;
   // Get the file mode (FILE_READ/FILE_WRITE)
-#ifdef FF_ARDUINO
+#ifdef PLATFORM_ARDUINO
   inline uint8_t getMode(void);
-#endif
-#ifdef FF_SIMULATOR
+#endif //PLATFORM_ARDUINO
+#ifdef PLATFORM_LINUX
   inline char* getMode(void);
 #endif
   // Get the filename asscoiated with the ini file object
@@ -126,10 +126,10 @@ public:
 
   // Utility function to read a line from a file, make available to all
   //static int8_t readLine(File &file, char *buffer, size_t len, uint32_t &pos);
-#ifdef FF_ARDUINO
+#ifdef PLATFORM_ARDUINO
   static error_t readLine(File &file, char *buffer, size_t len, uint32_t &pos);
-#endif
-#ifdef FF_SIMULATOR
+#endif //PLATFORM_ARDUINO
+#ifdef PLATFORM_LINUX
   static error_t readLine(FILE* file, char *buffer, size_t len, uint32_t &pos);
 #endif
   static bool isCommentChar(char c);
@@ -149,17 +149,17 @@ public:
 
 private:
   char _filename[INI_FILE_MAX_FILENAME_LEN];
-#ifdef FF_ARDUINO
+#ifdef PLATFORM_ARDUINO
   uint8_t _mode;
-#endif
-#ifdef FF_SIMULATOR
+#endif //PLATFORM_ARDUINO
+#ifdef PLATFORM_LINUX
   char _mode[3];
 #endif
   mutable error_t _error;
-#ifdef FF_ARDUINO
+#ifdef PLATFORM_ARDUINO
   mutable File _file;
-#endif
-#ifdef FF_SIMULATOR
+#endif //PLATFORM_ARDUINO
+#ifdef PLATFORM_LINUX
   mutable FILE* _file;
 #endif
   bool _caseSensitive;
@@ -168,16 +168,16 @@ private:
 bool IniFile::open(void)
 {
   if (_file)
-#ifdef FF_ARDUINO
+#ifdef PLATFORM_ARDUINO
 	  _file.close();
-#endif
-#ifdef FF_SIMULATOR
+#endif //PLATFORM_ARDUINO
+#ifdef PLATFORM_LINUX
   	  fclose(_file);  //used to be a problem here - now seems fixed
 #endif
-#ifdef FF_ARDUINO
+#ifdef PLATFORM_ARDUINO
   _file = SD.open(_filename, _mode);
-#endif
-#ifdef FF_SIMULATOR
+#endif //PLATFORM_ARDUINO
+#ifdef PLATFORM_LINUX
   _file = fopen(_filename, _mode);
 #endif
   if (isOpen()) {
@@ -191,13 +191,13 @@ bool IniFile::open(void)
 }
 
 void IniFile::close(void) {
-#ifdef FF_ARDUINO
+#ifdef PLATFORM_ARDUINO
 	if (_file) {
 		_file.close();
 		SD.end();
 	}
-#endif
-#ifdef FF_SIMULATOR
+#endif //PLATFORM_ARDUINO
+#ifdef PLATFORM_LINUX
 	if (_file) {
 		fclose(_file);
 		_file = NULL;
@@ -221,14 +221,14 @@ void IniFile::clearError(void) const
   _error = errorNoError;
 }
 
-#ifdef FF_ARDUINO
+#ifdef PLATFORM_ARDUINO
 uint8_t IniFile::getMode(void)
 {
   return _mode;
 }
-#endif
+#endif //PLATFORM_ARDUINO
 
-#ifdef FF_SIMULATOR
+#ifdef PLATFORM_LINUX
 char* IniFile::getMode(void)
 {
   return _mode;

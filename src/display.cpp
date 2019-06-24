@@ -35,12 +35,12 @@
 #ifdef UI_ATTACHED
 void InitUI(void) {
 	HALInitUI();
-#ifdef FF_ARDUINO
+#ifdef PLATFORM_ARDUINO
 #ifdef LCD_DISPLAY
 	EventMsg(SSS, E_INFO, M_LCD_INIT);
+#endif //PLATFORM_ARDUINO
 #endif
-#endif
-#ifdef FF_SIMULATOR
+#ifdef PLATFORM_LINUX
 	EventMsg(SSS, E_INFO, M_SIM_CONSOLE);
 #endif
 }

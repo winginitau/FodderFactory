@@ -12,7 +12,7 @@
 /************************************************
  Includes
 ************************************************/
-#ifdef FF_SIMULATOR
+#ifdef PLATFORM_LINUX
 #include <stdint.h>
 #endif
 
@@ -60,15 +60,17 @@ void HALDrawDataScreenCV(const UIDataSet* uids, time_t dt);
 
 //FFDateTime HALFFDTNow(void);
 time_t TimeNow(void);
-#ifdef FF_ARDUINO
+#ifdef PLATFORM_ARDUINO
 uint8_t HALSetRTCTime(char *time_str);
 uint8_t HALSetRTCDate(char *date_str);
-#endif
+#endif //PLATFORM_ARDUINO
 void HALInitRTC(void);
 void HALReboot(void);
 
-#ifdef FF_ARDUINO
+#ifdef PLATFORM_ARDUINO
+#ifdef DEBUG_LCD
 void HALDebugLCD(String log_entry);
-#endif
+#endif //DEBUG_LCD
+#endif //PLATFORM_ARDUINO
 
 #endif /* HAL_H_ */

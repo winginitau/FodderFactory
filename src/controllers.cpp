@@ -20,9 +20,9 @@
 #include <time.h>
 #include <block_common.h>
 
-#ifdef FF_ARDUINO
+#ifdef PLATFORM_ARDUINO
 #include <Arduino.h>
-#endif
+#endif //PLATFORM_ARDUINO
 
 
 /************************************************
@@ -96,7 +96,7 @@ void ControllerOperate(BlockNode *b) {
 
 }
 
-void ControllerShow(BlockNode *b, void(Callback(char *))) {
+void ControllerShow(BlockNode *b, void(Callback(const char *))) {
 	char out_str[MAX_MESSAGE_STRING_LENGTH];
 	char fmt_str[MAX_LABEL_LENGTH];
 	char label_str[MAX_LABEL_LENGTH];

@@ -9,11 +9,6 @@
 #ifndef SRC_FF_CONTROLLERS_H_
 #define SRC_FF_CONTROLLERS_H_
 
-#ifdef FF_ARDUINO
-//#include <Arduino.h>
-#endif
-
-
 #include <registry.h>
 
 /************************************************
@@ -28,7 +23,7 @@
 
 void ControllerSetup(BlockNode *b);
 void ControllerOperate(BlockNode *b);
-void ControllerShow(BlockNode *b, void(Callback(char *)));
+void ControllerShow(BlockNode *b, void(Callback(const char *)));
 
 
 #endif /* SRC_FF_CONTROLLERS_H_ */

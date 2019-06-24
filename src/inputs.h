@@ -20,6 +20,6 @@
 ************************************************/
 void InputOperate(BlockNode *b);
 void InputSetup(BlockNode *b);
-void InputShow(BlockNode *b, void(Callback(char *)));
+void InputShow(BlockNode *b, void(Callback(const char *)));
 
 #endif /* INPUTS_H_ */

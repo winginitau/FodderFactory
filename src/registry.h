@@ -183,47 +183,47 @@ char* UpdateDescription(BlockNode* b, const char * description);
 void DropBlockList(void);
 
 // itch integration functions (called by user_code.cpp)
-uint8_t RegLookupBlockLabel(char* lookup_string);
-void RegShowBlocks(void(*Callback)(char *));
-void RegShowSystem(void(*Callback)(char *));
-void RegShowBlockByID(uint16_t, void(*Callback)(char *));
-void RegShowBlockByLabel(char* block_label, void(*Callback)(char *));
-void RegSendCommandToBlockLabel(char* block_label, uint16_t command, void(*Callback)(char *));
-void RegSendCommandToBlockID(uint16_t id, uint16_t command, void(*Callback)(char*));
-void RegShowTime(void(*Callback)(char*));
-void RegSetTime(char* time_str, void(*Callback)(char*));
-void RegShowDate(void(*Callback)(char*));
-void RegSetDate(char* date_str, void(*Callback)(char*));
+uint8_t RegLookupBlockLabel(const char* lookup_string);
+void RegShowBlocks(void(*Callback)(const char *));
+void RegShowSystem(void(*Callback)(const char *));
+void RegShowBlockByID(uint16_t, void(*Callback)(const char *));
+void RegShowBlockByLabel(const char* block_label, void(*Callback)(const char *));
+void RegSendCommandToBlockLabel(const char* block_label, uint16_t command, void(*Callback)(const char *));
+void RegSendCommandToBlockID(uint16_t id, uint16_t command, void(*Callback)(const char*));
+void RegShowTime(void(*Callback)(const char*));
+void RegSetTime(const char* time_str, void(*Callback)(const char*));
+void RegShowDate(void(*Callback)(const char*));
+void RegSetDate(const char* date_str, void(*Callback)(const char*));
 
-void RegConfigClear(void(*Callback)(char*));
-void RegConfigLoad(void(*Callback)(char*));
-void RegConfigLoadBinary(void(*Callback)(char*));
-void RegConfigLoadINI(void(*Callback)(char*));
-void RegConfigSave(void(*Callback)(char*));
-void RegConfigSaveBinary(void(*Callback)(char*));
+void RegConfigClear(void(*Callback)(const char*));
+void RegConfigLoad(void(*Callback)(const char*));
+void RegConfigLoadBinary(void(*Callback)(const char*));
+void RegConfigLoadINI(void(*Callback)(const char*));
+void RegConfigSave(void(*Callback)(const char*));
+void RegConfigSaveBinary(void(*Callback)(const char*));
 
-void RegConfigBlockSystem(char* param1_string, uint16_t SYS_CONFIG, char* param2_string, void(*Callback)(char*));
-void RegConfigBlockInput(char* param1_string, uint16_t IN_CONFIG, char* param2_string, void(*Callback)(char*));
-void RegConfigBlockMonitor(char* param1_string, uint16_t MON_CONFIG, char* param2_string, void(*Callback)(char*));
-void RegConfigBlockSchedule(char* param1_string, uint16_t SCH_CONFIG, char* param2_string, void(*Callback)(char*));
-void RegConfigBlockRule(char* param1_string, uint16_t RL_CONFIG, char* param2_string, void(*Callback)(char*));
-void RegConfigBlockController(char* param1_string, uint16_t CON_CONFIG, char* param2_string, void(*Callback)(char*));
-void RegConfigBlockOutput(char* param1_string, uint16_t OUT_CONFIG, char* param2_string, void(*Callback)(char*));
+void RegConfigBlockSystem(const char* param1_string, uint16_t SYS_CONFIG, const char* param2_string, void(*Callback)(const char*));
+void RegConfigBlockInput(const char* param1_string, uint16_t IN_CONFIG, const char* param2_string, void(*Callback)(const char*));
+void RegConfigBlockMonitor(const char* param1_string, uint16_t MON_CONFIG, const char* param2_string, void(*Callback)(const char*));
+void RegConfigBlockSchedule(const char* param1_string, uint16_t SCH_CONFIG, const char* param2_string, void(*Callback)(const char*));
+void RegConfigBlockRule(const char* param1_string, uint16_t RL_CONFIG, const char* param2_string, void(*Callback)(const char*));
+void RegConfigBlockController(const char* param1_string, uint16_t CON_CONFIG, const char* param2_string, void(*Callback)(const char*));
+void RegConfigBlockOutput(const char* param1_string, uint16_t OUT_CONFIG, const char* param2_string, void(*Callback)(const char*));
 
-void RegInitSetupAll(void(*Callback)(char*));
-void RegInitSetupBID(uint16_t block_id, void(*Callback)(char*));
-void RegInitValidateAll(void(*Callback)(char*));
-void RegInitValidateBID(uint16_t block_id, void(*Callback)(char*));
-void RegInitDisableAll(void(*Callback)(char*));
-void RegInitDisableBID(uint16_t block_id, void(*Callback)(char*));
+void RegInitSetupAll(void(*Callback)(const char*));
+void RegInitSetupBID(uint16_t block_id, void(*Callback)(const char*));
+void RegInitValidateAll(void(*Callback)(const char*));
+void RegInitValidateBID(uint16_t block_id, void(*Callback)(const char*));
+void RegInitDisableAll(void(*Callback)(const char*));
+void RegInitDisableBID(uint16_t block_id, void(*Callback)(const char*));
 
-void RegAdminDisableBID(uint16_t block_id, void(*Callback)(char*));
-void RegAdminEnableBID(uint16_t block_id, void(*Callback)(char*));
-void RegAdminDeleteBID(uint16_t block_id, void(*Callback)(char*));
-void RegAdminCmdOnBID(uint16_t block_id, void(*Callback)(char*));
-void RegAdminCmdOffBID(uint16_t block_id, void(*Callback)(char*));
+void RegAdminDisableBID(uint16_t block_id, void(*Callback)(const char*));
+void RegAdminEnableBID(uint16_t block_id, void(*Callback)(const char*));
+void RegAdminDeleteBID(uint16_t block_id, void(*Callback)(const char*));
+void RegAdminCmdOnBID(uint16_t block_id, void(*Callback)(const char*));
+void RegAdminCmdOffBID(uint16_t block_id, void(*Callback)(const char*));
 
-void RegSystemReboot(void(*Callback)(char*));
+void RegSystemReboot(void(*Callback)(const char*));
 
 
 void UpdateStateRegister(uint16_t source, uint8_t msg_type, uint8_t msg_str, int i_val, float f_val);

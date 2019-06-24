@@ -42,6 +42,7 @@ class Interface():
         super(Interface, self).__init__(**kwargs)
         self.id = ""
         self.description = ""
+        self.hanging_prompts = False;
         self.txQ = deque()
         self.rxQ = deque()
         self.rxQMax = 2000
@@ -54,7 +55,6 @@ class Interface():
         self.byte_count = 0
     def changeMode(self, mode):
         self.mode = mode
-
         
 class LinuxSerialPort(Interface):
     def __init__(self, **kwargs):
@@ -147,19 +147,20 @@ class LinuxSerialPort(Interface):
                         self.input_array += self.read_char
                     self.reading = False 
                 else:
-                    ''' nothing in waiting - has it been a while? '''
-                    if self.timeSinceLastRXTX() > 2:
-                        '''still bytes in the input_array? '''
-                        if self.byte_count > 0: 
-                            ''' Assume an un terminated prompt'''
-                            self.byte_count = 0
-                            self.input_string = self.input_array.decode()
-                            self.input_string = self.input_string.strip('\n\r')
-                            #print(self.input_string)
-                            self.rxQ.append(self.input_string)
-                            self.input_array = bytearray() 
-                            self.input_string = ""
-                            #print(self.input_array)
+                    if self.hanging_prompts:
+                        ''' nothing in waiting - has it been a while? '''
+                        if self.timeSinceLastRXTX() > 2:
+                            '''still bytes in the input_array? '''
+                            if self.byte_count > 0: 
+                                ''' Assume an un terminated prompt'''
+                                self.byte_count = 0
+                                self.input_string = self.input_array.decode()
+                                self.input_string = self.input_string.strip('\n\r')
+                                #print(self.input_string)
+                                self.rxQ.append(self.input_string)
+                                self.input_array = bytearray() 
+                                self.input_string = ""
+                                #print(self.input_array)
                 '''Outgoing'''
                 sleep(0.100)
                 while len(self.txQ) > 0:
@@ -250,7 +251,7 @@ class FodderArduino(Adaptor, Utils):
             while self.timeSinceLastInterfaceRXTX() < 3: 
                 sleep(1)
                 print (self.timeSinceLastInterfaceRXTX())
-            self.brokerToInterfaceQ.append("^^^")
+            self.brokerToInterfaceQ.append("%%%")
             self.sendNextLineToInterface()
             while True:
                 ''' add timeout! '''
@@ -258,9 +259,9 @@ class FodderArduino(Adaptor, Utils):
                     self.response = self.getLineFromInterface()
                     #print (self.response)
                     self.appendForBrokerCollection(self.response)
-                if self.response == "ITCH - Interactive Terminal Command sHell":
+                if self.response == "OK":
                     #print ("BINGO!")
-                    self.appendForBrokerCollection("ITCH Terminal mode detected by adaoptor")
+                    self.appendForBrokerCollection("ITCH Text CCC mode detected by adaoptor")
                     self.itchActivated = True 
                     return True
     def processConfigCommands(self):
@@ -297,7 +298,7 @@ class FodderArduino(Adaptor, Utils):
                                 self.response = self.getLineFromInterface()
                                 #print("Got a line, sending it")
                                 self.appendForBrokerCollection(self.response)
-                                if self.response == "itch:$ ":
+                                if self.response == "OK":
                                     #print("got prompt again")
                                     break
                         else:

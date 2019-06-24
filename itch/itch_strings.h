@@ -32,13 +32,17 @@ enum {
 	PE_BAD_PARAM_ACTION_DISPATCHER,
 	ME_GETASTABYID_FAIL,
 	PE_NO_PARSE_RESULT,
+	TL_EXCEED_GRAMMAR_DEPTH,
+	ME_GETASTACHILDID_FAIL,
+	ME_COPYASTAACTIONSTRING_FAIL,
+	ME_COPYASTALABELSTRING_FAIL,
 	LAST_PARSE_ERROR
 };
 
 #ifdef USE_PROGMEM
-static const EnumStringArray parser_error_strings[LAST_PARSE_ERROR] PROGMEM = {
+static const EnumStringArray itch_error_strings[LAST_PARSE_ERROR] PROGMEM = {
 #else
-static const EnumStringArray parser_error_strings[LAST_PARSE_ERROR] = {
+static const EnumStringArray itch_error_strings[LAST_PARSE_ERROR] = {
 #endif
 		"Processing error type",
 		"Unknown error",
@@ -54,15 +58,19 @@ static const EnumStringArray parser_error_strings[LAST_PARSE_ERROR] = {
 		"ActionDispatcher: Unknown or incorrect parameter type found in param_list while assembling ParamUnion- keyword?",
 		"GetASTAByID: ASTA ID Not Found or array index going out of bounds",
 		"Parser did not return a result at all. Error in Parser?",
-
+		"Fatal Error: TokenList attempted to exceed MAX_GRAMMAR_DEPTH",
+		"MapGetASTAChildIDByID: ASTA ID Not Found or array index going out of bounds",
+		"MapCopyActionStringByID ASTA ID Not Found or array index going out of bounds",
+		"MapCopyASTALabelByID ASTA ID Not Found or array index going out of bounds",
 };
+
 
 enum {
 	ITCH_MISC_ERROR = 0,
 	ITCH_MISC_HELP_HEADING,
 	ITCH_MISC_ERROR_PROMPT,
 	ITCH_MISC_ERROR_HEADER,
-	ITCH_MISC_PROMPT_BASE,
+	ITCH_MISC_PROMPT,
 	ITCH_MISC_CRNL,
 	ITCH_MISC_PARAM_DATE,
 	ITCH_MISC_PARAM_TIME,
@@ -73,8 +81,12 @@ enum {
 	ITCH_TERMINAL_GOODBYE,
 	ITCH_BUFFER_STUFFING_MODE,
 	ITCH_BUFFER_STUFFING_ERROR,
+	ITCH_CCC_OK,
+	ITCH_CCC_ERROR,
 	LAST_ITCH_MISC_STRING
 };
+
+#define ITCH_PROMPT_SIZE 7
 
 #ifdef USE_PROGMEM
 static const EnumStringArray misc_itch_strings[LAST_ITCH_MISC_STRING] PROGMEM = {
@@ -84,7 +96,7 @@ static const EnumStringArray misc_itch_strings[LAST_ITCH_MISC_STRING] = {
 	"MISC_ERROR",
 	"Command Help:",
 	"Try \"?\" or <command> ? for help.",
-	">>> Error:\n>>> ",
+	">>> Error: ",
 	"itch:$ ",
 	"\n",
 	"<param-date>",
@@ -96,7 +108,14 @@ static const EnumStringArray misc_itch_strings[LAST_ITCH_MISC_STRING] = {
 	"ITCH Interactive Terminal Session Ended",
 	"ITCH Entering Buffer Stuffing Mode. Will return to TEXT_DATA mode on completion.",
 	"ITCH Line being stuffed when error occurred:",
+	"OK",
+	"ERROR",
 };
+
+
+void ITCHWriteLineError(uint8_t error_enum);
+void ITCHWriteLineMisc(uint8_t misc_string_enum);
+void ITCHWriteMisc(uint8_t misc_string_enum);
 
 
 #ifdef ITCH_DEBUG

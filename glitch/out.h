@@ -15,6 +15,8 @@
 #define AST_NODE_COUNT 71
 #define MAX_PARAM_COUNT 3
 
+#define MAX_GRAMMAR_DEPTH 5
+
 #define XLAT_IDENT_MAP_COUNT 15
 #define XLAT_LOOKUP_MAP_COUNT 1
 #define XLAT_FUNC_MAP_COUNT 32
@@ -74,8 +76,11 @@ typedef union {
     char* param_char_star;
 } ParamUnion;
 
-#define ITCH_ESCAPE_SEQUENCE "^^^"
-#define ITCH_ESCAPE_SEQUENCE_SIZE 3
+#define ITCH_TERM_ESC_SEQ "^^^"
+#define ITCH_TERM_ESC_SEQ_SIZE 3
+
+#define ITCH_CCC_ESC_SEQ "%%%"
+#define ITCH_CCC_ESC_SEQ_SIZE 3
 
 enum {
 	FF_ERROR_CAT = 0,

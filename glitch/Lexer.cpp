@@ -29,7 +29,8 @@ Lexer::Lexer() {
     term_level = 0;		// not in a term at all
     previous_directive = D_NONE;
     action_since_last_term = false;
-    escape_sequence[0] = '\0';
+    term_escape_sequence[0] = '\0';
+    ccc_escape_sequence[0] = '\0';
 
     //max_enum_string_array_string_size = 0;
     max_identifier_label_size = 0;
@@ -80,9 +81,13 @@ int Lexer::MatchTokenToDirective(char* token_str) {
 		return D_NULL;
 	}
 
-	// Special case - grammar comment - first two chars are "%#"
-	if ((strlen(token_str) >= 2) && (token_str[0] == '%') && (token_str[1] == '#')) {
-		return D_GRAMMAR_COMMENT;
+	// Special case - comment in grammar file - first char is "#"
+	// But only if not inside code or header include sections
+	//if ((strlen(token_str) >= 2) && (token_str[0] == '%') && (token_str[1] == '#')) {
+	if ( ! (header_section || code_section)) {
+		if (token_str[0] == '#') {
+			return D_GRAMMAR_COMMENT;
+		}
 	}
 
 	// Match it or return D_UNKNOWN
@@ -124,7 +129,8 @@ int Lexer::ProcessLine(LineBuffer& line_buf) {
         case D_SUB_SECTION_CLOSE: 			Process_D_SUB_SECTION_CLOSE(); 				break;
         case D_REDUNDANT_CLOSE_AS_COMMENT: 	Process_D_REDUNDANT_CLOSE_AS_COMMENT();	 	break;
         case D_IGNORE_CASE: 				Process_D_IGNORE_CASE(); 					break;
-        case D_ESCAPE_SEQUENCE: 			Process_D_ESCAPE_SEQUENCE(); 				break;
+        case D_TERM_ESCAPE_SEQUENCE: 		Process_D_TERM_ESCAPE_SEQUENCE(); 			break;
+        case D_CCC_ESCAPE_SEQUENCE: 		Process_D_CCC_ESCAPE_SEQUENCE(); 			break;
         case D_ENUM_TERMINATING_MEMBER: 	Process_D_ENUM_TERMINATING_MEMBER(); 		break;
         case D_ENUM_PLUS_LIST_ARRAY: 		Process_D_ENUM_PLUS_LIST_ARRAY(); 			break;
         case D_ENUM_NO_TERMINATING_MEMBER: 	Process_D_ENUM_NO_TERMINATING_MEMBER(); 	break;
@@ -265,6 +271,7 @@ void Lexer::Process_D_COMMENT(void) {
 		process_result = R_ERROR;
 		error_type = E_COMMENT_TOKEN_NULL;
 	} else {
+		// TODO comments not used anywhere. Just collected for now.
 		if (comments.AddString(token_str)) {
 			process_result = R_COMPLETE;
 		} else {
@@ -305,21 +312,45 @@ void Lexer::Process_D_IGNORE_CASE(void) {
 	user_output_available = true;
 }
 
-void Lexer::Process_D_ESCAPE_SEQUENCE(void) {
+void Lexer::Process_D_TERM_ESCAPE_SEQUENCE(void) {
     if (line.GetTokenStr(token_str, 1) == NULL) {
         process_result = R_ERROR;
         error_type = E_ESCAPE_SEQUENCE_TOKEN_NULL;
     } else {
-        if (escape_sequence[0] == '\0') {
-            strcpy(escape_sequence, token_str);
+        if (term_escape_sequence[0] == '\0') {
+            strcpy(term_escape_sequence, token_str);
         	// write the #define to the header file
-        	sprintf(output_string, "#define ITCH_ESCAPE_SEQUENCE \"%s\"\n", token_str);
+        	sprintf(output_string, "#define ITCH_TERM_ESC_SEQ \"%s\"\n", token_str);
         	header_output_queue.EnQueue(output_string);
-        	sprintf(output_string, "#define ITCH_ESCAPE_SEQUENCE_SIZE %d\n\n", (int)strlen(token_str));
+        	sprintf(output_string, "#define ITCH_TERM_ESC_SEQ_SIZE %d\n\n", (int)strlen(token_str));
         	header_output_queue.EnQueue(output_string);
 
             process_result = R_COMPLETE;
 			sprintf(temp_string, "Registered \"%s\" as a terminal escape sequence\n", token_str);
+			user_output_queue.EnQueue(temp_string);
+			user_output_available = true;
+        } else {
+            process_result = R_ERROR;
+            error_type = E_ESCAPE_SEQUENCE_ALREADY_DEFINED;
+        }
+    }
+}
+
+void Lexer::Process_D_CCC_ESCAPE_SEQUENCE(void) {
+    if (line.GetTokenStr(token_str, 1) == NULL) {
+        process_result = R_ERROR;
+        error_type = E_ESCAPE_SEQUENCE_TOKEN_NULL;
+    } else {
+        if (ccc_escape_sequence[0] == '\0') {
+            strcpy(ccc_escape_sequence, token_str);
+        	// write the #define to the header file
+        	sprintf(output_string, "#define ITCH_CCC_ESC_SEQ \"%s\"\n", token_str);
+        	header_output_queue.EnQueue(output_string);
+        	sprintf(output_string, "#define ITCH_CCC_ESC_SEQ_SIZE %d\n\n", (int)strlen(token_str));
+        	header_output_queue.EnQueue(output_string);
+
+            process_result = R_COMPLETE;
+			sprintf(temp_string, "Registered \"%s\" as a CCC escape sequence\n", token_str);
 			user_output_queue.EnQueue(temp_string);
 			user_output_available = true;
         } else {
@@ -1044,6 +1075,9 @@ void Lexer::Process_D_HEADER_START(void) {
 	} else {
 		header_section = true;
 		process_result = R_UNFINISHED;
+		user_output_queue.EnQueue("Found header-start\n");
+		user_output_available = true;
+
 	}
 }
 
@@ -1051,6 +1085,8 @@ void Lexer::Process_D_HEADER_END(void) {
 	if (header_section) {
 		header_section = false;
 		process_result = R_COMPLETE;
+		user_output_queue.EnQueue("Code specified by header-start and header-end inserted into the header file\n");
+		user_output_available = true;
 	} else {
 		process_result = R_ERROR;
 		error_type = E_HEADER_END_WITHOUT_START;

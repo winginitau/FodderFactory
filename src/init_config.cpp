@@ -29,11 +29,11 @@
 #include <utils.h>
 #include <validate.h>
 
-#ifdef FF_SIMULATOR
+#ifdef PLATFORM_LINUX
 #include <IniFile_ff.h>
 #endif
 
-#ifdef FF_ARDUINO
+#ifdef PLATFORM_ARDUINO
 
 #ifdef OLD_SD
 #include <SD.h>
@@ -61,7 +61,7 @@ SdFatSoftSpi<SOFT_MISO_PIN, SOFT_MOSI_PIN, SOFT_SCK_PIN> sd;
 #error ENABLE_SOFTWARE_SPI_CLASS must be set non-zero in SdFat/SdFatConfig.h
 #endif  //ENABLE_SOFTWARE_SPI_CLASS
 
-#endif //FF_ARDUINO
+#endif //PLATFORM_ARDUINO
 
 #ifdef USE_ITCH
 #include "itch.h"
@@ -85,7 +85,7 @@ SdFatSoftSpi<SOFT_MISO_PIN, SOFT_MOSI_PIN, SOFT_SCK_PIN> sd;
 /************************************************
   Functions
 ************************************************/
-#ifdef FF_SIMULATOR
+#ifdef PLATFORM_LINUX
 uint8_t uint8_tRead(FILE *f) {
 	uint8_t data;
 	//fscanf(f, "%hhu", &data);
@@ -135,7 +135,7 @@ float floatRead(FILE *f) {
 }
 #endif
 
-#ifdef FF_ARDUINO
+#ifdef PLATFORM_ARDUINO
 uint8_t uint8_tRead(File *f) {
 	uint8_t data;
 	//fscanf(f, "%hhu", &data);
@@ -183,7 +183,7 @@ float floatRead(File *f) {
 //	printf("%.2f\n ", data);
 	return data;
 }
-#endif
+#endif //PLATFORM_ARDUINO
 
 
 void InitConfigLoadBinary(void) {
@@ -193,12 +193,12 @@ void InitConfigLoadBinary(void) {
 	// NOTE: no existence or duplicate checking - this function assumes an empty (NULL)
 	//  block list therefore DropBlockList() is called first to make sure
 
-	#ifdef FF_ARDUINO
+	#ifdef PLATFORM_ARDUINO
 		EventMsg(SSS, E_INFO, M_BIN_LOAD_NOT_AVAIL);
 		return;
-	#endif
+	#endif //PLATFORM_ARDUINO
 
-	#ifdef FF_SIMULATOR
+	#ifdef PLATFORM_LINUX
 	BlockNode* b;
 	uint8_t b_cat; 	//used as read-ahead to test for eof before creating a new block
 	char temp_label[MAX_LABEL_LENGTH];
@@ -212,21 +212,21 @@ void InitConfigLoadBinary(void) {
 
 	DropBlockList();
 
-	#ifdef FF_SIMULATOR
+	#ifdef PLATFORM_LINUX
 	FILE *fp;
 	fp = fopen(CONFIG_BIN_FILENAME, "r");
 	#endif
 
-	#ifdef FF_ARDUINO
+	#ifdef PLATFORM_ARDUINO
 	File f;
 	File *fp;
 	fp = &f;
 	pinMode(SS, OUTPUT);
 	pinMode(10, OUTPUT);
 	//pinMode(53, OUTPUT);
-	#endif
+	#endif //PLATFORM_ARDUINO
 
-	#ifdef FF_ARDUINO
+	#ifdef PLATFORM_ARDUINO
 	// see if the card is present and can be initialized:
 	if (SD.begin(10, 11, 12, 13)) {
 //	if (SD.begin(10)) {
@@ -245,19 +245,19 @@ void InitConfigLoadBinary(void) {
 		while (1);
 	}
 
-	#endif
+	#endif //PLATFORM_ARDUINO
 
 	while (1) {    //continue reading the file until EOF break
 		b_cat = uint8_tRead(fp); //all blocks start with block category
 		//DebugLog("Read b_cat");
-		#ifdef FF_ARDUINO
+		#ifdef PLATFORM_ARDUINO
 		if (!f.available()) {
 			//DebugLog("Not available - break");
 			break;
 		}
-		#endif
+		#endif //PLATFORM_ARDUINO
 
-		#ifdef FF_SIMULATOR
+		#ifdef PLATFORM_LINUX
 		if(feof(fp)) {
 //			DebugLog("EOF");
 			break;
@@ -341,21 +341,21 @@ void InitConfigLoadBinary(void) {
 		DebugLog(b->block_id, E_VERBOSE, M_BLOCK_READ_BINARY);
 	};
 
-	#ifdef FF_SIMULATOR
+	#ifdef PLATFORM_LINUX
 	fclose(fp);
 	#endif
-	#ifdef FF_ARDUINO
+	#ifdef PLATFORM_ARDUINO
 //	DebugLog("Prior f.close");
 	f.close();
 //	DebugLog("After f.close, prior SD.end");
 	SD.end();
 //	DebugLog("After SD.end");
-	#endif
+	#endif //PLATFORM_ARDUINO
 
 	// As a fresh block list, call validate and setup on each block too
 	ProcessDispatcher(Validate);
 	ProcessDispatcher(Setup);
-	#endif //FF_SIMULATOR
+	#endif //PLATFORM_LINUX
 }
 
 
@@ -368,11 +368,11 @@ void InitSystem(void) {
 	EventBufferInit();
 
 	// log event - core internal system now functional
-	#ifdef FF_ARDUINO
-	EventMsg(SSS, E_INFO, M_FF_AWAKE, 0, 0);
-	#endif
+	#ifdef PLATFORM_ARDUINO
+		EventMsg(SSS, E_INFO, M_FF_AWAKE, 0, 0);
+	#endif //PLATFORM_ARDUINO
 
-	#ifdef FF_SIMULATOR
+	#ifdef PLATFORM_LINUX
 	EventMsg(SSS, E_INFO, M_SIM);
 	#endif
 
@@ -392,18 +392,18 @@ void InitSystem(void) {
 	// check for a file system
 	InitFileSystem(); // DEPR placeholder - no longer really needed
 
-	#ifdef FF_SIMULATOR
+	#ifdef PLATFORM_LINUX
 		srand(TimeNow()); //random seed for simulator
 	#endif
 
-#ifdef FF_ARDUINO
+#ifdef PLATFORM_ARDUINO
 #ifdef DEBUG_DALLAS
 //		while (1) {
 			InitTempSensors();
 //			delay(1000);
 //		}
 #endif
-#endif
+#endif //PLATFORM_ARDUINO
 }
 
 uint8_t GetConfKeyIndex(uint8_t block_cat, const char* key_str) {
@@ -412,8 +412,8 @@ uint8_t GetConfKeyIndex(uint8_t block_cat, const char* key_str) {
 	uint8_t key_idx = 0; 			//see "string_consts.h" Zero is error.
 
 	//char temp[MAX_LABEL_LENGTH];
-	//lock the last key index to the appropriate block category
 
+	//lock the last key index to the appropriate block category
 	switch (block_cat) {
 		case FF_ERROR_CAT:
 			DebugLog(SSS, E_STOP, M_CONFKEY_ERROR_CAT);
@@ -425,18 +425,13 @@ uint8_t GetConfKeyIndex(uint8_t block_cat, const char* key_str) {
 				key_idx++;
 				if (key_idx == last_key) break;
 			}
-			//DebugLog("Match Block Category!");
 			break;
 		case FF_INPUT:
 			last_key = LAST_IN_CONFIG;
 			while (strcmp_hal(key_str, in_config_keys[key_idx].text) != 0) {
-				//DebugLog(key_str);
-				//strcpy_hal(temp, in_config_keys[key_idx].text);
-				//DebugLog(temp);
 				key_idx++;
 				if (key_idx == last_key) break;
 			}
-			//DebugLog("Match Block Category!");
 			break;
 		case FF_MONITOR:
 			last_key = LAST_MON_CONFIG;
@@ -475,49 +470,26 @@ uint8_t GetConfKeyIndex(uint8_t block_cat, const char* key_str) {
 			break;
 		default:
 			DebugLog(SSS, E_STOP, M_CONFKEY_LAST_BCAT);
-			#ifdef FF_ARDUINO
+			#ifdef PLATFORM_ARDUINO
 				while(1);
-			#endif
-			#ifdef FF_SIMULATOR
+			#endif //PLATFORM_ARDUINO
+			#ifdef PLATFORM_LINUX
 				exit(-1);
 			#endif
 	}
 
-	//check that we have a key that matches one of the keys strings of the block category
-	/*
-	#ifdef PROGMEM_BLOCK_DEFS
-		char temp[MAX_LABEL_LENGTH];
-		while ((strcmp_P(key_str, block_cat_defs[block_cat].conf_keys[key_idx]) != 0) && key_idx < last_key) {
-			strcpy_hal(temp, block_cat_defs[block_cat].conf_keys[key_idx]);
-			DebugLog(temp);
-			key_idx++;
-		}
-	#else
-		while ((strcmp(key_str, block_cat_defs[block_cat].conf_keys[key_idx]) != 0) && key_idx < last_key) {
-			key_idx++;
-		}
-	#endif
-	*/
 
 	if (key_idx == last_key) {
 		EventMsg(SSS, E_ERROR, M_CONFKEY_NOTIN_DEFS);
+		/// XXX this done in haste - cross ref char* vs const char* on Itch Callback
 		HALItchWriteLnImmediate(key_str);
 		return 0; //error
-/*
-		#ifdef FF_ARDUINO
-			while(1);
-		#endif
-		#ifdef FF_SIMULATOR
-			exit(-1);
-		#endif
-*/
 	} else {
 		return key_idx;
 	}
 }
 
 uint8_t ConfigureCommonSetting(BlockNode* block_ptr, uint8_t key_idx, const char* value_str){
-
 	switch (key_idx) {
 		case SYS_CONFIG_ERROR:
 			// or any other (0) block cat error key
@@ -625,25 +597,6 @@ uint8_t ConfigureINSetting(BlockNode* block_ptr, uint8_t key_idx, const char* va
 				DebugLog(SSS, E_ERROR, M_BAD_DATA_UNITS);
 			}
 			return block_ptr->settings.in.data_units;
-			/*
-			uint8_t u = 0;
-			#ifdef USE_PROGMEM
-			while (u < LAST_UNIT && strcmp_P(unit_strings[u].text, value_str)) {
-				u++;
-			}
-			#else
-			while (u < LAST_UNIT && strcmp(unit_strings[u].text, value_str)) {
-				u++;
-			}
-			#endif
-			if (u < LAST_UNIT) {
-				block_ptr->settings.in.data_units = u;
-			} else {
-				block_ptr->settings.in.data_units = 255;
-				DebugLog(SSS, E_ERROR, M_BAD_DATA_UNITS);
-				return 0;
-			}
-			*/
 			break;
 		}
 		case IN_CONFIG_DATA_TYPE:
@@ -777,27 +730,6 @@ uint8_t ConfigureCONSetting(BlockNode* block_ptr, uint8_t key_idx, const char* v
 			}
 			return block_ptr->settings.con.act_cmd;
 			break;
-			/*
-			uint8_t c = 0;
-			#ifdef USE_PROGMEM
-			while (c < LAST_COMMAND && strcmp_P(command_strings[c].text, value_str)) {
-				c++;
-			}
-
-			#else
-			while (c < LAST_COMMAND && strcmp(command_strings[c].text, value_str)) {
-				c++;
-			}
-			#endif
-			if (c < LAST_COMMAND) {
-				block_ptr->settings.con.act_cmd = c;
-			} else {
-				block_ptr->settings.con.act_cmd = UINT8_INIT;
-				DebugLog(SSS, E_ERROR, M_ACT_CMD_UNKNOWN);
-				return 0;
-			}
-			break;
-			*/
 		}
 		case CON_CONFIG_DEACT_CMD: {
 			block_ptr->settings.con.deact_cmd = CommandStringArrayIndex(value_str);
@@ -806,20 +738,6 @@ uint8_t ConfigureCONSetting(BlockNode* block_ptr, uint8_t key_idx, const char* v
 			}
 			return block_ptr->settings.con.deact_cmd;
 			break;
-			/*
-			uint8_t c = 0;
-			while (c < LAST_COMMAND && strcmp(command_strings[c].text, value_str)) {
-				c++;
-			}
-			if (c < LAST_COMMAND) {
-				block_ptr->settings.con.deact_cmd = c;
-			} else {
-				block_ptr->settings.con.deact_cmd = UINT8_INIT;
-				DebugLog(SSS, E_ERROR, M_DEACT_CMD_UNKNOWN);
-				return 0;
-			}
-			break;
-			*/
 		}
 		default:
 			DebugLog(SSS, E_ERROR, M_CON_BAD_DEF);
@@ -851,10 +769,6 @@ uint8_t ConfigureBlock(uint8_t block_cat, const char *block_label, const char *k
 	// If it does not exist, create it first and then update key / value
 	// If called with key_str == NULL then just just create it and label it,
 	//	or report true if already exists.
-
-	//DebugLog(block_label);
-	//DebugLog(key_str);
-	//DebugLog(value_str);
 
 	BlockNode *block_ptr;
 	uint8_t return_value = 1;  	//error by exception
@@ -920,7 +834,7 @@ uint8_t ConfigureBlock(uint8_t block_cat, const char *block_label, const char *k
 
 
 
-#if defined FF_SIMULATOR
+#if defined PLATFORM_LINUX
 
 int uint8_tWrite(uint8_t data, FILE *f) {
 	return fwrite(&data, sizeof(data), 1, f);
@@ -964,25 +878,25 @@ int floatWrite(float data, FILE *f) {
 
 #endif
 
-#ifdef FF_SIMULATOR
+#ifdef PLATFORM_LINUX
 void HALWriteLine(FILE *f, const char* out_str) {
 	fprintf(f, "%s\n", out_str);
 }
 #endif
 
-#ifdef FF_ARDUINO
+#ifdef PLATFORM_ARDUINO
 void HALWriteLine(SdFile *f, const char* out_str) {
 	DebugLog(out_str);
 	f->println(out_str);
 }
-#endif
+#endif //PLATFORM_ARDUINO
 
-#ifdef FF_SIMULATOR
+#ifdef PLATFORM_LINUX
 void WriteTextBlock(BlockNode *b, FILE *f, uint8_t reg_only) {
 #endif
-#ifdef FF_ARDUINO
+#ifdef PLATFORM_ARDUINO
 void WriteTextBlock(BlockNode *b, SdFile *f, uint8_t reg_only) {
-#endif
+#endif //PLATFORM_ARDUINO
 	// Called by FileIODispatcher on each block to write their
 	//  config to an itch parsable text file. To read and parse
 	//	the file, all blocks that are referenced by other blocks
@@ -1303,12 +1217,12 @@ void WriteBinaryBlock(BlockNode *b, FILE *f, uint8_t _option) {
 }
 #endif //RESURRECT_DEPRECIATED
 
-#ifdef FF_SIMULATOR
+#ifdef PLATFORM_LINUX
 void FileIODispatcher(void(*func)(BlockNode*, FILE*, uint8_t), FILE* file, uint8_t option) {
 #endif
-#ifdef FF_ARDUINO
+#ifdef PLATFORM_ARDUINO
 void FileIODispatcher(void(*func)(BlockNode*, SdFile*, uint8_t), SdFile* file, uint8_t option) {
-#endif
+#endif //PLATFORM_ARDUINO
 	BlockNode* block_ptr;
 
 	block_ptr = GetBlockListHead();
@@ -1323,21 +1237,21 @@ void InitConfigSave(void) {
 	// Write the running config to a text file in the form of parse-able
 	//  CONFIG statements that can be read by itch in buffer stuffing mode
 
-	#ifdef FF_SIMULATOR
+	#ifdef PLATFORM_LINUX
 	FILE *fp;
 	fp = fopen(CONFIG_TXT_FILENAME, "w");
 	#endif
 
-	#ifdef FF_ARDUINO
+	#ifdef PLATFORM_ARDUINO
 	SdFile f;
 	//File *fp;
 	//fp = &f;
 	//pinMode(SS, OUTPUT);
 	//pinMode(10, OUTPUT);
 	//pinMode(53, OUTPUT);
-	#endif
+	#endif //PLATFORM_ARDUINO
 
-	#ifdef FF_ARDUINO
+	#ifdef PLATFORM_ARDUINO
 	// see if the card is present and can be initialized:
 	if (!sd.begin(SD_CHIP_SELECT_PIN)) {
 		char temp_label[MAX_LABEL_LENGTH];
@@ -1355,30 +1269,30 @@ void InitConfigSave(void) {
 		while (1);
 		//sd.errorHalt(F("open failed"));
 	}
-	#endif
+	#endif //PLATFORM_ARDUINO
 
-	#ifdef FF_SIMULATOR
+	#ifdef PLATFORM_LINUX
 		// First write block registrations only (option = 1)
 		FileIODispatcher(WriteTextBlock, fp, 1);
 		// Then write the rest of the settings (option = 0)
 		FileIODispatcher(WriteTextBlock, fp, 0);
 	#endif
 
-	#ifdef FF_ARDUINO
+	#ifdef PLATFORM_ARDUINO
 		// First write block registrations only (option = 1)
 		FileIODispatcher(WriteTextBlock, &f, 1);
 		// Then write the rest of the settings (option = 0)
 		FileIODispatcher(WriteTextBlock, &f, 0);
-	#endif
+	#endif //PLATFORM_ARDUINO
 
-	#ifdef FF_SIMULATOR
+	#ifdef PLATFORM_LINUX
 	fclose(fp);
 	#endif
-	#ifdef FF_ARDUINO
+	#ifdef PLATFORM_ARDUINO
 	f.flush();
 	f.close();
 	//sd.end();
-	#endif
+	#endif //PLATFORM_ARDUINO
 
 }
 
@@ -1393,15 +1307,15 @@ void InitConfigSaveBinary(void) {
 	//  (eg avr). In particular EXCLUDE_DESCRIPTION and EXCLUDE_DISPLAYNAME
 	//  change the size and field locations within the file.
 
-	#ifdef FF_SIMULATOR
+	#ifdef PLATFORM_LINUX
 	FILE *outfile;
 	outfile = fopen(CONFIG_BIN_FILENAME, "w");
 	FileIODispatcher(WriteBinaryBlock, outfile, 0);
 	fclose(outfile);
 	#endif
-	#ifdef FF_ARDUINO
+	#ifdef PLATFORM_ARDUINO
 		EventMsg(SSS, E_INFO, M_BIN_SAVE_NOT_AVAIL);
-	#endif
+	#endif //PLATFORM_ARDUINO
 }
 #endif //RESURRECT_DEPRECIATED
 
@@ -1426,7 +1340,7 @@ char* GetINIError(uint8_t e, char* msg_buf) {
 */
 
 
-#ifdef FF_SIMULATOR
+#ifdef PLATFORM_LINUX
 void InitConfFile(IniFile* cf) {
 	char key_value[INI_FILE_MAX_LINE_LENGTH];
 
@@ -1441,15 +1355,15 @@ void InitConfFile(IniFile* cf) {
 	if (!cf->validate(key_value, INI_FILE_MAX_LINE_LENGTH)) {
 		DebugLog(SSS, E_STOP, M_CONFIG_NOT_VALID);
 		// Cannot do anything else
-		#ifdef FF_ARDUINO
+		#ifdef PLATFORM_ARDUINO
 			while (1);
-		#endif
-		#ifdef FF_SIMULATOR
+		#endif //PLATFORM_ARDUINO
+		#ifdef PLATFORM_LINUX
 			exit(-1);
 		#endif
 	}
 }
-#endif //FF_SIMULATOR
+#endif //PLATFORM_LINUX
 
 void ConfigParse(char* buf) {
 	// Put the tokens present in the line into word_list[]
@@ -1522,12 +1436,11 @@ void InitConfigLoad(uint8_t how) {
 
 	// XXX this whole routine and subs needs error handling
 
-//DebugLog("GOOD");
 	#ifndef USE_ITCH
 		(void)how;		// Not relevent if not using itch;
 	#endif
 
-	#ifdef FF_SIMULATOR
+	#ifdef PLATFORM_LINUX
 	char* line_ptr = NULL;
 	size_t len = 0;
 
@@ -1586,10 +1499,10 @@ void InitConfigLoad(uint8_t how) {
 		HALItchSetTextDataMode();
 	}
 
-	#endif // FF_SIMULATOR
+	#endif // PLATFORM_LINUX
 
 
-	#ifdef FF_ARDUINO
+	#ifdef PLATFORM_ARDUINO
 	#ifdef OLD_SD
 	size_t lin_len = MAX_LABEL_LENGTH + 19 + MAX_DESCR_LENGTH;
 	char line[lin_len];
@@ -1662,7 +1575,7 @@ void InitConfigLoad(uint8_t how) {
 	//size_t lin_len = 120
 	char *line_ptr;
 	char ch;
-	char line[120];
+	char line[120]; //XXX Trim? How to determine size?
 	SdFile f;
 	//DebugLog("GOOD");
 
@@ -1670,20 +1583,14 @@ void InitConfigLoad(uint8_t how) {
 	if (!sd.begin(SD_CHIP_SELECT_PIN)) {
 		char temp_label[MAX_LABEL_LENGTH];
 		strcpy_hal(temp_label, F("SD BEGIN FAILED"));
-		DebugLog(temp_label);
-		// Cannot do anything else
-		while (1);
-		//sd.initErrorHalt();
+		EventMsg(SSS, E_ERROR, M_SD_BEGIN_FAIL);
+		return;
 	}
 
+	// Try to open the default config file
 	if (!f.open(CONFIG_TXT_FILENAME, O_READ)) {
-		//char temp_label[MAX_LABEL_LENGTH];
 		EventMsg(SSS, E_ERROR, NO_CONFIG_FILE);
-		//strcpy_hal(temp_label, F("F.OPEN CONFIG FAILED"));
-		//DebugLog(temp_label);
 		return;
-		//while (1);
-		//sd.errorHalt(F("open failed"));
 	}
 
 	//DebugLog("GOOD");
@@ -1746,7 +1653,7 @@ void InitConfigLoad(uint8_t how) {
 	#endif //USE_ITCH
 
 	#endif //NEW_SD
-	#endif //FF_ARDUINO
+	#endif //PLATFORM_ARDUINO
 
 	EventMsg(SSS, E_INFO, M_CONFIG_LOAD_BY_DIRECT_PARSE);
 }
@@ -1757,7 +1664,7 @@ To retain this code it will need some re-writing to use the config keys glitch
 generated structures.
 
 void InitConfigLoadINI(void) {
-#ifdef FF_SIMULATOR
+#ifdef PLATFORM_LINUX
 	// Create or update the block list and each block settings from stanzas and key / value
 	//	pairs in an INI file identified by CONFIG_FILENAME
 	// First read all the block label identifiers heading each block category section
@@ -1767,10 +1674,10 @@ void InitConfigLoadINI(void) {
 	//  key value pairs will update the existing blocks.
 
 	const char f_name[] = CONFIG_INI_FILENAME;
-	#ifdef FF_ARDUINO
+	#ifdef PLATFORM_ARDUINO
 		IniFile cf(f_name);
 	#endif
-	#ifdef FF_SIMULATOR
+	#ifdef PLATFORM_LINUX
 		char f_mode[] = "r\0";
 		IniFile cf(f_name, f_mode);
 	#endif
@@ -1989,9 +1896,9 @@ void InitConfigLoadINI(void) {
 	}
 
 	cf.close();
-#endif //FF_SIMULATOR
+#endif //PLATFORM_LINUX
 
-#ifdef FF_ARDUINO
+#ifdef PLATFORM_ARDUINO
 	EventMsg(SSS, E_INFO, M_INI_LOAD_NOT_AVAIL);
 #endif
 }

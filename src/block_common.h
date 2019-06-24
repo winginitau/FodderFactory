@@ -25,7 +25,7 @@
 void InputOperate(BlockNode *b);
 void InputSetup(BlockNode *b);
 
-void CommonShow(BlockNode *b, void(Callback(char *)));
+void CommonShow(BlockNode *b, void(Callback(const char *)));
 
 
 #endif /* BLOCK_COMMON_H_ */

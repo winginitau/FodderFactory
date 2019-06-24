@@ -20,6 +20,6 @@
 
 void RuleOperate(BlockNode *b);
 void RuleSetup(BlockNode *b);
-void RuleShow(BlockNode *b, void(Callback(char *)));
+void RuleShow(BlockNode *b, void(Callback(const char *)));
 
 #endif /* RULES_H_ */

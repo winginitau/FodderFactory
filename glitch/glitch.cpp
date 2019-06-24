@@ -452,6 +452,8 @@ void ReplacePlaceholders(void) {
 			fputs(out, tf);
 			sprintf(out, "#define MAX_PARAM_COUNT %d\n\n", lex.ast.max_param_count);
 			fputs(out, tf);
+			sprintf(out, "#define MAX_GRAMMAR_DEPTH %d\n\n", lex.ast.max_grammar_depth);
+			fputs(out, tf);
 			sprintf(out, "#define XLAT_IDENT_MAP_COUNT %d\n", (lex.idents.DEFINE_ident_map_count));
 			fputs(out, tf);
 			sprintf(out, "#define XLAT_LOOKUP_MAP_COUNT %d\n", (lex.idents.DEFINE_lookup_map_count));

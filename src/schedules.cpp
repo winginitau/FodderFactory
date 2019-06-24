@@ -24,7 +24,7 @@
 #include <block_common.h>
 #include <utils.h>
 
-#ifdef FF_SIMULATOR
+#ifdef PLATFORM_LINUX
 #include <stdio.h>
 #endif
 
@@ -84,7 +84,7 @@ void ScheduleSetup(BlockNode *b) {
 
 void ScheduleOperate(BlockNode *b) {
 	tm* now_tm;
-	tm zero_tm;
+	tm zero_tm = {0, 0, 0, 0, 0, 0, 0, 0, 0};
 
 	time_t start;
 	time_t end;
@@ -272,7 +272,7 @@ void ScheduleOperate(BlockNode *b) {
 
 }
 
-void ScheduleShow(BlockNode *b, void(Callback(char *))) {
+void ScheduleShow(BlockNode *b, void(Callback(const char *))) {
 	char out_str[MAX_MESSAGE_STRING_LENGTH];
 	char fmt_str[MAX_LABEL_LENGTH];
 	char label_str[MAX_LABEL_LENGTH];

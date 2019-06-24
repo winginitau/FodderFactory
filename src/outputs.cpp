@@ -18,7 +18,7 @@
 #include <string_consts.h>
 #include <block_common.h>
 
-#ifdef FF_SIMULATOR
+#ifdef PLATFORM_LINUX
 #include <string.h>
 #include <stdio.h>
 #endif
@@ -108,7 +108,7 @@ void OutputOperate(BlockNode *b) {
 
 }
 
-void OutputShow(BlockNode *b, void(Callback(char *))) {
+void OutputShow(BlockNode *b, void(Callback(const char *))) {
 	char out_str[MAX_MESSAGE_STRING_LENGTH];
 	char fmt_str[MAX_LABEL_LENGTH];
 	char label_str[MAX_LABEL_LENGTH];

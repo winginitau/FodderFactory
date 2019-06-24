@@ -22,7 +22,7 @@
 #include <time.h>
 #include <block_common.h>
 
-#ifdef FF_SIMULATOR
+#ifdef PLATFORM_LINUX
 //#include <stdio.h>
 #endif
 
@@ -162,7 +162,7 @@ void RuleOperate(BlockNode *b) {
 
 }
 
-void RuleShow(BlockNode *b, void(Callback(char *))) {
+void RuleShow(BlockNode *b, void(Callback(const char *))) {
 	char out_str[MAX_MESSAGE_STRING_LENGTH];
 	char fmt_str[MAX_LABEL_LENGTH];
 	const char* label_ptr;

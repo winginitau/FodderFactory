@@ -22,7 +22,7 @@
 
 //#include <string.h>
 
-#ifdef FF_SIMULATOR
+#ifdef PLATFORM_LINUX
 //#include <stdint.h>
 #include <stdio.h>
 #endif

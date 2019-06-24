@@ -20,7 +20,7 @@
 #include <string_consts.h>
 #include <utils.h>
 
-#ifdef FF_ARDUINO
+#ifdef PLATFORM_ARDUINO
 #include <Arduino.h>
 #include <OneWire.h>                // comms to Dallas temprature sensors
 #include <DallasTemperature.h>
@@ -37,7 +37,7 @@
 #include <time.h>
 #include "Wire.h"					// RTC talks ober i2c "Wire"
 #include <avr/wdt.h>				// Watchdog timer for reboot routine
-#endif // FF_ARDUINO
+#endif //PLATFORM_ARDUINO
 
 #ifdef USE_ITCH
 #include <itch.h>
@@ -52,15 +52,15 @@
 //#include <Wire.h>
 #endif
 
-#ifdef FF_SIMULATOR
+#ifdef PLATFORM_LINUX
 #include <time.h>
 #include <stdlib.h>
 #include <stdio.h>
 #endif
 
-#ifndef FF_ARDUINO
+#ifndef PLATFORM_ARDUINO
 #include <unistd.h>	// for sleep() and usleep() in simulator modes
-#endif
+#endif //PLATFORM_ARDUINO
 
 /************************************************
  Data Structures
@@ -69,7 +69,7 @@
 /************************************************
  Globals
 ************************************************/
-#ifdef FF_ARDUINO
+#ifdef PLATFORM_ARDUINO
 #ifdef LCD_DISPLAY
 //moving this to local too (try - result: flashing. moved back)
 U8G2_ST7920_128X64_1_SW_SPI lcd_128_64(U8G2_R0, /* clock=*/ 40 /* A4 */ , /* data=*/ 42 /* A2 */, /* CS=*/ 44 /* A3 */, /* reset=*/ U8X8_PIN_NONE); //LCD Device Object and Definition
@@ -82,7 +82,7 @@ U8G2_ST7920_128X64_1_SW_SPI lcd_128_64(U8G2_R0, /* clock=*/ 40 /* A4 */ , /* dat
 RTC_DS1307 rtc;				// Global singleton
 unsigned long g_last_milli_val;	// used to pad calls to TimeNow so that the RTC isn't smashed
 time_t g_epoch_time;
-#endif
+#endif //PLATFORM_ARDUINO
 
 uint8_t rtc_status = 0;		// assume dead until we can find it and talk to it
 
@@ -90,9 +90,7 @@ uint8_t rtc_status = 0;		// assume dead until we can find it and talk to it
 ITCH itch;					// Global singleton
 #endif
 
-#ifdef FF_ARDUINO
-#endif
-#ifdef FF_SIMULATOR
+#ifdef PLATFORM_LINUX
 	int screen_refresh_counter = 0;
 #endif
 
@@ -102,17 +100,11 @@ ITCH itch;					// Global singleton
  Functions
 ************************************************/
 
-
-
-#if defined VE_DIRECT && defined FF_ARDUINO
-#endif //VE_DIRECT
-
-
 uint8_t HALSaveEventBuffer(void) {
 
 	uint8_t save_success = 0;
 
-#ifdef FF_ARDUINO
+#ifdef PLATFORM_ARDUINO
 	#ifdef OLD_SD
 	File e_file;
 
@@ -164,10 +156,10 @@ uint8_t HALSaveEventBuffer(void) {
 		DebugLog(SSS, E_ERROR, M_SD_BEGIN_FAIL);
 	}
 	#endif //OLD_SD
-#endif //FF_ARDUINO
+#endif //PLATFORM_ARDUINO
 
 
-#ifdef FF_SIMULATOR
+#ifdef PLATFORM_LINUX
 	FILE *e_file;
 	EventNode* e;
 	char e_str[MAX_LOG_LINE_LENGTH];
@@ -213,7 +205,7 @@ uint8_t HALSaveEventBuffer(void) {
 
 
 uint8_t HALInitSerial(uint8_t port, uint16_t baudrate) {
-#ifdef FF_ARDUINO
+#ifdef PLATFORM_ARDUINO
 	switch (port) {
 		case 0:
 			#ifdef SERIAL_0_USED
@@ -238,7 +230,7 @@ uint8_t HALInitSerial(uint8_t port, uint16_t baudrate) {
 		default:
 			break;
 	}
-#endif
+	#endif //PLATFORM_ARDUINO
 	return 1;
 }
 
@@ -247,7 +239,7 @@ uint8_t HALEventSerialSend(EventNode* e, uint8_t port) {
 	char e_str[MAX_LOG_LINE_LENGTH];
 	FormatEventMessage(e, e_str);
 
-	#ifdef FF_ARDUINO
+	#ifdef PLATFORM_ARDUINO
 
 	// Serial begin now in InitSerial, so that when ITCH is in use
 	// it can be open listening all the time
@@ -290,7 +282,7 @@ uint8_t HALEventSerialSend(EventNode* e, uint8_t port) {
     	switch (port) {
     		case 0:
 				#ifdef USE_ITCH
-    			WriteLineDirect(e_str);
+    			ITCHWriteLine(e_str);
 				#else
     			Serial.println(e_str);
     	    	Serial.flush();
@@ -298,7 +290,7 @@ uint8_t HALEventSerialSend(EventNode* e, uint8_t port) {
     			break;
     		case 1:
 				#ifdef USE_ITCH
-    			WriteLineDirect(e_str);
+    			ITCHWriteLine(e_str);
 				#else
     			Serial1.println(e_str);
     	    	Serial1.flush();
@@ -306,7 +298,7 @@ uint8_t HALEventSerialSend(EventNode* e, uint8_t port) {
     			break;
     		case 2:
 				#ifdef USE_ITCH
-    			WriteLineDirect(e_str);
+    			ITCHWriteLine(e_str);
 				#else
     			Serial2.println(e_str);
     	    	Serial2.flush();
@@ -314,7 +306,7 @@ uint8_t HALEventSerialSend(EventNode* e, uint8_t port) {
     			break;
        		case 3:
     			#ifdef USE_ITCH
-        		WriteLineDirect(e_str);
+        		ITCHWriteLine(e_str);
     			#else
        			Serial3.println(e_str);
        	    	Serial3.flush();
@@ -325,19 +317,19 @@ uint8_t HALEventSerialSend(EventNode* e, uint8_t port) {
     	}
     }
 
-	#endif
+	#endif //PLATFORM_ARDUINO
 	return 1;
 }
 
 
 #ifdef USE_ITCH
 void HALInitItch(void) {
-	#ifdef ARDUINO
+	#ifdef PLATFORM_ARDUINO
 		itch.Begin();
-		//itch.Poll();
-	#else
+	#endif //PLATFORM_ARDUINO
+	#ifdef PLATFORM_LINUX
 		itch.Begin(stdin, stdout);
-	#endif
+	#endif //PLATFORM_LINUX
 }
 
 void HALPollItch(void) {
@@ -345,11 +337,11 @@ void HALPollItch(void) {
 }
 
 void HALItchWriteLnImmediate(const char *str) {
-	WriteLineDirect(str);
+	ITCHWriteLine(str);
 }
 // XXX work around to handle consts and non consts
 void HALItchWriteLnImmediate(char *str) {
-	WriteLineDirect(str);
+	ITCHWriteLine(str);
 }
 
 void HALItchSetBufferStuffMode(void) {
@@ -367,7 +359,7 @@ void HALItchStuffAndProcess(char *str) {
 #endif //USE_ITCH
 
 
-#ifdef FF_ARDUINO
+#ifdef PLATFORM_ARDUINO
 #ifdef DEBUG_LCD
 void HALDebugLCD(String log_entry) {
 	//U8G2_ST7920_128X64_F_SW_SPI lcd_128_64(U8G2_R0, /* clock=*/ 40 /* A4 */ , /* data=*/ 42 /* A2 */, /* CS=*/ 44 /* A3 */, /* reset=*/ U8X8_PIN_NONE); //LCD Device Object and Definition
@@ -417,7 +409,7 @@ void HALDebugLCD(String log_entry) {
 	delay(DEBUG_LCD_DELAY);
 }
 #endif
-#endif
+#endif //PLATFORM_ARDUINO
 
 //XXX Temporary hard coding of device addresses until itch can support
 // device addresses as part of config processing
@@ -473,7 +465,7 @@ const DeviceAddress devices[5] PROGMEM = {
 
 float GetTemperature(int if_num) {
 	float temp_c;
-#ifdef FF_ARDUINO
+#ifdef PLATFORM_ARDUINO
 #ifndef FF_TEMPERATURE_SIM
 	//XXX Temporary hard coding of device addresses - see above
 
@@ -505,11 +497,11 @@ float GetTemperature(int if_num) {
 	#endif
 
 #endif //#ifndef FF_TEMPERATURE_SIM
-#endif //#ifdef FF_ARDUINO
+#endif //PLATFORM_ARDUINO
 
 #ifdef FF_TEMPERATURE_SIM
 #ifdef FF_RANDOM_TEMP_SIM
-#ifdef FF_SIMULATOR
+#ifdef PLATFORM_LINUX
 	temp_c = (float)FF_RANDOM_TEMP_MIN + ((float)((rand() % (((int)FF_RANDOM_TEMP_MAX - (int)FF_RANDOM_TEMP_MIN) *100))) / 100);
 #endif
 #endif
@@ -533,23 +525,23 @@ float GetTemperature(int if_num) {
 	case 4:
 		temp_c = SIM_TEMP_4;
 		#ifdef TEMP_SIM_EXTRA_DELAY
-		#ifdef FF_ARDUINO
+		#ifdef PLATFORM_ARDUINO
 			delay(random(TEMP_SIM_MIN_DELAY, TEMP_SIM_MAX_DELAY));
 		#else
 			usleep( (TEMP_SIM_MIN_DELAY * 1000) + \
 					( (rand() % (TEMP_SIM_MAX_DELAY - TEMP_SIM_MIN_DELAY)) *1000));
-		#endif //FF_ARDUINO
+		#endif //PLATFORM_ARDUINO
 		#endif //TEMP_SIM_EXTRA_DELAY
 		break;
 	case 5:
 		temp_c = SIM_TEMP_5;
 		#ifdef TEMP_SIM_EXTRA_DELAY
-		#ifdef FF_ARDUINO
+		#ifdef PLATFORM_ARDUINO
 			delay(random(TEMP_SIM_MIN_DELAY, TEMP_SIM_MAX_DELAY));
 		#else
 			usleep( (TEMP_SIM_MIN_DELAY * 1000) + \
 					( (rand() % (TEMP_SIM_MAX_DELAY - TEMP_SIM_MIN_DELAY)) *1000));
-		#endif //FF_ARDUINO
+		#endif //PLATFORM_ARDUINO
 		#endif //TEMP_SIM_EXTRA_DELAY
 		break;
 	default:
@@ -560,70 +552,70 @@ float GetTemperature(int if_num) {
 
 #ifdef FF_TEMPERATURE_SIM
 #ifdef FF_RANDOM_TEMP_SIM
-#ifdef FF_ARDUINO
+#ifdef PLATFORM_ARDUINO
 	if_num=1;
 	temp_c = random(FF_RANDOM_TEMP_MIN, FF_RANDOM_TEMP_MAX) * (float)if_num;
-#endif //FF_ARDUINO
+#endif //PLATFORM_ARDUINO
 #endif //FF_RANDOM_TEMP_SIM
 #endif //FF_TEMPERATURE_SIM
 
 #ifdef RANDOM_TEMP_SIM_DELAY
-#ifdef FF_ARDUINO
+#ifdef PLATFORM_ARDUINO
 		delay(random(TEMP_SIM_MIN_DELAY, TEMP_SIM_MAX_DELAY));
 #else
 	usleep( (TEMP_SIM_MIN_DELAY * 1000) + \
 			( (rand() % (TEMP_SIM_MAX_DELAY - TEMP_SIM_MIN_DELAY)) *1000));
-#endif //FF_ARDUINO
+#endif //PLATFORM_ARDUINO
 #endif //RANDOM_TEMP_SIM_DELAY
 
 	return temp_c;
 }
 
 void HALDigitalWrite(uint8_t if_num, uint8_t digital_val) {
-#ifdef FF_ARDUINO
+#ifdef PLATFORM_ARDUINO
 	digitalWrite(if_num, digital_val);
-#endif
-#ifdef FF_SIMULATOR
+#endif //PLATFORM_ARDUINO
+#ifdef PLATFORM_LINUX
 #endif
 }
 
 void HALInitDigitalOutput(uint8_t if_num) {
-#ifdef FF_ARDUINO
+#ifdef PLATFORM_ARDUINO
 	pinMode(if_num, OUTPUT);
-#endif
+#endif //PLATFORM_ARDUINO
 
-#ifdef FF_SIMULATOR
+#ifdef PLATFORM_LINUX
 #endif
 
 }
 
 uint8_t HALDigitalRead(uint8_t if_num) {
-#ifdef FF_ARDUINO
+#ifdef PLATFORM_ARDUINO
 	return digitalRead(if_num);
-#endif
+#endif //PLATFORM_ARDUINO
 
-#ifdef FF_SIMULATOR
+#ifdef PLATFORM_LINUX
 	return rand() % 2;
 #endif
 }
 
 void HALInitDigitalInput(uint8_t if_num) {
-#ifdef FF_ARDUINO
+#ifdef PLATFORM_ARDUINO
 	pinMode(if_num, INPUT);
-#endif
-#ifdef FF_SIMULATOR
+#endif //PLATFORM_ARDUINO
+#ifdef PLATFORM_LINUX
 	// nothing to do
 #endif
 }
 
 void TempSensorsTakeReading(void) {
-#ifdef FF_ARDUINO
+#ifdef PLATFORM_ARDUINO
 	//temp_sensors.requestTemperatures();  //tell them to take a reading (stored on device)
-#endif
+#endif //PLATFORM_ARDUINO
 }
 
 void InitTempSensors(void) {
-#ifdef FF_ARDUINO
+#ifdef PLATFORM_ARDUINO
 #ifdef DEBUG_DALLAS
 	//XXX Now out of date with HW config - which has 3x busses
 
@@ -689,17 +681,17 @@ void InitTempSensors(void) {
 	}
 
 #endif
-#endif
+#endif //PLATFORM_ARDUINO
 }
 
 #ifdef UI_ATTACHED
 void HALInitUI(void) {
-#ifdef FF_ARDUINO
+#ifdef PLATFORM_ARDUINO
 #ifdef LCD_DISPLAY
 	lcd_128_64.begin();
 #endif
-#endif
-#ifdef FF_SIMULATOR
+#endif //PLATFORM_ARDUINO
+#ifdef PLATFORM_LINUX
 #endif
 }
 #endif
@@ -723,7 +715,7 @@ void HALDrawDataScreenCV(const UIDataSet* uids, time_t dt) {
 	strftime(time_out_max, 10, "%H:%M", localtime(&(uids->outside_max_dt)));
 	strftime(time_wat_max, 10, "%H:%M", localtime(&(uids->water_max_dt)));
 
-#ifdef FF_ARDUINO
+#ifdef PLATFORM_ARDUINO
 #ifdef LCD_DISPLAY
 	//U8G2_ST7920_128X64_F_SW_SPI lcd_128_64(U8G2_R0, /* clock=*/ 40 /* A4 */ , /* data=*/ 42 /* A2 */, /* CS=*/ 44 /* A3 */, /* reset=*/ U8X8_PIN_NONE); //LCD Device Object and Definition
 	//lcd_128_64.begin();
@@ -776,8 +768,8 @@ void HALDrawDataScreenCV(const UIDataSet* uids, time_t dt) {
 	//lcd_128_64.sendBuffer();                      // transfer internal memory to the display
 
 #endif
-#endif
-#ifdef FF_SIMULATOR_DATA_SCREEN
+#endif //PLATFORM_ARDUINO
+#ifdef PLATFORM_LINUX_DATA_SCREEN
 	//printf("\e[1;1H\e[2J"); //clear screen
 	if (screen_refresh_counter >= SCREEN_REFRESH) {
 		printf("\n");
@@ -802,7 +794,7 @@ void HALDrawDataScreenCV(const UIDataSet* uids, time_t dt) {
  ********************************************************************/
 
 time_t TimeNow(void) {
-#ifdef FF_ARDUINO
+#ifdef PLATFORM_ARDUINO
 	time_t epoch_time;
 	unsigned long milli_now = millis();
 	DateTime rtcDT;
@@ -824,14 +816,14 @@ time_t TimeNow(void) {
 		}
 	}
 	return epoch_time;
-#endif
+#endif //PLATFORM_ARDUINO
 
-#ifdef FF_SIMULATOR
+#ifdef PLATFORM_LINUX
 	return time(NULL);
 #endif
 }
 
-#ifdef FF_ARDUINO
+#ifdef PLATFORM_ARDUINO
 uint8_t HALSetRTCTime(char *time_str) {
     DateTime nowDT;
 	int hh,mm,ss;
@@ -855,10 +847,10 @@ uint8_t HALSetRTCDate(char *date_str) {
 	rtc.adjust(DateTime(YYYY, MM, DD, nowDT.hour(), nowDT.minute(), nowDT.second()));
 	return 0;
 }
-#endif //FF_ARDUINO
+#endif //PLATFORM_ARDUINO
 
 void HALInitRTC(void) {
-#ifdef FF_ARDUINO
+#ifdef PLATFORM_ARDUINO
 	//setup the Real Time Clock
 	//TODO check for sensible RTC result - in all cases the RTC value should be later
 	// than the compile time date time hard coded directives
@@ -882,7 +874,7 @@ void HALInitRTC(void) {
 			// following line sets the RTC localtime() to the date & time this sketch was compiled
 			rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
 			EventMsg(SSS, E_WARNING, M_WARN_RTC_HARD_CODED, 0, 0);
-#endif
+			#endif
 			//HALSetSysTimeToRTC();
 		} else {
 			EventMsg(SSS, E_WARNING, M_RTC_NOT_RUNNING, 0, 0);
@@ -919,24 +911,26 @@ void HALInitRTC(void) {
 		rtc_status = 1;
 	} else
 		EventMsg(SSS, E_ERROR, M_RTC_NOT_FOUND, 0, 0);
-	#endif
-#ifdef FF_SIMULATOR
+#endif //PLATFORM_ARDUINO
+#ifdef PLATFORM_LINUX
 	EventMsg(SSS, E_INFO, M_SIM_SYS_TIME);
 #endif
 }
 
 void HALReboot(void) {
-	#ifdef TARGET_PLATFORM_ARDUINO
+	#ifdef PLATFORM_ARDUINO
 	MCUSR = 0;  // clear out any flags of prior resets.
 	wdt_enable(WDTO_500MS); // turn on the WatchDog and don't stroke it.
 	for(;;) {
 	  // do nothing and wait for the eventual...
 	}
-	#endif //TARGET_PLATFORM_ARDUINO
+	#endif //PLATFORM_ARDUINO
 
-	#ifdef TARGET_PLATFORM_LINUX
+	#ifdef PLATFORM_LINUX
+	#ifdef USE_ITCH
 		itch.RestoreTermAndExit();
+	#endif //USE_ITCH
 		exit(0);
-	#endif //TARGET_PLATFORM_LINUX
+	#endif //PLATFORM_LINUX
 }
 

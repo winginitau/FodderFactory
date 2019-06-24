@@ -30,10 +30,10 @@
 #include <block_common.h>
 
 
-#ifndef FF_ARDUINO
+#ifndef PLATFORM_ARDUINO
 #include <stdio.h>
 #include <errno.h>
-#endif
+#endif //ndef PLATFORM_ARDUINO
 
 #include <HAL.h>
 #include <init_config.h>
@@ -635,19 +635,6 @@ BlockNode* GetBlockNodeByLabel(BlockNode *head, const char *block_label) {
 	return walker;
 }
 
-/*
-	if(head == NULL) {   //empty list
-		return NULL;
-	} else {
-		if (strcmp(head->block_label, block_label) == 0) {
-			return head;
-		} else {
-			head = GetBlockNodeByLabel(head->next_block, block_label);
-		}
-	}
-	return head;
-*/
-
 BlockNode* GetBlockByLabel(const char *block_label) {
 	return GetBlockNodeByLabel(bll, block_label);
 }
@@ -678,11 +665,11 @@ void DropBlockList(void) {
  * ITCH Integration Handlers
  ********************************************************************************************/
 
-uint8_t RegLookupBlockLabel(char* lookup_string) {
+uint8_t RegLookupBlockLabel(const char* lookup_string) {
 	return GetBlockIDByLabel(lookup_string, false);
 }
 
-void RegShowBlocks(void(*Callback)(char *)) {
+void RegShowBlocks(void(*Callback)(const char *)) {
 	BlockNode* b;
 	b = bll;
 	char out[MAX_LOG_LINE_LENGTH];
@@ -727,15 +714,15 @@ void RegShowBlocks(void(*Callback)(char *)) {
 	}
 }
 
-void RegShowSystem(void(*Callback)(char *)) {
+void RegShowSystem(void(*Callback)(const char *)) {
 	RegShowBlockByID(SSS, Callback);
 }
 
-void RegShowBlockByLabel(char* block_label, void(*Callback)(char *)) {
+void RegShowBlockByLabel(const char* block_label, void(*Callback)(const char *)) {
 	RegShowBlockByID(GetBlockIDByLabel(block_label, true), Callback);
 }
 
-void RegShowBlockByID(uint16_t id, void (*Callback)(char *)) {
+void RegShowBlockByID(uint16_t id, void(*Callback)(const char *)) {
 	char out_str[MAX_MESSAGE_STRING_LENGTH];	// 80
 	char fmt_str[MAX_LABEL_LENGTH];
 	//char label_str[MAX_LABEL_LENGTH];
@@ -775,7 +762,7 @@ void RegShowBlockByID(uint16_t id, void (*Callback)(char *)) {
 	}
 }
 
-void RegSendCommandToBlockLabel(char* block_label, uint16_t command, void(*Callback)(char *)) {
+void RegSendCommandToBlockLabel(const char* block_label, uint16_t command, void(*Callback)(const char *)) {
 	char out_str[MAX_MESSAGE_STRING_LENGTH];	// 80
 	uint16_t block_id;
 	char fmt_str[35];
@@ -795,7 +782,7 @@ void RegSendCommandToBlockLabel(char* block_label, uint16_t command, void(*Callb
 	}
 }
 
-void RegSendCommandToBlockID(uint16_t id, uint16_t command, void(*Callback)(char*)) {
+void RegSendCommandToBlockID(uint16_t id, uint16_t command, void(*Callback)(const char*)) {
 	char out_str[MAX_MESSAGE_STRING_LENGTH];	// 80
 
 	BlockNode *b;
@@ -817,7 +804,7 @@ void RegSendCommandToBlockID(uint16_t id, uint16_t command, void(*Callback)(char
 
 }
 
-void RegShowTime(void(*Callback)(char*)) {
+void RegShowTime(void(*Callback)(const char*)) {
 	char hms_str[12];
 	time_t now;
 	char fmt_str[9];
@@ -828,7 +815,7 @@ void RegShowTime(void(*Callback)(char*)) {
 	Callback(hms_str);
 }
 
-void RegSetTime(char* time_str, void(*Callback)(char*)) {
+void RegSetTime(const char* time_str, void(*Callback)(const char*)) {
 	char out_str[MAX_MESSAGE_STRING_LENGTH];	// 80
 	char tok_str[MAX_MESSAGE_STRING_LENGTH];	// 80
 	char *tok;
@@ -849,7 +836,7 @@ void RegSetTime(char* time_str, void(*Callback)(char*)) {
 				strcpy_hal(out_str, F("Time string is valid"));
 				Callback(out_str);
 
-#ifndef FF_ARDUINO
+#ifndef PLATFORM_ARDUINO
 			    struct tm *tmptr;
 			    time_t now;
 			    time_t t;
@@ -877,7 +864,7 @@ void RegSetTime(char* time_str, void(*Callback)(char*)) {
 					strcpy_hal(out_str, F("Error: HALSetRTCTime() failed.\n"));
 			        Callback(out_str);
 			    }
-#endif //ifndef FF_ARDUINO
+#endif //ifndef PLATFORM_ARDUINO
 
 			}
 		}
@@ -889,7 +876,7 @@ void RegSetTime(char* time_str, void(*Callback)(char*)) {
 
 }
 
-void RegShowDate(void(*Callback)(char*)) {
+void RegShowDate(void(*Callback)(const char*)) {
 	char ymd_str[14];
 	time_t now;
 	char fmt_str[9];
@@ -900,7 +887,7 @@ void RegShowDate(void(*Callback)(char*)) {
 	Callback(ymd_str);
 }
 
-void RegSetDate(char* date_str, void(*Callback)(char*)) {
+void RegSetDate(const char* date_str, void(*Callback)(const char*)) {
 	char out_str[MAX_MESSAGE_STRING_LENGTH];	// 80
 	char tok_str[MAX_MESSAGE_STRING_LENGTH];	// 80
 	char *tok;
@@ -921,7 +908,7 @@ void RegSetDate(char* date_str, void(*Callback)(char*)) {
 				strcpy_hal(out_str, F("Date string is valid"));
 				Callback(out_str);
 
-#ifndef FF_ARDUINO
+#ifndef PLATFORM_ARDUINO
 			    struct tm *tmptr;
 			    time_t now;
 			    time_t t;
@@ -949,7 +936,7 @@ void RegSetDate(char* date_str, void(*Callback)(char*)) {
 					strcpy_hal(out_str, F("Error: HALSetRTCDate() failed.\n"));
 			        Callback(out_str);
 			    }
-#endif //ifndef FF_ARDUINO
+#endif //ifndef PLATFORM_ARDUINO
 
 			}
 		}
@@ -961,7 +948,7 @@ void RegSetDate(char* date_str, void(*Callback)(char*)) {
 
 }
 
-void RegConfigClear(void(*Callback)(char*)) {
+void RegConfigClear(void(*Callback)(const char*)) {
 	char out_str[MAX_MESSAGE_STRING_LENGTH];	// 80
 
 	DropBlockList();
@@ -970,13 +957,13 @@ void RegConfigClear(void(*Callback)(char*)) {
 }
 
 
-void RegConfigLoad(void(*Callback)(char*)) {
+void RegConfigLoad(void(*Callback)(const char*)) {
 	(void)Callback; 		//not used
 	InitConfigLoad(1);
 }
 
 #ifdef RESURRECT_DEPRECIATED
-void RegConfigLoadBinary(void(*Callback)(char*)) {
+void RegConfigLoadBinary(void(*Callback)(const char*)) {
 	(void)Callback; 		//not used
 	InitConfigLoadBinary();
 }
@@ -990,19 +977,19 @@ void RegConfigLoadINI(void(*Callback)(char*)) {
 }
 */
 
-void RegConfigSave(void(*Callback)(char*)) {
+void RegConfigSave(void(*Callback)(const char*)) {
 	(void)Callback; 		//not used
 	InitConfigSave();
 }
 
 #ifdef RESURRECT_DEPRECIATED
-void RegConfigSaveBinary(void(*Callback)(char*)) {
+void RegConfigSaveBinary(void(*Callback)(const char*)) {
 	(void)Callback; 		//not used
 	InitConfigSaveBinary();
 }
 #endif //RESURRECT_DEPRECIATED
 
-void RegConfigBlockSystem(char* param1_string, uint16_t SYS_CONFIG, char* param2_string, void(*Callback)(char*)) {
+void RegConfigBlockSystem(const char* param1_string, uint16_t SYS_CONFIG, const char* param2_string, void(*Callback)(const char*)) {
 	char out_str[MAX_MESSAGE_STRING_LENGTH];	// 80
 	char key[MAX_LABEL_LENGTH];
 
@@ -1020,7 +1007,7 @@ void RegConfigBlockSystem(char* param1_string, uint16_t SYS_CONFIG, char* param2
 	}
 }
 
-void RegConfigBlockInput(char* param1_string, uint16_t IN_CONFIG, char* param2_string, void(*Callback)(char*)) {
+void RegConfigBlockInput(const char* param1_string, uint16_t IN_CONFIG, const char* param2_string, void(*Callback)(const char*)) {
 	char out_str[MAX_MESSAGE_STRING_LENGTH];	// 80
 	char key[MAX_LABEL_LENGTH];
 
@@ -1038,7 +1025,7 @@ void RegConfigBlockInput(char* param1_string, uint16_t IN_CONFIG, char* param2_s
 	}
 }
 
-void RegConfigBlockMonitor(char* param1_string, uint16_t MON_CONFIG, char* param2_string, void(*Callback)(char*)) {
+void RegConfigBlockMonitor(const char* param1_string, uint16_t MON_CONFIG, const char* param2_string, void(*Callback)(const char*)) {
 	char out_str[MAX_MESSAGE_STRING_LENGTH];	// 80
 	char key[MAX_LABEL_LENGTH];
 
@@ -1056,7 +1043,7 @@ void RegConfigBlockMonitor(char* param1_string, uint16_t MON_CONFIG, char* param
 	}
 }
 
-void RegConfigBlockSchedule(char* param1_string, uint16_t SCH_CONFIG, char* param2_string, void(*Callback)(char*)) {
+void RegConfigBlockSchedule(const char* param1_string, uint16_t SCH_CONFIG, const char* param2_string, void(*Callback)(const char*)) {
 	char out_str[MAX_MESSAGE_STRING_LENGTH];	// 80
 	char key[MAX_LABEL_LENGTH];
 
@@ -1074,7 +1061,7 @@ void RegConfigBlockSchedule(char* param1_string, uint16_t SCH_CONFIG, char* para
 	}
 }
 
-void RegConfigBlockRule(char* param1_string, uint16_t RL_CONFIG, char* param2_string, void(*Callback)(char*)) {
+void RegConfigBlockRule(const char* param1_string, uint16_t RL_CONFIG, const char* param2_string, void(*Callback)(const char*)) {
 	char out_str[MAX_MESSAGE_STRING_LENGTH];	// 80
 	char key[MAX_LABEL_LENGTH];
 
@@ -1092,7 +1079,7 @@ void RegConfigBlockRule(char* param1_string, uint16_t RL_CONFIG, char* param2_st
 	}
 }
 
-void RegConfigBlockController(char* param1_string, uint16_t CON_CONFIG, char* param2_string, void(*Callback)(char*)) {
+void RegConfigBlockController(const char* param1_string, uint16_t CON_CONFIG, const char* param2_string, void(*Callback)(const char*)) {
 	char out_str[MAX_MESSAGE_STRING_LENGTH];	// 80
 	char key[MAX_LABEL_LENGTH];
 
@@ -1110,7 +1097,7 @@ void RegConfigBlockController(char* param1_string, uint16_t CON_CONFIG, char* pa
 	}
 }
 
-void RegConfigBlockOutput(char* param1_string, uint16_t OUT_CONFIG, char* param2_string, void(*Callback)(char*)) {
+void RegConfigBlockOutput(const char* param1_string, uint16_t OUT_CONFIG, const char* param2_string, void(*Callback)(const char*)) {
 	char out_str[MAX_MESSAGE_STRING_LENGTH];	// 80
 	char key[MAX_LABEL_LENGTH];
 
@@ -1129,12 +1116,12 @@ void RegConfigBlockOutput(char* param1_string, uint16_t OUT_CONFIG, char* param2
 }
 
 
-void RegInitSetupAll(void(*Callback)(char*)) {
+void RegInitSetupAll(void(*Callback)(const char*)) {
 	(void)Callback; 		//not used
 	ProcessDispatcher(Setup);
 }
 
-void RegInitSetupBID(uint16_t block_id, void(*Callback)(char*)) {
+void RegInitSetupBID(uint16_t block_id, void(*Callback)(const char*)) {
 	char out_str[MAX_MESSAGE_STRING_LENGTH];
 	BlockNode *b;
 	b = GetBlockByID(bll, block_id);
@@ -1146,12 +1133,12 @@ void RegInitSetupBID(uint16_t block_id, void(*Callback)(char*)) {
 	}
 }
 
-void RegInitValidateAll(void(*Callback)(char*)) {
+void RegInitValidateAll(void(*Callback)(const char*)) {
 	(void)Callback; 		//not used
 	ProcessDispatcher(Validate);
 }
 
-void RegInitValidateBID(uint16_t block_id, void(*Callback)(char*)) {
+void RegInitValidateBID(uint16_t block_id, void(*Callback)(const char*)) {
 	char out_str[MAX_MESSAGE_STRING_LENGTH];
 	BlockNode *b;
 	b = GetBlockByID(bll, block_id);
@@ -1163,12 +1150,12 @@ void RegInitValidateBID(uint16_t block_id, void(*Callback)(char*)) {
 	}
 }
 
-void RegInitDisableAll(void(*Callback)(char*)) {
+void RegInitDisableAll(void(*Callback)(const char*)) {
 	(void)Callback; 		//not used
 	ProcessDispatcher(InitDisable);
 }
 
-void RegInitDisableBID(uint16_t block_id, void(*Callback)(char*)) {
+void RegInitDisableBID(uint16_t block_id, void(*Callback)(const char*)) {
 	char out_str[MAX_MESSAGE_STRING_LENGTH];
 	BlockNode *b;
 	b = GetBlockByID(bll, block_id);
@@ -1180,7 +1167,7 @@ void RegInitDisableBID(uint16_t block_id, void(*Callback)(char*)) {
 	}
 }
 
-void RegAdminDisableBID(uint16_t block_id, void(*Callback)(char*)) {
+void RegAdminDisableBID(uint16_t block_id, void(*Callback)(const char*)) {
 	char out_str[MAX_MESSAGE_STRING_LENGTH];
 	BlockNode *b;
 	b = GetBlockByID(bll, block_id);
@@ -1192,7 +1179,7 @@ void RegAdminDisableBID(uint16_t block_id, void(*Callback)(char*)) {
 	}
 }
 
-void RegAdminEnableBID(uint16_t block_id, void(*Callback)(char*)) {
+void RegAdminEnableBID(uint16_t block_id, void(*Callback)(const char*)) {
 	char out_str[MAX_MESSAGE_STRING_LENGTH];
 	BlockNode *b;
 	b = GetBlockByID(bll, block_id);
@@ -1204,7 +1191,7 @@ void RegAdminEnableBID(uint16_t block_id, void(*Callback)(char*)) {
 	}
 }
 
-void RegAdminDeleteBID(uint16_t block_id, void(*Callback)(char*)) {
+void RegAdminDeleteBID(uint16_t block_id, void(*Callback)(const char*)) {
 	(void)block_id;
 	char out_str[MAX_MESSAGE_STRING_LENGTH];
 	strcpy_hal(out_str, F("Not Yet Implemented"));
@@ -1212,16 +1199,16 @@ void RegAdminDeleteBID(uint16_t block_id, void(*Callback)(char*)) {
 }
 
 
-void RegSystemReboot(void(*Callback)(char*)) {
+void RegSystemReboot(void(*Callback)(const char*)) {
 	(void)Callback; 		//not used
 	HALReboot();
 }
 
-void RegAdminCmdOnBID(uint16_t block_id, void(*Callback)(char*)) {
+void RegAdminCmdOnBID(uint16_t block_id, void(*Callback)(const char*)) {
 	RegSendCommandToBlockID(block_id, CMD_OUTPUT_ON, Callback);
 }
 
-void RegAdminCmdOffBID(uint16_t block_id, void(*Callback)(char*)) {
+void RegAdminCmdOffBID(uint16_t block_id, void(*Callback)(const char*)) {
 	RegSendCommandToBlockID(block_id, CMD_OUTPUT_OFF, Callback);
 }
 

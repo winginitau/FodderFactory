@@ -19,46 +19,38 @@
 /************************************************
  PLATFORM Directives
  ************************************************/
-#define FF_ARDUINO
+//#define PLATFORM_ARDUINO
 //or
-//#define FF_SIMULATOR
+#define PLATFORM_LINUX
 
-#ifdef BOARD_TAG
 
-#endif
-
-#ifdef FF_ARDUINO
-#define TARGET_PLATFORM_ARDUINO
-#ifdef TARGET_PLATFORM_ARDUINO
-#define TARGET_BOARD_ARDUINO_MEGA2560
-#endif
-#endif
-
-#ifdef FF_SIMULATOR
-#define TARGET_PLATFORM_LINUX
+#ifdef PLATFORM_ARDUINO
+#define BOARD_ARDUINO_MEGA2560
 #endif
 
 
 /****************************************************************************
- PLATFORM INTERFACES - To be scripted for "build to order" firmware
+ PLATFORM OPTIONALS - To be scripted for "build to order" firmware
  ***************************************************************************/
 //#define UI_ATTACHED			// is there a directly attached UI? LCD? Console in sim?
 
-#ifdef TARGET_PLATFORM_ARDUINO
+#ifdef PLATFORM_ARDUINO
 	#define ASSERT(x,y) ASSERT_ARDUINO(x,y)
+	#define ARDUINO_VEDIRECT
 	#define VE_DIRECT
 	#define IF_ARDUINO_VEDIRECT
-#endif //TARGET_PLATFORM_ARDUINO
+	#define ARDUINO_HIGH_PROGMEM
+#endif //PLATFORM_ARDUINO
 
 
-#ifdef TARGET_PLATFORM_LINUX
+#ifdef PLATFORM_LINUX
 //#define ASSERT(x) assert(x)
 #define ASSERT(x,y) ASSERT_ARDUINO(x,y)
 #endif
 
 //#define RESURRECT_DEPRECIATED
 
-//#define FF_SIMULATOR
+//#define PLATFORM_LINUX
 // Optionally with
 //#define FF_SIM_PARSECONFIG	//optional parse the TXT config (default -> read BIN)
 
@@ -67,7 +59,7 @@
 
 // Optionally:
 //#define FF_TEMPERATURE_SIM
-// OR with FF_ARDUINO
+// OR with PLATFORM_ARDUINO
 //#define FF_TEMP_SIM_WITH_DALLAS
 
 //Use ITCH for CLI parsing ?
@@ -76,12 +68,12 @@
 //#define ITCH_HEADERS_ONLY
 
 #ifdef FF_CONFIG
-#define FF_SIMULATOR
+#define PLATFORM_LINUX
 #define DEBUG
-#undef FF_ARDUINO
+#undef PLATFORM_ARDUINO
 #endif
 
-#ifdef FF_SIMULATOR
+#ifdef PLATFORM_LINUX
 #define FF_TEMPERATURE_SIM
 #define PSTR(x) x
 #define F(x) x
@@ -116,12 +108,12 @@
 #define SIM_TEMP_5 22.5
 #endif
 
-#ifdef FF_ARDUINO
+#ifdef PLATFORM_ARDUINO
 #define USE_PROGMEM
 #define PROGMEM_BLOCK_DEFS
 //#define OLD_SD	//OR
 #define NEW_SD
-#endif
+#endif //PLATFORM_ARDUINO
 
 #define EXCLUDE_DESCRIPTION			// to save .data segment and heap space on arduino
 #define EXCLUDE_DISPLAYNAME			// to save .data segment and heap space on arduino
@@ -169,26 +161,26 @@
 10 = E_STOP
 */
 
-#ifdef FF_ARDUINO
+#ifdef PLATFORM_ARDUINO
 #define DEBUG_SERIAL                  		// For use when USB connected
 #define DEBUG_SERIAL_BAUDRATE 9600
 //#define DEBUG_LCD                     	// Debug to a connected LCD screen
 //#define DEBUG_LCD_DELAY 0
-#endif
+#endif //PLATFORM_ARDUINO
 
 #define DEBUG_FILE						//write a debug file on SD or locally
 #define DEBUG_FILENAME "FFDEBUG.TXT"
 
-#ifdef FF_SIMULATOR
+#ifdef PLATFORM_LINUX
 #define DEBUG_CONSOLE						//write to stdout
-#define FF_SIMULATOR_DATA_SCREEN			//simulate the LCD data screen to stdout
+#define PLATFORM_LINUX_DATA_SCREEN			//simulate the LCD data screen to stdout
 #define SCREEN_REFRESH 50000				//how many times through the loop should the data screen not be updated
 #endif
 
-#ifdef FF_ARDUINO
+#ifdef PLATFORM_ARDUINO
 #define DEBUG_MEMORY					//print heap and stack pointers in the debug process
 //#define DEBUG_DALLAS				//Check and dump details on Dallas temperature sensors during start up
-#endif
+#endif //PLATFORM_ARDUINO
 
 #endif //DEBUG
 
@@ -216,12 +208,12 @@
 //#define SERIAL_3_USED
 
 
-#ifdef FF_SIMULATOR
+#ifdef PLATFORM_LINUX
 #define EVENT_CONSOLE
 #ifdef FF_CONFIG
 #undef EVENT_CONSOLE
 #endif //FF_CONFIG
-#endif //FF_SIMULATOR
+#endif //PLATFORM_LINUX
 
 #define ONE_SHOT_DURATION 2						//SCH_ONE_SHOT stay active seconds - inc case loop delay >= 1 second
 #define RESET_MINMAX_SCH_BLOCK "SCH_RESET_MIN_MAX_COUNTERS"  //workaround - the block that triggers resetting of min and max display counters

@@ -69,14 +69,14 @@ void loop() {
 	#endif
 }
 
-#ifdef FF_ARDUINO
+#ifdef PLATFORM_ARDUINO
 void setup() {
 	//Power on startup or reset
-#endif
+#endif //PLATFORM_ARDUINO
 
-#ifdef FF_SIMULATOR
+#ifdef PLATFORM_LINUX
 int main(void) {
-#endif
+#endif //PLATFORM_LINUX
 	// main() is equivalent to setup() on arduino
 
 	//Key issue for large scalability is that the system executive (registry)
@@ -99,6 +99,7 @@ int main(void) {
 		DebugLog(F("HALInitSerial Passed"));
 	#endif
 
+
 	// If using itch, init here because it proxies all comms on serial
 	#ifdef USE_ITCH
 		HALInitItch();
@@ -109,7 +110,6 @@ int main(void) {
 	// TODO Consider moving to setup function on the system block
 
 	//Load config from parsable text file replaces loading from binary.
-	DebugLog("Calling InitConfigLoad");
 	InitConfigLoad(1);
 
 	// Run the Validate function on each block
@@ -137,14 +137,14 @@ int main(void) {
 	ProcessDispatcher(Operate);
 	DebugLog(SSS, E_INFO, M_DISP_OPER_LOOP);
 
-	#ifdef FF_SIMULATOR
+	#ifdef PLATFORM_LINUX
 	//for (int n = 0; n < 10000; n++) {
 	//	loop();
 	//}
 	//printf("done\n");
 	while (1) loop();
 	return 0;
-	#endif
+	#endif //PLATFORM_LINUX
 	// On Arduino loop() is now called automatically forever
 }
 

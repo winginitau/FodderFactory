@@ -143,9 +143,9 @@ EventNode* EventBufferPop(void) {
 		}
 
 	} else {
-#ifdef FF_ARDUINO
+#ifdef PLATFORM_ARDUINO
 		DebugLog(SSS, E_STOP, M_EVENTMSG_BEFORE_INIT);
-#endif
+#endif //PLATFORM_ARDUINO
 		while (1);
 	}
 	return 0;
@@ -163,9 +163,9 @@ void EventBufferPush(EventNode event) {
 			event_buffer.tail = (event_buffer.tail + 1) % event_buffer.size;
 		}
 	} else {
-#ifdef FF_ARDUINO
+#ifdef PLATFORM_ARDUINO
 		DebugLog(SSS, E_STOP, M_EVENTMSG_BEFORE_INIT);
-#endif
+#endif //PLATFORM_ARDUINO
 		while (1);
 	}
 }

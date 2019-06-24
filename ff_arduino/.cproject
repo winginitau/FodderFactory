@@ -12,7 +12,7 @@
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration artifactName="${ProjName}" buildProperties="" description="" id="io.sloeber.core.toolChain.release.1923527009" name="Release" optionalBuildProperties="org.eclipse.cdt.docker.launcher.containerbuild.property.volumes=,org.eclipse.cdt.docker.launcher.containerbuild.property.selectedvolumes=" parent="org.eclipse.cdt.build.core.emptycfg">
+				<configuration artifactName="${ProjName}" buildProperties="" description="" id="io.sloeber.core.toolChain.release.1923527009" name="Release" optionalBuildProperties="org.eclipse.cdt.docker.launcher.containerbuild.property.selectedvolumes=,org.eclipse.cdt.docker.launcher.containerbuild.property.volumes=" parent="org.eclipse.cdt.build.core.emptycfg">
 					<folderInfo id="io.sloeber.core.toolChain.release.1923527009.337879387" name="/" resourcePath="">
 						<toolChain id="io.sloeber.core.toolChain.release.303432458" name="Arduino Toolchain (Sloeber edition)" superClass="io.sloeber.core.toolChain.release">
 							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="io.sloeber.targetplatform.525799772" name="Arduino Target" osList="all" superClass="io.sloeber.targetplatform"/>
@@ -47,7 +47,6 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/SPI/src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/Wire/src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/SdFat/src}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/VictronVEDirectArduino}&quot;"/>
 								</option>
 								<inputType id="io.sloeber.compiler.c.sketch.input.951723203" name="C Source Files" superClass="io.sloeber.compiler.c.sketch.input"/>
 							</tool>
@@ -74,9 +73,11 @@
 							<tool id="io.sloeber.tool.size.1917893766" name="Arduino tool Print Size" superClass="io.sloeber.tool.size"/>
 						</toolChain>
 					</folderInfo>
+					<fileInfo id="io.sloeber.core.toolChain.release.1923527009.954503267" name="NodeMap.h" rcbsApplicability="disable" resourcePath="itch/NodeMap.h" toolsToInvoke=""/>
+					<fileInfo id="io.sloeber.core.toolChain.release.1923527009.257433986" name="Parser.h" rcbsApplicability="disable" resourcePath="itch/Parser.h" toolsToInvoke=""/>
+					<fileInfo id="io.sloeber.core.toolChain.release.1923527009.74682782" name="TokenList.h" rcbsApplicability="disable" resourcePath="itch/TokenList.h" toolsToInvoke=""/>
 					<fileInfo id="io.sloeber.core.toolChain.release.1923527009.231738945" name="AST.h" rcbsApplicability="disable" resourcePath="glitch/AST.h" toolsToInvoke=""/>
 					<fileInfo id="io.sloeber.core.toolChain.release.1923527009.383968397" name="glitch_config.h" rcbsApplicability="disable" resourcePath="glitch/glitch_config.h" toolsToInvoke=""/>
-					<fileInfo id="io.sloeber.core.toolChain.release.1923527009.1182254279" name="gmon.out" rcbsApplicability="disable" resourcePath="glitch/gmon.out" toolsToInvoke=""/>
 					<fileInfo id="io.sloeber.core.toolChain.release.1923527009.1072261200" name="ASTNode.h" rcbsApplicability="disable" resourcePath="glitch/ASTNode.h" toolsToInvoke=""/>
 					<fileInfo id="io.sloeber.core.toolChain.release.1923527009.1223510076" name="bucket" rcbsApplicability="disable" resourcePath="glitch/bucket" toolsToInvoke=""/>
 					<fileInfo id="io.sloeber.core.toolChain.release.1923527009.1509380594" name="Debug.h" rcbsApplicability="disable" resourcePath="glitch/Debug.h" toolsToInvoke=""/>
@@ -93,7 +94,7 @@
 						<entry excluding="VictronVEDirectArduino|libraries/RTClib/1.2.0.mod|libraries/DallasTemperature/3.7.6.mod|libraries/SD/.github|libraries/OneWire/util|itch|glitch|src|libraries/?*/**/?xamples/**|libraries/?*/**/?xtras/**|libraries/?*/**/test*/**|libraries/?*/**/third-party/**|libraries/**/._*|libraries/?*/utility/*/*" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 						<entry excluding="sloeber.ino.cpp|example.ino" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="VictronVEDirectArduino"/>
 						<entry excluding="out_user_code2.cpp.bak|gmon.out|grammar.gf|conf_term_grammar_wip.txt|command_syntax.txt|code_template.ct|bucket|hf_temp|LineBuffer.h|LineBuffer.cpp|Lexer.h|KeyValuePairList.h|Lexer.cpp|KeyValuePairList.cpp|Identifiers.h|Identifiers.cpp|Identifier.h|glitch.cpp|Identifier.cpp|glitch_errors.h|glitch_config.h|Debug.h|Debug.cpp|config.h|ASTNode.h|ASTNode.cpp|AST.h|AST.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="glitch"/>
-						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="itch"/>
+						<entry excluding="TokenList.h|TokenList.cpp|Parser.h|Parser.cpp|NodeMap.h|NodeMap.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="itch"/>
 						<entry excluding="bucket.cpp|IniFile_ff.h|IniFile_ff.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
 					</sourceEntries>
 				</configuration>

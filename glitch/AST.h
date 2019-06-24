@@ -42,6 +42,7 @@ public:
 	int ast_node_count;
 	int grammar_def_count;
 	int max_param_count;
+	int max_grammar_depth;
 
 	OutputBuffer header_output_queue;
 	OutputBuffer code_output_queue;

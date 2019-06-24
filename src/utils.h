@@ -15,12 +15,12 @@
 
 #include <build_config.h>
 
-#ifdef FF_ARDUINO
+#ifdef PLATFORM_ARDUINO
 #include <Arduino.h>
-#endif
+#endif //PLATFORM_ARDUINO
 
 
-#ifdef FF_SIMULATOR
+#ifdef PLATFORM_LINUX
 #include <stdint.h>
 #endif
 

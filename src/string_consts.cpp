@@ -33,26 +33,77 @@ uint8_t GetLanguage(void) {
 
 
 void GetMessageTypeString(char *str_buf, int message_type_enum) {
-	StringArray temp;
 #ifdef USE_PROGMEM
 	//XXX
-	memcpy_P(&temp, &message_type_strings[message_type_enum], sizeof(temp));
+	//StringArray temp;
+	//memcpy_P(&temp, &message_type_strings[message_type_enum], sizeof(temp));
+	//strcpy(str_buf, temp.text[GetLanguage()]);
+	strcpy_hal(str_buf, message_type_strings[message_type_enum].text[GetLanguage()]);
 #else
-	memcpy(&temp, &message_type_strings[message_type_enum], sizeof(temp));
+	//memcpy(&temp, &message_type_strings[message_type_enum], sizeof(temp));
+	strcpy_hal(str_buf, message_type_strings[message_type_enum].text[GetLanguage()]);
 #endif
-	strcpy(str_buf, temp.text[GetLanguage()]);
+
 	//return str_buf;
 }
 
 void GetMessageString(char *str_buf, int message_enum) {
+
+	#ifdef PLATFORM_ARDUINO
 	StringArray temp;
-#ifdef USE_PROGMEM
-	memcpy_P(&temp, &message_strings[message_enum], sizeof(temp));
-#else
-	memcpy(&temp, &message_strings[message_enum], sizeof(temp));
-#endif
+
+	#ifdef ARDUINO_HIGH_PROGMEM
+	uint32_t far_base_ptr;
+	uint32_t far_offset;
+/*
+	byte b;
+	far_base_ptr = pgm_get_far_address(PAD16K1);
+	Serial.print("Far address of PAD16K1 (DEC/HEX): ");
+	Serial.print(far_base_ptr, DEC);
+	Serial.print(" : ");
+	Serial.println(far_base_ptr, HEX);
+	b = pgm_read_byte_far(far_base_ptr);
+	Serial.print("Byte at that address: ");
+	Serial.println(b, HEX);
+
+	far_base_ptr = pgm_get_far_address(PAD16K2);
+	Serial.print("Far address of PAD16K2 (DEC/HEX): ");
+	Serial.print(far_base_ptr, DEC);
+	Serial.print(" : ");
+	Serial.println(far_base_ptr, HEX);
+	b = pgm_read_byte_far(far_base_ptr);
+	Serial.print("Byte at that address: ");
+	Serial.println(b, HEX);
+*/
+	far_base_ptr = pgm_get_far_address(message_strings);
+
+	//Serial.print("Far address of message_strings: ");
+	//Serial.print(far_base_ptr, DEC);
+	//Serial.print(" : ");
+	//Serial.println(far_base_ptr, HEX);
+
+	far_offset = (uint32_t)(sizeof(StringArray) * message_enum);
+	far_base_ptr = far_base_ptr + far_offset;
+	//Serial.print("Far address of message_strings[offset]: ");
+	//Serial.print(far_base_ptr, DEC);
+	//Serial.print(" : ");
+	//Serial.println(far_base_ptr, HEX);
+
+	memcpy_PF(&temp, far_base_ptr, sizeof(temp));
+	//Serial.print("String at that address: ");
+	//Serial.println(temp.text[GetLanguage()]);
+	#else //!ARDUINO_HIGH_PROGMEM
+		memcpy_P(&temp, &message_strings[message_enum], sizeof(temp));
+	#endif //ARDUINO_HIGH_PROGMEM
+
 	strcpy(str_buf, temp.text[GetLanguage()]);
-	//return temp_pgm_string_msg;
+
+	#endif //PLATFORM_ARDUINO
+
+	#ifdef PLATFORM_LINUX
+		//memcpy(&temp, &message_strings[message_enum], sizeof(temp));
+		strcpy_hal(str_buf, message_strings[message_enum].text[GetLanguage()]);
+	#endif //PLATFORM_LINUX
 }
 
 uint8_t DayStringArrayIndex(const char* key) {

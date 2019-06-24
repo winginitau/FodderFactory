@@ -20,7 +20,7 @@
 #include <registry.h>
 #include <string_consts.h>
 
-#ifdef FF_SIMULATOR
+#ifdef PLATFORM_LINUX
 #endif
 
 /************************************************
@@ -37,7 +37,7 @@
   Functions
 ************************************************/
 
-void CommonShow(BlockNode *b, void(Callback(char *))) {
+void CommonShow(BlockNode *b, void(Callback(const char *))) {
 	char out_str[MAX_MESSAGE_STRING_LENGTH];
 	char fmt_str[MAX_LABEL_LENGTH];
 	char label_str[MAX_LABEL_LENGTH];

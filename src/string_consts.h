@@ -176,7 +176,7 @@ typedef enum {
 	M_CONFIG_NOT_VALID,
 	M_SD_NO_FILE_HANDLE,
 	M_ERROR_EVENTS_EMPTY,
-	M_SD_BEGIN_FAIL,
+	M_SD_BEGIN_FAIL,		//M36
 	M_NULL,
 	M_FLIPFLOP,
 	M_IA_NULL,
@@ -236,16 +236,40 @@ typedef enum {
 	LAST_MESSAGE
 } MessageEnum;
 
-#ifdef USE_PROGMEM
-static const StringArray message_strings[LAST_MESSAGE] PROGMEM = {
-#else
-static const StringArray message_strings[LAST_MESSAGE] = {
+
+#ifdef ARDUINO_HIGH_PROGMEM
+#define HIGHPROGMEM8 __attribute__((section(".fini8")))
+#define HIGHPROGMEM7 __attribute__((section(".fini7")))
+#define PAD32 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF
+#define PAD256 PAD32, PAD32, PAD32, PAD32, PAD32, PAD32, PAD32, PAD32
+#define PAD1K PAD256, PAD256, PAD256, PAD256
+#define PAD8K PAD1K, PAD1K, PAD1K, PAD1K, PAD1K, PAD1K, PAD1K, PAD1K
+
+static const uint64_t PAD16K1[] HIGHPROGMEM8 = {
+		PAD8K, PAD8K
+};
+static const uint64_t PAD16K2[] HIGHPROGMEM8 = {
+		PAD8K, PAD8K
+};
+#endif
+
+#ifdef PLATFORM_ARDUINO
+	#ifdef ARDUINO_HIGH_PROGMEM
+		static const StringArray message_strings[LAST_MESSAGE] HIGHPROGMEM7 = {
+	#else
+		static const StringArray message_strings[LAST_MESSAGE] PROGMEM = {
+	#endif //ARDUINO_HIGH_PROGMEM
+#endif
+#ifdef PLATFORM_LINUX
+	static const StringArray message_strings[LAST_MESSAGE] = {
 #endif
 	22, { "Error - Use of Zero Index"			"M0" },
 	22, { "Fodder Factory Awake",				"M1" },
 	12, { "Debug Serial Declared",				"M2" },
 	12, { "RTC Detected",						"M3" },
 	10, { "RTC Reports as Running",				"M4" },
+
+
 	12, { "SET_RTC DEFINED",					"M5" },
 	24, { "HARD CODED TIME SET",				"M6" },
 	24,	{ "RTC Not Running - Hard Coding",		"M7" },
@@ -270,14 +294,14 @@ static const StringArray message_strings[LAST_MESSAGE] = {
 	14, { "Error Opening Event Log File",					"M26" },
 	14, { "(DISPATCHER) Moving to (Operate) loop",			"M27" },
 	14, { "Buffer Flushed to File",							"M28" },
-	14, { "Running in Simulator Mode",						"M29" },
-	14, { "Simulator will Use System Time",					"M30" },
-	14, { "Simulator using console for UI",					"M31" },
+	14, { "Running on Linux Platform",						"M29" },
+	14, { "Using Linux System Time",						"M30" },
+	14, { "Using stdout for console UI",					"M31" },
 	14, { "Config not found. Can't continue",				"M32" },
 	14, { "Config file failed validation",					"M33" },
-	14, { "DEBUG ERROR SD File Handle NULL",				"M34" },
-	14, { "DEBUG ERROR Event Buffer Empty",					"M35" },
-	14, { "DEBUG ERROR SD.begin FAIL",						"M36" },
+	14, { "ERROR SD File Handle NULL",						"M34" },
+	14, { "ERROR Event Buffer Empty",						"M35" },
+	14, { "ERROR SD.begin FAIL",							"M36" },
 	14, { "",												""},
 	14, { "Flip or Flop",									"M38" },
 	14, { "(IsActive) GetBlockByID returned NULL",			"M39" },
@@ -335,9 +359,6 @@ static const StringArray message_strings[LAST_MESSAGE] = {
 	14, { "M91",								"M91" },
 	14, { "M92",								"M92" },
 };
-
-
-
 
 /**************************************************************
  * String Access Functions Prototypes

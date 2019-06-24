@@ -21,6 +21,7 @@ AST::AST() {
     ast_node_count = 0;
 	grammar_def_count = 0;
 	max_param_count = 0;
+	max_grammar_depth = 0;
 
 	caller_func_preamble_done = false;
 
@@ -308,13 +309,18 @@ void AST::AttachModeChangeToCurrent(char* mode_change_identifier) {
 int AST::BuildActionCode(Identifiers& idents) {
 	// While on the AST node that is action-able - "current", walk via
 	// 	parent pointers up the tree, building the function parameter
-	// 	list that will be included in the function prototype for this action
-	//	and send it to the queues for the output files.
+	// 	list that will be included in the function prototype and definition
+	//	for this action and send it to the queues for the output files.
+	// Also count the depth of the grammar to define max_grammar_depth
+	//  which is used in the itch parser to constrain node match list
+	//  building to a statically sized array rather than smashing the heap
+	//  with malloc and free
 
 	KeyValuePairList params;
 	ASTNode* walker;
 	int param_count = 0;
 	int param_index = 0;
+	int grammar_depth = 0;
 	char param_name[MAX_BUFFER_LENGTH];
 	char param_type[MAX_BUFFER_LENGTH];
 	char func_name[MAX_BUFFER_LENGTH];
@@ -334,16 +340,19 @@ int AST::BuildActionCode(Identifiers& idents) {
 		if (walker->type > AST_KEYWORD) {
 			param_count++;
 		}
-
 		// count the ones that needs to be numerically labelled
 		if (walker->type >= AST_LOOKUP) {
 			param_index++;
 		}
+		// count the total grammar depth
+		grammar_depth++;
+		// walk "up"
 		walker = walker->parent;
 	}
 
-	// remember the max count for define config in the parser
+	// remember the max counts for #defines in the parser
 	if (param_count > max_param_count) max_param_count = param_count;
+	if (grammar_depth > max_grammar_depth) max_grammar_depth = grammar_depth;
 
 	// ***************************** Assemble param names and types walking up tree
 

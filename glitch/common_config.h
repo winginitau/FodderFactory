@@ -11,7 +11,7 @@
 #define COMMON_CONFIG_H_
 
 
-// Visitor pattern result codes
+// parser result codes
 
 enum {
 	R_ERROR = 0,

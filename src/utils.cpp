@@ -20,7 +20,7 @@
 #include <utils.h>
 #include <debug_ff.h>
 
-#ifdef FF_SIMULATOR
+#ifdef PLATFORM_LINUX
 #include <stdint.h>
 #include <stdio.h>
 #include <time.h>
@@ -169,12 +169,12 @@ uint8_t DayStrToFlag(uint8_t day_flag[7], const char* day_str) {
 	return found;
 }
 
-#ifdef FF_ARDUINO
+#ifdef PLATFORM_ARDUINO
 char* FFFloatToCString(char* buf, float f) {
 	return dtostrf(f,-7,2,buf);
 }
-#endif
-#ifdef FF_SIMULATOR
+#endif //PLATFORM_ARDUINO
+#ifdef PLATFORM_LINUX
 char* FFFloatToCString(char* buf, float f) {
 	sprintf(buf, "%.2f", f);
 	return buf;
@@ -238,7 +238,7 @@ char* TimeValueToTimeString(char *HMSStr, const time_t tv) {
 
 
 /*
-#ifdef FF_ARDUINO
+#ifdef PLATFORM_ARDUINO
 String FFFloatString(float f) {
 	String s;
 	if (f<10) {

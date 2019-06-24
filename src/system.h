@@ -16,7 +16,7 @@
 
 void SystemSetup(BlockNode* b);
 void SystemOperate(BlockNode* b);
-void SystemShow(BlockNode *b, void(Callback(char *)));
+void SystemShow(BlockNode *b, void(Callback(const char *)));
 
 
 #endif /* SYSTEM_H_ */

@@ -1,5 +1,5 @@
 /*
- * glitch_config.h
+ * itch_config.h
  *
  *  Created on: 18 Mar. 2018
  *      Author: brendan
@@ -8,7 +8,7 @@
 #ifndef ITCH_CONFIG_H_
 #define ITCH_CONFIG_H_
 
-#define VERSION "0.1a"
+//#define VERSION "0.1a"
 #define PROG_NAME "itch - Interactive Terminal Command sHell"
 
 //#define ITCH_DEBUG

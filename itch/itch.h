@@ -10,59 +10,68 @@
 #ifndef ITCH_H_
 #define ITCH_H_
 
-#include "config.h"
-#include "LineBuffer.h"
-#include "Parser.h"
+#define NEW_MODEL
+
+#include <config.h>
+#include <LineBuffer.h>
 #include <stdio.h>
 
-#ifdef ARDUINO
+#ifdef NEW_MODEL
+#include <new_Parser.h>
+#else
+#include <Parser.h>
+#endif
+
+#ifdef PLATFORM_ARDUINO
 #include <Arduino.h>
 #endif
 
-#ifdef TARGET_PLATFORM_LINUX
+#ifdef PLATFORM_LINUX
 #include <termios.h>
-#endif //TARGET_PLATFORM_LINUX
+#endif //PLATFORM_LINUX
 
 enum ITCH_SESSION_FLAGS {
 	ITCH_INIT,
-	ITCH_TEXT_DATA ,
-	ITCH_TERMINAL,
-	ITCH_BUFFER_STUFF,
+	ITCH_TEXT_DATA,		// Normal operating - just sending log data
+	ITCH_TEXT_CCC,		// Command Configure Control
+	ITCH_TERMINAL,		// Interactive terminal with basic emulation
+	ITCH_BUFFER_STUFF,	// Parsing from the stuff buffer
 };
 
 typedef struct ITCH_FLAGS {
-	uint8_t mode;
-	uint8_t replay;
-	// XXX
-	char esc_seq[4];
-	uint8_t esc_idx;
-	uint8_t echo_received;
+	uint8_t mode;			// ITCH_SESSION_FLAGS
+	uint8_t replay;			// Replaying on or off
+	uint8_t term_echo;		// Echo received chars back to the terminal?
 } I_FLAGS;
 
+void WriteLineCallback(const char* string);
+void ITCHWriteLine(const char* string);
+void ITCHWrite(const char* string);
+void ITCHWriteChar(const char ch);
 
-void WriteLineCallback(char* string);
-void WriteLineDirect(const char* string);
-void WriteLineDirect(char* string);
-void WriteDirect(char* string);
-void WriteDirectCh(char ch);
+#ifdef PLATFORM_ARDUINO
+	size_t ITCHWrite_P(const char *string);
+	size_t ITCHWrite_P(const char *string);
+	void ITCHWriteLine(const __FlashStringHelper *string);
+	void ITCHWrite(const __FlashStringHelper *string);
+#endif //PLATFORM_ARDUINO
 
 
 class ITCH {
 private:
 	I_FLAGS iflags;
-	// XXX Dynamically allocate prompt? Takes up a lot of static space for most of the time
-	//char prompt[MAX_OUTPUT_LINE_SIZE];
-	char prompt[20];
-	char out_str[MAX_OUTPUT_LINE_SIZE];
+	char term_esc_seq[4];
+	uint8_t term_esc_idx;
+	char ccc_esc_seq[4];
+	uint8_t ccc_esc_idx;
 
-	//void WriteOutputBuffer(void);
 	void PreserveReplay(void);
 	void TrimReStuffBuffer(void);
 
-	#ifdef TARGET_PLATFORM_LINUX
+	#ifdef PLATFORM_LINUX
 	// Start up terminal settings
 	struct termios old_tio;
-	#endif //TARGET_PLATFORM_LINUX
+	#endif //PLATFORM_LINUX
 
 public:
 	ITCH();
@@ -76,13 +85,9 @@ public:
 	void SetMode(uint8_t mode);
 	uint8_t StuffAndProcess(char* str);
 	void Poll();
-	//static void WriteLineCallback(char* string);
-	//void WriteLineDirect(char* string);
-	//static void WriteDirect(char* string);
-	//static void WriteDirectCh(char ch);
-	#ifdef TARGET_PLATFORM_LINUX
+	#ifdef PLATFORM_LINUX
 	void RestoreTermAndExit();
-	#endif // TARGET_PLATFORM_LINUX
+	#endif //PLATFORM_LINUX
 };
 
 

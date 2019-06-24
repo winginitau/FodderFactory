@@ -1,6 +1,0 @@
-CONFIG system SYSTEM type SYS_SYSTEM
-CONFIG input IN_TOP_TEMP type IN_ONEWIRE
-CONFIG input IN_TOP_TEMP interface ONEWIRE
-CONFIG input IN_TOP_TEMP if_num 0
-CONFIG input IN_TOP_TEMP log_rate 00:02:00
-CONFIG input IN_TOP_TEMP data_units Celsius

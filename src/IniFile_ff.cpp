@@ -1,7 +1,7 @@
 #include <IniFile_ff.h>
 #include <string.h>
 
-#ifdef FF_SIMULATOR
+#ifdef PLATFORM_LINUX
 #include <ctype.h>
 #include <strings.h>
 #endif
@@ -9,7 +9,7 @@
 const uint8_t IniFile::maxFilenameLen = INI_FILE_MAX_FILENAME_LEN;
 
 
-#ifdef FF_ARDUINO
+#ifdef PLATFORM_ARDUINO
 IniFile::IniFile(const char* filename, uint8_t mode, bool caseSensitive)
 {
   if (strlen(filename) <= maxFilenameLen)
@@ -24,8 +24,8 @@ IniFile::IniFile(const char* filename, uint8_t mode, bool caseSensitive)
 //  SD.begin(10);
 
 }
-#endif
-#ifdef FF_SIMULATOR
+#endif //PLATFORM_ARDUINO
+#ifdef PLATFORM_LINUX
 IniFile::IniFile(const char* filename, char* mode, bool caseSensitive)
 {
   if (strlen(filename) <= maxFilenameLen)
@@ -41,7 +41,7 @@ IniFile::IniFile(const char* filename, char* mode, bool caseSensitive)
 
 IniFile::~IniFile()
 {
-#ifdef FF_SIMULATOR
+#ifdef PLATFORM_LINUX
 	if (_file)
 		fclose(_file);
 #endif
@@ -345,11 +345,11 @@ bool IniFile::getMACAddress(const char* section, const char* key,
 
 */
 
-#ifdef FF_ARDUINO
+#ifdef PLATFORM_ARDUINO
 //int8_t IniFile::readLine(File &file, char *buffer, size_t len, uint32_t &pos)
 IniFile::error_t IniFile::readLine(File &file, char *buffer, size_t len, uint32_t &pos)
-#endif
-#ifdef FF_SIMULATOR
+#endif //PLATFORM_ARDUINO
+#ifdef PLATFORM_LINUX
 IniFile::error_t IniFile::readLine(FILE* file, char *buffer, size_t len, uint32_t &pos)
 #endif
 {
@@ -359,17 +359,17 @@ IniFile::error_t IniFile::readLine(FILE* file, char *buffer, size_t len, uint32_
   if (len < 3) 
     return errorBufferTooSmall;
 
-#ifdef FF_ARDUINO
+#ifdef PLATFORM_ARDUINO
   if (!file.seek(pos))
-#endif
-#ifdef FF_SIMULATOR
+#endif //PLATFORM_ARDUINO
+#ifdef PLATFORM_LINUX
 	  if (fseek(file, pos, SEEK_SET))
 #endif
     return errorSeekError;
-#ifdef FF_ARDUINO
+#ifdef PLATFORM_ARDUINO
   size_t bytesRead = file.read(buffer, len);
-#endif
-#ifdef FF_SIMULATOR
+#endif //PLATFORM_ARDUINO
+#ifdef PLATFORM_LINUX
   buffer = fgets(buffer, len, file);
   size_t bytesRead = ftell(file) - pos;
 #endif
@@ -397,10 +397,10 @@ IniFile::error_t IniFile::readLine(FILE* file, char *buffer, size_t len, uint32_
       return errorNoError;
     }
   }
-#ifdef FF_ARDUINO
+#ifdef PLATFORM_ARDUINO
   if (!file.available()) {
-#endif
-#ifdef FF_SIMULATOR
+#endif //PLATFORM_ARDUINO
+#ifdef PLATFORM_LINUX
   if (feof(file)) {
 #endif
     // end of file without a newline

@@ -1,10 +1,10 @@
-%# 
-%# glitch - Grammar Lexer and Interactive Terminal Command sHell
-%#
-%# Copyright 2018, Brendan McLearie, all rights reserved.
-%#
-%#  This file: 
-%#      - Cut down working version of the Fodder Factory Grammar
+# 
+# glitch - Grammar Lexer and Interactive Terminal Command sHell
+#
+# Copyright 2018, Brendan McLearie, all rights reserved.
+#
+#  This file: 
+#      - Cut down working version of the Fodder Factory Grammar
 
 %header-start
 
@@ -77,7 +77,8 @@ typedef union {
 %sub-section-close 0x26
 %redundant-close-as-comment
 %ignore-case
-%escape-sequence ^^^
+%term-escape-sequence ^^^
+%ccc-escape-sequence %%%
 
 %enum-terminating-member
 %enum-plus-list-array
@@ -85,7 +86,7 @@ typedef union {
 %enum-array-member-label text
 %enum-array-type SimpleStringArray
 
-%#------------------------------------ BLOCK CATEGORIES--------------------
+#------------------------------------ BLOCK CATEGORIES--------------------
 %enum-identifier BLOCK_CATEGORY
 %enum-array-instance block_cat_names
 %enum-start
@@ -102,7 +103,7 @@ FF_OUTPUT           "OUTPUT"
 LAST_BLOCK_CAT
 %enum-end
 
-%#------------------------------------ BLOCK TYPES--------------------
+#------------------------------------ BLOCK TYPES--------------------
 %enum-identifier BLOCK_TYPES
 %enum-array-instance block_type_strings
 %enum-start
@@ -130,7 +131,7 @@ OUT_SYSTEM_CALL             "OUT_SYSTEM_CALL"
 LAST_BLOCK_TYPE
 %enum-end
 
-%#------------------------------------ COMMAND STRINGS --------------------
+#------------------------------------ COMMAND STRINGS --------------------
 %enum-identifier COMMAND_STRING
 %enum-array-instance command_strings
 %enum-start
@@ -141,7 +142,7 @@ CMD_RESET_MIN_MAX   "CMD_RESET_MIN_MAX"
 LAST_COMMAND
 %enum-end
 
-%#------------------------------------ UNITS --------------------
+#------------------------------------ UNITS --------------------
 %enum-identifier UNIT_STRINGS
 %enum-array-instance unit_strings
 %enum-start
@@ -164,7 +165,7 @@ PERCENT         "Percent"
 LAST_UNIT
 %enum-end
 
-%#------------------------------------ UNITS ABBREVIATIONS ----------
+#------------------------------------ UNITS ABBREVIATIONS ----------
 %enum-identifier UNIT_ABBR_STRINGS
 %enum-array-instance unit_abbr_strings
 %enum-start
@@ -187,7 +188,7 @@ ABBR_PERCENT         "%"
 LAST_UNIT_ABBR
 %enum-end
 
-%#------------------------------------ DAYS of WEEK --------------------
+#------------------------------------ DAYS of WEEK --------------------
 %enum-identifier DAY_STRINGS
 %enum-array-instance day_strings
 %enum-start
@@ -201,7 +202,7 @@ SAT    "SAT"
 LAST_DAY
 %enum-end
 
-%#------------------------------------ INTERFACES --------------------
+#------------------------------------ INTERFACES --------------------
 %enum-identifier INTERFACE_STRINGS
 %enum-array-instance interface_strings
 %enum-start
@@ -221,7 +222,7 @@ IF_VED_SOC          "IF_VED_SOC"
 LAST_INTERFACE
 %enum-end
 
-%#------------------------------------ BLOCK STATUS --------------------
+#------------------------------------ BLOCK STATUS --------------------
 %enum-identifier STATUS_STRINGS
 %enum-array-instance status_strings
 %enum-start
@@ -237,7 +238,7 @@ STATUS_DISABLED_ADMIN           "STATUS_DISABLED_ADMIN"
 LAST_STATUS
 %enum-end
 
-%# -------------------------------------CONFIG KEYS---------------------
+# -------------------------------------CONFIG KEYS---------------------
 %enum-identifier SYS_CONFIG
 %enum-array-instance sys_config_keys
 %enum-start
@@ -346,10 +347,10 @@ OUT_CONFIG_IF_NUM           "if_num"
 LAST_OUT_CONFIG
 %enum-end
 
-%# ------------------------------------------------------------------
+# ------------------------------------------------------------------
 
 %lookup-list BLOCK_LABEL LookupBlockLabel
-%#lookup-list some_other_lookup_list LookupOtherList
+#lookup-list some_other_lookup_list LookupOtherList
 
 %action-define SHOW_BLOCKS ShowBlocks
 %action-define SHOW_SYSTEM ShowSystem
@@ -369,11 +370,11 @@ LAST_OUT_CONFIG
 %action-define COMMAND_BLOCK_LABEL SendCommandToBlockLabel
 %action-define COMMAND_BLOCK_ID SendCommandToBlockID
 
-%#action-define MESSAGE_DATA_LABEL_INT SimIntDataMessageFromBlockLabel
-%#action-define MESSAGE_DATA_LABEL_FLOAT SimFloatDataMessageFromBlockLabel
+#action-define MESSAGE_DATA_LABEL_INT SimIntDataMessageFromBlockLabel
+#action-define MESSAGE_DATA_LABEL_FLOAT SimFloatDataMessageFromBlockLabel
 
-%#action-define MESSAGE_DATA_BLOCK_ID_INT SimIntDataMessageFromBlockID
-%#action-define MESSAGE_DATA_BLOCK_ID_FLOAT SimFloatDataMessageFromBlockID
+#action-define MESSAGE_DATA_BLOCK_ID_INT SimIntDataMessageFromBlockID
+#action-define MESSAGE_DATA_BLOCK_ID_FLOAT SimFloatDataMessageFromBlockID
 
 %1 keyword MESSAGE
 %2 keyword COMMAND
@@ -384,23 +385,23 @@ LAST_OUT_CONFIG
 %4 enum-array COMMAND_STRING
 %action COMMAND_BLOCK_ID
 
-%#2 keyword DATA
+#2 keyword DATA
 
-%#3 lookup block_label
-%#4 keyword INT
-%#5 param-integer
-%#action MESSAGE_DATA_LABEL_INT
-%#4 keyword FLOAT
-%#5 param-float
-%#action MESSAGE_DATA_LABEL_FLOAT
+#3 lookup block_label
+#4 keyword INT
+#5 param-integer
+#action MESSAGE_DATA_LABEL_INT
+#4 keyword FLOAT
+#5 param-float
+#action MESSAGE_DATA_LABEL_FLOAT
 
-%#3 param-integer
-%#4 keyword INT
-%#5 param-integer
-%#action MESSAGE_DATA_BLOCK_ID_INT
-%#4 keyword FLOAT
-%#5 param-float
-%#action MESSAGE_DATA_BLOCK_ID_FLOAT
+#3 param-integer
+#4 keyword INT
+#5 param-integer
+#action MESSAGE_DATA_BLOCK_ID_INT
+#4 keyword FLOAT
+#5 param-float
+#action MESSAGE_DATA_BLOCK_ID_FLOAT
 
 %action-define SHOW_TIME ShowTime
 %action-define SET_TIME SetTime
@@ -422,9 +423,9 @@ LAST_OUT_CONFIG
 %action-define CONFIG_LOAD ConfigLoad
 %action-define CONFIG_SAVE ConfigSave
 
-%#action-define CONFIG_LOAD_BINARY ConfigLoadBinary
-%#action-define CONFIG_LOAD_INI ConfigLoadINI
-%#action-define CONFIG_SAVE_BINARY ConfigSaveBinary
+#action-define CONFIG_LOAD_BINARY ConfigLoadBinary
+#action-define CONFIG_LOAD_INI ConfigLoadINI
+#action-define CONFIG_SAVE_BINARY ConfigSaveBinary
 
 %action-define CONFIG_BLOCK_SYSTEM ConfigBlockSystem
 %action-define CONFIG_BLOCK_INPUT ConfigBlockInput 
@@ -434,7 +435,7 @@ LAST_OUT_CONFIG
 %action-define CONFIG_BLOCK_CONTROLLER ConfigBlockController
 %action-define CONFIG_BLOCK_OUTPUT ConfigBlockOutput
 
-%# ----Config Commands---------------------------------------------------
+# ----Config Commands---------------------------------------------------
  
 %1 keyword CONFIG
 %2 keyword CLEAR
@@ -486,30 +487,30 @@ LAST_OUT_CONFIG
 %5 param-string
 %action CONFIG_BLOCK_OUTPUT
 
-%# ---------------------------FUTURE WRITE / FILE------------------------------
+# ---------------------------FUTURE WRITE / FILE------------------------------
 
-%#action-define WRITE_DEFAULT WriteToDefaultConfigFile
-%#action-define WRITE_INIT WriteEmptyDefaultConfigFile
-%#action-define WRITE_FILENAME WriteToFilenameConfigFile
-%#action-define COPY_FILE_FILE CopyConfigFileToFile
+#action-define WRITE_DEFAULT WriteToDefaultConfigFile
+#action-define WRITE_INIT WriteEmptyDefaultConfigFile
+#action-define WRITE_FILENAME WriteToFilenameConfigFile
+#action-define COPY_FILE_FILE CopyConfigFileToFile
 
-%# WRITE                 // writes running config to default file "config.txt"
-%# WRITE INIT            // write empty init config to the default config "config.txt"
-%# WRITE filename        // write running config to a specific filename
-%# COPY filename filename  // copy contents of one config file to another
+# WRITE                 // writes running config to default file "config.txt"
+# WRITE INIT            // write empty init config to the default config "config.txt"
+# WRITE filename        // write running config to a specific filename
+# COPY filename filename  // copy contents of one config file to another
 
-%#1 keyword WRITE
-%#action WRITE_DEFAULT
-%#2 keyword INIT
-%#action WRITE_INIT
-%#2 param-string
-%#action WRITE_FILENAME
-%#1 keyword COPY
-%#2 param-string
-%#3 param-string
-%#action COPY_FILE_FILE
+#1 keyword WRITE
+#action WRITE_DEFAULT
+#2 keyword INIT
+#action WRITE_INIT
+#2 param-string
+#action WRITE_FILENAME
+#1 keyword COPY
+#2 param-string
+#3 param-string
+#action COPY_FILE_FILE
 
-%# --------------------------- INIT------------------------------
+# --------------------------- INIT------------------------------
 
 %action-define INIT_SETUP_ALL InitSetupAll
 %action-define INIT_VALIDATE_ALL InitValidateAll
@@ -539,7 +540,7 @@ LAST_OUT_CONFIG
 %3 param-integer
 %action INIT_DISABLE_BID
 
-%# --------------------------- ADMIN------------------------------
+# --------------------------- ADMIN------------------------------
 
 %action-define ADMIN_DISABLE_BID AdminDisableBID
 %action-define ADMIN_ENABLE_BID AdminEnableBID
