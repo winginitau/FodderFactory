@@ -61,8 +61,8 @@ void HALDrawDataScreenCV(const UIDataSet* uids, time_t dt);
 //FFDateTime HALFFDTNow(void);
 time_t TimeNow(void);
 #ifdef PLATFORM_ARDUINO
-uint8_t HALSetRTCTime(char *time_str);
-uint8_t HALSetRTCDate(char *date_str);
+uint8_t HALSetRTCTime(const char *time_str);
+uint8_t HALSetRTCDate(const char *date_str);
 #endif //PLATFORM_ARDUINO
 void HALInitRTC(void);
 void HALReboot(void);

@@ -49,11 +49,17 @@
 */.settings
 
 # Eclipse Build Directories
-/Debug/
-/Release/
-/ff_simulator/Release/
-/ff_simulator/Debug/
-/ff_dallastemp_test/Release/
+Debug/
+Release/
+linux/Release/**/*
+linux/Debug/**/*
+linux/Debug/src/
+linux/Debug/itch/
+linus/Debug/glitch/
+ff_dallastemp_test/Release/
+ff_arduino/Release/
+**/Debug/*
+**/Release/*
 
 # Working Files
 FFEVENTS.TXT
@@ -72,4 +78,11 @@ htmlcov/
 dist/
 build/
 *.egg-info/
-/sloeber.ino.cpp
+
+# Sloeber Aduino Plugin generated files
+**/sloeber.ino.cpp
+
+# Perf and Profiling outputs
+**/*.gcda
+**/*.gcno
+

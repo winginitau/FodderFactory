@@ -123,7 +123,7 @@ uint16_t LookupIdentMap (char* key) {
 	XLATMap temp;
 	uint16_t idx = 0;
 	while (idx < XLAT_IDENT_MAP_COUNT) {
-		#ifdef ARDUINO
+		#ifdef PLATFORM_ARDUINO
 			memcpy_P(&temp, &ident_map[idx], sizeof(XLATMap));
 		#else
 			memcpy(&temp, &ident_map[idx], sizeof(XLATMap));
@@ -140,7 +140,7 @@ uint16_t LookupLookupMap (char* key) {
 	XLATMap temp;
 	uint16_t idx = 0;
 	while (idx < XLAT_LOOKUP_MAP_COUNT) {
-		#ifdef ARDUINO
+		#ifdef PLATFORM_ARDUINO
 			memcpy_P(&temp, &lookup_map[idx], sizeof(XLATMap));
 		#else
 			memcpy(&temp, &lookup_map[idx], sizeof(XLATMap));
@@ -157,7 +157,7 @@ uint16_t LookupFuncMap (char* key) {
 	XLATMap temp;
 	uint16_t idx = 0;
 	while (idx < XLAT_FUNC_MAP_COUNT) {
-		#ifdef ARDUINO
+		#ifdef PLATFORM_ARDUINO
 			memcpy_P(&temp, &func_map[idx], sizeof(XLATMap));
 		#else
 			memcpy(&temp, &func_map[idx], sizeof(XLATMap));
@@ -170,19 +170,21 @@ uint16_t LookupFuncMap (char* key) {
 	return -1;
 }
 
-uint16_t LookupIdentifierMembers(uint16_t ident_xlat, char* lookup_string) {
+uint16_t LookupIdentifierMembers(uint16_t ident_xlat, char* lookup_string, uint8_t str_len) {
 	SimpleStringArray temp;
 	uint16_t idx = 0;
 	switch(ident_xlat) {
 		case 0: {
 			while (idx < LAST_BLOCK_CAT) {
-				#ifdef ARDUINO
+				#ifdef PLATFORM_ARDUINO
 					memcpy_P(&temp, &block_cat_names[idx], sizeof(SimpleStringArray));
 				#else
 					memcpy(&temp, &block_cat_names[idx], sizeof(SimpleStringArray));
 				#endif
-				if(strcasecmp(lookup_string, temp.text) == 0) {
-					return idx;
+				if(strnlen(temp.text, MAX_LABEL_LENGTH) == str_len) {
+					if(strncasecmp(lookup_string, temp.text, str_len) == 0) {
+						return idx;
+					}
 				}
 				idx++;
 			}
@@ -190,13 +192,15 @@ uint16_t LookupIdentifierMembers(uint16_t ident_xlat, char* lookup_string) {
 			break;
 		case 1: {
 			while (idx < LAST_BLOCK_TYPE) {
-				#ifdef ARDUINO
+				#ifdef PLATFORM_ARDUINO
 					memcpy_P(&temp, &block_type_strings[idx], sizeof(SimpleStringArray));
 				#else
 					memcpy(&temp, &block_type_strings[idx], sizeof(SimpleStringArray));
 				#endif
-				if(strcasecmp(lookup_string, temp.text) == 0) {
-					return idx;
+				if(strnlen(temp.text, MAX_LABEL_LENGTH) == str_len) {
+					if(strncasecmp(lookup_string, temp.text, str_len) == 0) {
+						return idx;
+					}
 				}
 				idx++;
 			}
@@ -204,13 +208,15 @@ uint16_t LookupIdentifierMembers(uint16_t ident_xlat, char* lookup_string) {
 			break;
 		case 2: {
 			while (idx < LAST_COMMAND) {
-				#ifdef ARDUINO
+				#ifdef PLATFORM_ARDUINO
 					memcpy_P(&temp, &command_strings[idx], sizeof(SimpleStringArray));
 				#else
 					memcpy(&temp, &command_strings[idx], sizeof(SimpleStringArray));
 				#endif
-				if(strcasecmp(lookup_string, temp.text) == 0) {
-					return idx;
+				if(strnlen(temp.text, MAX_LABEL_LENGTH) == str_len) {
+					if(strncasecmp(lookup_string, temp.text, str_len) == 0) {
+						return idx;
+					}
 				}
 				idx++;
 			}
@@ -218,13 +224,15 @@ uint16_t LookupIdentifierMembers(uint16_t ident_xlat, char* lookup_string) {
 			break;
 		case 3: {
 			while (idx < LAST_UNIT) {
-				#ifdef ARDUINO
+				#ifdef PLATFORM_ARDUINO
 					memcpy_P(&temp, &unit_strings[idx], sizeof(SimpleStringArray));
 				#else
 					memcpy(&temp, &unit_strings[idx], sizeof(SimpleStringArray));
 				#endif
-				if(strcasecmp(lookup_string, temp.text) == 0) {
-					return idx;
+				if(strnlen(temp.text, MAX_LABEL_LENGTH) == str_len) {
+					if(strncasecmp(lookup_string, temp.text, str_len) == 0) {
+						return idx;
+					}
 				}
 				idx++;
 			}
@@ -232,13 +240,15 @@ uint16_t LookupIdentifierMembers(uint16_t ident_xlat, char* lookup_string) {
 			break;
 		case 4: {
 			while (idx < LAST_UNIT_ABBR) {
-				#ifdef ARDUINO
+				#ifdef PLATFORM_ARDUINO
 					memcpy_P(&temp, &unit_abbr_strings[idx], sizeof(SimpleStringArray));
 				#else
 					memcpy(&temp, &unit_abbr_strings[idx], sizeof(SimpleStringArray));
 				#endif
-				if(strcasecmp(lookup_string, temp.text) == 0) {
-					return idx;
+				if(strnlen(temp.text, MAX_LABEL_LENGTH) == str_len) {
+					if(strncasecmp(lookup_string, temp.text, str_len) == 0) {
+						return idx;
+					}
 				}
 				idx++;
 			}
@@ -246,13 +256,15 @@ uint16_t LookupIdentifierMembers(uint16_t ident_xlat, char* lookup_string) {
 			break;
 		case 5: {
 			while (idx < LAST_DAY) {
-				#ifdef ARDUINO
+				#ifdef PLATFORM_ARDUINO
 					memcpy_P(&temp, &day_strings[idx], sizeof(SimpleStringArray));
 				#else
 					memcpy(&temp, &day_strings[idx], sizeof(SimpleStringArray));
 				#endif
-				if(strcasecmp(lookup_string, temp.text) == 0) {
-					return idx;
+				if(strnlen(temp.text, MAX_LABEL_LENGTH) == str_len) {
+					if(strncasecmp(lookup_string, temp.text, str_len) == 0) {
+						return idx;
+					}
 				}
 				idx++;
 			}
@@ -260,13 +272,15 @@ uint16_t LookupIdentifierMembers(uint16_t ident_xlat, char* lookup_string) {
 			break;
 		case 6: {
 			while (idx < LAST_INTERFACE) {
-				#ifdef ARDUINO
+				#ifdef PLATFORM_ARDUINO
 					memcpy_P(&temp, &interface_strings[idx], sizeof(SimpleStringArray));
 				#else
 					memcpy(&temp, &interface_strings[idx], sizeof(SimpleStringArray));
 				#endif
-				if(strcasecmp(lookup_string, temp.text) == 0) {
-					return idx;
+				if(strnlen(temp.text, MAX_LABEL_LENGTH) == str_len) {
+					if(strncasecmp(lookup_string, temp.text, str_len) == 0) {
+						return idx;
+					}
 				}
 				idx++;
 			}
@@ -274,13 +288,15 @@ uint16_t LookupIdentifierMembers(uint16_t ident_xlat, char* lookup_string) {
 			break;
 		case 7: {
 			while (idx < LAST_STATUS) {
-				#ifdef ARDUINO
+				#ifdef PLATFORM_ARDUINO
 					memcpy_P(&temp, &status_strings[idx], sizeof(SimpleStringArray));
 				#else
 					memcpy(&temp, &status_strings[idx], sizeof(SimpleStringArray));
 				#endif
-				if(strcasecmp(lookup_string, temp.text) == 0) {
-					return idx;
+				if(strnlen(temp.text, MAX_LABEL_LENGTH) == str_len) {
+					if(strncasecmp(lookup_string, temp.text, str_len) == 0) {
+						return idx;
+					}
 				}
 				idx++;
 			}
@@ -288,13 +304,15 @@ uint16_t LookupIdentifierMembers(uint16_t ident_xlat, char* lookup_string) {
 			break;
 		case 8: {
 			while (idx < LAST_SYS_CONFIG) {
-				#ifdef ARDUINO
+				#ifdef PLATFORM_ARDUINO
 					memcpy_P(&temp, &sys_config_keys[idx], sizeof(SimpleStringArray));
 				#else
 					memcpy(&temp, &sys_config_keys[idx], sizeof(SimpleStringArray));
 				#endif
-				if(strcasecmp(lookup_string, temp.text) == 0) {
-					return idx;
+				if(strnlen(temp.text, MAX_LABEL_LENGTH) == str_len) {
+					if(strncasecmp(lookup_string, temp.text, str_len) == 0) {
+						return idx;
+					}
 				}
 				idx++;
 			}
@@ -302,13 +320,15 @@ uint16_t LookupIdentifierMembers(uint16_t ident_xlat, char* lookup_string) {
 			break;
 		case 9: {
 			while (idx < LAST_IN_CONFIG) {
-				#ifdef ARDUINO
+				#ifdef PLATFORM_ARDUINO
 					memcpy_P(&temp, &in_config_keys[idx], sizeof(SimpleStringArray));
 				#else
 					memcpy(&temp, &in_config_keys[idx], sizeof(SimpleStringArray));
 				#endif
-				if(strcasecmp(lookup_string, temp.text) == 0) {
-					return idx;
+				if(strnlen(temp.text, MAX_LABEL_LENGTH) == str_len) {
+					if(strncasecmp(lookup_string, temp.text, str_len) == 0) {
+						return idx;
+					}
 				}
 				idx++;
 			}
@@ -316,13 +336,15 @@ uint16_t LookupIdentifierMembers(uint16_t ident_xlat, char* lookup_string) {
 			break;
 		case 10: {
 			while (idx < LAST_MON_CONFIG) {
-				#ifdef ARDUINO
+				#ifdef PLATFORM_ARDUINO
 					memcpy_P(&temp, &mon_config_keys[idx], sizeof(SimpleStringArray));
 				#else
 					memcpy(&temp, &mon_config_keys[idx], sizeof(SimpleStringArray));
 				#endif
-				if(strcasecmp(lookup_string, temp.text) == 0) {
-					return idx;
+				if(strnlen(temp.text, MAX_LABEL_LENGTH) == str_len) {
+					if(strncasecmp(lookup_string, temp.text, str_len) == 0) {
+						return idx;
+					}
 				}
 				idx++;
 			}
@@ -330,13 +352,15 @@ uint16_t LookupIdentifierMembers(uint16_t ident_xlat, char* lookup_string) {
 			break;
 		case 11: {
 			while (idx < LAST_SCH_CONFIG) {
-				#ifdef ARDUINO
+				#ifdef PLATFORM_ARDUINO
 					memcpy_P(&temp, &sch_config_keys[idx], sizeof(SimpleStringArray));
 				#else
 					memcpy(&temp, &sch_config_keys[idx], sizeof(SimpleStringArray));
 				#endif
-				if(strcasecmp(lookup_string, temp.text) == 0) {
-					return idx;
+				if(strnlen(temp.text, MAX_LABEL_LENGTH) == str_len) {
+					if(strncasecmp(lookup_string, temp.text, str_len) == 0) {
+						return idx;
+					}
 				}
 				idx++;
 			}
@@ -344,13 +368,15 @@ uint16_t LookupIdentifierMembers(uint16_t ident_xlat, char* lookup_string) {
 			break;
 		case 12: {
 			while (idx < LAST_RL_CONFIG) {
-				#ifdef ARDUINO
+				#ifdef PLATFORM_ARDUINO
 					memcpy_P(&temp, &rl_config_keys[idx], sizeof(SimpleStringArray));
 				#else
 					memcpy(&temp, &rl_config_keys[idx], sizeof(SimpleStringArray));
 				#endif
-				if(strcasecmp(lookup_string, temp.text) == 0) {
-					return idx;
+				if(strnlen(temp.text, MAX_LABEL_LENGTH) == str_len) {
+					if(strncasecmp(lookup_string, temp.text, str_len) == 0) {
+						return idx;
+					}
 				}
 				idx++;
 			}
@@ -358,13 +384,15 @@ uint16_t LookupIdentifierMembers(uint16_t ident_xlat, char* lookup_string) {
 			break;
 		case 13: {
 			while (idx < LAST_CON_CONFIG) {
-				#ifdef ARDUINO
+				#ifdef PLATFORM_ARDUINO
 					memcpy_P(&temp, &con_config_keys[idx], sizeof(SimpleStringArray));
 				#else
 					memcpy(&temp, &con_config_keys[idx], sizeof(SimpleStringArray));
 				#endif
-				if(strcasecmp(lookup_string, temp.text) == 0) {
-					return idx;
+				if(strnlen(temp.text, MAX_LABEL_LENGTH) == str_len) {
+					if(strncasecmp(lookup_string, temp.text, str_len) == 0) {
+						return idx;
+					}
 				}
 				idx++;
 			}
@@ -372,13 +400,15 @@ uint16_t LookupIdentifierMembers(uint16_t ident_xlat, char* lookup_string) {
 			break;
 		case 14: {
 			while (idx < LAST_OUT_CONFIG) {
-				#ifdef ARDUINO
+				#ifdef PLATFORM_ARDUINO
 					memcpy_P(&temp, &out_config_keys[idx], sizeof(SimpleStringArray));
 				#else
 					memcpy(&temp, &out_config_keys[idx], sizeof(SimpleStringArray));
 				#endif
-				if(strcasecmp(lookup_string, temp.text) == 0) {
-					return idx;
+				if(strnlen(temp.text, MAX_LABEL_LENGTH) == str_len) {
+					if(strncasecmp(lookup_string, temp.text, str_len) == 0) {
+						return idx;
+					}
 				}
 				idx++;
 			}
@@ -390,10 +420,13 @@ uint16_t LookupIdentifierMembers(uint16_t ident_xlat, char* lookup_string) {
 	return 0;
 }
 
-uint8_t LookupLookupMembers(uint16_t ident_xlat, char* lookup_string) {
+uint8_t LookupLookupMembers(uint16_t ident_xlat, char* lookup_string, uint8_t str_len) {
+	char str_terminated[MAX_LABEL_LENGTH];
+	strncpy(str_terminated, lookup_string, str_len);
+	str_terminated[str_len] = '\0';
 	switch(ident_xlat) {
 		case 0:
-			return LookupBlockLabel(lookup_string);
+			return LookupBlockLabel(str_terminated);
 			break;
 		default:
 		return 0;

@@ -35,11 +35,9 @@
 #ifdef UI_ATTACHED
 void InitUI(void) {
 	HALInitUI();
-#ifdef PLATFORM_ARDUINO
-#ifdef LCD_DISPLAY
+#ifdef ARDUINO_LCD
 	EventMsg(SSS, E_INFO, M_LCD_INIT);
-#endif //PLATFORM_ARDUINO
-#endif
+#endif //ARDUINO_LCD
 #ifdef PLATFORM_LINUX
 	EventMsg(SSS, E_INFO, M_SIM_CONSOLE);
 #endif

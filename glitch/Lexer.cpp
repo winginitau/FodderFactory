@@ -589,10 +589,10 @@ void Lexer::Process_D_ENUM_END(void) {
 		}
 
 		// write the string array definition - token[0] containing the size
-		strcpy(output_string, "#ifdef USE_PROGMEM\n");
+		strcpy(output_string, "#ifdef PLATFORM_ARDUINO\n");
     	header_output_queue.EnQueue(output_string);
 
-    	strcpy(output_string, "static const ");
+    	strcpy(output_string, "const ");
 		strcat(output_string, enum_array_type);
 		strcat(output_string, " ");
 		strcat(output_string, enum_array_instance);
@@ -604,7 +604,7 @@ void Lexer::Process_D_ENUM_END(void) {
 		strcpy(output_string, "#else\n");
     	header_output_queue.EnQueue(output_string);
 
-    	strcpy(output_string, "static const ");
+    	strcpy(output_string, "const ");
 		strcat(output_string, enum_array_type);
 		strcat(output_string, " ");
 		strcat(output_string, enum_array_instance);

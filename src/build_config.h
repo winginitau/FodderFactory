@@ -14,8 +14,6 @@
 #ifndef BUILD_CONFIG_H_
 #define BUILD_CONFIG_H_
 
-//#define VERSION v0.4b
-
 /************************************************
  PLATFORM Directives
  ************************************************/
@@ -23,11 +21,9 @@
 //or
 #define PLATFORM_LINUX
 
-
 #ifdef PLATFORM_ARDUINO
 #define BOARD_ARDUINO_MEGA2560
 #endif
-
 
 /****************************************************************************
  PLATFORM OPTIONALS - To be scripted for "build to order" firmware
@@ -40,6 +36,7 @@
 	#define VE_DIRECT
 	#define IF_ARDUINO_VEDIRECT
 	#define ARDUINO_HIGH_PROGMEM
+	//#define ARDUINO_LCD
 #endif //PLATFORM_ARDUINO
 
 
@@ -118,7 +115,7 @@
 #define EXCLUDE_DESCRIPTION			// to save .data segment and heap space on arduino
 #define EXCLUDE_DISPLAYNAME			// to save .data segment and heap space on arduino
 
-#define RTC_POLL_INTERVAL 10000		// milliseconds between calls to the rtc
+#define RTC_POLL_INTERVAL 30000		// milliseconds between calls to the rtc
 
 #define VE_LOG_RATE 120				// how many seconds between VE.Direct energy system logging
 #define VE_POLL_RATE 10				// how many seconds between VE.Direct energy system polling
@@ -218,11 +215,12 @@
 #define ONE_SHOT_DURATION 2						//SCH_ONE_SHOT stay active seconds - inc case loop delay >= 1 second
 #define RESET_MINMAX_SCH_BLOCK "SCH_RESET_MIN_MAX_COUNTERS"  //workaround - the block that triggers resetting of min and max display counters
 
-//#define LCD_DISPLAY
+#ifdef ARDUINO_LCD
 // Data sources for display on 128x64 LCD screen
 #define DISPLAY_INSIDE_SOURCE_BLOCK "IN_INSIDE_TOP_TEMP"
 #define DISPLAY_OUTSIDE_SOURCE_BLOCK "IN_OUTSIDE_TEMP"
 #define DISPLAY_WATER_SOURCE_BLOCK "IN_WATER_TEMP"
+#endif //ARDUINO_LCD
 
 #define EVENT_BUFFER_SIZE 1
 

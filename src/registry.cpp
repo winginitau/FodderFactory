@@ -61,10 +61,12 @@ typedef struct FF_STATE_REGISTER {
 /************************************************
  Globals
 ************************************************/
-
-static FFStateRegister sr;
 static uint16_t block_count = 0;	// Increments to assign block_id. TODO remove once static BIDs is implemented
 static BlockNode *bll = NULL;		// Block Linked List - variant record block list
+
+#ifdef ARDUINO_LCD
+	static FFStateRegister sr;
+#endif //ARDUINO_LCD
 
 /************************************************
  Functions
@@ -836,7 +838,7 @@ void RegSetTime(const char* time_str, void(*Callback)(const char*)) {
 				strcpy_hal(out_str, F("Time string is valid"));
 				Callback(out_str);
 
-#ifndef PLATFORM_ARDUINO
+#ifdef PLATFORM_LINUX
 			    struct tm *tmptr;
 			    time_t now;
 			    time_t t;
@@ -854,7 +856,8 @@ void RegSetTime(const char* time_str, void(*Callback)(const char*)) {
 			        sprintf(out_str, "Error: stime() failed, errno = %d: %s\n",errno, strerror(errno));
 			        Callback(out_str);
 			    }
-#else
+#endif //PLATFORM_LINUX
+#ifdef PLATFORM_ARDUINO
 			    uint8_t rc = HALSetRTCTime(time_str);
 			    if(rc==0) {
 					strcpy_hal(out_str, F("HALSetRTCTime() successful.\n"));
@@ -864,7 +867,7 @@ void RegSetTime(const char* time_str, void(*Callback)(const char*)) {
 					strcpy_hal(out_str, F("Error: HALSetRTCTime() failed.\n"));
 			        Callback(out_str);
 			    }
-#endif //ifndef PLATFORM_ARDUINO
+#endif //PLATFORM_ARDUINO
 
 			}
 		}
@@ -1216,20 +1219,21 @@ void RegAdminCmdOffBID(uint16_t block_id, void(*Callback)(const char*)) {
  * State Register and UI Data Set Functions
  ********************************************************************************************/
 
-
+#ifdef ARDUINO_LCD
 UIDataSet* GetUIDataSet(void) {
 	return &sr.ui_data;
 }
+#endif //ARDUINO_LCD
 
 void UpdateStateRegister(uint16_t source, uint8_t msg_type, uint8_t msg_str, int32_t i_val, float f_val) {
 
 	(void)i_val;	// not used on the LCD
 
 	//TODO include further registry block logic update here
-
 	//TODO redo - remove hard coding perhaps **** INDEED
+	//2019-06 Prob not needed for now - this was only used for the LCD display
 
-	// 2019-06 Prob not needed for now - this was only used for the LCD display
+#ifdef ARDUINO_LCD
 	const char* src_label;
 	src_label = GetBlockLabelString(source);
 
@@ -1298,9 +1302,17 @@ void UpdateStateRegister(uint16_t source, uint8_t msg_type, uint8_t msg_str, int
 	// Not used for now
 	//sr.ui_data.light_flag = 0;
 	//sr.ui_data.water_heater_flag = 0;
+#else //!ARDUINO_LCD
+	(void)source;
+	(void)msg_type;
+	(void)msg_str;
+	(void)i_val;
+	(void)f_val;
+#endif //ARDUINO_LCD
 }
 
 void InitStateRegister(void) {
+#ifdef ARDUINO_LCD
 	DebugLog(SSS, E_INFO, M_INI_SR);
 
 	sr.language = ENGLISH;
@@ -1334,7 +1346,7 @@ void InitStateRegister(void) {
 	//TODO these will go
 	//sr.ui_data.light_flag = 0;
 	//sr.ui_data.water_heater_flag = 0;
-
+#endif //ARDUINO_LCD
 }
 
 

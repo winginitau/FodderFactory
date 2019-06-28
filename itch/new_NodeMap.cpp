@@ -139,11 +139,12 @@ uint8_t MapDetermineTarget(uint8_t* target_size, char** target, char* line) {
 	}
 }
 
-uint8_t Compare_N_PARAM_DATE(char* target, ASTA_Node* temp_node) {
+uint8_t Compare_N_PARAM_DATE(char* target, uint8_t target_size, ASTA_Node* temp_node) {
 	// date format is 2018-02-20
 	// sufficient for filtering to just check if it starts with a 2
+	(void)target_size;
 	if (isdigit(target[0])) {
-		int x = target[0] - '0';
+		uint16_t x = target[0] - '0';
 		if (x == 2) {
 			// could be
 			strcpy_itch_misc(temp_node->label, ITCH_MISC_PARAM_DATE);
@@ -153,8 +154,9 @@ uint8_t Compare_N_PARAM_DATE(char* target, ASTA_Node* temp_node) {
 	return 0;
 }
 
-uint8_t Compare_N_PARAM_TIME(char* target, ASTA_Node* temp_node) {
+uint8_t Compare_N_PARAM_TIME(char* target, uint8_t target_size, ASTA_Node* temp_node) {
 	// time format is 23:30:45 (hh:mm:ss)
+	(void)target_size;
 	if (isdigit(target[0])) {
 		int x = target[0] - '0';
 		if (x < 3) {
@@ -166,11 +168,9 @@ uint8_t Compare_N_PARAM_TIME(char* target, ASTA_Node* temp_node) {
 	return 0;
 }
 
-uint8_t Compare_N_PARAM_FLOAT(char* target, ASTA_Node* temp_node) {
-	//if (mf.keyword_match) {
-	//	return 0;
-	//}
+uint8_t Compare_N_PARAM_FLOAT(char* target, uint8_t target_size, ASTA_Node* temp_node) {
 	// sufficient for filtering to just check if it starts with a digit
+	(void)target_size;
 	if (isdigit(target[0])) {
 		strcpy_itch_misc(temp_node->label, ITCH_MISC_PARAM_FLOAT);
 		return 1;
@@ -178,11 +178,9 @@ uint8_t Compare_N_PARAM_FLOAT(char* target, ASTA_Node* temp_node) {
 	return 0;
 }
 
-uint8_t Compare_N_PARAM_INTEGER(char* target, ASTA_Node* temp_node) {
-	//if (mf.keyword_match) {
-	//	return 0;
-	//}
+uint8_t Compare_N_PARAM_INTEGER(char* target, uint8_t target_size, ASTA_Node* temp_node) {
 	// sufficient for filtering to just check if it starts with a digit
+	(void)target_size;
 	if (isdigit(target[0])) {
 		strcpy_itch_misc(temp_node->label, ITCH_MISC_PARAM_INTEGER);
 		return 1;
@@ -190,8 +188,9 @@ uint8_t Compare_N_PARAM_INTEGER(char* target, ASTA_Node* temp_node) {
 	return 0;
 }
 
-uint8_t Compare_N_PARAM_STRING(char* target, ASTA_Node* temp_node) {
+uint8_t Compare_N_PARAM_STRING(char* target, uint8_t target_size, ASTA_Node* temp_node) {
 	(void)target;
+	(void)target_size;
 	/*
 	if (isdigit(target[0])) {
 		// can't be keyword or ident or lookup
@@ -206,7 +205,7 @@ uint8_t Compare_N_PARAM_STRING(char* target, ASTA_Node* temp_node) {
 	return 1;
 }
 
-uint8_t Compare_N_LOOKUP(char* target, ASTA_Node* temp_node) {
+uint8_t Compare_N_LOOKUP(char* target, uint8_t target_size, ASTA_Node* temp_node) {
 	if (isdigit(target[0])) {
 		// can't be keyword or ident or lookup
 		return 0;
@@ -230,7 +229,7 @@ uint8_t Compare_N_LOOKUP(char* target, ASTA_Node* temp_node) {
 	uint8_t xlat;
 	xlat = LookupLookupMap(temp_node->label);
 	int lookup_result;
-	lookup_result = LookupLookupMembers(xlat, target);
+	lookup_result = LookupLookupMembers(xlat, target, target_size);
 	if (lookup_result == 1) {
 		g_mflags.lookup_tbd = 0;
 		return 1;
@@ -240,10 +239,9 @@ uint8_t Compare_N_LOOKUP(char* target, ASTA_Node* temp_node) {
 	}
 }
 
-uint8_t Compare_N_IDENTIFIER(char* target, ASTA_Node* temp_node) {
+uint8_t Compare_N_IDENTIFIER(char* target, uint8_t target_size, ASTA_Node* temp_node) {
 	uint8_t xlat;
 	uint8_t member_id;
-	//char target_upr[MAX_LABEL_LENGTH];
 
 	if (isdigit(target[0])) {
 		// can't be keyword or ident or lookup
@@ -251,7 +249,7 @@ uint8_t Compare_N_IDENTIFIER(char* target, ASTA_Node* temp_node) {
 	}
 
 	xlat = LookupIdentMap(temp_node->label);
-	member_id = LookupIdentifierMembers(xlat, target);
+	member_id = LookupIdentifierMembers(xlat, target, target_size);
 
 #ifdef ITCH_DEBUG
 	//sprintf(g_debug_message, "DEBUG (Compare_N_IDENTIFIER): Target: %s  ASTALabel: %s  xlatVal: %d  block_cat_id: %d\n\n\r", target, temp_node->label, xlat, member_id);
@@ -268,7 +266,7 @@ uint8_t Compare_N_IDENTIFIER(char* target, ASTA_Node* temp_node) {
 	}
 }
 
-uint8_t Compare_N_KEYWORD(char* target, ASTA_Node* temp_node) {
+uint8_t Compare_N_KEYWORD(char* target, uint8_t target_size, ASTA_Node* temp_node) {
 	char target_upr[MAX_TOKEN_SIZE];
 	char label_upr[MAX_TOKEN_SIZE];
 
@@ -278,14 +276,17 @@ uint8_t Compare_N_KEYWORD(char* target, ASTA_Node* temp_node) {
 		// can't be keyword or ident or lookup
 		return 0;
 	}
-	strcpy(target_upr, target);
+	strncpy(target_upr, target, target_size);
+	target_upr[target_size] = '\0';
 	strcpy(label_upr, temp_node->label);
 	strupr(target_upr);
 	strupr(label_upr);
 
-	char* sub_string_start;
-	sub_string_start = strstr(label_upr, target_upr);
-	if (sub_string_start == label_upr) {
+
+	//char* sub_string_start;
+	//sub_string_start = strstr(label_upr, target_upr);
+	//if (sub_string_start == label_upr) {
+	if(strncmp(target_upr, label_upr, target_size) == 0) {
 		g_mflags.keyword_match = 1;
 		return 1;
 	}
@@ -298,9 +299,8 @@ uint8_t MapMatch(char* line, TokenList* matched_list) {
 	// possible nodes, evaluate the results and return result
 	// and a list of matched nodes to the parser
 
-	//char target[MAX_IDENTIFIER_LABEL_SIZE]; 	// for the last bit that we are interested in
-	char* target = NULL;
-	uint8_t target_size;					//
+	char* target = NULL;		// for the last bit that we are interested in
+	uint8_t target_size;		// buffer is not terminated - need size
 
 	// clear the previous match list
 	TLReset(matched_list);
@@ -315,10 +315,11 @@ uint8_t MapMatch(char* line, TokenList* matched_list) {
 	// ie the last token on the line - complete or partial and get its size
 	g_mflags.match_result = MapDetermineTarget(&target_size, &target, line);
 
-	// If size == 0 assume advanced past a delim, return
-	// size will only be 0 if the previous pass detected a delim and advanced the buffer
-	// therefore code now just checks for the MR_DELIM_SKIP flag
-	if (g_mflags.match_result == MR_DELIM_SKIP) { return MR_DELIM_SKIP; }
+	// Check for the MR_DELIM_SKIP flag, if set the last was a space so there
+	// 	wont be anything else yet, return.
+	if (g_mflags.match_result == MR_DELIM_SKIP) {
+		return MR_DELIM_SKIP;
+	}
 
 	// save the target to be turned into an action call parameter later (once delim reached)
 	g_map_last_target_str = target;
@@ -342,13 +343,13 @@ uint8_t MapMatch(char* line, TokenList* matched_list) {
 
 	// Scan the current node and its siblings for potential or exact matches
 	// Returning the result in matched_list
-	MapSelectMatchingNodes(target, matched_list);
+	MapSelectMatchingNodes(target, target_size, matched_list);
 
 	// Evaluate the matched_list and return the result to the parser
 	return MapEvaluateMatchedList(matched_list);
 }
 
-void MapSelectMatchingNodes(char* token, TokenList* matched_list) {
+void MapSelectMatchingNodes(char* token, uint8_t token_size, TokenList* matched_list) {
 	ASTA_Node temp_asta;
 	uint8_t cr = 0;		// compare result
 
@@ -362,14 +363,15 @@ void MapSelectMatchingNodes(char* token, TokenList* matched_list) {
 
 		// Node type will determine how we compare it to the token
 		switch (temp_asta.type) {
-			case AST_PARAM_DATE:	cr = Compare_N_PARAM_DATE(token, &temp_asta);		break;
-			case AST_PARAM_TIME:	cr = Compare_N_PARAM_TIME(token, &temp_asta);		break;
-			case AST_PARAM_FLOAT: 	cr = Compare_N_PARAM_FLOAT(token, &temp_asta);		break;
-			case AST_PARAM_INTEGER:	cr = Compare_N_PARAM_INTEGER(token, &temp_asta);	break;
-			case AST_PARAM_STRING:	cr = Compare_N_PARAM_STRING(token, &temp_asta);	break;
-			case AST_LOOKUP:		cr = Compare_N_LOOKUP(token, &temp_asta);			break;
-			case AST_ENUM_ARRAY:	cr = Compare_N_IDENTIFIER(token, &temp_asta);		break;
-			case AST_KEYWORD:		cr = Compare_N_KEYWORD(token, &temp_asta);			break;
+			case AST_PARAM_DATE:	cr = Compare_N_PARAM_DATE(token, token_size, &temp_asta);		break;
+			case AST_PARAM_TIME:	cr = Compare_N_PARAM_TIME(token, token_size, &temp_asta);		break;
+			case AST_PARAM_FLOAT: 	cr = Compare_N_PARAM_FLOAT(token, token_size, &temp_asta);		break;
+			case AST_PARAM_INTEGER:	cr = Compare_N_PARAM_INTEGER(token, token_size, &temp_asta);	break;
+			case AST_PARAM_STRING:	cr = Compare_N_PARAM_STRING(token, token_size, &temp_asta);		break;
+			case AST_LOOKUP:		cr = Compare_N_LOOKUP(token, token_size, &temp_asta);			break;
+			case AST_ENUM_ARRAY:	cr = Compare_N_IDENTIFIER(token, token_size, &temp_asta);		break;
+			case AST_KEYWORD:		cr = Compare_N_KEYWORD(token, token_size, &temp_asta);			break;
+			default: break;
 		};
 
 		if ((cr > 0) && (g_mflags.help_active == 0)) {
@@ -389,17 +391,17 @@ void MapSelectMatchingNodes(char* token, TokenList* matched_list) {
 }
 
 uint8_t MapEvaluateMatchedList(TokenList* matched_list) {
+	// filter results based on matching precedence
+	// If any of these are present together in the matched
+	// list (of entered data, against the available nodes)
+	// then the order of precedence is:
+	// 	Keyword is partially or fully matched
+	// 	Member of a selected identifier list - fully matched
+	//  A look up value in full
+	//	A time or date param - distinguishable by its format
+	//	string, int, float params
 	ASTA_Node temp_asta;
 
-		// filter results based on matching precedence
-		// If any of these are present together in the matched
-		// list (of entered data, against the available nodes)
-		// then the order of precedence is:
-		// 	Keyword is partially or fully matched
-		// 	Member of a selected identifier list - fully matched
-		//  A look up value in full
-		//	A time or date param - distinguishable by its format
-		//	string, int, float params
 	if (g_mflags.help_active == 1) {
 		// do nothing, don't filter - keep everything for help display
 		return MR_HELP_ACTIVE;

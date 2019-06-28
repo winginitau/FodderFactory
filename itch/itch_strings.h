@@ -42,11 +42,11 @@ enum {
 #ifdef USE_PROGMEM
 static const EnumStringArray itch_error_strings[LAST_PARSE_ERROR] PROGMEM = {
 #else
-static const EnumStringArray itch_error_strings[LAST_PARSE_ERROR] = {
+const EnumStringArray itch_error_strings[LAST_PARSE_ERROR] = {
 #endif
-		"Processing error type",
+		"PE_ERROR - This shouldn't happen",
 		"Unknown error",
-		"Line valid up to EOL but incomplete",
+		"Last token invalid or command incomplete",
 		"Multiple non-unique matches were found for some or all terms and could not be parsed",
 		"EOL reached and the MR result from NodeMap is unknown",
 		"Term or terms could not be matched",
@@ -91,7 +91,7 @@ enum {
 #ifdef USE_PROGMEM
 static const EnumStringArray misc_itch_strings[LAST_ITCH_MISC_STRING] PROGMEM = {
 #else
-static const EnumStringArray misc_itch_strings[LAST_ITCH_MISC_STRING] = {
+const EnumStringArray misc_itch_strings[LAST_ITCH_MISC_STRING] = {
 #endif
 	"MISC_ERROR",
 	"Command Help:",
@@ -112,11 +112,9 @@ static const EnumStringArray misc_itch_strings[LAST_ITCH_MISC_STRING] = {
 	"ERROR",
 };
 
-
 void ITCHWriteLineError(uint8_t error_enum);
 void ITCHWriteLineMisc(uint8_t misc_string_enum);
 void ITCHWriteMisc(uint8_t misc_string_enum);
-
 
 #ifdef ITCH_DEBUG
 

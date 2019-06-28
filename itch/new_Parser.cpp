@@ -32,21 +32,18 @@ extern char g_debug_message[MAX_OUTPUT_LINE_SIZE];
 /******************************************************************************
  * Globals
  ******************************************************************************/
-extern char g_itch_replay_buf[MAX_INPUT_LINE_SIZE];
-extern void ITCHWriteLine(char* string);
-//extern void WriteDirect(char* string);
+//extern char g_itch_replay_buf[MAX_INPUT_LINE_SIZE];
+
 extern void ITCHWriteChar(char ch);
 
 char g_parser_parse_buf[MAX_INPUT_LINE_SIZE]; 	// The subject of all parsing functions
-uint8_t g_parser_buf_idx;						// Points to the next free char in the buffer
+uint8_t g_parser_buf_idx;		// Points to the next free char in the buffer and is size
 P_FLAGS g_pflags;
 uint8_t PFLAGS = 0;
 TokenList _possible_list;
 TokenList _param_list;
 TokenList* g_parser_possible_list = &_possible_list;
 TokenList* g_parser_param_list = &_param_list;
-
-//char g_parser_pre_parse_buf[MAX_INPUT_LINE_SIZE];
 
 /******************************************************************************
  * Functions
@@ -55,24 +52,19 @@ TokenList* g_parser_param_list = &_param_list;
 void ParserInit() {
 	TLInitialise(g_parser_possible_list);
 	TLInitialise(g_parser_param_list);
-//	TLReset(g_parser_possible_list);
-//	TLReset(g_parser_param_list);
 	ParserResetLine();
 }
 
+
 void ParserResetLine(void) {
+	ParserResetPreserve();
 	g_parser_parse_buf[0] = '\0';
+}
+
+void ParserResetPreserve(void) {
 	g_parser_buf_idx = 0;
-	//g_parser_pre_parse_buf[0] = '\0';
-	g_itch_replay_buf[0] = '\0';
 
 	PFLAGS = 0;
-	//g_pflags.error_on_line = 0;
-	//g_pflags.delim_reached = 0;
-	//g_pflags.string_litteral = 0;
-	//g_pflags.help_active = 0;
-	//g_pflags.escape = 0;
-	//g_pflags.eol_processed = 0;
 
 	g_pflags.parse_result = R_NONE;
 	g_pflags.match_result = MR_NO_RESULT;
@@ -82,7 +74,6 @@ void ParserResetLine(void) {
 	TLReset(g_parser_possible_list);
 	TLReset(g_parser_param_list);
 }
-
 
 uint8_t ParserActionDispatcher(uint8_t action_asta_id) {
 	// Lookup the function to call (using func map output from the lexer)
@@ -131,7 +122,7 @@ uint8_t ParserActionDispatcher(uint8_t action_asta_id) {
 				MapCopyASTALabelByID(ident_asta_id, label_str);
 				//ident_xlat = LookupIdentMap(temp_asta.label);
 				ident_xlat = LookupIdentMap(label_str);
-				member_id = LookupIdentifierMembers(ident_xlat, current_tl_label_ptr);
+				member_id = LookupIdentifierMembers(ident_xlat, current_tl_label_ptr, strlen(current_tl_label_ptr));
 				param_union_array[param_index].param_uint16_t = member_id;
 				break;
 			case AST_LOOKUP:
@@ -192,9 +183,7 @@ uint8_t P_EOL() {
 	}
 	// If no errors in matching call action or ignore blank lines, or catch other errors
 	if ((PFLAGS & PF_ERRORONLINE) == 0) {
-
 		switch (g_pflags.match_result) {
-
 			case MR_ACTION_POSSIBLE:
 				// Save the last token to the param list - becuase its EOL rather then DELIM
 				// 	the ParseMatch will not have been triggered to save it
@@ -239,9 +228,7 @@ uint8_t P_EOL() {
 				break;
 		}
 	}
-
 	// else - must be an error on the line
-
 	if (PFLAGS & PF_ERRORONLINE) {
 		switch(g_pflags.match_result) {
 			case MR_NO_MATCH:
@@ -306,108 +293,16 @@ uint8_t P_SPACE_TAB() {
 
 void P_ADD_TO_PARSE_BUFFER(char ch) {
 	g_parser_parse_buf[g_parser_buf_idx] = ch;
-	g_parser_parse_buf[g_parser_buf_idx + 1] = '\0';
+	//g_parser_parse_buf[g_parser_buf_idx + 1] = '\0';
 	g_parser_buf_idx++;
 	MapUpdateLineSize(g_parser_buf_idx);
 }
-
-/*
-void P_ADD_TO_PRE_PARSE_BUFFER(char ch) {
-	char* idx = g_parser_pre_parse_buf;
-	while(*idx != '\0') idx++;
-	*idx = ch;
-	idx++;
-	*idx = '\0';
-}
-*/
-
-void P_ADD_TO_REPLAY_BUFFER(char ch) {
-	uint8_t length;
-	length = (uint8_t)strlen(g_itch_replay_buf);
-	g_itch_replay_buf[length] = ch;
-	g_itch_replay_buf[length+1] = ch = '\0';
-}
-
-/*
-uint8_t ParseLine(char *line) {
-	uint8_t result = R_COMPLETE;
-	uint8_t idx = 0;
-	g_pflags.reenter = 1;
-	while (line[idx] != '\0') {
-		result = ParseProcess(line[idx]);
-		idx++;
-	}
-	g_parser_pre_parse_buf[0]='\0';
-	if(g_pflags.reenter == 0) {
-		// must have been reset by a re-entered instance of this
-		return R_COMPLETE;
-	}
-	g_pflags.reenter = 0;
-	return result;
-}
-*/
-
-/*
-uint8_t ParseChar(char ch) {
-	// First deal with editing and formatting special cases
-	switch (ch) {
-		case 0x7F:				// Backspace ^H
-			return R_BACKSPACE;
-			break;
-		case 0x1B: 				// ESC - Process ANSI escape sequences (eg "ESC[A" - up arrow)
-			P_ESCAPE(ch);		// Track escape sequence build
-			return R_DISCARD;	// Drop the ch
-			break;
-		case '[':				// if it follows ESC, track sequence build otherwise let pass
-			if(g_pflags.escape == 1) {
-				P_ESCAPE(ch);
-				return R_DISCARD;
-			}
-			P_ADD_TO_REPLAY_BUFFER(ch);
-			break;
-		case 'A':				// Potentially ESC[A (up arrow)?
-			if(g_pflags.escape == 2) {
-				g_pflags.escape = 0;
-				return R_REPLAY;
-			}
-			P_ADD_TO_REPLAY_BUFFER(ch);
-			break;
-		case '\r':   									// deal with \r\n combinations and trigger actions
-		case '\n':
-			P_ADD_TO_PRE_PARSE_BUFFER(ch);
-			WriteDirectCh('\n');
-			return ParseLine(g_parser_pre_parse_buf);	// !!! Main parser response trigger
-			break;
-		case '\"':
-			P_ADD_TO_REPLAY_BUFFER(ch);
-			break;
-		case ' ':
-		case '\t':	// handle space and tab delimiters (and extras of them)
-			P_ADD_TO_REPLAY_BUFFER(ch);		// keep it for replay
-			break;
-		case '?':	// turn on help flag, drop into parse in help active mode
-			P_ADD_TO_REPLAY_BUFFER(ch);
-			break;
-		default:						// catch unhandled escape sequences
-			if(g_pflags.escape == 2) {
-				g_pflags.escape = 0;
-				return R_DISCARD;
-			}
-			P_ADD_TO_REPLAY_BUFFER(ch);
-			break;
-	}
-
-	// whatever it is now, throw it in the pre parse buffer
-	P_ADD_TO_PRE_PARSE_BUFFER(ch);
-	return R_CONTINUE;
-}
-*/
 
 uint8_t ParseProcess(char ch) {
 	// Process incoming char in context of parse flags
 	// set from processing the previous char and match
 	// and results from the node map (if called on previous).
-	char out_str[MAX_OUTPUT_LINE_SIZE];
+	//char out_str[MAX_OUTPUT_LINE_SIZE];
 
 	#ifdef ITCH_DEBUG
 		char temp_str[MAX_OUTPUT_LINE_SIZE];
@@ -430,7 +325,6 @@ uint8_t ParseProcess(char ch) {
 				P_ESCAPE(ch);
 				return R_DISCARD;
 			}
-			P_ADD_TO_REPLAY_BUFFER(ch);
 			break;
 		case 'A':						// Potentially ESC[A (up arrow)?
 			if(PFLAGS & PF_ESCLB) {		// Matched, turn off flags and trigger replay
@@ -438,7 +332,6 @@ uint8_t ParseProcess(char ch) {
 				PFLAGS &= ~PF_ESCLB;
 				return R_REPLAY;
 			}
-			P_ADD_TO_REPLAY_BUFFER(ch);
 			break;
 		case '\r':   								// deal with \r\n combinations and trigger actions
 		case '\n':
@@ -453,22 +346,18 @@ uint8_t ParseProcess(char ch) {
 		case '\"':
 			// Toggle string_litteral flag, continue
 			P_DOUBLE_QUOTE();
-			P_ADD_TO_REPLAY_BUFFER(ch);
 			return R_CONTINUE;
 			break;
 		case ' ':
 		case '\t':	// handle space and tab delimiters (and extras of them)
 			if (P_SPACE_TAB() == R_IGNORE) {
-				P_ADD_TO_REPLAY_BUFFER(ch);		// keep it for replay anyway
 				return R_IGNORE;				// must have been superfluous
 			}
-			P_ADD_TO_REPLAY_BUFFER(ch);
 			break; 								// single - drop into buffer
 		case '?':	// turn on help flag, drop into parse in help active mode
 			ITCHWriteChar('\n');
 			ITCHWriteLineMisc(ITCH_MISC_HELP_HEADING);
 			PFLAGS |= PF_HELPACTIVE;
-			P_ADD_TO_REPLAY_BUFFER(ch);
 			break;
 		case 0x03:	// ^C
 		case 0x04:	// ^D
@@ -483,52 +372,10 @@ uint8_t ParseProcess(char ch) {
 				// TODO left and right arrow editing
 				return R_DISCARD;
 			}
-			P_ADD_TO_REPLAY_BUFFER(ch);
 			break;
 	}
-
 	// whatever it is now, throw it in the parse buffer and parse what we have, partial or complete
 	P_ADD_TO_PARSE_BUFFER(ch);
-
-
-/*
-	// Editing dealt with in pre-parse
-	// So only buffer contents can be ascii
-	switch (ch) {
-		case '\r':   								// deal with \r\n combinations and trigger actions
-		case '\n':
-			if(g_pflags.eol_processed == 0) { 		// have not just processed EOL
-				g_pflags.eol_processed = 1;			// flag that we are now
-				return	P_EOL();					// !!! Main parser response trigger
-			} else {
-				return R_DISCARD;					// redundant extra
-			}
-			break;
-		case '\"':
-			// Toggle string_litteral flag, continue
-			P_DOUBLE_QUOTE();
-			P_ADD_TO_REPLAY_BUFFER(ch);
-			return R_CONTINUE;
-			break;
-		case ' ':
-		case '\t':	// handle space and tab delimiters (and extras of them)
-			if (P_SPACE_TAB() == R_IGNORE) {
-				P_ADD_TO_REPLAY_BUFFER(ch);		// keep it for replay anyway
-				return R_IGNORE;				// must have been superfluous
-			}
-			P_ADD_TO_REPLAY_BUFFER(ch);
-			break; 								// single - drop into buffer
-		case '?':	// turn on help flag, drop into parse in help active mode
-			g_pflags.help_active = 1;
-			P_ADD_TO_REPLAY_BUFFER(ch);
-			break;
-		default:						// catch unhandled escape sequences
-			break;
-	}
-
-	// whatever it is now, throw it in the parse buffer and parse what we have, partial or complete
-	P_ADD_TO_PARSE_BUFFER(ch);
-*/
 
 	if ((PFLAGS & PF_ERRORONLINE) == 1) {
 		// Error already flagged but need to discard buffered chars still coming before finishing
@@ -578,7 +425,7 @@ uint8_t ParserMatchEvaluate(void) {
 	//char out_str[MAX_OUTPUT_LINE_SIZE];
 
 	switch (g_pflags.match_result) {
-		case MR_NO_MATCH:
+		case MR_NO_MATCH:	// no nodes match the input - error
 			#ifdef ITCH_DEBUG
 				strcpy_itch_debug(g_debug_message, ITCH_DEBUG_PARSERMATCHEVALUATE_MR_NO_MATCH);
 				M(g_debug_message);
@@ -634,17 +481,14 @@ uint8_t ParserMatchEvaluate(void) {
 			g_pflags.parse_result = R_UNFINISHED;
 		}
 			break;
-
 		case MR_DELIM_SKIP:
 			#ifdef ITCH_DEBUG
 				strcpy_itch_debug(g_debug_message, ITCH_DEBUG_PARSERMATCHEVALUATE_MR_DELIM_SKIP);
 				M(g_debug_message);
 			#endif
-
 			// good-oh, carry on
 			g_pflags.parse_result = R_UNFINISHED;
 			break;
-
 		case MR_HELP_ACTIVE: {
 			// Moved to immediate write rather than populating the TL which
 			// 	is now constrained to grammar depth - help is width and likely
@@ -653,36 +497,15 @@ uint8_t ParserMatchEvaluate(void) {
 				strcpy_itch_debug(g_debug_message, ITCH_DEBUG_PARSERMATCHEVALUATE_MR_HELP_ACTIVE);
 				M(g_debug_message);
 			#endif
-			/*
-			TLToTop(g_parser_possible_list);
-			WriteDirectCh('\n');
-			strcpy_itch_misc(out_str, ITCH_MISC_HELP_HEADING);
-			WriteLineDirect(out_str);
-			for (uint16_t i = 0; i < TLGetSize(g_parser_possible_list); i++) {
-				TLCopyCurrentLabel(g_parser_possible_list, temp_str);
-				sprintf(out_str, "\t%s", temp_str);
-				#ifdef ITCH_DEBUG
-					sprintf(g_debug_message, "DEBUG: %s", out_str);
-					M(g_debug_message);
-				#endif
-				WriteLineDirect(out_str);
-				//g_itch_output_buff.EnQueue(out_str);
-				TLNext(g_parser_possible_list);
-			}
-			//g_pflags.parse_result = R_UNFINISHED;
-			*/
 			g_pflags.parse_result = R_HELP;
 		}
 			break;
-
 		case MR_LOOKUP_TBD:
 			g_pflags.parse_result = R_UNFINISHED;
 			break;
-
 		case MR_IDENT_MEMBER_TBD:
 			g_pflags.parse_result = R_UNFINISHED;
 			break;
-
 		case MR_ERROR:
 			#ifdef ITCH_DEBUG
 				strcpy_itch_debug(g_debug_message, ITCH_DEBUG_PARSERMATCHEVALUATE_MR_ERROR);
@@ -692,7 +515,6 @@ uint8_t ParserMatchEvaluate(void) {
 			MapReset();
 			g_pflags.parse_result = R_ERROR;
 			break;
-
 		default:
 			#ifdef ITCH_DEBUG
 				strcpy_itch_debug(g_debug_message, ITCH_DEBUG_PARSERMATCHEVALUATE_NO_MR_CAUGHT_DEFUALT);
@@ -739,7 +561,7 @@ void ParserSaveTokenAsParameter(void) {
 		temp_str_size = MapGetLastTargetStringSize();
 
 		// Null terminate the string portion (input buffer will have moved on)
-		temp_str[temp_str_size] = '\0';
+		//temp_str[temp_str_size] = '\0';
 
 		// get a new param node and write its details
 		//new_param = TLNewTokenNode();
@@ -748,7 +570,8 @@ void ParserSaveTokenAsParameter(void) {
 
 		// just point it
 		//new_param->label = temp_str;
-		strcpy(temp_asta.label, temp_str);
+		strncpy(temp_asta.label, temp_str, temp_str_size);
+		temp_asta.label[temp_str_size] = '\0';
 		//new_param->id = temp_asta_id;
 		//new_param->type = temp_asta.type;
 		TLAddASTAToTokenList(g_parser_param_list, temp_asta);

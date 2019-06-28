@@ -262,13 +262,13 @@ void Identifiers::WriteXLATArrayOfTypeAndInstance(int type, char* array_instance
 	}
 
 	// Write out the xlat array header
-	sprintf(out, "#ifdef USE_PROGMEM\n");
+	sprintf(out, "#ifdef PLATFORM_ARDUINO\n");
 	output.EnQueue(out);
-	sprintf(out, "static const XLATMap %s [%d] PROGMEM = {\n", array_instance_name, count);
+	sprintf(out, "const XLATMap %s [%d] PROGMEM = {\n", array_instance_name, count);
 	output.EnQueue(out);
 	sprintf(out, "#else\n");
 	output.EnQueue(out);
-	sprintf(out, "static const XLATMap %s [%d] = {\n", array_instance_name, count);
+	sprintf(out, "const XLATMap %s [%d] = {\n", array_instance_name, count);
 	output.EnQueue(out);
 	sprintf(out, "#endif\n");
 	output.EnQueue(out);
@@ -361,7 +361,7 @@ void Identifiers::WriteXLATMapLookupFuncOfTypeAndInstance(char* func_name, char*
 	sprintf(out, "\twhile (idx < %s) {\n", member_count_define);
 	output.EnQueue(out);
 
-	sprintf(out, "\t\t#ifdef ARDUINO\n");
+	sprintf(out, "\t\t#ifdef PLATFORM_ARDUINO\n");
 	output.EnQueue(out);
 	sprintf(out, "\t\t\tmemcpy_P(&temp, &%s[idx], sizeof(XLATMap));\n", map_instance);
 	output.EnQueue(out);
@@ -401,7 +401,7 @@ void Identifiers::WriteIdentMemberLookupFunction(int header_or_code) {
 
 	// If header then write it and return
 	if (header_or_code == WRITE_HEADER) {
-		sprintf(out, "uint16_t LookupIdentifierMembers(uint16_t ident_xlat, char* lookup_string);\n");
+		sprintf(out, "uint16_t LookupIdentifierMembers(uint16_t ident_xlat, char* lookup_string, uint8_t str_len);\n");
 		output.EnQueue(out);
 		output.SetOutputAvailable();
 		return;
@@ -409,7 +409,7 @@ void Identifiers::WriteIdentMemberLookupFunction(int header_or_code) {
 
 	// Else write the code file function
 	// write definition and preamble
-	sprintf(out, "uint16_t LookupIdentifierMembers(uint16_t ident_xlat, char* lookup_string) {\n");
+	sprintf(out, "uint16_t LookupIdentifierMembers(uint16_t ident_xlat, char* lookup_string, uint8_t str_len) {\n");
 	output.EnQueue(out);
 	sprintf(out, "	SimpleStringArray temp;\n");
 	output.EnQueue(out);
@@ -459,7 +459,7 @@ void Identifiers::WriteIdentMemberLookupCase(int case_num, char* string_array_in
 	sprintf(out, "			while (idx < %s) {\n", terminating_member_name);
 	output.EnQueue(out);
 
-	sprintf(out, "				#ifdef ARDUINO\n");
+	sprintf(out, "				#ifdef PLATFORM_ARDUINO\n");
 	output.EnQueue(out);
 	sprintf(out, "					memcpy_P(&temp, &%s[idx], sizeof(SimpleStringArray));\n", string_array_instance);
 	output.EnQueue(out);
@@ -469,9 +469,13 @@ void Identifiers::WriteIdentMemberLookupCase(int case_num, char* string_array_in
 	output.EnQueue(out);
 	sprintf(out, "				#endif\n");
 	output.EnQueue(out);
-	sprintf(out, "				if(strcasecmp(lookup_string, temp.text) == 0) {\n");
+	sprintf(out, "				if(strnlen(temp.text, MAX_LABEL_LENGTH) == str_len) {\n");
 	output.EnQueue(out);
-	sprintf(out, "					return idx;\n");
+	sprintf(out, "					if(strncasecmp(lookup_string, temp.text, str_len) == 0) {\n");
+	output.EnQueue(out);
+	sprintf(out, "						return idx;\n");
+	output.EnQueue(out);
+	sprintf(out, "					}\n");
 	output.EnQueue(out);
 	sprintf(out, "				}\n");
 	output.EnQueue(out);
@@ -495,7 +499,7 @@ void Identifiers::WriteLookupMemberLookupFunction(int header_or_code) {
 
 	// If header then write it and return
 	if (header_or_code == WRITE_HEADER) {
-		sprintf(out, "uint8_t LookupLookupMembers(uint16_t ident_xlat, char* lookup_string);\n");
+		sprintf(out, "uint8_t LookupLookupMembers(uint16_t ident_xlat, char* lookup_string, uint8_t str_len);\n");
 		output.EnQueue(out);
 		output.SetOutputAvailable();
 		return;
@@ -503,7 +507,13 @@ void Identifiers::WriteLookupMemberLookupFunction(int header_or_code) {
 
 	// Else write the code file function
 	// write definition and preamble
-	sprintf(out, "uint8_t LookupLookupMembers(uint16_t ident_xlat, char* lookup_string) {\n");
+	sprintf(out, "uint8_t LookupLookupMembers(uint16_t ident_xlat, char* lookup_string, uint8_t str_len) {\n");
+	output.EnQueue(out);
+	sprintf(out, "	char str_terminated[MAX_LABEL_LENGTH];\n");
+	output.EnQueue(out);
+	sprintf(out, "	strncpy(str_terminated, lookup_string, str_len);\n");
+	output.EnQueue(out);
+	sprintf(out, "	str_terminated[str_len] = '\\0';\n");
 	output.EnQueue(out);
 	sprintf(out, "	switch(ident_xlat) {\n");
 	output.EnQueue(out);
@@ -537,7 +547,7 @@ void Identifiers::WriteLookupMemberLookupCase(int case_num, char* function_name)
 
 	sprintf(out, "		case %d:\n", case_num);
 	output.EnQueue(out);
-	sprintf(out, "			return %s(lookup_string);\n", function_name);
+	sprintf(out, "			return %s(str_terminated);\n", function_name);
 	output.EnQueue(out);
 	sprintf(out, "			break;\n");
 	output.EnQueue(out);

@@ -195,13 +195,13 @@ void AST::WriteASTArray(Identifiers* idents) {
     sprintf(output_string, "\n// id, type, label, actionable, parent, first_child, next_sibling, action_id");
 	header_output_queue.EnQueue(output_string);
 
-	sprintf(output_string, "\n#ifdef USE_PROGMEM\n");
+	sprintf(output_string, "\n#ifdef PLATFORM_ARDUINO\n");
 	header_output_queue.EnQueue(output_string);
-	sprintf(output_string, "static const ASTA asta [%d] PROGMEM = {\n", grammar_def_count);
+	sprintf(output_string, "const ASTA asta [%d] PROGMEM = {\n", grammar_def_count);
 	header_output_queue.EnQueue(output_string);
 	sprintf(output_string, "#else\n");
 	header_output_queue.EnQueue(output_string);
-	sprintf(output_string, "static const ASTA asta [%d] = {\n", grammar_def_count);
+	sprintf(output_string, "const ASTA asta [%d] = {\n", grammar_def_count);
 	header_output_queue.EnQueue(output_string);
 	sprintf(output_string, "#endif\n");
 	header_output_queue.EnQueue(output_string);

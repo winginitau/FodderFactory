@@ -38,57 +38,56 @@ enum ITCH_SESSION_FLAGS {
 	ITCH_BUFFER_STUFF,	// Parsing from the stuff buffer
 };
 
-typedef struct ITCH_FLAGS {
-	uint8_t mode;			// ITCH_SESSION_FLAGS
-	uint8_t replay;			// Replaying on or off
-	uint8_t term_echo;		// Echo received chars back to the terminal?
-} I_FLAGS;
 
 void WriteLineCallback(const char* string);
 void ITCHWriteLine(const char* string);
 void ITCHWrite(const char* string);
 void ITCHWriteChar(const char ch);
 
+void PreserveReplay(void);
+void TrimReStuffBuffer(void);
+void TrimBuffer(void);
+
 #ifdef PLATFORM_ARDUINO
 	size_t ITCHWrite_P(const char *string);
-	size_t ITCHWrite_P(const char *string);
+	void ITCHWriteLine_P(const char *string);
 	void ITCHWriteLine(const __FlashStringHelper *string);
 	void ITCHWrite(const __FlashStringHelper *string);
 #endif //PLATFORM_ARDUINO
 
-
 class ITCH {
+public:
+	ITCH();
+	//virtual ~ITCH();
+
+	#ifdef PLATFORM_ARDUINO
+		void Begin();
+	#endif //PLATFORM_ARDUINO
+	#ifdef PLATFORM_LINUX
+		void Begin(FILE* input_stream, FILE* output_stream);
+		void RestoreTermAndExit();
+	#endif//PLATFORM_LINUX
+
+	void SetMode(uint8_t mode);
+	uint8_t StuffAndProcess(char* str);
+	void Poll();
+
 private:
-	I_FLAGS iflags;
+	uint8_t i_mode;				// Itch Mode - Data, terminal, command etc
+	uint8_t i_replay;			// Replaying on or off
+	uint8_t i_term_echo;		// Echo received chars back to the terminal?
+
 	char term_esc_seq[4];
 	uint8_t term_esc_idx;
 	char ccc_esc_seq[4];
 	uint8_t ccc_esc_idx;
 
-	void PreserveReplay(void);
-	void TrimReStuffBuffer(void);
-
 	#ifdef PLATFORM_LINUX
 	// Start up terminal settings
 	struct termios old_tio;
 	#endif //PLATFORM_LINUX
-
-public:
-	ITCH();
-	virtual ~ITCH();
-
-	#ifdef ARDUINO
-	void Begin();
-	#else
-	void Begin(FILE* input_stream, FILE* output_stream);
-	#endif
-	void SetMode(uint8_t mode);
-	uint8_t StuffAndProcess(char* str);
-	void Poll();
-	#ifdef PLATFORM_LINUX
-	void RestoreTermAndExit();
-	#endif //PLATFORM_LINUX
 };
+
 
 
 #endif /* ITCH_H_ */

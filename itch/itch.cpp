@@ -42,55 +42,32 @@ char g_debug_message[MAX_OUTPUT_LINE_SIZE];
 
 #endif //ITCH_DEBUG
 
-// Lots of routines dealing with input and output buffers
-// strings, param lists, tokens etc.... although ugly coding
-// practice, for cleaner memory management on embedded systems
-// with limited ram, better to have some preallocated variables
-// that can have their space measured at compile / link time
-// and allocated at the start rather than dynamically creating them
-// on the stack inside functions, potentially bumping into the heap.
+extern char g_parser_parse_buf[MAX_INPUT_LINE_SIZE]; // main parsing buf declared in the parser
+extern uint8_t g_parser_buf_idx;	// g_parser_parse_buf not \0 terminated
+									// g_parser_buf_idx always points to next free and is size
 
-// 2018-05-23 Changed my mind. They're taking up too much space.
-// Mostly pruned, except a debug message and some parser globals
-// that were originally members of a class (before reverting to)
-// mostly ANSI C and the oo code structure still thinks of them as
-// a class variable - which needs to be a global without oo constructs.
+char *g_itch_buf_inject_ptr = NULL;	// XXX might be able to move these local
+uint8_t g_itch_buf_inject_size = 0;
 
-char g_itch_replay_buf[MAX_INPUT_LINE_SIZE] = "\0";
-char g_itch_restuff_buf[MAX_INPUT_LINE_SIZE] = "\0";
-char *g_itch_restuff_buf_ptr = (char *)g_itch_restuff_buf;
-
-//OutputBuffer g_itch_output_buff;		// General output buffer
-//char g_out_str[MAX_OUTPUT_LINE_SIZE];	// Strings being assembled for output
-//char g_temp_str[MAX_OUTPUT_LINE_SIZE];	// General string temp
-//ASTA g_temp_asta;						// Temp asta node (and for the Progmem working copy)
-
-#ifndef ARDUINO
-FILE* isp;	// input stream pointer
-FILE* osp;	// output stream pointer
-#endif
+#ifdef PLATFORM_LINUX
+static FILE* isp = NULL;	// input stream pointer
+static FILE* osp = NULL;	// output stream pointer
+#endif //PLATFORM_LINUX
 
 /******************************************************************************
  * Class Methods
  ******************************************************************************/
 
 ITCH::ITCH() {
-	iflags.mode = ITCH_INIT;
-	iflags.term_echo = 0;
-	iflags.replay = 0;
+	i_mode = ITCH_INIT;
+	i_term_echo = 0;
+	i_replay = 0;
 	term_esc_idx = 0;
+	ccc_esc_idx = 0;
 	strcpy(term_esc_seq, ITCH_TERM_ESC_SEQ);
 	strcpy(ccc_esc_seq, ITCH_CCC_ESC_SEQ);
-
-	#ifndef ARDUINO
-	isp = NULL;
-	osp= NULL;
-	#endif
 }
 
-ITCH::~ITCH() {
-	// Auto-generated destructor stub
-}
 
 #ifdef PLATFORM_LINUX
 void ITCH::RestoreTermAndExit() {
@@ -101,7 +78,7 @@ void ITCH::RestoreTermAndExit() {
 
 #ifdef PLATFORM_ARDUINO
 void ITCH::Begin() {
-	iflags.mode = ITCH_TEXT_DATA;
+	i_mode = ITCH_TEXT_DATA;
 	ParserInit();
 }
 #endif //PLATFORM_ARDUINO
@@ -121,7 +98,7 @@ void ITCH::Begin(FILE* input_stream, FILE* output_stream) {
 
 	isp = input_stream;
 	osp = output_stream;
-	iflags.mode = ITCH_TEXT_DATA;
+	i_mode = ITCH_TEXT_DATA;
 	ParserInit();
 }
 #endif //PLATFORM_LINUX
@@ -129,22 +106,22 @@ void ITCH::Begin(FILE* input_stream, FILE* output_stream) {
 void ITCH::SetMode(uint8_t new_mode) {
 	switch (new_mode) {
 		case ITCH_TEXT_DATA:
-			if (iflags.mode == ITCH_TERMINAL) {
+			if (i_mode == ITCH_TERMINAL) {
 				ITCHWriteChar('\n');
 				ITCHWriteLineMisc(ITCH_TERMINAL_GOODBYE);
-			} else if (iflags.mode == ITCH_TEXT_CCC) {
+			} else if (i_mode == ITCH_TEXT_CCC) {
 				ITCHWriteLineMisc(ITCH_CCC_OK);
 			}
 			// clean up
 			ParserResetLine();
-			iflags.mode = new_mode;
+			i_mode = new_mode;
 			break;
 		case ITCH_TEXT_CCC:
 			ITCHWriteLineMisc(ITCH_CCC_OK);
 			// set terminal echo-back to off
-			iflags.term_echo = 0;
+			i_term_echo = 0;
 			ParserResetLine();
-			iflags.mode = new_mode;
+			i_mode = new_mode;
 			break;
 		case ITCH_TERMINAL:
 			// ITCH Welcome
@@ -153,19 +130,19 @@ void ITCH::SetMode(uint8_t new_mode) {
 			// itch prompt
 			ITCHWriteMisc(ITCH_MISC_PROMPT);
 			// set terminal echo-back to on
-			iflags.term_echo = 1;
+			i_term_echo = 1;
 			ParserResetLine();
-			iflags.mode = new_mode;
+			i_mode = new_mode;
 			break;
 		case ITCH_BUFFER_STUFF:
 			// Processing commands being stuffed into the stuff buffer
 			ITCHWriteChar('\n');
 			ITCHWriteLineMisc(ITCH_BUFFER_STUFFING_MODE);
 			// set terminal echo-back to off
-			iflags.term_echo = 0;
+			i_term_echo = 0;
 			// Reset the parser - we may have got here from a parser triggered command.
 			ParserResetLine();
-			iflags.mode = new_mode;
+			i_mode = new_mode;
 			break;
 		default:
 			break;
@@ -173,27 +150,20 @@ void ITCH::SetMode(uint8_t new_mode) {
 	}
 }
 
-void ITCH::PreserveReplay(void) {
-	// Preserve the replay buffer into the restuff buffer
-	// so the replay buffer can reset and cleanly capture the restuffing too!
-	strcpy(g_itch_restuff_buf, g_itch_replay_buf);
-	g_itch_replay_buf[0] = '\0';		// redundant? handled in ParserReset()
-	g_itch_restuff_buf_ptr = (char *)g_itch_restuff_buf;
-}
-
-void ITCH::TrimReStuffBuffer(void) {
-	// Trim the restuff buffer of the last char
+void TrimBuffer(void) {
+	// Trim the buffer of the last char
 	// to support BackSpace and trimming of "?" after help requested
-	uint8_t i = 0;
-	while(g_itch_restuff_buf[i] != '\0') i++;
-	if (i > 0) g_itch_restuff_buf[i-1] = '\0';
+	if (g_parser_buf_idx > 0) { g_parser_buf_idx--; }
 }
 
 uint8_t ITCH::StuffAndProcess(char* str) {
+	// Expects NULL terminated str
 	ParserResetLine();
-	strcpy(g_itch_restuff_buf, str);
-	iflags.replay = 1;
-	while (iflags.replay == 1) {
+	strcpy(g_parser_parse_buf, str);
+	g_itch_buf_inject_ptr = g_parser_parse_buf;
+	g_parser_buf_idx = strlen(str);
+	i_replay = 1;
+	while (i_replay == 1) {
 		Poll();
 	}
 	return 1;
@@ -204,7 +174,7 @@ void ITCH::Poll(void) {
 	uint8_t parse_result = R_NONE;		// captures the ch by char parsing result
 
 	// if no replay editing is active then get the next ch from the input stream
-	if (iflags.replay == 0) {
+	if (i_replay == 0) {
 		#ifdef PLATFORM_LINUX
 		ch = getc(isp);					// XXX convert to non-blocking for linux
 		#endif //PLATFORM_LINUX
@@ -213,20 +183,24 @@ void ITCH::Poll(void) {
 			ch = Serial.read();
 		} else return;					// nothing available, return
 		#endif //PLATFORM_ARDUINO
-	} else { 							// replay is active - iflags.replay != 0
-		// re-stuff the restuff buffer into the stream (having already reset the replay buf)
-		ch = *g_itch_restuff_buf_ptr;
-		g_itch_restuff_buf_ptr++;
-		// If finished re-stuffing, turn off  the replay flag and buffer
-		if (*g_itch_restuff_buf_ptr == '\0') {
-			iflags.replay = 0;
-			g_itch_restuff_buf_ptr = (char *)g_itch_restuff_buf;
+	} else { 							// replay is active - replay != 0
+		// Assumes parse buffer already loaded
+		// Doll out the chars
+		if (g_itch_buf_inject_ptr != ((char* )g_parser_parse_buf + g_itch_buf_inject_size)) {
+			ch = *g_itch_buf_inject_ptr;
+			g_itch_buf_inject_ptr++;
+		} else {
+			// finished re-stuffing, turn off the replay flag
+			i_replay = 0;
+			g_itch_buf_inject_ptr = NULL;
+			g_itch_buf_inject_size = 0;
+			return;
 		}
 	}
 	// Process the ch - user entered or re-stuffed
 	if (ch != EOF) {
 		// In non-terminal mode? - Test for escape sequences only
-		if (iflags.mode < ITCH_TEXT_CCC) {
+		if (i_mode < ITCH_TEXT_CCC) {
 			// Test if ch is the first/next char the "enter terminal mode" escape sequence
 			if (ch == term_esc_seq[term_esc_idx]) {
 				// matched - advance matching to next
@@ -235,7 +209,6 @@ void ITCH::Poll(void) {
 				// sequence broken, reset matching
 				term_esc_idx = 0;
 			}
-
 			// Test if ch is the first/next char the "enter ccc mode" escape sequence
 			if (ch == ccc_esc_seq[ccc_esc_idx]) {
 				// matched - advance matching to next
@@ -244,7 +217,6 @@ void ITCH::Poll(void) {
 				// sequence broken, reset matching
 				ccc_esc_idx = 0;
 			}
-
 			// Terminal mode escape sequence fully matched?
 			if (term_esc_idx == ITCH_TERM_ESC_SEQ_SIZE) {
 				// Enter terminal mode
@@ -253,7 +225,6 @@ void ITCH::Poll(void) {
 				ParserResetLine();
 				return;
 			}
-
 			// CCC mode escape sequence fully matched?
 			if (ccc_esc_idx == ITCH_CCC_ESC_SEQ_SIZE) {
 				// Enter terminal mode
@@ -262,9 +233,7 @@ void ITCH::Poll(void) {
 				ParserResetLine();
 				return;
 			}
-
 			// not in terminal or ccc modes - ignore input
-			//ParserResetLine();
 			return;
 		}
 		// if here, we have a ch to start or continue parsing
@@ -272,127 +241,137 @@ void ITCH::Poll(void) {
 
 		switch (parse_result) {
 			case R_HELP:
-				PreserveReplay();
-				TrimReStuffBuffer();		// to remove ?
-				//write out the prompt and modified restuff buf to the user
+				// Help contents has been displayed form the parser / nodemap
+				// Re-present the prompt and the line so far without the '?'
+				TrimBuffer();		// to point before '?'
+				//write out the prompt
 				ITCHWriteMisc(ITCH_MISC_PROMPT);
-				if (g_itch_restuff_buf[0] != '\0') {	// it wasn't on an empty line
-					//WriteDirect(g_itch_restuff_buf);
-					// Set the replay flag on to tell the loop to restuff rather than process new chars
-					iflags.replay = 1;
+				// Is there content still in the buffer?
+				// ie. '?' was following a command
+				if(g_parser_buf_idx > 0) {
+					// replay it
+					i_replay = 1;
+					g_itch_buf_inject_ptr = g_parser_parse_buf;
+					g_itch_buf_inject_size = g_parser_buf_idx;
+				} else { // now blank line
+					// Set the inject size to 1 in case the next command is a recall
+					// 	which will just recall the '?'
+					g_itch_buf_inject_size = 1;
 				}
-				ParserResetLine();		// reset parsing, start from beginning
+				ParserResetPreserve();		// reset parsing preserving the buffer
 				break;
 			case R_IGNORE:
 				// Parser ignoring something irrelevant. Egs extra whitespace,
 				//  or the rest of anything that arrives after an error has been detected
 				// But - echo it back if echo_received is on
 				//WriteOutputBuffer();
-				if (iflags.term_echo == 1) {
+				if (i_term_echo == 1) {
 					ITCHWriteChar(ch);		// echo the received char
 				}
 				break; //continue
 			case R_DISCARD:
 				// Parser ignoring an escape sequence or something that should not be
 				//  echoed back even if echo_received is on
-				//WriteOutputBuffer();
 				break; //continue
 			case R_CONTINUE:
-				// Parser processed something (eg toggle double quote) but
-				//	did not advance to the node mapping stage
+				// Parser processed a char - all good, get next
 				// Potentially same as R_IGNORE???
-				//WriteOutputBuffer();
-				if (iflags.term_echo == 1) {
+				if (i_term_echo == 1) {
 					ITCHWriteChar(ch);		// echo the received char
 				}
 				break; //continue
 			case R_ERROR:
-				if (iflags.mode == ITCH_TERMINAL) {
+				if (i_mode == ITCH_TERMINAL) {
 					//ITCHWriteChar('\n');
 					ITCHWriteMisc(ITCH_MISC_ERROR_HEADER);
 					ParserWriteLineErrorString();
-				} else if (iflags.mode == ITCH_BUFFER_STUFF) {
+				} else if (i_mode == ITCH_BUFFER_STUFF) {
 					ITCHWriteLineMisc(ITCH_BUFFER_STUFFING_ERROR);
-					ITCHWriteLine(g_itch_restuff_buf);
-				} else if (iflags.mode == ITCH_TEXT_CCC) {
+					ITCHWriteLine(g_itch_buf_inject_ptr);
+				} else if (i_mode == ITCH_TEXT_CCC) {
 					ITCHWriteLineMisc(ITCH_CCC_ERROR);
-					ITCHWriteLine(g_itch_restuff_buf);
+					ITCHWriteLine(g_itch_buf_inject_ptr);
 				} else {
 					ITCHWriteLineMisc(ITCH_MISC_ERROR_PROMPT);
 				}
 				ITCHWriteMisc(ITCH_MISC_PROMPT);
-				PreserveReplay();
-				ParserResetLine();
+				// set the inject size in case the next command is a recall
+				g_itch_buf_inject_size = g_parser_buf_idx;
+				ParserResetPreserve();
 				break;
 			case R_NONE:
-				if ((iflags.mode == ITCH_TERMINAL) || \
-					(iflags.mode == ITCH_BUFFER_STUFF)	) {
+				if ((i_mode == ITCH_TERMINAL) || \
+					(i_mode == ITCH_BUFFER_STUFF)	) {
 						// parser should always return a meaningful result - report error
 						ParserSetError(PE_NO_PARSE_RESULT);
 						ParserWriteLineErrorString();
 						ITCHWriteMisc(ITCH_MISC_PROMPT);
-				} else if (iflags.mode == ITCH_TEXT_CCC) {
+				} else if (i_mode == ITCH_TEXT_CCC) {
 					ITCHWriteLineMisc(ITCH_CCC_ERROR);
-					ITCHWriteLine(g_itch_restuff_buf);
+					ITCHWriteLine(g_itch_buf_inject_ptr);
 				}
-				PreserveReplay();
 				ParserResetLine();
 				break; //continue
 			case R_UNFINISHED:
 				//char consumed, ready for next, nothing to report
-				if (iflags.term_echo == 1) {
+				if (i_term_echo == 1) {
 					ITCHWriteChar(ch);		// echo the received char
 				}
 				break;
 			case R_COMPLETE: {
-				if (iflags.mode == ITCH_TERMINAL) {
+				if (i_mode == ITCH_TERMINAL) {
 					ITCHWriteMisc(ITCH_MISC_PROMPT);
-				} else if (iflags.mode == ITCH_TEXT_CCC) {
+				} else if (i_mode == ITCH_TEXT_CCC) {
 					ITCHWriteLineMisc(ITCH_CCC_OK);
 				}
-				PreserveReplay();
-				ParserResetLine();
+				// set the inject size in case the next command is a recall
+				g_itch_buf_inject_size = g_parser_buf_idx;
+				ParserResetPreserve();
 				break;
 			}
 			case R_REPLAY:
-				// for dumb diag terms with no emulation, clear the line
+				// Assumes previous process (if any) has left g_itch_buf_inject_size
+				//	set to the size of the previously processed command.
+				// For dumb terminals with only ASCII emulation, clear the line
 				ITCHWriteChar(0x0D); 	//CR
 				//write spaces * length of replay string (ie whats already in the buffer) + prompt
-				for (uint8_t i = 0; i < (strlen(g_itch_replay_buf) + ITCH_PROMPT_SIZE); i++) {
+				for (uint8_t i = 0; i < (g_parser_buf_idx + ITCH_PROMPT_SIZE); i++) {
 					ITCHWriteChar(' ');
 				}
 				ITCHWriteChar(0x0D); 	// CR
 				//write out the prompt
 				ITCHWriteMisc(ITCH_MISC_PROMPT);
-				if (g_itch_restuff_buf[0] != '\0') {	// restuff is not empty
-					// WriteDirect(g_itch_restuff_buf);
-					// Set the replay flag on to tell the loop to restuff rather than process new chars
-					iflags.replay = 1;
+				// Content in the buffer?
+				if(g_itch_buf_inject_size > 0) {
+					i_replay = 1;
+					g_itch_buf_inject_ptr = g_parser_parse_buf;
+					//g_itch_buf_inject_size = g_parser_buf_idx;
 				}
-				ParserResetLine();		// reset parsing, start from beginning
+				ParserResetPreserve();		// reset parsing preserving the buffer
 				break;
 			case R_BACKSPACE:
-				// for dumb diag terms with no emulation, simulate a backspace
+				// for dumb terminals with only ASCII emulation, clear the line
 				ITCHWriteChar(0x0D); 	//CR
 				//write spaces * length of replay string (ie whats already in the buffer) + prompt
-				for (uint8_t i = 0; i < (strlen(g_itch_replay_buf) + ITCH_PROMPT_SIZE); i++) {
+				for (uint8_t i = 0; i < (g_parser_buf_idx + ITCH_PROMPT_SIZE); i++) {
 					ITCHWriteChar(' ');
 				}
 				ITCHWriteChar(0x0D); 	// CR
-				PreserveReplay();		// Copy replay to restuff
-				TrimReStuffBuffer();	// Remove the deleted ch from restuff
+				TrimBuffer();			// Remove the deleted ch from restuff
 				//write out the prompt
 				ITCHWriteMisc(ITCH_MISC_PROMPT);
-				if (g_itch_restuff_buf[0] != '\0') {	// it wasn't on a single ch or empty line
-					//WriteDirect(g_itch_restuff_buf);
-					// Set the replay flag on to tell the loop to restuff rather than process new chars
-					iflags.replay = 1;
+				// Content stll in the buffer?
+				if(g_parser_buf_idx > 0) {
+					i_replay = 1;
+					g_itch_buf_inject_ptr = g_parser_parse_buf;
+					g_itch_buf_inject_size = g_parser_buf_idx;
 				}
-				ParserResetLine();		// reset parsing, start from beginning
+				ParserResetPreserve();		// reset parsing preserving the buffer
 				break;
 			case R_EXIT:
 				SetMode(ITCH_TEXT_DATA);
 				break;
+			default: break;
 		}
 	}
 }
@@ -479,165 +458,4 @@ void ITCHWriteLine_P(const char *string) {
 }
 
 #endif //PLATFORM_ARDUINO
-
-/*************************************************************************
- * Example Terminal Program for picking over
- */
-
-/*
-typedef struct command {
-	char	cmd[10];
-	void	(*func)	(void);
-};
-
-command commands[] = {
-	{"rd",		Cmd_RD},
-	{"rdw",		Cmd_RDW},
-	{"wr",		Cmd_WR},
-	{"l",		Cmd_L},
-	{"p",		Cmd_P},
-	{"regs",	Cmd_REGS},
-	{"io",		Cmd_IO},
-	{"f",		Cmd_F},
-	{"sp",		Cmd_SP},
-	{"per",		Cmd_PER},
-	{"watch",	Cmd_WATCH},
-	{"rst",		Cmd_RST},
-	{"ipc",		Cmd_IPC},
-	{"set",		Cmd_SET},
-	{"dig",		Cmd_DIG},
-	{"an",		Cmd_AN},
-	{"pin",		Cmd_PIN},
-	{"pc",		Cmd_PC},
-	{"info",	Cmd_INFO},
-	{"/",		Cmd_HELP}
-};
-...
-void	Cmd_WR () {  // example of one of the commands
-	/////////////////////////////////////////////////////////
-	// write a value to target RAM
-	int addr = GetAddrParm(0);
-	byte val = GetValParm(1, HEX);
-	if (SetTargetByte (addr, val) != val)
-		Serial << "Write did not verify" << endl;
-}
-...
-void	loop() {
-	char c;
-
-	if (Serial.available() > 0) {
-		c = Serial.read();
-		if (ESC == c) {
-			while (Serial.available() < 2) {};
-			c = Serial.read();
-			c = Serial.read();
-			switch (c) {
-				case 'A':  // up arrow
-					// copy the last command into the command buffer
-					// then echo it to the terminal and set the
-					// the buffer's index pointer to the end
-					memcpy(cmd_buffer, last_cmd, sizeof(last_cmd));
-					cmd_buffer_index = strlen (cmd_buffer);
-					Serial << cmd_buffer;
-					break;
-			}
-		} else {
-			c = tolower(c);
-			switch (c) {
-
-				case TAB:   // retrieve and execute last command
-					memcpy(cmd_buffer, last_cmd, sizeof(cmd_buffer));
-					ProcessCommand ();
-					break;
-
-				case BACKSPACE:  // delete last char
-					if (cmd_buffer_index > 0) {
-						cmd_buffer[--cmd_buffer_index] = NULLCHAR;
-						Serial << _BYTE(BACKSPACE) << SPACE << _BYTE(BACKSPACE);
-					}
-					break;
-
-				case LF:
-					ProcessCommand ();
-					Serial.read();		// remove any following CR
-					break;
-
-				case CR:
-					ProcessCommand ();
-					Serial.read();		// remove any following LF
-					break;
-
-				default:
-					cmd_buffer[cmd_buffer_index++] = c;
-					cmd_buffer[cmd_buffer_index] = NULLCHAR;
-					Serial.print (c);
-			}
-		}
-	}
-}
-
-void	ProcessCommand () {
-	int cmd, per;
-	peripheral p;
-
-	/////////////////////////////////////////////////////
-	// any command will kill the watching feature
-	watching = false;
-
-	Serial.println("");
-
-	/////////////////////////////////////////////////////
-	// trap just a CRLF
-	if (cmd_buffer[0] == NULLCHAR) {
-		Serial.print("AVR> ");
-		return;
-	}
-
-	/////////////////////////////////////////////////////
-	// save this command for later use with TAB or UP arrow
-	memcpy(last_cmd, cmd_buffer, sizeof(last_cmd));
-
-	/////////////////////////////////////////////////////
-	// Chop the command line into substrings by
-	// replacing ' ' with '\0'
-	// Also adds pointers to the substrings
-	SplitCommand();
-
-	/////////////////////////////////////////////////////
-	// Scan the command table looking for a match
-	for (cmd = 0; cmd < N_COMMANDS; cmd++) {
-		if (strcmp (commands[cmd].cmd, (char *)cmd_buffer) == 0) {
-			commands[cmd].func();
-			goto done;
-		}
-	}
-
-	/////////////////////////////////////////////////////
-	// If we didn't find a valid command scan the peripherals
-	// table looking for a match with the entered command
-	for (per = 0; per < N_PERIPHERALS; per++) {
-		memcpy_P(&p, &peripherals[per], sizeof (p));
-		if (strcmp (UCASE_STR(cmd_buffer), p.name) == 0) {
-			// we found a match, point the first parm pointer
-			// to the command and call Cmd_PER to do the work
-			// Cmd_PER will use parms[0] to find the peripheral
-			// to dump
-			parms[0] = cmd_buffer;
-			n_parms = 1;
-			Cmd_PER();
-			goto done;
-		}
-	}
-
-	/////////////////////////////////////////////////////
-	// if we get here no valid command was found
-	Serial << "wtf?" << endl;
-
-	done:
-	cmd_buffer_index = 0;
-	cmd_buffer[0] = NULLCHAR;
-	Serial << "AVR> ";
-}
-*/
-
 

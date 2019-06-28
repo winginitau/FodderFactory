@@ -227,8 +227,11 @@ void RegSystemReboot(void(*Callback)(const char*));
 
 
 void UpdateStateRegister(uint16_t source, uint8_t msg_type, uint8_t msg_str, int i_val, float f_val);
-UIDataSet* GetUIDataSet(void);
 void InitStateRegister(void);
+
+#ifdef ARDUINO_LCD
+UIDataSet* GetUIDataSet(void);
+#endif //ARDUINO_LCD
 
 
 #endif /* SRC_FF_REGISTRY_H_ */

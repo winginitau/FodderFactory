@@ -96,10 +96,10 @@ enum {
 	LAST_BLOCK_CAT,
 };
 
-#ifdef USE_PROGMEM
-static const SimpleStringArray block_cat_names [LAST_BLOCK_CAT] PROGMEM = {
+#ifdef PLATFORM_ARDUINO
+const SimpleStringArray block_cat_names [LAST_BLOCK_CAT] PROGMEM = {
 #else
-static const SimpleStringArray block_cat_names [LAST_BLOCK_CAT] = {
+const SimpleStringArray block_cat_names [LAST_BLOCK_CAT] = {
 #endif
 	"ERROR_CAT",
 	"GENERIC",
@@ -138,10 +138,10 @@ enum {
 	LAST_BLOCK_TYPE,
 };
 
-#ifdef USE_PROGMEM
-static const SimpleStringArray block_type_strings [LAST_BLOCK_TYPE] PROGMEM = {
+#ifdef PLATFORM_ARDUINO
+const SimpleStringArray block_type_strings [LAST_BLOCK_TYPE] PROGMEM = {
 #else
-static const SimpleStringArray block_type_strings [LAST_BLOCK_TYPE] = {
+const SimpleStringArray block_type_strings [LAST_BLOCK_TYPE] = {
 #endif
 	"BT_ERROR",
 	"SYS_SYSTEM",
@@ -174,10 +174,10 @@ enum {
 	LAST_COMMAND,
 };
 
-#ifdef USE_PROGMEM
-static const SimpleStringArray command_strings [LAST_COMMAND] PROGMEM = {
+#ifdef PLATFORM_ARDUINO
+const SimpleStringArray command_strings [LAST_COMMAND] PROGMEM = {
 #else
-static const SimpleStringArray command_strings [LAST_COMMAND] = {
+const SimpleStringArray command_strings [LAST_COMMAND] = {
 #endif
 	"CMD_ERROR",
 	"CMD_OUTPUT_OFF",
@@ -205,10 +205,10 @@ enum {
 	LAST_UNIT,
 };
 
-#ifdef USE_PROGMEM
-static const SimpleStringArray unit_strings [LAST_UNIT] PROGMEM = {
+#ifdef PLATFORM_ARDUINO
+const SimpleStringArray unit_strings [LAST_UNIT] PROGMEM = {
 #else
-static const SimpleStringArray unit_strings [LAST_UNIT] = {
+const SimpleStringArray unit_strings [LAST_UNIT] = {
 #endif
 	"UnitTypeError",
 	"Celsius",
@@ -248,10 +248,10 @@ enum {
 	LAST_UNIT_ABBR,
 };
 
-#ifdef USE_PROGMEM
-static const SimpleStringArray unit_abbr_strings [LAST_UNIT_ABBR] PROGMEM = {
+#ifdef PLATFORM_ARDUINO
+const SimpleStringArray unit_abbr_strings [LAST_UNIT_ABBR] PROGMEM = {
 #else
-static const SimpleStringArray unit_abbr_strings [LAST_UNIT_ABBR] = {
+const SimpleStringArray unit_abbr_strings [LAST_UNIT_ABBR] = {
 #endif
 	"UnitAbbrTypeError",
 	"°C",
@@ -282,10 +282,10 @@ enum {
 	LAST_DAY,
 };
 
-#ifdef USE_PROGMEM
-static const SimpleStringArray day_strings [LAST_DAY] PROGMEM = {
+#ifdef PLATFORM_ARDUINO
+const SimpleStringArray day_strings [LAST_DAY] PROGMEM = {
 #else
-static const SimpleStringArray day_strings [LAST_DAY] = {
+const SimpleStringArray day_strings [LAST_DAY] = {
 #endif
 	"SUN",
 	"MON",
@@ -313,10 +313,10 @@ enum {
 	LAST_INTERFACE,
 };
 
-#ifdef USE_PROGMEM
-static const SimpleStringArray interface_strings [LAST_INTERFACE] PROGMEM = {
+#ifdef PLATFORM_ARDUINO
+const SimpleStringArray interface_strings [LAST_INTERFACE] PROGMEM = {
 #else
-static const SimpleStringArray interface_strings [LAST_INTERFACE] = {
+const SimpleStringArray interface_strings [LAST_INTERFACE] = {
 #endif
 	"IF_ERROR",
 	"PWM_IN",
@@ -346,10 +346,10 @@ enum {
 	LAST_STATUS,
 };
 
-#ifdef USE_PROGMEM
-static const SimpleStringArray status_strings [LAST_STATUS] PROGMEM = {
+#ifdef PLATFORM_ARDUINO
+const SimpleStringArray status_strings [LAST_STATUS] PROGMEM = {
 #else
-static const SimpleStringArray status_strings [LAST_STATUS] = {
+const SimpleStringArray status_strings [LAST_STATUS] = {
 #endif
 	"STATUS_ERROR",
 	"STATUS_ENABLED",
@@ -375,10 +375,10 @@ enum {
 	LAST_SYS_CONFIG,
 };
 
-#ifdef USE_PROGMEM
-static const SimpleStringArray sys_config_keys [LAST_SYS_CONFIG] PROGMEM = {
+#ifdef PLATFORM_ARDUINO
+const SimpleStringArray sys_config_keys [LAST_SYS_CONFIG] PROGMEM = {
 #else
-static const SimpleStringArray sys_config_keys [LAST_SYS_CONFIG] = {
+const SimpleStringArray sys_config_keys [LAST_SYS_CONFIG] = {
 #endif
 	"SYS_CONFIG_ERROR",
 	"type",
@@ -406,10 +406,10 @@ enum {
 	LAST_IN_CONFIG,
 };
 
-#ifdef USE_PROGMEM
-static const SimpleStringArray in_config_keys [LAST_IN_CONFIG] PROGMEM = {
+#ifdef PLATFORM_ARDUINO
+const SimpleStringArray in_config_keys [LAST_IN_CONFIG] PROGMEM = {
 #else
-static const SimpleStringArray in_config_keys [LAST_IN_CONFIG] = {
+const SimpleStringArray in_config_keys [LAST_IN_CONFIG] = {
 #endif
 	"IN_CONFIG_ERROR",
 	"type",
@@ -439,10 +439,10 @@ enum {
 	LAST_MON_CONFIG,
 };
 
-#ifdef USE_PROGMEM
-static const SimpleStringArray mon_config_keys [LAST_MON_CONFIG] PROGMEM = {
+#ifdef PLATFORM_ARDUINO
+const SimpleStringArray mon_config_keys [LAST_MON_CONFIG] PROGMEM = {
 #else
-static const SimpleStringArray mon_config_keys [LAST_MON_CONFIG] = {
+const SimpleStringArray mon_config_keys [LAST_MON_CONFIG] = {
 #endif
 	"MON_CONFIG_ERROR",
 	"type",
@@ -471,10 +471,10 @@ enum {
 	LAST_SCH_CONFIG,
 };
 
-#ifdef USE_PROGMEM
-static const SimpleStringArray sch_config_keys [LAST_SCH_CONFIG] PROGMEM = {
+#ifdef PLATFORM_ARDUINO
+const SimpleStringArray sch_config_keys [LAST_SCH_CONFIG] PROGMEM = {
 #else
-static const SimpleStringArray sch_config_keys [LAST_SCH_CONFIG] = {
+const SimpleStringArray sch_config_keys [LAST_SCH_CONFIG] = {
 #endif
 	"SCH_CONFIG_ERROR",
 	"type",
@@ -501,10 +501,10 @@ enum {
 	LAST_RL_CONFIG,
 };
 
-#ifdef USE_PROGMEM
-static const SimpleStringArray rl_config_keys [LAST_RL_CONFIG] PROGMEM = {
+#ifdef PLATFORM_ARDUINO
+const SimpleStringArray rl_config_keys [LAST_RL_CONFIG] PROGMEM = {
 #else
-static const SimpleStringArray rl_config_keys [LAST_RL_CONFIG] = {
+const SimpleStringArray rl_config_keys [LAST_RL_CONFIG] = {
 #endif
 	"RL_CONFIG_ERROR",
 	"type",
@@ -530,10 +530,10 @@ enum {
 	LAST_CON_CONFIG,
 };
 
-#ifdef USE_PROGMEM
-static const SimpleStringArray con_config_keys [LAST_CON_CONFIG] PROGMEM = {
+#ifdef PLATFORM_ARDUINO
+const SimpleStringArray con_config_keys [LAST_CON_CONFIG] PROGMEM = {
 #else
-static const SimpleStringArray con_config_keys [LAST_CON_CONFIG] = {
+const SimpleStringArray con_config_keys [LAST_CON_CONFIG] = {
 #endif
 	"CON_CONFIG_ERROR",
 	"type",
@@ -557,10 +557,10 @@ enum {
 	LAST_OUT_CONFIG,
 };
 
-#ifdef USE_PROGMEM
-static const SimpleStringArray out_config_keys [LAST_OUT_CONFIG] PROGMEM = {
+#ifdef PLATFORM_ARDUINO
+const SimpleStringArray out_config_keys [LAST_OUT_CONFIG] PROGMEM = {
 #else
-static const SimpleStringArray out_config_keys [LAST_OUT_CONFIG] = {
+const SimpleStringArray out_config_keys [LAST_OUT_CONFIG] = {
 #endif
 	"OUT_CONFIG_ERROR",
 	"type",
@@ -605,10 +605,10 @@ void AdminCmdOffBID(int16_t param1_int);
 void SystemReboot(void);
 
 // id, type, label, actionable, parent, first_child, next_sibling, action_id
-#ifdef USE_PROGMEM
-static const ASTA asta [71] PROGMEM = {
+#ifdef PLATFORM_ARDUINO
+const ASTA asta [71] PROGMEM = {
 #else
-static const ASTA asta [71] = {
+const ASTA asta [71] = {
 #endif
 	1, 1, "SHOW", 0, 0, 2, 6, "",
 	2, 1, "BLOCKS", 1, 1, 0, 3, "SHOW_BLOCKS",
@@ -683,10 +683,10 @@ static const ASTA asta [71] = {
 	71, 1, "REBOOT", 1, 0, 0, 0, "REBOOT",
 };
 
-#ifdef USE_PROGMEM
-static const XLATMap ident_map [15] PROGMEM = {
+#ifdef PLATFORM_ARDUINO
+const XLATMap ident_map [15] PROGMEM = {
 #else
-static const XLATMap ident_map [15] = {
+const XLATMap ident_map [15] = {
 #endif
 	"block_cat_names", 0,
 	"block_type_strings", 1,
@@ -705,18 +705,18 @@ static const XLATMap ident_map [15] = {
 	"out_config_keys", 14,
 };
 
-#ifdef USE_PROGMEM
-static const XLATMap lookup_map [1] PROGMEM = {
+#ifdef PLATFORM_ARDUINO
+const XLATMap lookup_map [1] PROGMEM = {
 #else
-static const XLATMap lookup_map [1] = {
+const XLATMap lookup_map [1] = {
 #endif
 	"BLOCK_LABEL", 0,
 };
 
-#ifdef USE_PROGMEM
-static const XLATMap func_map [32] PROGMEM = {
+#ifdef PLATFORM_ARDUINO
+const XLATMap func_map [32] PROGMEM = {
 #else
-static const XLATMap func_map [32] = {
+const XLATMap func_map [32] = {
 #endif
 	"SHOW_BLOCKS", 0,
 	"SHOW_SYSTEM", 1,
@@ -755,8 +755,8 @@ static const XLATMap func_map [32] = {
 uint16_t LookupIdentMap (char* key);
 uint16_t LookupLookupMap (char* key);
 uint16_t LookupFuncMap (char* key);
-uint16_t LookupIdentifierMembers(uint16_t ident_xlat, char* lookup_string);
-uint8_t LookupLookupMembers(uint16_t ident_xlat, char* lookup_string);
+uint16_t LookupIdentifierMembers(uint16_t ident_xlat, char* lookup_string, uint8_t str_len);
+uint8_t LookupLookupMembers(uint16_t ident_xlat, char* lookup_string, uint8_t str_len);
 uint8_t LookupBlockLabel(char* lookup_string);
 uint16_t CallFunction(uint8_t func_xlat, ParamUnion params[]);
 

@@ -17,10 +17,6 @@
 /******************************************************************************
  * Forward declarations for globals defined elsewhere
  ******************************************************************************/
-//extern OutputBuffer g_itch_output_buff;		// General output buffer
-//extern char g_out_str[MAX_OUTPUT_LINE_SIZE];	// Strings being assembled for output
-//extern char g_temp_str[MAX_OUTPUT_LINE_SIZE];	// Generl string temp
-//extern ASTA g_temp_asta;						// Temp asta node (and for the Progmem working copy)
 
 /******************************************************************************
  * Structs and typdefs
@@ -49,11 +45,12 @@ enum {
 typedef struct MATCH_FLAGS {
 	uint8_t help_active;
 	uint8_t keyword_match;
-	uint8_t last_matched_id;
-	uint8_t match_result;
-	uint16_t error_code;
 	uint8_t lookup_tbd;
 	uint8_t ident_member_tbd;
+
+	uint8_t last_matched_id;
+	uint8_t match_result;
+	uint8_t error_code;
 } M_FLAGS;
 
 /******************************************************************************
@@ -76,15 +73,15 @@ uint8_t MapMatchReduce(TokenList* list);
 uint8_t MapGetErrorCode();
 
 uint8_t MapDetermineTarget(uint8_t* target_size, char* target, char* line);
-void MapSelectMatchingNodes(char* target, TokenList* matched_list);
+void MapSelectMatchingNodes(char* target, uint8_t token_size, TokenList* matched_list);
 uint8_t MapEvaluateMatchedList(TokenList* matched_list);
-uint8_t Compare_N_PARAM_DATE(char* target, ASTA_Node* temp_node);
-uint8_t Compare_N_PARAM_TIME(char* target, ASTA_Node* temp_node);
-uint8_t Compare_N_PARAM_FLOAT(char* target, ASTA_Node* temp_node);
-uint8_t Compare_N_PARAM_INTEGER(char* target, ASTA_Node* temp_node);
-uint8_t Compare_N_PARAM_STRING(char* target, ASTA_Node* temp_node);
-uint8_t Compare_N_LOOKUP(char* target, ASTA_Node* temp_node);
-uint8_t Compare_N_IDENTIFIER(char* target, ASTA_Node* temp_node);
-uint8_t Compare_N_KEYWORD(char* target, ASTA_Node* temp_node);
+uint8_t Compare_N_PARAM_DATE(char* target, uint8_t target_size, ASTA_Node* temp_node);
+uint8_t Compare_N_PARAM_TIME(char* target, uint8_t target_size, ASTA_Node* temp_node);
+uint8_t Compare_N_PARAM_FLOAT(char* target, uint8_t target_size, ASTA_Node* temp_node);
+uint8_t Compare_N_PARAM_INTEGER(char* target, uint8_t target_size, ASTA_Node* temp_node);
+uint8_t Compare_N_PARAM_STRING(char* target, uint8_t target_size, ASTA_Node* temp_node);
+uint8_t Compare_N_LOOKUP(char* target, uint8_t target_size, ASTA_Node* temp_node);
+uint8_t Compare_N_IDENTIFIER(char* target, uint8_t target_size, ASTA_Node* temp_node);
+uint8_t Compare_N_KEYWORD(char* target, uint8_t target_size, ASTA_Node* temp_node);
 
 #endif /* NODEMAP_H_ */

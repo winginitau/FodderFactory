@@ -24,20 +24,17 @@
 #include <Arduino.h>
 #include <OneWire.h>                // comms to Dallas temprature sensors
 #include <DallasTemperature.h>
-#ifdef LCD_DISPLAY
-#include <U8g2lib.h>				// LCD display library
-#include <U8x8lib.h>
-#endif // LCD_DISPLAY
 #include <RTClib.h>
-#ifdef OLD_SD
-	#include <SD.h>
-#else
-	#include <SdFat.h>
-#endif // OLD_SD
+#include <SdFat.h>
 #include <time.h>
 #include "Wire.h"					// RTC talks ober i2c "Wire"
 #include <avr/wdt.h>				// Watchdog timer for reboot routine
 #endif //PLATFORM_ARDUINO
+
+#ifdef ARDUINO_LCD
+#include <U8g2lib.h>				// LCD display library
+#include <U8x8lib.h>
+#endif // ARDUINO_LCD
 
 #ifdef USE_ITCH
 #include <itch.h>
@@ -56,11 +53,8 @@
 #include <time.h>
 #include <stdlib.h>
 #include <stdio.h>
-#endif
-
-#ifndef PLATFORM_ARDUINO
 #include <unistd.h>	// for sleep() and usleep() in simulator modes
-#endif //PLATFORM_ARDUINO
+#endif
 
 /************************************************
  Data Structures
@@ -70,16 +64,16 @@
  Globals
 ************************************************/
 #ifdef PLATFORM_ARDUINO
-#ifdef LCD_DISPLAY
+#ifdef ARDUINO_LCD
 //moving this to local too (try - result: flashing. moved back)
 U8G2_ST7920_128X64_1_SW_SPI lcd_128_64(U8G2_R0, /* clock=*/ 40 /* A4 */ , /* data=*/ 42 /* A2 */, /* CS=*/ 44 /* A3 */, /* reset=*/ U8X8_PIN_NONE); //LCD Device Object and Definition
 //U8X8_ST7920_128X64_SW_SPI(uint8_t clock, uint8_t data, uint8_t cs, uint8_t reset = U8X8_PIN_NONE)
 //trying 8x8 version - no frame buffer!!! less RAM
 //U8X8_ST7920_128X64_SW_SPI lcd_128_64(40, 42, 44, U8X8_PIN_NONE);
 //U8X8_ST7920_128X64_SW_SPI u8x8(40, 42, 44, U8X8_PIN_NONE);
-#endif
+#endif //ARDUINO_LCD
 
-RTC_DS1307 rtc;				// Global singleton
+//RTC_DS1307 rtc;				// Global singleton
 unsigned long g_last_milli_val;	// used to pad calls to TimeNow so that the RTC isn't smashed
 time_t g_epoch_time;
 #endif //PLATFORM_ARDUINO
@@ -686,11 +680,11 @@ void InitTempSensors(void) {
 
 #ifdef UI_ATTACHED
 void HALInitUI(void) {
-#ifdef PLATFORM_ARDUINO
-#ifdef LCD_DISPLAY
+
+#ifdef ARDUINO_LCD
 	lcd_128_64.begin();
-#endif
-#endif //PLATFORM_ARDUINO
+#endif //ARDUINO_LCD
+
 #ifdef PLATFORM_LINUX
 #endif
 }
@@ -715,8 +709,8 @@ void HALDrawDataScreenCV(const UIDataSet* uids, time_t dt) {
 	strftime(time_out_max, 10, "%H:%M", localtime(&(uids->outside_max_dt)));
 	strftime(time_wat_max, 10, "%H:%M", localtime(&(uids->water_max_dt)));
 
-#ifdef PLATFORM_ARDUINO
-#ifdef LCD_DISPLAY
+
+#ifdef ARDUINO_LCD
 	//U8G2_ST7920_128X64_F_SW_SPI lcd_128_64(U8G2_R0, /* clock=*/ 40 /* A4 */ , /* data=*/ 42 /* A2 */, /* CS=*/ 44 /* A3 */, /* reset=*/ U8X8_PIN_NONE); //LCD Device Object and Definition
 	//lcd_128_64.begin();
 
@@ -767,8 +761,8 @@ void HALDrawDataScreenCV(const UIDataSet* uids, time_t dt) {
 
 	//lcd_128_64.sendBuffer();                      // transfer internal memory to the display
 
-#endif
-#endif //PLATFORM_ARDUINO
+#endif /ARDUINO_LCD
+
 #ifdef PLATFORM_LINUX_DATA_SCREEN
 	//printf("\e[1;1H\e[2J"); //clear screen
 	if (screen_refresh_counter >= SCREEN_REFRESH) {
@@ -795,6 +789,7 @@ void HALDrawDataScreenCV(const UIDataSet* uids, time_t dt) {
 
 time_t TimeNow(void) {
 #ifdef PLATFORM_ARDUINO
+	RTC_DS1307 rtc;
 	time_t epoch_time;
 	unsigned long milli_now = millis();
 	DateTime rtcDT;
@@ -824,26 +819,32 @@ time_t TimeNow(void) {
 }
 
 #ifdef PLATFORM_ARDUINO
-uint8_t HALSetRTCTime(char *time_str) {
-    DateTime nowDT;
-	int hh,mm,ss;
+uint8_t HALSetRTCTime(const char *time_str) {
+	RTC_DS1307 rtc;
+	DateTime nowDT;
+	uint8_t hh,mm,ss;
 	char fmt_str[9];
+	// Set uint8_t values for hh, mm, ss from time_str
 	strcpy_hal(fmt_str, F("%d:%d:%d"));
 	sscanf(time_str, fmt_str, &hh, &mm, &ss);
+	// Get the current RTC time
 	nowDT = rtc.now();
-
+	// Adjust using current and new set point
 	rtc.adjust(DateTime(nowDT.year(), nowDT.month(), nowDT.day(), hh, mm, ss));
 	return 0;
 }
 
-uint8_t HALSetRTCDate(char *date_str) {
-    DateTime nowDT;
+uint8_t HALSetRTCDate(const char *date_str) {
+	RTC_DS1307 rtc;
+	DateTime nowDT;
 	int YYYY,MM,DD;
 	char fmt_str[9];
+	// Set uint8_t values for YYYY, MM, DD from the date_str
 	strcpy_hal(fmt_str, F("%d-%d-%d"));
 	sscanf(date_str, fmt_str, &YYYY, &MM, &DD);
+	// Get the current date
 	nowDT = rtc.now();
-
+	// Adjust using current and new set point
 	rtc.adjust(DateTime(YYYY, MM, DD, nowDT.hour(), nowDT.minute(), nowDT.second()));
 	return 0;
 }
@@ -856,15 +857,14 @@ void HALInitRTC(void) {
 	// than the compile time date time hard coded directives
 	//TODO substitute this section and all time references to use system time rather than RTC
 	// and sync system time to RTC periodically - that way time still progresses even if RTC broken
+	RTC_DS1307 rtc;
 	DateTime rtcDT;
-	Wire.begin();
+	//Wire.begin();
 	if (rtc.begin()) {
 		//EventMsg(SSS, E_INFO, M_RTC_DETECT, 0, 0);
 		if (rtc.isrunning()) {
 			// Store the current millis timer value - used to avoid calling on the RTC
-			// too often - ie for every time query
-			//TCCR1A = 0;
-			//TCCR1B = 0;
+			// 	for every time query which drains the rtc battery
 			rtcDT = rtc.now();
 			g_epoch_time = rtcDT.secondstime();
 			g_last_milli_val = millis();
@@ -919,10 +919,10 @@ void HALInitRTC(void) {
 
 void HALReboot(void) {
 	#ifdef PLATFORM_ARDUINO
-	MCUSR = 0;  // clear out any flags of prior resets.
-	wdt_enable(WDTO_500MS); // turn on the WatchDog and don't stroke it.
-	for(;;) {
-	  // do nothing and wait for the eventual...
+	MCUSR = 0;  // Clear out any flags of prior resets
+	wdt_enable(WDTO_500MS); // Turn on wdt and dont stroke it
+	while(1) {
+	  // Do nothing, wait for wdt to reset
 	}
 	#endif //PLATFORM_ARDUINO
 
