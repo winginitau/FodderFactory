@@ -35,14 +35,17 @@
 	#define ARDUINO_VEDIRECT
 	#define VE_DIRECT
 	#define IF_ARDUINO_VEDIRECT
+	#define ARDUINO_PROGMEM
 	#define ARDUINO_HIGH_PROGMEM
 	//#define ARDUINO_LCD
 #endif //PLATFORM_ARDUINO
 
 
 #ifdef PLATFORM_LINUX
-//#define ASSERT(x) assert(x)
-#define ASSERT(x,y) ASSERT_ARDUINO(x,y)
+	#define ASSERT(x,y) ASSERT_ARDUINO(x,y)
+	#define FF_TEMPERATURE_SIM
+	#define PSTR(x) x
+	#define F(x) x
 #endif
 
 //#define RESURRECT_DEPRECIATED
@@ -70,11 +73,6 @@
 #undef PLATFORM_ARDUINO
 #endif
 
-#ifdef PLATFORM_LINUX
-#define FF_TEMPERATURE_SIM
-#define PSTR(x) x
-#define F(x) x
-#endif
 
 #ifdef FF_TEMPERATURE_SIM
 //#define FF_DEFINED_TEMP_SIM

@@ -115,8 +115,7 @@ int main(void) {
 	// Run the Validate function on each block
 	// currently uses assert() - which will bomb the run if failed on embedded
 	ProcessDispatcher(Validate);
-	// TODO implement assert()-like exception handling for embedded
-	// while using assert, its safe to declare success (if not correctness) if we get this far
+	// After validate, its safe to declare start up success (if not correctness)
 	DebugLog(SSS, E_INFO, M_DISP_VALIDATE);
 
 	// 1. make sure each block is in an appropriate state to start execution

@@ -10,6 +10,7 @@ RM := rm -rf
 -include sources.mk
 -include src/subdir.mk
 -include itch/Debug/glitch/subdir.mk
+-include itch/Debug/subdir.mk
 -include itch/subdir.mk
 -include glitch/Glitch_Debug/subdir.mk
 -include glitch/subdir.mk

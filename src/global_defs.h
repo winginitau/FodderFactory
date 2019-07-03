@@ -12,6 +12,7 @@
 
 #include <build_config.h>
 
+/*
 #ifdef USE_PROGMEM
 typedef struct SIMPLE_STRING_ARRAY_TYPE {
 	// Array of strings (usually labels and messages) relating to enums
@@ -21,14 +22,16 @@ typedef struct SIMPLE_STRING_ARRAY_TYPE {
 
 #else
 
+
 typedef struct SIMPLE_STRING_ARRAY_TYPE {
 	// Array of strings (usually labels and messages) relating to enums
 	// Inside this struct, extended intitaliser lists are ok
 	//const char* text;
 	char text[MAX_LABEL_LENGTH];
 } SimpleStringArray;
-#endif
 
+#endif
+*/
 
 
 
