@@ -319,7 +319,7 @@ uint8_t HALEventSerialSend(EventNode* e, uint8_t port) {
 #ifdef USE_ITCH
 void HALInitItch(void) {
 	#ifdef PLATFORM_ARDUINO
-		itch.Begin();
+		itch.Begin(Serial, 9600);
 	#endif //PLATFORM_ARDUINO
 	#ifdef PLATFORM_LINUX
 		itch.Begin(stdin, stdout);

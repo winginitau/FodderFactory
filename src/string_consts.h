@@ -91,9 +91,9 @@ typedef struct STRING_ARRAY_TYPE {
  * Language Strings - Must Follow the typedef that defines it
  **************************************************************/
 #ifdef USE_PROGMEM
-static const SimpleStringArray language_strings[LAST_LANGUAGE] PROGMEM = {
+const SimpleStringArray language_strings[LAST_LANGUAGE] PROGMEM = {
 #else
-static const SimpleStringArray language_strings[LAST_LANGUAGE] = {
+const SimpleStringArray language_strings[LAST_LANGUAGE] = {
 #endif
 	"English",
 	"Deutsch",
@@ -111,6 +111,7 @@ typedef enum {
 	E_ACT,
 	E_DEACT,
 	E_COMMAND,
+	E_ADMIN,
 	E_WARNING,
 	E_ERROR,
 	E_STOP,
@@ -118,9 +119,9 @@ typedef enum {
 } MessageTypeEnum;
 
 #ifdef USE_PROGMEM
-static const StringArray message_type_strings[LAST_MESSAGE_TYPE] PROGMEM = {
+const StringArray message_type_strings[LAST_MESSAGE_TYPE] PROGMEM = {
 #else
-static const StringArray message_type_strings[LAST_MESSAGE_TYPE] = {
+const StringArray message_type_strings[LAST_MESSAGE_TYPE] = {
 #endif
 
 	12, { "ZERO_ERROR",			"" },
@@ -131,6 +132,7 @@ static const StringArray message_type_strings[LAST_MESSAGE_TYPE] = {
 	12, { "ACTIVATED",			"" },
 	12, { "DEACTIVATED", 		"" },
 	12, { "COMMAND", 			"" },
+	12, { "ADMIN", 				"" },
 	10, { "WARNING",			"WARNUNG" },
 	12, { "ERROR",				"FEHLER" },
 	12, { "STOP",				"HALT" },
@@ -228,7 +230,7 @@ typedef enum {
 	M_SETUP_ON_BLOCK_NOT_DISABLED_INIT,	//M85
 	M_UNKNOWN_BLOCK_TYPE,
 	M_VE_FAILED, 						//M87
-	M88,
+	M_ADMIN_CMD_NOT_SUPPORTED,
 	M89,
 	M90,
 	M91,
@@ -245,31 +247,29 @@ typedef enum {
 #define PAD1K PAD256, PAD256, PAD256, PAD256
 #define PAD8K PAD1K, PAD1K, PAD1K, PAD1K, PAD1K, PAD1K, PAD1K, PAD1K
 
-static const uint64_t PAD16K1[] HIGHPROGMEM8 = {
+const uint64_t PAD16K1[] HIGHPROGMEM8 = {
 		PAD8K, PAD8K
 };
-static const uint64_t PAD16K2[] HIGHPROGMEM8 = {
+const uint64_t PAD16K2[] HIGHPROGMEM8 = {
 		PAD8K, PAD8K
 };
 #endif
 
 #ifdef PLATFORM_ARDUINO
 	#ifdef ARDUINO_HIGH_PROGMEM
-		static const StringArray message_strings[LAST_MESSAGE] HIGHPROGMEM7 = {
+		const StringArray message_strings[LAST_MESSAGE] HIGHPROGMEM7 = {
 	#else
-		static const StringArray message_strings[LAST_MESSAGE] PROGMEM = {
+		const StringArray message_strings[LAST_MESSAGE] PROGMEM = {
 	#endif //ARDUINO_HIGH_PROGMEM
 #endif
 #ifdef PLATFORM_LINUX
-	static const StringArray message_strings[LAST_MESSAGE] = {
+	const StringArray message_strings[LAST_MESSAGE] = {
 #endif
 	22, { "Error - Use of Zero Index"			"M0" },
 	22, { "Fodder Factory Awake",				"M1" },
 	12, { "Debug Serial Declared",				"M2" },
 	12, { "RTC Detected",						"M3" },
 	10, { "RTC Reports as Running",				"M4" },
-
-
 	12, { "SET_RTC DEFINED",					"M5" },
 	24, { "HARD CODED TIME SET",				"M6" },
 	24,	{ "RTC Not Running - Hard Coding",		"M7" },
@@ -353,7 +353,7 @@ static const uint64_t PAD16K2[] HIGHPROGMEM8 = {
 	14, { "Setup not run on block that is not STATUS_DISABLED_INIT",	"M85" },
 	14, { "Unknown Block Type in Setup or Operate Loop",				"M86" },
 	14, { "VEDirect failed to begin in operate loop. Disabled",			"M87" },
-	14, { "M88",								"M88" },
+	14, { "Set Output CMD by Admin. Command not supported",				"M88" },
 	14, { "M89",								"M89" },
 	14, { "M90",								"M90" },
 	14, { "M91",								"M91" },

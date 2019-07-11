@@ -75,12 +75,9 @@ SdFatSoftSpi<SOFT_MISO_PIN, SOFT_MOSI_PIN, SOFT_SCK_PIN> sd;
   Data Structures
 ************************************************/
 
-
 /************************************************
   Globals
 ************************************************/
-
-
 
 /************************************************
   Functions
@@ -360,18 +357,14 @@ void InitConfigLoadBinary(void) {
 
 
 void InitSystem(void) {
-
 	// Set up the global system state register
 	InitStateRegister();
-
 	// set up the event log ring buffer for IPC (and debug hooks to talk to the outside world)
 	EventBufferInit();
-
 	// log event - core internal system now functional
 	#ifdef PLATFORM_ARDUINO
 		EventMsg(SSS, E_INFO, M_FF_AWAKE, 0, 0);
 	#endif //PLATFORM_ARDUINO
-
 	#ifdef PLATFORM_LINUX
 	EventMsg(SSS, E_INFO, M_SIM);
 	#endif
@@ -407,7 +400,6 @@ void InitSystem(void) {
 }
 
 uint8_t GetConfKeyIndex(uint8_t block_cat, const char* key_str) {
-
 	uint8_t last_key = UINT8_INIT;
 	uint8_t key_idx = 0; 			//see "string_consts.h" Zero is error.
 
@@ -1236,6 +1228,7 @@ void FileIODispatcher(void(*func)(BlockNode*, SdFile*, uint8_t), SdFile* file, u
 void InitConfigSave(void) {
 	// Write the running config to a text file in the form of parse-able
 	//  CONFIG statements that can be read by itch in buffer stuffing mode
+	//  or natively by InitConfigLoad()
 
 	#ifdef PLATFORM_LINUX
 	FILE *fp;
@@ -1244,11 +1237,6 @@ void InitConfigSave(void) {
 
 	#ifdef PLATFORM_ARDUINO
 	SdFile f;
-	//File *fp;
-	//fp = &f;
-	//pinMode(SS, OUTPUT);
-	//pinMode(10, OUTPUT);
-	//pinMode(53, OUTPUT);
 	#endif //PLATFORM_ARDUINO
 
 	#ifdef PLATFORM_ARDUINO
@@ -1498,77 +1486,10 @@ void InitConfigLoad(uint8_t how) {
 	if (how == 0) {
 		HALItchSetTextDataMode();
 	}
-
 	#endif // PLATFORM_LINUX
 
 
 	#ifdef PLATFORM_ARDUINO
-	#ifdef OLD_SD
-	size_t lin_len = MAX_LABEL_LENGTH + 19 + MAX_DESCR_LENGTH;
-	char line[lin_len];
-	File f;
-	DebugLog("GOOD");
-	pinMode(SS, OUTPUT);
-	pinMode(10, OUTPUT);
-	//pinMode(53, OUTPUT);
-
-	// see if the card is present and can be initialized:
-	if (SD.begin(10, 11, 12, 13)) {
-		//	if (SD.begin(10)) {
-		f = SD.open(CONFIG_TXT_FILENAME, FILE_READ);
-		DebugLog("GOOD");
-		if (!f) {
-			char temp_label[MAX_LABEL_LENGTH];
-			strcpy_hal(temp_label, F("NO CONFIG"));
-			DebugLog(temp_label);
-			// Cannot do anything else
-			while (1);
-		}
-	} else {
-		char temp_label[MAX_LABEL_LENGTH];
-		strcpy_hal(temp_label, F("SD FAIL"));
-		DebugLog(temp_label);
-		while (1);
-	}
-	#ifdef USE_ITCH
-		if (how == 0) {
-			HALItchSetBufferStuffMode();
-		}
-	#endif //USE_ITCH
-
-	while (1) {    //continue reading the file until EOF break
-
-		DebugLog("GOOD");
-		f.readBytesUntil('\n', line, lin_len);
-		DebugLog("GOOD");
-		#ifdef USE_ITCH
-			DebugLog(line);
-			if (how == 0) {
-				HALItchStuffAndProcess(line);
-			} else {
-				ConfigParse(line);
-			}
-		#else
-			DebugLog(line);
-			DebugLog("GOOD");
-			ConfigParse(line);
-			DebugLog("GOOD");
-		#endif //USE_ITCH
-
-		if (!f.available()) { //EOF
-			break;
-		}
-	}
-	f.close();
-	SD.end();
-
-	#ifdef USE_ITCH
-		if (how == 0) {
-			HALItchSetTextDataMode();
-		}
-	#endif //USE_ITCH
-	#endif // OLD_SD
-
 	#ifdef NEW_SD
 //CONFIG schedule SCH_WATER_BOT type SCH_START_DURATION_REPEAT
 	//size_t lin_len = MAX_LABEL_LENGTH + 19 + MAX_DESCR_LENGTH;
@@ -1657,6 +1578,75 @@ void InitConfigLoad(uint8_t how) {
 
 	EventMsg(SSS, E_INFO, M_CONFIG_LOAD_BY_DIRECT_PARSE);
 }
+
+
+
+#ifdef OLD_SD
+size_t lin_len = MAX_LABEL_LENGTH + 19 + MAX_DESCR_LENGTH;
+char line[lin_len];
+File f;
+DebugLog("GOOD");
+pinMode(SS, OUTPUT);
+pinMode(10, OUTPUT);
+//pinMode(53, OUTPUT);
+
+// see if the card is present and can be initialized:
+if (SD.begin(10, 11, 12, 13)) {
+	//	if (SD.begin(10)) {
+	f = SD.open(CONFIG_TXT_FILENAME, FILE_READ);
+	DebugLog("GOOD");
+	if (!f) {
+		char temp_label[MAX_LABEL_LENGTH];
+		strcpy_hal(temp_label, F("NO CONFIG"));
+		DebugLog(temp_label);
+		// Cannot do anything else
+		while (1);
+	}
+} else {
+	char temp_label[MAX_LABEL_LENGTH];
+	strcpy_hal(temp_label, F("SD FAIL"));
+	DebugLog(temp_label);
+	while (1);
+}
+#ifdef USE_ITCH
+	if (how == 0) {
+		HALItchSetBufferStuffMode();
+	}
+#endif //USE_ITCH
+
+while (1) {    //continue reading the file until EOF break
+
+	DebugLog("GOOD");
+	f.readBytesUntil('\n', line, lin_len);
+	DebugLog("GOOD");
+	#ifdef USE_ITCH
+		DebugLog(line);
+		if (how == 0) {
+			HALItchStuffAndProcess(line);
+		} else {
+			ConfigParse(line);
+		}
+	#else
+		DebugLog(line);
+		DebugLog("GOOD");
+		ConfigParse(line);
+		DebugLog("GOOD");
+	#endif //USE_ITCH
+
+	if (!f.available()) { //EOF
+		break;
+	}
+}
+f.close();
+SD.end();
+
+#ifdef USE_ITCH
+	if (how == 0) {
+		HALItchSetTextDataMode();
+	}
+#endif //USE_ITCH
+#endif // OLD_SD
+
 
 /*
 2019-06-14 INI files depreciated and block_cat_defs denormalised into config keys

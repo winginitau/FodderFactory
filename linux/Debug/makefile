@@ -9,11 +9,8 @@ RM := rm -rf
 # All of the sources participating in the build are defined here
 -include sources.mk
 -include src/subdir.mk
--include itch/Debug/glitch/subdir.mk
--include itch/Debug/subdir.mk
 -include itch/subdir.mk
--include glitch/Glitch_Debug/subdir.mk
--include glitch/subdir.mk
+-include grammar_out/subdir.mk
 -include subdir.mk
 -include objects.mk
 

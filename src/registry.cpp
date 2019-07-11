@@ -298,7 +298,7 @@ uint8_t GetBVal(uint16_t block_id) {
 uint16_t GetBlockIDByLabel(const char* label, bool report_fail) {
 	// Within core code this is used to ensure complete internal block list
 	// consistency and should report error ie called with report_fail = true
-	// Within  itch this is being called to check for existence of complete
+	// Within itch this is being called to check for existence of complete
 	// labels in the parser and is called with report_fail = false for normal
 	// itch behaviour when looking up partial labels
 	BlockNode* temp;
@@ -350,6 +350,7 @@ char const* GetBlockLabelString(uint16_t block_id) {
 		char msg_str[30];
 		strcpy_hal(msg_str, F("ERROR: B-ID Not Found: [%d]"));
 		sprintf(debug_msg, msg_str, block_id);
+		// XXX This should raise an Event Message too
 		DebugLog(debug_msg);
 		return NULL;
 }
@@ -489,6 +490,65 @@ uint8_t GetBlockCatIDByName(char* name) {
 		}
 	}
 	return id;
+}
+
+uint8_t DeleteBlockByID(uint16_t bid) {
+	BlockNode* walker = bll;
+	BlockNode* previous = bll;
+	while (walker != NULL) {
+		if(walker->block_id == bid) {
+			//found - delete it
+			if (walker == bll) {
+				//special case - head of list
+				bll = walker->next_block;
+				free(walker->block_label);
+				free(walker);
+				return 1;
+			} else {
+				//delete and relink previous to next
+				previous->next_block = walker->next_block;
+				free(walker->block_label);
+				free(walker);
+				return 1;
+			}
+		} else {
+			// wasn't that one, move to next keeping track of previous
+			previous = walker;
+			walker = walker->next_block;
+		}
+	}
+	return 0; //error
+}
+
+uint8_t DeleteBlockByLabel(const char *label) {
+	// In an edge case of a duplicate block ID with a different label
+	// this deletes based on label search rather than a label lookup
+	// for ID and then delete by ID
+	BlockNode* walker = bll;
+	BlockNode* previous = bll;
+	while (walker != NULL) {
+		if(strcmp(walker->block_label, label) == 0) {
+			//found - delete it
+			if (walker == bll) {
+				//special case - head of list
+				bll = walker->next_block;
+				free(walker->block_label);
+				free(walker);
+				return 1;
+			} else {
+				//delete and relink previous to next
+				previous->next_block = walker->next_block;
+				free(walker->block_label);
+				free(walker);
+				return 1;
+			}
+		} else {
+			// wasn't that one, move to next keeping track of previous
+			previous = walker;
+			walker = walker->next_block;
+		}
+	}
+	return 0; //error
 }
 
 BlockNode* AddBlock(uint8_t block_cat, const char *block_label) {
@@ -764,7 +824,7 @@ void RegShowBlockByID(uint16_t id, void(*Callback)(const char *)) {
 	}
 }
 
-void RegSendCommandToBlockLabel(const char* block_label, uint16_t command, void(*Callback)(const char *)) {
+void RegSetCommandOnBlockLabel(const char* block_label, uint16_t command, void(*Callback)(const char *)) {
 	char out_str[MAX_MESSAGE_STRING_LENGTH];	// 80
 	uint16_t block_id;
 	char fmt_str[35];
@@ -775,16 +835,11 @@ void RegSendCommandToBlockLabel(const char* block_label, uint16_t command, void(
 		sprintf(out_str, fmt_str, block_label);
 		Callback(out_str);
 	} else {
-		//XXX range check command
-		strcpy_hal(fmt_str, F("Sending %d to Block: %s"));
-		sprintf(out_str, fmt_str, command, block_label);
-		Callback(out_str);
-		SetCommand(block_id, command);
-		EventMsg(SSS, block_id, E_COMMAND, command);
+		RegSetCommandOnBlockID(block_id, command, Callback);
 	}
 }
 
-void RegSendCommandToBlockID(uint16_t id, uint16_t command, void(*Callback)(const char*)) {
+void RegSetCommandOnBlockID(uint16_t id, uint16_t command, void(*Callback)(const char*)) {
 	char out_str[MAX_MESSAGE_STRING_LENGTH];	// 80
 
 	BlockNode *b;
@@ -800,8 +855,21 @@ void RegSendCommandToBlockID(uint16_t id, uint16_t command, void(*Callback)(cons
 		strcpy_hal(fmt_str, F("Sending %d to Block ID: %d"));
 		sprintf(out_str, fmt_str, command, id);
 		Callback(out_str);
-		SetCommand(id, command);
-		EventMsg(SSS, id, E_COMMAND, command);
+		switch(command) {
+			case CMD_OUTPUT_ON:
+				SetCommand(id, command);
+				EventMsg(SSS, id, E_ADMIN, M_CMD_ACT);
+				break;
+			case CMD_OUTPUT_OFF:
+				SetCommand(id, command);
+				EventMsg(SSS, id, E_ADMIN, M_CMD_DEACT);
+				break;
+			default:
+				EventMsg(SSS, id, E_ADMIN, M_ADMIN_CMD_NOT_SUPPORTED);
+				break;
+		}
+
+
 	}
 
 }
@@ -1195,10 +1263,25 @@ void RegAdminEnableBID(uint16_t block_id, void(*Callback)(const char*)) {
 }
 
 void RegAdminDeleteBID(uint16_t block_id, void(*Callback)(const char*)) {
-	(void)block_id;
 	char out_str[MAX_MESSAGE_STRING_LENGTH];
-	strcpy_hal(out_str, F("Not Yet Implemented"));
-	Callback(out_str);
+	if (DeleteBlockByID(block_id) == 1) {
+		strcpy_hal(out_str, F("Block Deleted"));
+		Callback(out_str);
+	} else {
+		strcpy_hal(out_str, F("DeleteBlockByID Reported an Error"));
+		Callback(out_str);
+	}
+}
+
+void RegAdminDeleteBlockLabel(const char* BLOCK_LABEL, void(*Callback)(const char*)) {
+	char out_str[MAX_MESSAGE_STRING_LENGTH];
+	if (DeleteBlockByLabel(BLOCK_LABEL) == 1) {
+		strcpy_hal(out_str, F("Block Deleted"));
+		Callback(out_str);
+	} else {
+		strcpy_hal(out_str, F("DeleteBlockByLabel Reported an Error"));
+		Callback(out_str);
+	}
 }
 
 
@@ -1208,11 +1291,11 @@ void RegSystemReboot(void(*Callback)(const char*)) {
 }
 
 void RegAdminCmdOnBID(uint16_t block_id, void(*Callback)(const char*)) {
-	RegSendCommandToBlockID(block_id, CMD_OUTPUT_ON, Callback);
+	RegSetCommandOnBlockID(block_id, CMD_OUTPUT_ON, Callback);
 }
 
 void RegAdminCmdOffBID(uint16_t block_id, void(*Callback)(const char*)) {
-	RegSendCommandToBlockID(block_id, CMD_OUTPUT_OFF, Callback);
+	RegSetCommandOnBlockID(block_id, CMD_OUTPUT_OFF, Callback);
 }
 
 /********************************************************************************************

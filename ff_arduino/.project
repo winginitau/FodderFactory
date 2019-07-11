@@ -3,6 +3,7 @@
 	<name>ff_arduino</name>
 	<comment></comment>
 	<projects>
+		<project>VictronVEDirectArduino</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
@@ -37,14 +38,14 @@
 			<locationURI>PARENT-2-PROJECT_LOC/Arduinolib/VictronVEDirectArduino</locationURI>
 		</link>
 		<link>
-			<name>glitch</name>
+			<name>grammar_out</name>
 			<type>2</type>
-			<locationURI>PARENT-1-PROJECT_LOC/glitch</locationURI>
+			<locationURI>PARENT-1-PROJECT_LOC/grammar_out</locationURI>
 		</link>
 		<link>
 			<name>itch</name>
 			<type>2</type>
-			<locationURI>PARENT-1-PROJECT_LOC/itch</locationURI>
+			<locationURI>PARENT-2-PROJECT_LOC/glitch/itch</locationURI>
 		</link>
 		<link>
 			<name>src</name>

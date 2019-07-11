@@ -1,0 +1,826 @@
+%block-config-start
+
+%# grammar:
+%# mode-change? or context change?
+%# ....
+%# rule RL_SOME_RULE
+%# ... or if prexisiting
+%# rule 1025
+
+%typedef-struct-parse BLOCK_NODE BlockNode
+%sys            struct BLOCK_NODE *next_block   NULL
+%inherit %1     uint8_t block_cat;
+    uint16_t block_type;
+    uint16_t block_id;
+    char *block_label;
+    #ifndef EXCLUDE_DISPLAYNAME
+    char display_name[MAX_LABEL_LENGTH];
+    #endif
+    #ifndef EXCLUDE_DESCRIPTION
+    char description[MAX_DESCR_LENGTH];
+    #endif
+
+    // common operational, run-time data
+    // not tied to config, though must be initialised in AddNewBlock()
+    uint8_t active;     // boolean flag - is the block activated or deactivated TODO consider renaming
+    uint8_t bool_val;   // generic holder for a boolean value (representing some real world status)
+    int32_t int_val;    // generic holder of an int value (representing some real world status)
+    float f_val;        // generic holder of a float value (representing some real world status)
+    time_t last_update; // the time the block was last updated / operated / etc
+    uint8_t status;     // generic status flag (eg for MON cat to indicate of the last input read was valid)
+
+    // union of block_type specific settings
+    // also tied to config file key strings
+    BlockSettings settings;
+%end-typedef-struct
+
+
+
+%1 enum-array-member BLOCK_CATEGORY FF_INPUT  
+%2 lookup BLOCK_LABEL
+
+%schema-parser-define FF_INPUT_SETTINGS InputSettings
+label   %param-string %inherit %2    label           char*       %required
+type    %enum-array BLOCK_TYPE_INPUT block_type      uint16_t    %optional-disable
+int     %enum-array INTERFACE        interface       uint8_t     %optional-disable
+subint  %param-uint8                 if_num          uint8_t     %optional-disbale
+log     %param-time                  log_rate        TV_TYPE     %optional-disbale
+%#    uint8_t data_units;
+%#    uint8_t data_type;      // float, int
+%schema-end
+
+%1 enum-array-member BLOCK_CATEGORY FF_MONITOR  
+%2 lookup BLOCK_LABEL
+
+%schema-parser-define FF_MONITOR_SETTINGS MonitorSettings    
+%#<keyword>  <%grammar-term> <param-to-term> <field-name> <ANSI-C-type> <%options>       
+label   %param-string %inherit %2       label           char*       %required
+type    %enum-array BLOCK_TYPE_MONITOR  block_type      uint16_t    %optional-disable
+in1     %lookup BLOCK_LABEL             input1          uint16_t    %optional-disable
+in2     %lookup BLOCK_LABEL             input2          uint16_t    %optional
+in3     %lookup BLOCK_LABEL             input3          uint16_t    %optional
+in4     %lookup BLOCK_LABEL             input4          uint16_t    %optional
+act     %param-float                    act_val         float       %optional-disable
+deact   %param-float                    deact_val       float%      optional-disable
+%schema-end
+
+%1 enum-array-member BLOCK_CATEGORY FF_RULE 
+%2 lookup BLOCK_LABEL
+
+%schema-parser-define FF_RULE_SETTINGS RuleSettings    
+%#<keyword>  <%grammar-term> <param-to-term> <field-name> <ANSI-C-type> <%options>       
+label   %param-string %inherit %2    label           char*       %required
+type    %enum-array BLOCK_TYPE_RULE  block_type      uint16_t    %optional-disable
+disp    %param-string                display_name    char*       %optional-exclude EXCLUDE_DISPLAYNAME
+descr   %param-string                description     char*       %optional-exclude EXCLUDE_DESCRIPTION
+p1      %lookup BLOCK_LABEL          param1          uint16_t    %optional-disable 
+p2      %lookup BLOCK_LABEL          param2          uint16_t    %optional 
+p3      %lookup BLOCK_LABEL          param3          uint16_t    %optional 
+pn      %lookup BLOCK_LABEL          param4          uint16_t    %optional 
+%schema-end
+
+%1 enum-array-member BLOCK_CATEGORY FF_SCHEDULE 
+%2 lookup BLOCK_LABEL
+
+%schema-parser-define FF_SCHED_SETTINGS ScheduleSettings
+label    %param-string %inherit %2          label           char*       %required
+type     %enum-array BLOCK_TYPE_SCHEDULE    block_type      uint16_t    %optional-disable
+days     %param-day-list                    days[7]         uint8_t     %optional-disable
+start    %param-time                        time_start      time_t      %optional-disable
+end      %param-time                        time_end        time_t      %optional
+duration %param-time                        time_duration   TV_TYPE     %optional
+repeat   %param-time                        time_repeat     TV_TYPE     %optional
+%schema-end
+
+%1 enum-array-member BLOCK_CATEGORY FF_CONTROLLER 
+%2 lookup BLOCK_LABEL
+
+%schema-parser-define FF_CONTROLLER_SETTINGS ControllerSettings
+label    %param-string %inherit %2          label           char*       %required
+type     %enum-array BLOCK_TYPE_CONTROLLER  block_type      uint16_t    %optional-disable
+rule     %lookup BLOCK_LABEL                rule            uint16_t    %optional-disable
+output   %lookup BLOCK_LABEL                output          uint16_t    %optional-disable
+actcmd   %enum-arrary COMMAND_STRING        act_cmd         uint8_t     %optional-disable
+deactcmd %enum-arrary COMMAND_STRING        deact_cmd       uint8_t     %optional-disable
+%echema-end
+
+%1 enum-array-member BLOCK_CATEGORY FF_OUTPUT 
+%2 lookup BLOCK_LABEL
+
+%schema-parser-define FF_OUTPUT_SETTINGS OutputSettings
+label   %param-string %inherit %2    label           char*       %required
+int     %enum-array INTERFACE        interface       uint8_t     %optional-disable
+subint  %param-uint8                 if_num          uint8_t     %optional-disbale
+%schema-end
+
+typedef union BLOCK_SETTINGS {
+    SystemSettings sys;
+    InputSettings in;
+    MonitorSettings mon;
+    ScheduleSettings sch;
+    RuleSettings rl;
+    ControllerSettings con;
+    OutputSettings out;
+} BlockSettings;
+
+
+
+
+
+
+%#keyword BLOCK
+%#context  block
+
+%#block <block-label>
+%#block <block-id>
+
+
+
+
+##########################################################################
+// EXAMPLE CONFIG FILE (or statements entered in Terminal Mode following
+// "CONFIGURE TERMINAL"
+##########################################################################
+!
+!
+%context-start CONFIG
+
+%switch <block-category>
+%scope SYSTEM
+
+%1 keyword CNAME
+%2 param-string
+%1 keyword DNAME 
+%2 param-string
+%1 keyword ADDRESS
+%2 param-64addr         %#10:22:34:46:58:6A:7C:8E
+%1 keyword DISPLAY 
+%2 param-string
+%1 keyword DESCRIPTION 
+%2 param-EOL
+%1 keyword LANGUAGE 
+%2 identifier <language>
+%1 keyword TEMPERATURE 
+%2 identifier <temperature-scale>
+%1 keyword WEEKSTART
+%2 identifier <day-of-week>
+%1 keyword TYPE
+%2 identifier <host-type>
+%1 keyword FAMILY
+%2 identifier <host-family>
+%1 keyword HARDWARE 
+%2 identifier <host-hardware>
+%1 keyword MODULES
+  MONITOR               // Allow monitor blocks to run on this device
+  SCHEDULE              // Allow schedule blocks to run on this device
+  RULE                  // Allow rule blocks to run on this device
+  CONTROLLER            // Alllow Controller blocks to run on this device
+  BROKER                // Run a local message broker 
+   LISTEN INTERNAL ON           // Creates virtual internal message interface "INTERNAL"
+   LISTEN INTERFACE SERIAL0     // for messages coming from upstream
+   SEND INTERFACE SERIAL0       // where to send messages received internally
+   SEND ALL                     // Send all messages up the tree
+   #SEND DATA                   // Only send data messages up the tree
+   LOGLOCAL ON                  // keep a local log - defult is "events.txt"
+  !
+  TERMINAL TERM0        // TERMINAL <identifier> (listen for ^^^ sequence on this) 
+   INTERFACE SERIAL0    // listen for ^^^ sequence on this interface and start a shell if received
+  !
+  #TERMINAL TERM1
+  # INTERFACE SOCKET0
+  #!     
+ !  
+ DEBUG LEVEL 4
+ DEBUG ON
+ DEBUG INTERFACE SERIAL0 
+ CLOCK              
+  TYPE RTC_DS1307       // <rtc_<type>/system/ntp/message>   
+  PORT SPI              // rtc source - <> for system / address for ntp / 
+ !                      // "message" will periodically request time synch on the up-tree serial interface   
+!
+!
+#################################################
+# INTERFACES
+#################################################
+! 
+INTERFACE ONEWIRE0      // INTERFACE <identifter>
+ TYPE ONEWIRE           // TYPE <LOCAL_INTERNAL/ONEWIRE/UART_DEVICE/ARDUINO_SERIAL/USB/DIG_PIN/ANALOG_PIN/TCP>
+  PORT 6                // The digital pin in this case
+  DEVICES 3             // How many onewire devices on this interface
+                        // Interface identifiers ONEWIRE0_0 ... ONEWIRE0_2 created
+ ! 
+ DISPLAY OneWire 0      // Friendly display name for UIs
+ DESCRIPTION OneWire Bus 0 Supporting Plugs 1 - 4       // for UI tooltips etc
+# PURPOSE SENSOR_BI     // <SENSOR_IN/SENSOR_BI/UPSTREAM_MESSAGE/DOWNSTREAM_MESSAGE/
+ ENABLE 
+!
+INTERFACE ONEWIRE1      // INTERFACE <identifter>
+ TYPE ONEWIRE           // TYPE <ONEWIRE/UART/SOFTWARE_SERIAL/USB/DIG_PIN/ANALOG_PIN>
+  PORT 7                // The digital pin in this case
+  DEVICES 2             // How many onewire devices on this interface
+ ! 
+ DISPLAY OneWire 1      // Friendly display name for UIs
+ DESCRIPTION OneWire Bus 1 Supporting Plugs 5 and 6
+ ENABLE 
+!
+# INTERFACE SERIAL0     // config example for linux based system (eg RPI)
+#  TYPE USB
+#   PORT /dev/ttyS0
+#   SPEED 57600
+#   DATA 8
+#   STOP 1
+#   PARITY NONE 
+#   FLOW crtscts            // <cxonxoff/cdtrdsr/ccrtscts>
+#   FLAGS clocal, echo=0 
+#   #               // TODO: build out other terminos flags
+#  !
+#  DISPLAY Radio Modem
+#  DESCRIPTION RFD900 Radio Modem to up-tree hub
+#  DISABLE
+!
+!
+# INTERFACE SOCKET0     // config example for TCP Socket on linux based system (eg RPI)
+#  TYPE TCP
+#   ADDRESS 127.0.0.1   // accpect connections on this address (all if not specified)
+#   PORT 23             // assuming a telnetd is not configured for this port
+#  !
+#  DISPLAY Terminal Interface
+#  DESCRIPTION Terminal Interface on Port 23
+#  DISABLE
+!
+!
+INTERFACE SERIAL0           // INTERFACE <identifier>
+ TYPE ARDUINO_SERIAL
+  PORT Serial               // arduino software serial module   
+  SPEED 9600
+ !
+ DISPLAY Upstream
+ DESCRIPTION USB Serial Connection to Upstream Local Hub
+ ENABLE
+!
+INTERFACE SERIAL1
+ TYPE ARDUINO_SERIAL
+  PORT Serial1              // arduino software serial module   
+  SPEED 57600
+ !
+ DISPLAY Radio Modem
+ DESCRIPTION Direct Radio Modem Serial Connection - not used
+ DISABLE
+!
+INTERFACE SERIAL2
+ TYPE ARDUINO_SERIAL
+  PORT Serial2              // arduino software serial module   
+  SPEED 19200
+ !
+ DISPLAY Not In Use
+ DESCRIPTION Not In Use
+ DISABLE
+!
+INTERFACE SERIAL3
+ TYPE ARDUINO_SERIAL
+  PORT Serial3              // arduino software serial module   
+  SPEED 19200
+ !
+ DISPLAY BMV-700
+ DESCRIPTION Serial Connection via Logic Level Converter to Victron BMV-700
+ ENABLE
+!
+INTERFACE DIGITAL0          // INTERFACE <identifier>
+ TYPE DIG_PIN
+  PORT 22
+ !
+ DISPLAY Relay 0
+ DESCRIPTION Relay Actuator for Grow Lights 
+ ENABLE
+!
+INTERFACE DIGITAL1
+ TYPE DIG_PIN
+  PORT 24
+ !
+ DISPLAY Relay 1
+ DESCRIPTION Relay Actuator for Water Heater    
+ ENABLE
+!
+INTERFACE DIGITAL2
+ TYPE DIG_PIN
+  PORT 26
+ !
+ DISPLAY Relay 2
+ DESCRIPTION Relay Actuator for Fresh Air Fan   
+ ENABLE
+!
+INTERFACE DIGITAL3
+ TYPE DIG_PIN
+  PORT 28
+ !
+ DISPLAY Relay 3
+ DESCRIPTION Relay Actuator for Circulation Fan 
+ ENABLE
+!
+INTERFACE DIGITAL4
+ TYPE DIG_PIN
+  PORT 30
+ !
+ DISPLAY Relay 4
+ DESCRIPTION Relay Actuator for Exhaust Fan 
+ ENABLE
+!
+INTERFACE DIGITAL5
+ TYPE DIG_PIN
+  PORT 32
+ !
+ DISPLAY Relay 5
+ DESCRIPTION Spare Relay Actuator
+ DISABLE    
+!
+INTERFACE DIGITAL6
+ TYPE DIG_PIN
+  PORT 34
+ !
+ DISPLAY Relay 6
+ DESCRIPTION Relay Actuator Sprinklers Top  
+ ENABLE
+!
+INTERFACE DIGITAL7
+ TYPE DIG_PIN
+  PORT 36
+ !
+ DISPLAY Relay 0
+ DESCRIPTION Relay Actuator for Sprinklers Bottom   
+ ENABLE
+!
+INTERFACE DIGITAL_DOOR0
+ TYPE DIG_PIN
+  #PORT xx
+ !
+ DISPLAY Door 0
+ DESCRIPTION Door Switch Interface 0    
+ DISABLE
+!
+INTERFACE DIGITAL_DOOR1
+ TYPE DIG_PIN
+  #PORT xx
+ !
+ DISPLAY Door 1
+ DESCRIPTION Door Switch Interface 1    
+ DISABLE
+!
+#################################################
+# INPUTS
+#################################################
+!
+INPUT IN_INSIDE_TOP_TEMP            // <block-category> <identifier>
+ TYPE IN_ONEWIRE                    // Software driver identifier
+ DISPLAY Inside Top
+ DESCRIPTION Dallas sensor inside the top of the fodder factory
+ HARDWARE INTERFACE ONEWIRE0_1      // enumerated from base ONWIRE0 bus interface
+ READRATE 00:02:00
+ MESSAGE RATE 00:02:00
+ MESSAGE INTERFACE INTERNAL         // Internal if BROKER module loaded. Could send direct to SERIAL0
+ DATA UNITS celsius
+ DATA TYPE float
+ ENABLE
+!
+INPUT IN_INSIDE_BOTTOM_TEMP
+ TYPE IN_ONEWIRE
+ DISPLAY Inside Bot
+ DESCRIPTION Dallas sensor inside the bottom of the fodder factory
+ HARDWARE INTERFACE ONEWIRE0_2
+ READRATE 00:02:00
+ MESSAGE RATE 00:02:00
+ MESSAGE INTERFACE INTERNAL
+ DATA UNITS Celsius
+ DATA TYPE float
+ ENABLE
+! 
+INPUT IN_OUTSIDE_TEMP
+ TYPE IN_ONEWIRE
+ DISPLAY Outside
+ DESCRIPTION Dallas sensor for outside air temprature
+ HARDWARE INTERFACE ONEWIRE1_0
+ READRATE 00:02:00
+ MESSAGE RATE 00:02:00
+ MESSAGE INTERFACE INTERNAL
+ DATA UNITS Celsius
+ DATA TYPE float
+ ENABLE
+!
+INPUT IN_WATER_TEMP
+ TYPE IN_ONEWIRE
+ DISPLAY Water
+ DESCRIPTION Dallas sensor in the header tank
+ HARDWARE INTERFACE ONEWIRE0_0
+ READRATE 00:02:00
+ MESSAGE RATE 00:02:00
+ MESSAGE INTERFACE INTERNAL
+ DATA UNITS Celsius
+ DATA TYPE float
+ ENABLE
+!
+INPUT IN_CABINET_TEMP
+ TYPE IN_ONEWIRE
+ DISPLAY Aux Temp 1
+ DESCRIPTION Dallas sensor
+ HARDWARE INTERFACE ONEWIRE0_3
+ READRATE 00:02:00
+ MESSAGE RATE 00:02:00
+ MESSAGE INTERFACE INTERNAL
+ DATA UNITS Celsius
+ DATA TYPE float
+ ENABLE
+! 
+INPUT IN_LONGRUN_TEMP
+ TYPE IN_ONEWIRE
+ DISPLAY Aux Temp 1
+ DESCRIPTION Dallas sensor
+ # HARDWARE INTERFACE ONEWIREx_x
+ READRATE 00:02:00
+ MESSAGE RATE 00:02:00
+ MESSAGE INTERFACE INTERNAL
+ DATA UNITS celsius
+ DATA TYPE float
+ DISABLE                        // mostly defined but currently disabled
+!
+INPUT IN_LOADING_DOOR_SWITCH
+ TYPE IN_DIGITAL
+ DISPLAY Loading Door
+ DESCRIPTION Reed switch on loading end door
+ HARDWARE INTERFACE DIGITAL_DOOR0
+ READRATE CONTINUOUS                // as opposed to READRATE <hh:mm:ss> 
+ MESSAGE RATE ON_CHANGE             // as opposed to MESSAGE RATE <hh:mm:ss>
+ MESSAGE INTERFACE INTERNAL
+ DATA UNITS ONOFF
+ DATA TYPE boolean
+ DISABLE
+!
+#################################################
+# Monitors
+#################################################
+!
+MONITOR MON_INSIDE_TOP_TOO_COLD     // MONIOTR <identifier>
+ TYPE MON_CONDITION_LOW
+ DISPLAY Inside Top Too Cold
+ DESCRIPTION
+ DATA TYPE float                    // <float/int/boolean>
+ INPUT1 IN_INSIDE_TOP_TEMP
+ ACTIVATE 20.00
+ DEACTIVATE 24.00
+ ENABLE
+!
+MONITOR MON_INSIDE_TOP_TOO_HOT
+ TYPE MON_CONDITION_HIGH
+ DISPLAY Inside Top Too Hot
+ DESCRIPTION 
+ DATA TYPE float
+ INPUT1 IN_INSIDE_TOP_TEMP
+ ACTIVATE 24.00
+ DEACTIVATE 20.00
+ ENABLE
+!
+MONITOR MON_INSIDE_BOTTOM_TOO_COLD
+ TYPE MON_CONDITION_LOW
+ DISPLAY Inside Bottom Too Cold
+ DESCRIPTION  
+ DATA TYPE float
+ INPUT1 IN_INSIDE_BOTTOM_TEMP
+ ACTIVATE 20.00
+ DEACTIVATE 24.00
+ ENABLE
+!
+MONITOR MON_INSIDE_BOTTOM_TOO_HOT
+ TYPE MON_CONDITION_HIGH
+ DISPLAY Inside Bottom Too Hot
+ DESCRIPTION 
+ DATA TYPE float
+ INPUT1 IN_INSIDE_BOTTOM_TEMP
+ ACTIVATE 24.00
+ DEACTIVATE 20.00
+ ENABLE
+!
+MONITOR MON_INSIDE_AVERAGE_TOO_COLD
+ TYPE MON_AVERAGE_CONDITION_LOW
+ DISPLAY Average Inside Too Cold
+ DESCRIPTION  
+ DATA TYPE float
+ INPUT1 IN_INSIDE_BOTTOM_TEMP
+ INPUT2 IN_INSIDE_TOP_TEMP              // derived block - has more than 1 input
+ ACTIVATE 20.00
+ DEACTIVATE 24.00
+ ENABLE
+!
+MONITOR MON_INSIDE_AVERAGE_TOO_HOT
+ TYPE MON_AVERAGE_CONDITION_HIGH
+ DISPLAY Average Inside Too Hot
+ DESCRIPTION  
+ DATA TYPE float
+ INPUT1 IN_INSIDE_BOTTOM_TEMP
+ INPUT2 IN_INSIDE_TOP_TEMP              // derived block - has more than 1 input
+ ACTIVATE 24.00
+ DEACTIVATE 20.00
+ ENABLE
+!
+MONITOR MON_WATER_TOO_HOT
+ TYPE MON_CONDITION_HIGH
+ DISPLAY Water too hot
+ DESCRIPTION Water Inside the Header tank is too hot
+ DATA TYPE float
+ INPUT1 IN_WATER_TEMP
+ ACTIVATE 23.00
+ DEACTIVATE 21.00
+ ENABLE
+!
+MONITOR MON_WATER_TOO_COLD
+ TYPE MON_CONDITION_LOW
+ DISPLAY Water too cold
+ DESCRIPTION 
+ DATA TYPE float
+ INPUT1 IN_WATER_TEMP
+ ACTIVATE 21.00
+ DEACTIVATE 23.00
+ ENABLE
+!
+MONITOR MON_OUTSIDE_HOT
+ TYPE MON_CONDITION_HIGH
+ DISPLAY Outside Hot
+ DESCRIPTION Outside Temprature Above Set Point
+ DATA TYPE float
+ INPUT1 IN_OUTSIDE_TEMP
+ ACTIVATE 23.00
+ DEACTIVATE 21.00
+ ENABLE
+!
+MONITOR MON_OUTSIDE_COLD
+ TYPE MON_CONDITION_LOW
+ DISPLAY Outside Cold
+ DESCRIPTION Outside Temprature Below Set Point
+ DATA TYPE float
+ INPUT1 IN_OUTSIDE_TEMP
+ ACTIVATE 21.00
+ DEACTIVATE 23.00
+ ENABLE
+!
+MONITOR MON_LOAD_DOOR_OPEN
+ TYPE MON_TRIGGER
+ DISPLAY Loading End Door Open
+ DESCRIPTION  
+ DATA TYPE boolean
+ INPUT1 IN_LOADING_DOOR_SWITCH
+ ACTIVATE HIGH
+ DEACTIVATE LOW
+ DISABLE                            // this one is disabled
+! 
+#################################################
+# SCHEDULES
+#################################################
+schedule1 = SCH_EXCLUDE_WATER_HEAT_BY_DAY
+schedule2 = SCH_RUN_LIGHTS_AT_NIGHT
+schedule3 = SCH_RESET_MIN_MAX_COUNTERS
+schedule4 = SCH_WATERING_TOP_SCHEDULE
+schedule5 = SCH_WATERING_BOTTOM_SCHEDULE
+#schedule6 = SCH_TEST1
+#schedule7 = SCH_TEST2
+#schedule8 = SCH_TEST3
+#schedule9 = SCH_TEST4
+#schedule10 = SCH_TEST5
+#schedule11 = SCH_TEST6
+!
+SCHEDULE SCH_EXCLUDE_WATER_HEAT_BY_DAY
+ TYPE SCH_START_STOP
+ DISPLAY Exclude Water Heat During Day
+ DESCRIPTION 
+ # ALL, MON, TUE, WED, THU, FRI, SAT, SUN
+ DAYS ALL
+ TIME START 09:00:00
+ TIME END 18:00:00
+!
+SCHEDULE SCH_RUN_LIGHTS_AT_NIGHT
+ TYPE SCH_START_STOP
+ DISPLAY Run Lights at Night
+ DESCRIPTION 
+ # ALL, MON, TUE, WED, THU, FRI, SAT, SUN
+ DAYS ALL
+ TIME START 22:00:00
+ TIME END 07:00:00
+!
+SCHEDULE SCH_RESET_MIN_MAX_COUNTERS
+ TYPE SCH_ONE_SHOT
+ DISPLAY Reset Min and Max Daily Counters
+ DESCRIPTION 
+ # ALL, MON, TUE, WED, THU, FRI, SAT, SUN
+ DAYS ALL
+ TIME START 18:00:00
+!
+SCHEDULE SCH_WATERING_TOP_SCHEDULE
+ TYPE SCH_START_DURATION_REPEAT
+ DISPLAY Watering Schedule Top Sprinklers
+ DESCRIPTION 
+ # ALL, MON, TUE, WED, THU, FRI, SAT, SUN
+ DAYS ALL
+ TIME START 00:00:00
+ TIME DURATION 00:00:26
+ TIME REPEAT 00:45:00
+!
+SCHEDULE SCH_WATERING_BOTTOM_SCHEDULE
+ TYPE SCH_START_DURATION_REPEAT
+ DISPLAY Watering Schedule Bottom Sprinklers
+ DESCRIPTION 
+ # ALL, MON, TUE, WED, THU, FRI, SAT, SUN
+ DAYS ALL
+ TIME START 00:00:30
+ TIME DURATION 00:00:26
+ TIME REPEAT 00:45:00
+!
+#################################################
+# RULES
+#################################################
+!
+RULE RL_RESET_MINMAX_ON_SCHEDULE
+ TYPE RL_LOGIC_SINGLE
+ DISPLAY Reset MinMax
+ DESCRIPTION
+ PARAM1 SCH_RESET_MIN_MAX_COUNTERS
+ #NOT
+ DISABLE 
+!
+RULE RL_TURN_ON_WATER_HEAT_IF_INSIDE_COLD
+ TYPE RL_LOGIC_SINGLENOT
+ DISPLAY Water Heat Warming Inside
+ DESCRIPTION
+ PARAM1 MON_INSIDE_TOP_TOO_COLD
+ # PARAM2
+ NOT SCH_EXCLUDE_WATER_HEAT_BY_DAY
+ ENABLE 
+!
+RULE RL_RUN_LIGHTS_ON_SCHEDULE
+ TYPE RL_LOGIC_SINGLE
+ DISPLAY Light Schedule
+ DESCRIPTION
+ PARAM1 SCH_RUN_LIGHTS_AT_NIGHT
+ #NOT 
+ ENABLE 
+!
+RULE RL_FAN_IF_INSIDE_BOTTOM_HOT_OUTSIDE_COLD
+ TYPE RL_LOGIC_AND
+ DISPLAY Cooling Fan
+ DESCRIPTION
+ PARAM1 MON_INSIDE_BOTTOM_TOO_HOT
+ PARAM2 MON_OUTSIDE_COLD
+ #NOT 
+ ENABLE 
+!
+RULE RL_CIRCULATE_IF_TOP_HOT_AND_BOTTOM_COLD
+ TYPE RL_LOGIC_ANDNOT
+ DISPLAY Circualtion Fan
+ DESCRIPTION
+ PARAM1 MON_INSIDE_TOP_TOO_HOT
+ PARAM2 MON_INSIDE_BOTTOM_TOO_COLD
+ #prevent if cold air being sucked in already
+ NOT RL_FAN_IF_INSIDE_BOTTOM_HOT_OUTSIDE_COLD   
+ ENABLE 
+!
+RULE RL_WATER_ON_SCHEDULE_TOP
+ TYPE RL_LOGIC_SINGLE
+ DISPLAY Water Cycle Top
+ DESCRIPTION
+ PARAM1 SCH_WATERING_TOP_SCHEDULE
+ #NOT RL_SUSPEND_WATERING_IF_BOTH_DOORS_OPEN
+ ENABLE 
+!
+RULE RL_WATER_ON_SCHEDULE_BOTTOM]
+ TYPE RL_LOGIC_SINGLE
+ DISPLAY Water Cycle Bottom
+ DESCRIPTION
+ PARAM1 SCH_WATERING_BOTTOM_SCHEDULE
+ #NOT RL_SUSPEND_WATERING_IF_BOTH_DOORS_OPEN
+ ENABLE 
+!
+#################################################
+# CONTROLLERS
+#################################################
+!
+CONTROLLER CON_RESET_MINMAX
+ TYPE CON_SYSTEM
+ DISPLAY Reset Min Max
+ DESCRIPTION 
+ RULE RL_RESET_MINMAX_ON_SCHEDULE
+ OUTPUT OUT_SYSTEM_INTERNAL
+ COMMAND ACTIVATE CMD_OUTPUT_ON
+ COMMAND DEACTIVATE CMD_OUTPUT_OFF
+ DISABE
+!
+CONTROLLER CON_WATER_HEATER_CONTROLLER
+ TYPE CON_ONOFF
+ DISPLAY Water Heating Controller
+ DESCRIPTION 
+ RULE RL_TURN_ON_WATER_HEAT_IF_INSIDE_COLD
+ OUTPUT OUT_WATER_HEATER
+ COMMAND ACTIVATE CMD_OUTPUT_ON
+ COMMAND DEACTIVATE CMD_OUTPUT_OFF
+ ENABLE
+!
+CONTROLLER CON_END_LIGHTS_CONTROLLER
+ TYPE CON_ONOFF
+ DISPLAY End Lights Controller
+ DESCRIPTION 
+ RULE RL_RUN_LIGHTS_ON_SCHEDULE
+ OUTPUT OUT_END_LIGHTS
+ COMMAND ACTIVATE CMD_OUTPUT_ON
+ COMMAND DEACTIVATE CMD_OUTPUT_OFF
+ ENABLE
+!
+CONTROLLER CON_FRESH_AIR_CONTROLLER
+ TYPE CON_ONOFF
+ DISPLAY Fresh Air Controller
+ DESCRIPTION 
+ RULE RL_FAN_IF_INSIDE_BOTTOM_HOT_OUTSIDE_COLD
+ OUTPUT OUT_FRESH_AIR_FAN
+ COMMAND ACTIVATE CMD_OUTPUT_ON
+ COMMAND DEACTIVATE CMD_OUTPUT_OFF
+ ENABLE
+!
+CONTROLLER CON_CIRCULATION_FAN_CONTROLLER
+ TYPE CON_ONOFF
+ DISPLAY Circulation Fan Controller
+ DESCRIPTION 
+ RULE RL_CIRCULATE_IF_TOP_HOT_AND_BOTTOM_COLD
+ OUTPUT OUT_CIRCULATION_FAN
+ COMMAND ACTIVATE CMD_OUTPUT_ON
+ COMMAND DEACTIVATE CMD_OUTPUT_OFF
+ ENABLE
+!
+CONTROLLER CON_EXHAUST_FAN_CONTROLLER
+ TYPE CON_ONOFF
+ DISPLAY Exhaust Fan Controller
+ DESCRIPTION 
+ RULE RL_FAN_IF_INSIDE_BOTTOM_HOT_OUTSIDE_COLD
+ OUTPUT OUT_EXHAUST_FAN
+ COMMAND ACTIVATE CMD_OUTPUT_ON
+ COMMAND DEACTIVATE CMD_OUTPUT_OFF
+ ENABLE
+!
+CONTROLLER CON_WATERING_TOP_CONTROLLER
+ TYPE CON_ONOFF
+ DISPLAY Top Sprinklers Solenoid Controller
+ DESCRIPTION 
+ RULE RL_WATER_ON_SCHEDULE_TOP
+ OUTPUT OUT_WATERING_SOLENOID_TOP
+ COMMAND ACTIVATE CMD_OUTPUT_ON
+ COMMAND DEACTIVATE CMD_OUTPUT_OFF
+ ENABLE
+!
+CONTROLLER CON_WATERING_BOTTOM_CONTROLLER
+ TYPE CON_ONOFF
+ DISPLAY Bottom Sprinklers Solenoid Controller
+ DESCRIPTION 
+ RULE RL_WATER_ON_SCHEDULE_BOTTOM
+ OUTPUT OUT_WATERING_SOLENOID_BOTTOM
+ COMMAND ACTIVATE CMD_OUTPUT_ON
+ COMMAND DEACTIVATE CMD_OUTPUT_OFF
+!
+#################################################
+# OUTPUTS
+#################################################
+!
+OUTPUT OUT_END_LIGHTS
+ TYPE OUT_DIGITAL
+ DISPLAY Fluro Lights
+ DESCRIPTION Relay to Control Fluro End Lights
+ HARDWARE INTERFACE DIGITAL0
+!
+OUTPUT OUT_WATER_HEATER
+ TYPE OUT_DIGITAL
+ DISPLAY Header Tank Heater
+ DESCRIPTION Relay to Control Header Tank Water Heater
+ HARDWARE INTERFACE DIGITAL1
+!
+OUTPUT OUT_FRESH_AIR_FAN
+ TYPE OUT_DIGITAL
+ DISPLAY Fresh Air Fan
+ DESCRIPTION Relay to Control Fresh Air Fan
+ HARDWARE INTERFACE DIGITAL2
+!
+OUTPUT OUT_CIRCULATION_FAN
+ TYPE OUT_DIGITAL
+ DISPLAY Circulation Fan
+ DESCRIPTION Relay to Control the Circulation Fan
+ HARDWARE INTERFACE DIGITAL3
+!
+OUTPUT OUT_EXHAUST_FAN
+ TYPE OUT_DIGITAL
+ DISPLAY Exhaust Fan
+ DESCRIPTION Relay to Control the Exhaust Fan
+ HARDWARE INTERFACE DIGITAL4
+!
+OUTPUT OUT_WATERING_SOLENOID_TOP
+ TYPE OUT_DIGITAL
+ DISPLAY Water Value Top
+ DESCRIPTION Relay to Control the Top Watering Solenoid
+ HARDWARE INTERFACE DIGITAL6
+!
+OUTPUT OUT_WATERING_SOLENOID_BOTTOM
+ TYPE OUT_DIGITAL
+ DISPLAY Water Value Bottom
+ DESCRIPTION Relay to Control the Bottom Watering Solenoid
+ HARDWARE INTERFACE DIGITAL7
+!
+!

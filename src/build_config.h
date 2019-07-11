@@ -17,9 +17,15 @@
 /************************************************
  PLATFORM Directives
  ************************************************/
-//#define PLATFORM_ARDUINO
-//or
-#define PLATFORM_LINUX
+// These should be defined by the build system
+// However the Sloeber build system doesn't allow
+// -D defines for the C/C++ Pre-processor in the same
+// way as eclipse CDT. So if not defined assume
+// PLATFORM_ARDUINO
+
+#if not defined PLATFORM_LINUX && not defined PLATFORM_ARDUINO
+#define PLATFORM_ARDUINO
+#endif // Not Defined Either
 
 #ifdef PLATFORM_ARDUINO
 #define BOARD_ARDUINO_MEGA2560
@@ -266,7 +272,7 @@
 //#define MAX_BLOCKS 255
 #define MAX_BLOCKS_PER_CATEGORY 32
 #define MAX_CONF_KEYS_PER_BLOCK 12
-
+#define TOKEN_DELIM " "
 
 
 #endif /* BUILD_CONFIG_H_ */

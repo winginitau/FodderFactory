@@ -166,8 +166,6 @@ void InputOperate(BlockNode *b) {
 			//	Power:                 -27    27     W
 			//	Voltage                25954  25.954 mV -> V
 			//	Current                -955   0.955  mA -> A
-
-
 			if ((b->status > STATUS_ERROR) && (b->status < STATUS_DISABLED)) {
 				// Test for poll_rate - is it time?
 				if (TimeNow() >= (b->last_update + b->settings.in.poll_rate)) {
