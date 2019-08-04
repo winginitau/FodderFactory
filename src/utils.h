@@ -46,8 +46,21 @@ char* FlagToDayStr(char* day_str, uint8_t day_flag[7]);
 char* CTimeToISODateTimeString(char *iso_str, time_t t);
 char* CTimeToLocalTimeString(char *t_str, time_t t);
 
-TV_TYPE StringToTimeValue(const char* time_str);
+uint32_t StringToTimeValue(const char* time_str);
 char* TimeValueToTimeString(char *HMSStr, const time_t tv);
+uint32_t NextTime(uint32_t sch_start, uint32_t sch_repeat);
+uint32_t LastTime(uint32_t sch_start, uint32_t sch_repeat);
 
+uint8_t DallasAddressStringToArray(const char *addr_str, uint8_t addr[8]);
+char* DallasAddressArrayToString(char *addr_str, uint8_t addr[8]);
+void DallasCopy(uint8_t s[8], uint8_t d[8]);
+uint8_t DallasCompare(uint8_t a1[8], uint8_t a2[8]);
+
+char *strpad(char *s, uint8_t w);
+char *strcatpad(char *d, const char *s, uint8_t w);
+char *strcatpad_hal(char *d, const char *s, uint8_t w);
+#ifdef PLATFORM_ARDUINO
+char *strcatpad_hal(char *d, const __FlashStringHelper *s, uint8_t w);
+#endif //PLATFORM_ARDUINO
 
 #endif /* UTILS_H_ */

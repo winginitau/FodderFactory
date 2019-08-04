@@ -48,7 +48,7 @@
 
 #------------------------------------ BLOCK CATEGORIES--------------------
 %enum-identifier BLOCK_CATEGORY
-%enum-array-instance block_cat_names
+%enum-array-instance block_cat_strings
 %enum-start
 FF_ERROR_CAT        "ERROR_CAT"
 FF_GENERIC_BLOCK    "GENERIC"
@@ -64,7 +64,7 @@ LAST_BLOCK_CAT
 %enum-end
 
 #------------------------------------ BLOCK TYPES--------------------
-%enum-identifier BLOCK_TYPES
+%enum-identifier BLOCK_TYPE
 %enum-array-instance block_type_strings
 %enum-start
 BT_ERROR                    "BT_ERROR"
@@ -95,7 +95,8 @@ LAST_BLOCK_TYPE
 %enum-identifier COMMAND_STRING
 %enum-array-instance command_strings
 %enum-start
-CMD_ERROR           "CMD_ERROR"   
+CMD_ERROR           "CMD_ERROR"
+CMD_INIT            "CMD_INIT"   
 CMD_OUTPUT_OFF      "CMD_OUTPUT_OFF"
 CMD_OUTPUT_ON       "CMD_OUTPUT_ON"
 CMD_RESET_MIN_MAX   "CMD_RESET_MIN_MAX"
@@ -103,7 +104,7 @@ LAST_COMMAND
 %enum-end
 
 #------------------------------------ UNITS --------------------
-%enum-identifier UNIT_STRINGS
+%enum-identifier UNIT_STRING
 %enum-array-instance unit_strings
 %enum-start
 UNIT_ERROR      "UnitTypeError"
@@ -126,7 +127,7 @@ LAST_UNIT
 %enum-end
 
 #------------------------------------ UNITS ABBREVIATIONS ----------
-%enum-identifier UNIT_ABBR_STRINGS
+%enum-identifier UNIT_ABBR_STRING
 %enum-array-instance unit_abbr_strings
 %enum-start
 ABBR_UNIT_ERROR      "UnitAbbrTypeError"
@@ -149,7 +150,7 @@ LAST_UNIT_ABBR
 %enum-end
 
 #------------------------------------ DAYS of WEEK --------------------
-%enum-identifier DAY_STRINGS
+%enum-identifier DAY_STRING
 %enum-array-instance day_strings
 %enum-start
 SUN    "SUN"
@@ -162,43 +163,71 @@ SAT    "SAT"
 LAST_DAY
 %enum-end
 
-#------------------------------------ INTERFACES --------------------
-%enum-identifier INTERFACE_STRINGS
-%enum-array-instance interface_strings
+#------------------------------------ INTERFACE_TYPE --------------------
+%enum-identifier INTERFACE_TYPE
+%enum-array-instance interface_type_strings
 %enum-start
 IF_ERROR            "IF_ERROR"
-IF_PWM_IN           "PWM_IN"
-IF_PWM_OUT          "PWM_OUT"
-IF_PPM_IN           "PPM_IN"
-IF_PPM_OUT          "PPM_OUT"
-IF_ONEWIRE          "ONEWIRE"
-IF_DIG_PIN_IN       "DIG_PIN_IN"
-IF_DIG_PIN_OUT      "DIG_PIN_OUT"
-IF_SYSTEM_FUNCTION  "SYSTEM_FUNCTION"
+IF_WIFI             "IF_WIFI"
+IF_ETHERNET         "IF_ETHERNET"
+IF_PWM_IN           "IF_PWM_IN"
+IF_PWM_OUT          "IF_PWM_OUT"
+IF_PPM_IN           "IF_PPM_IN"
+IF_PPM_OUT          "IF_PPM_OUT"
+IF_DS1820B          "IF_DS1820B"
+IF_ONEWIRE_BUS      "IF_ONEWIRE_BUS"
+IF_DIG_PIN_IN       "IF_DIG_PIN_IN"
+IF_DIG_PIN_OUT      "IF_DIG_PIN_OUT"
 IF_VED_VOLTAGE      "IF_VED_VOLTAGE"
 IF_VED_CURRENT      "IF_VED_CURRENT"
 IF_VED_POWER        "IF_VED_POWER"
 IF_VED_SOC          "IF_VED_SOC"
+IF_HW_SERIAL        "IF_HW_SERIAL"
 LAST_INTERFACE
 %enum-end
 
 #------------------------------------ BLOCK STATUS --------------------
-%enum-identifier STATUS_STRINGS
+%enum-identifier STATUS_STRING
 %enum-array-instance status_strings
 %enum-start
 STATUS_ERROR                    "STATUS_ERROR"
 STATUS_ENABLED                  "STATUS_ENABLED"
+STATUS_ENABLED_RUN              "STATUS_ENABLED_RUN"
+STATUS_ENABLED_BUSY             "STATUS_ENABLED_BUSY"
 STATUS_ENABLED_INIT             "STATUS_ENABLED_INIT"
 STATUS_ENABLED_VALID_DATA       "STATUS_ENABLED_VALID_DATA"
 STATUS_ENABLED_INVALID_DATA     "STATUS_ENABLED_INVALID_DATA"
 STATUS_DISABLED                 "STATUS_DISABLED"
 STATUS_DISABLED_INIT            "STATUS_DISABLED_INIT"
 STATUS_DISABLED_ERROR           "STATUS_DISABLED_ERROR"
+STATUS_DISABLED_ASSERT          "STATUS_DISABLED_ASSERT"
 STATUS_DISABLED_ADMIN           "STATUS_DISABLED_ADMIN"
 LAST_STATUS
 %enum-end
 
 # -------------------------------------CONFIG KEYS---------------------
+%enum-identifier IF_CONFIG
+%enum-array-instance if_config_keys
+%enum-start
+IF_CONFIG_ERROR        "INT_CONFIG_ERROR"
+IF_CONFIG_TYPE         "type"
+IF_CONFIG_DISABLE      "disable"   
+IF_CONFIG_DISPLAY_NAME "display_name"
+IF_CONFIG_DESCRIPTION  "description"
+IF_CONFIG_STATIC_ADDR  "static_address"
+IF_CONFIG_IP_STATIC    "ip_static"
+IF_CONFIG_IP_NETMASK   "ip_netmask"
+IF_CONFIG_IP_GATEWAY   "ip_gateway"
+IF_CONFIG_WIFI_SSID    "wifi_ssid"
+IF_CONFIG_WPS_PSK      "wps_psk"
+IF_CONFIG_BUS_PIN      "bus_pin"
+IF_CONFIG_DEVICE_COUNT "device_count"
+IF_CONFIG_DALLAS_ADDR  "dallas_address"
+IF_CONFIG_PORT_NUM     "port_num"
+IF_CONFIG_SPEED        "speed"
+LAST_IF_CONFIG
+%enum-end
+
 %enum-identifier SYS_CONFIG
 %enum-array-instance sys_config_keys
 %enum-start
@@ -307,7 +336,7 @@ OUT_CONFIG_IF_NUM           "if_num"
 LAST_OUT_CONFIG
 %enum-end
 
-# ------------------------------------------------------------------
+# -----------------------BLOCK GRAMMAR-------------------------------------------
 
 %lookup-list BLOCK_LABEL LookupBlockLabel
 #lookup-list some_other_lookup_list LookupOtherList
@@ -326,6 +355,8 @@ LAST_OUT_CONFIG
 %action SHOW_BLOCK_LABEL
 %2 param-integer 
 %action SHOW_BLOCK_ID
+
+# -----------------------SET / MESSAGE GRAMMAR-------------------------------------------
 
 %action-define SET_COMMAND_BLOCK_LABEL SetCommandOnBlockLabel
 %action-define SET_COMMAND_BLOCK_ID SetCommandOnBlockID
@@ -363,6 +394,8 @@ LAST_OUT_CONFIG
 #5 param-float
 #action MESSAGE_DATA_BLOCK_ID_FLOAT
 
+# -----------------------TIME / DATE GRAMMAR-------------------------------------------
+
 %action-define SHOW_TIME ShowTime
 %action-define SET_TIME SetTime
 %action-define SHOW_DATE ShowDate
@@ -379,14 +412,21 @@ LAST_OUT_CONFIG
 %3 param-date
 %action SET_DATE
 
+# -----------------------CONFIG GRAMMAR-------------------------------------------
+
 %action-define CONFIG_CLEAR ConfigClear
 %action-define CONFIG_LOAD ConfigLoad
 %action-define CONFIG_SAVE ConfigSave
+%action-define CONFIG_SHOW ConfigShow
+
+%action-define CONFIG_DELETE_BID ConfigDeleteBID
+%action-define CONFIG_DELETE_BLOCK_LABEL ConfigDeleteBlockLabel
 
 #action-define CONFIG_LOAD_BINARY ConfigLoadBinary
 #action-define CONFIG_LOAD_INI ConfigLoadINI
 #action-define CONFIG_SAVE_BINARY ConfigSaveBinary
 
+%action-define CONFIG_INTERFACE ConfigInterface
 %action-define CONFIG_BLOCK_SYSTEM ConfigBlockSystem
 %action-define CONFIG_BLOCK_INPUT ConfigBlockInput 
 %action-define CONFIG_BLOCK_MONITOR ConfigBlockMonitor
@@ -395,8 +435,6 @@ LAST_OUT_CONFIG
 %action-define CONFIG_BLOCK_CONTROLLER ConfigBlockController
 %action-define CONFIG_BLOCK_OUTPUT ConfigBlockOutput
 
-# ----Config Commands---------------------------------------------------
- 
 %1 keyword CONFIG
 %2 keyword CLEAR
 %action CONFIG_CLEAR
@@ -404,6 +442,20 @@ LAST_OUT_CONFIG
 %action CONFIG_LOAD
 %2 keyword SAVE
 %action CONFIG_SAVE
+%2 keyword SHOW
+%action CONFIG_SHOW
+
+%2 keyword DELETE
+%3 param-integer
+%action CONFIG_DELETE_BID
+%3 lookup BLOCK_LABEL
+%action CONFIG_DELETE_BLOCK_LABEL
+
+%2 keyword interface
+%3 param-string
+%4 enum-array IF_CONFIG
+%5 param-string
+%action CONFIG_INTERFACE
 
 %2 keyword system
 %3 param-string
@@ -470,7 +522,7 @@ LAST_OUT_CONFIG
 #3 param-string
 #action COPY_FILE_FILE
 
-# --------------------------- INIT------------------------------
+# --------------------------- INIT GRAMMAR------------------------------
 
 %action-define INIT_SETUP_ALL InitSetupAll
 %action-define INIT_VALIDATE_ALL InitValidateAll
@@ -500,12 +552,10 @@ LAST_OUT_CONFIG
 %3 param-integer
 %action INIT_DISABLE_BID
 
-# --------------------------- ADMIN------------------------------
+# --------------------------- ADMIN GRAMMAR------------------------------
 
 %action-define ADMIN_DISABLE_BID AdminDisableBID
 %action-define ADMIN_ENABLE_BID AdminEnableBID
-%action-define ADMIN_DELETE_BID AdminDeleteBID
-%action-define ADMIN_DELETE_BLOCK_LABEL AdminDeleteBlockLabel
 %action-define ADMIN_CMD_ON_BID AdminCmdOnBID
 %action-define ADMIN_CMD_OFF_BID AdminCmdOffBID
 
@@ -519,12 +569,6 @@ LAST_OUT_CONFIG
 %3 param-integer
 %action ADMIN_ENABLE_BID
 
-%2 keyword DELETE
-%3 param-integer
-%action ADMIN_DELETE_BID
-%3 lookup BLOCK_LABEL
-%action ADMIN_DELETE_BLOCK_LABEL
-
 %2 keyword ON
 %3 param-integer
 %action ADMIN_CMD_ON_BID
@@ -536,6 +580,46 @@ LAST_OUT_CONFIG
 
 %1 keyword REBOOT
 %action REBOOT
+
+# -----------------------INTERFACE GRAMMAR-------------------------------------------
+
+%action-define IF_ONEWIRE_SCAN_BID      IFOneWireScanBID
+%action-define IF_ONEWIRE_SCAN_LABEL    IFOneWireScanLabel
+%action-define IF_ONEWIRE_ASSIGN_BID    IFOneWireAssignBID
+%action-define IF_DS1820B_READ          IFDS1820BRead
+%action-define IF_DS1820B_TEST          IFDS1820BTest
+
+# Current glitch/itch limitation - cant have more than one lookup of same type in param call
+#%action-define IF_ONEWIRE_ASSIGN_LABEL    IFOneWireAssignLabel
+
+%1 keyword INTERFACE
+%2 keyword ONEWIRE
+%3 keyword SCAN
+
+%4 param-integer
+%action IF_ONEWIRE_SCAN_BID
+
+%4 lookup BLOCK_LABEL
+%action IF_ONEWIRE_SCAN_LABEL
+
+%3 keyword ASSIGN
+
+%4 param-integer
+%5 param-integer
+%action IF_ONEWIRE_ASSIGN_BID
+
+#%4 lookup BLOCK_LABEL
+#%5 lookup BLOCK_LABEL
+#%action IF_ONEWIRE_ASSIGN_LABEL
+
+%2 keyword DS1820B
+%3 keyword READ
+%4 param-integer
+%action IF_DS1820B_READ
+
+%3 keyword TEST
+%4 param-integer
+%action IF_DS1820B_TEST
 
 %grammar-end
 

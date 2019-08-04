@@ -143,21 +143,21 @@ const StringArray message_type_strings[LAST_MESSAGE_TYPE] = {
  **************************************************************/
 typedef enum {
 	M_FF_ERROR = 0,
-	M_FF_AWAKE,
-	M_D_SERIAL,
-	M_RTC_DETECT,
-	M_RTC_REPORT_RUNNING,
-	M_WARN_SET_RTC,
-	M_WARN_RTC_HARD_CODED,
-	M_RTC_NOT_RUNNING,
-	M_RTC_NOT_FOUND,
-	M_LCD_INIT,
-	M_SR_BAD_ID,
-	M_BAD_TIME_STR,
-	M_SET_BCAT_NOT_MATCHED,
-	M_CMD_TO_BLOCK_NOT_OUTPUT,
-	M_F_READ,
-	M_CMD_BID_NULL,
+	M_FF_AWAKE,					//001
+	M_D_SERIAL,					//002
+	M_RTC_DETECT,				//003
+	M_RTC_REPORT_RUNNING,		//004
+	M_WARN_SET_RTC,				//005
+	M_WARN_RTC_HARD_CODED,		//006
+	M_RTC_NOT_RUNNING,			//007
+	M_RTC_NOT_FOUND,			//008
+	M_LCD_INIT,					//009
+	M_SR_BAD_ID,				//010
+	M_BAD_TIME_STR,				//011
+	M_SET_BCAT_NOT_MATCHED,		//012
+	M_CMD_TO_BLOCK_NOT_OUTPUT,	//013
+	M_F_READ,					//014
+	M_CMD_BID_NULL,				//015
 	M_RP_CONFIG,
 	M_PROC_SYS_BLK,
 	M_CONF_REG_BLKS,
@@ -179,7 +179,7 @@ typedef enum {
 	M_SD_NO_FILE_HANDLE,
 	M_ERROR_EVENTS_EMPTY,
 	M_SD_BEGIN_FAIL,		//M36
-	M_NULL,
+	M_NULL,					//M37
 	M_FLIPFLOP,
 	M_IA_NULL,
 	M_GFV_NULL,
@@ -210,7 +210,7 @@ typedef enum {
 	M_ADDBLOCK_ERROR,		//M65
 	CMD_RESET_MINMAX,		//M66
 	M_SR_MINMAX_RESET,
-	M_BAD_TEMPERATURE_READ,
+	M_BAD_TEMPERATURE_READ,	//M68
 	M_VE_INIT,				//M69
 	M_VE_SOC,
 	M_VE_POWER,
@@ -218,23 +218,40 @@ typedef enum {
 	M_VE_CURRENT,
 	M_SYS_HEART_BEAT,
 	M_VE_INIT_ERROR,
-	M_OUTPUT_DISABLED,
+	M_OUTPUT_DISABLED,		//M76
 	M_START_DELAY_ACTIVE,
-	M_ASSERT_FAILED,
+	M_ASSERT_FAILED,		//M78
 	NO_CONFIG_FILE,
 	M_INI_LOAD_NOT_AVAIL,
 	M_BIN_LOAD_NOT_AVAIL,
 	M_BIN_SAVE_NOT_AVAIL,
-	M_CONFIG_LOAD_BY_DIRECT_PARSE,
+	M_CONFIG_LOAD_BY_DIRECT_PARSE,		//M83
 	M_CONFIGURE_BLOCK_ERROR,
 	M_SETUP_ON_BLOCK_NOT_DISABLED_INIT,	//M85
 	M_UNKNOWN_BLOCK_TYPE,
 	M_VE_FAILED, 						//M87
 	M_ADMIN_CMD_NOT_SUPPORTED,
-	M89,
-	M90,
-	M91,
-	M92,
+	M_CONF_IF_UNKOWN_IF_TYPE,			//M89
+	M_CONF_IF_DISABLED_NOT_BOOLEAN,		//M90
+	M_CONF_IF_TYPE_NOT_SET,				//M91
+	M_ADDIFS_MALLOC_NULL,				//M92
+	M_CONFIFS_KEY_INVALID_FOR_TYPE,		//M93
+	M_CONFIFS_WIFI_STATIC_NOT_BOOL,		//M94
+	M_INVALID_DALLAS_ADDR,				//M95
+	M_IF_TYPE_FIRST_CONFIG,				//M96
+	M_CONFIFS_NOT_ALLOCATED,			//M97
+	M_UNASSIGNED_DALLAS,				//M98
+	M_DS1820B_INIT,						//M99
+	M_DS1820B_INIT_FAIL,				//M100
+	M_DALLAS_DETECTED,					//M101
+	M_DS1820B_BID_NULL,					//M102
+	M103,								//M103
+	M104,								//M104
+	M105,								//M105
+	M106,								//M106
+	M107,								//M107
+	M108,								//M108
+	M109,								//M109
 	LAST_MESSAGE
 } MessageEnum;
 
@@ -302,7 +319,7 @@ const uint64_t PAD16K2[] HIGHPROGMEM8 = {
 	14, { "ERROR SD File Handle NULL",						"M34" },
 	14, { "ERROR Event Buffer Empty",						"M35" },
 	14, { "ERROR SD.begin FAIL",							"M36" },
-	14, { "",												""},
+	14, { "",												"M37"},
 	14, { "Flip or Flop",									"M38" },
 	14, { "(IsActive) GetBlockByID returned NULL",			"M39" },
 	14, { "(GetFVal) GetBlockByID returned NULL",			"M40" },
@@ -328,7 +345,7 @@ const uint64_t PAD16K2[] HIGHPROGMEM8 = {
 	14, { "(ConfigureCONSetting) DEACT_CMD str not known",	"M60" },
 	14, { "(ConfigureCommonSetting) key_idx = zero error",	"M61" },
 	14, { "(ConfigureBlock) Invalid Block Category",		"M62" },
-	14, { "(ConfigureBlock) Finding or Adding Block",		"M63" },
+	14, { "(ConfigureBlock/IFBlock) Add returned NULL",		"M63" },
 	14, { "Block Configuraton Read from Binary File",		"M64" },
 	14, { "(AddBlock) malloc returned NULL",				"M65" },
 	14, { "CMD_RESET_MINMAX",								"M66" },
@@ -354,10 +371,27 @@ const uint64_t PAD16K2[] HIGHPROGMEM8 = {
 	14, { "Unknown Block Type in Setup or Operate Loop",				"M86" },
 	14, { "VEDirect failed to begin in operate loop. Disabled",			"M87" },
 	14, { "Set Output CMD by Admin. Command not supported",				"M88" },
-	14, { "M89",								"M89" },
-	14, { "M90",								"M90" },
-	14, { "M91",								"M91" },
-	14, { "M92",								"M92" },
+	14, { "(ConfigureIFSetting) Unkown Interface Type",					"M89" },
+	14, { "(ConfigureIFSetting) Disabled must be True or False",		"M90" },
+	14, { "(ConfigureIFSetting) Type must be set first",				"M91" },
+	14, { "Error allocating memory for Interface Settings",				"M92" },
+	14, { "Error, Key not valid for type of interface",					"M93" },
+	14, { "Config WIFI, Static must be True, False or absent",			"M94" },
+	14, { "Invalid Maxim/Dallas Address",								"M95" },
+	14, { "First config call must specify Interface Type",				"M96" },
+	14, { "Interface specific settings not allocated",					"M97" },
+	14, { "Unassigned Dallas Device on OneWire Bus",					"M98" },
+	14, { "Matching DS1820B Detected and Initialised",					"M99" },
+	14, { "Specified DS1820B was not detected on Onewire bus",			"M100" },
+	14, { "DS1820B Device Detected",									"M101" },
+	14, { "DS1820B Read GetBlockByID returned NULL",					"M102" },
+	14, { "M103",														"M103" },
+	14, { "M104",														"M104" },
+	14, { "M105",														"M105" },
+	14, { "M106",														"M106" },
+	14, { "M107",														"M107" },
+	14, { "M108",														"M108" },
+	14, { "M109",														"M109" },
 };
 
 /**************************************************************
@@ -373,7 +407,7 @@ uint8_t DayStringArrayIndex(const char* key);
 uint8_t UnitStringArrayIndex(const char* key);
 uint8_t CommandStringArrayIndex(const char* key);
 uint8_t LanguageStringArrayIndex(const char* key);
-uint8_t InterfaceStringArrayIndex(const char* key);
+uint8_t InterfaceTypeStringArrayIndex(const char* key);
 
 uint8_t BlockTypeStringArrayIndex(const char* key);
 
@@ -383,6 +417,7 @@ char *strcpy_misc(char *dest, uint8_t src);
 char *strcat_misc(char *dest, uint8_t src);
 
 /********* Properly Formed Overloaded Generics Accommodating PROGMEM **************/
+size_t strlen_hal(const char *s);
 char *strcpy_hal(char *dest, const char *src);
 char *strcat_hal(char *dest, const char *src);
 int strcmp_hal(const char *s1, const char *s2);

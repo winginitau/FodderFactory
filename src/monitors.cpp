@@ -42,34 +42,34 @@
 
 void MonitorSetup(BlockNode *b) {
 
-	switch (b->block_type) {
+	switch (b->type) {
 		case MON_CONDITION_LOW:
 			b->active = 0;
-			b->last_update = TimeNow();
+			//b->last_update = TimeNow();
 			b->status = STATUS_ENABLED_INIT;
 			break;
 
 		case MON_CONDITION_HIGH:
 			b->active = 0;
-			b->last_update = TimeNow();
+			//b->last_update = TimeNow();
 			b->status = STATUS_ENABLED_INIT;
 			break;
 
 		case MON_AVERAGE_CONDITION_LOW:
 			b->active = 0;
-			b->last_update = TimeNow();
+			//b->last_update = TimeNow();
 			b->status = STATUS_ENABLED_INIT;
 			break;
 
 		case MON_AVERAGE_CONDITION_HIGH:
 			b->active = 0;
-			b->last_update = TimeNow();
+			//b->last_update = TimeNow();
 			b->status = STATUS_ENABLED_INIT;
 			break;
 
 		case MON_TRIGGER:
 			b->active = 0;
-			b->last_update = TimeNow();
+			//b->last_update = TimeNow();
 			b->status = STATUS_ENABLED_INIT;
 			break;
 
@@ -84,7 +84,7 @@ void MonitorOperate(BlockNode *b) {
 
 	uint8_t start_status = b->status;
 
-	switch (b->block_type) {
+	switch (b->type) {
 
 		case MON_CONDITION_LOW: {
 			float fval;
@@ -98,16 +98,16 @@ void MonitorOperate(BlockNode *b) {
 				if (fval <= b->settings.mon.act_val) {
 					if (b->active == 0) {
 						b->active = 1;
-						b->last_update = TimeNow();
-						EventMsg(b->block_id, E_ACT);
+						//b->last_update = TimeNow();
+						EventMsg(b->id, E_ACT);
 					}
 				}
 
 				if (fval >= b->settings.mon.deact_val) {
 					if (b->active == 1) {
 						b->active = 0;
-						b->last_update = TimeNow();
-						EventMsg(b->block_id, E_DEACT);
+						//b->last_update = TimeNow();
+						EventMsg(b->id, E_DEACT);
 					}
 				}
 			}
@@ -125,15 +125,15 @@ void MonitorOperate(BlockNode *b) {
 				if (GetFVal(b->settings.mon.input1) >= b->settings.mon.act_val) {
 					if (b->active == 0) {
 						b->active = 1;
-						b->last_update = TimeNow();
-						EventMsg(b->block_id, E_ACT);
+						//b->last_update = TimeNow();
+						EventMsg(b->id, E_ACT);
 					}
 				}
 				if (GetFVal(b->settings.mon.input1) <= b->settings.mon.deact_val) {
 					if (b->active == 1) {
 						b->active = 0;
-						b->last_update = TimeNow();
-						EventMsg(b->block_id, E_DEACT);
+						//b->last_update = TimeNow();
+						EventMsg(b->id, E_DEACT);
 					}
 				}
 			}
@@ -153,15 +153,15 @@ void MonitorOperate(BlockNode *b) {
 				if (ave <= b->settings.mon.act_val) {
 					if (b->active == 0) {
 						b->active = 1;
-						b->last_update = TimeNow();
-						EventMsg(b->block_id, E_ACT);
+						//b->last_update = TimeNow();
+						EventMsg(b->id, E_ACT);
 					}
 				}
 				if (ave >= b->settings.mon.deact_val) {
 					if (b->active == 1) {
 						b->active = 0;
-						b->last_update = TimeNow();
-						EventMsg(b->block_id, E_DEACT);
+						//b->last_update = TimeNow();
+						EventMsg(b->id, E_DEACT);
 					}
 				}
 			}
@@ -181,15 +181,15 @@ void MonitorOperate(BlockNode *b) {
 				if (ave >= b->settings.mon.act_val) {
 					if (b->active == 0) {
 						b->active = 1;
-						b->last_update = TimeNow();
-						EventMsg(b->block_id, E_ACT);
+						//b->last_update = TimeNow();
+						EventMsg(b->id, E_ACT);
 					}
 				}
 				if (ave <= b->settings.mon.deact_val) {
 					if (b->active == 1) {
 						b->active = 0;
-						b->last_update = TimeNow();
-						EventMsg(b->block_id, E_DEACT);
+						//b->last_update = TimeNow();
+						EventMsg(b->id, E_DEACT);
 					}
 				}
 			}
@@ -206,15 +206,15 @@ void MonitorOperate(BlockNode *b) {
 				if (bool_val == (uint8_t)b->settings.mon.act_val) {
 					if (b->active == 0) {
 						b->active = 1;
-						b->last_update = TimeNow();
-						EventMsg(b->block_id, E_ACT);
+						//b->last_update = TimeNow();
+						EventMsg(b->id, E_ACT);
 					}
 				}
 				if (bool_val == (uint8_t)b->settings.mon.deact_val) {
 					if (b->active == 1) {
 						b->active = 0;
-						b->last_update = TimeNow();
-						EventMsg(b->block_id, E_DEACT);
+						//b->last_update = TimeNow();
+						EventMsg(b->id, E_DEACT);
 					}
 				}
 			}
@@ -230,9 +230,9 @@ void MonitorOperate(BlockNode *b) {
 		//XXX
 		SimpleStringArray s_str;
 		memcpy_P (&s_str, &status_strings[b->status], sizeof(s_str));
-		sprintf(debug_msg, "[%s]Changed Status to: %s", b->block_label, s_str.text);
+		sprintf(debug_msg, "[%s]Changed Status to: %s", b->label, s_str.text);
 #else
-		sprintf(debug_msg, "[%s]Changed Status to: %s", b->block_label, status_strings[b->status].text);
+		sprintf(debug_msg, "[%s]Changed Status to: %s", b->label, status_strings[b->status].text);
 #endif
 		DebugLog(debug_msg);
 	}

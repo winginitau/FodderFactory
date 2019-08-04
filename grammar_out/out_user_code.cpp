@@ -67,6 +67,22 @@ void ConfigSave(void) {
 	RegConfigSave(WriteLineCallback);
 }
 
+void ConfigShow(void) {
+	RegConfigShow(WriteLineCallback);
+}
+
+void ConfigDeleteBID(int16_t param1_int) {
+	RegConfigDeleteBID(param1_int, WriteLineCallback);
+}
+
+void ConfigDeleteBlockLabel(char* BLOCK_LABEL) {
+	RegConfigDeleteBlockLabel(BLOCK_LABEL, WriteLineCallback);
+}
+
+void ConfigInterface(char* param1_string, uint16_t IF_CONFIG, char* param2_string) {
+	RegConfigInterface(param1_string, IF_CONFIG, param2_string, WriteLineCallback);
+}
+
 void ConfigBlockSystem(char* param1_string, uint16_t SYS_CONFIG, char* param2_string) {
 	RegConfigBlockSystem(param1_string, SYS_CONFIG, param2_string, WriteLineCallback);
 }
@@ -127,14 +143,6 @@ void AdminEnableBID(int16_t param1_int) {
 	RegAdminEnableBID(param1_int, WriteLineCallback);
 }
 
-void AdminDeleteBID(int16_t param1_int) {
-	RegAdminDeleteBID(param1_int, WriteLineCallback);
-}
-
-void AdminDeleteBlockLabel(char* BLOCK_LABEL) {
-	RegAdminDeleteBlockLabel(BLOCK_LABEL, WriteLineCallback);
-}
-
 void AdminCmdOnBID(int16_t param1_int) {
 	RegAdminCmdOnBID(param1_int, WriteLineCallback);
 }
@@ -145,6 +153,26 @@ void AdminCmdOffBID(int16_t param1_int) {
 
 void SystemReboot(void) {
 	RegSystemReboot(WriteLineCallback);
+}
+
+void IFOneWireScanBID(int16_t param1_int) {
+	RegIFOneWireScanBID(param1_int, WriteLineCallback);
+}
+
+void IFOneWireScanLabel(char* BLOCK_LABEL) {
+	RegIFOneWireScanLabel(BLOCK_LABEL, WriteLineCallback);
+}
+
+void IFOneWireAssignBID(int16_t param1_int, int16_t param2_int) {
+	RegIFOneWireAssignBID(param1_int, param2_int, WriteLineCallback);
+}
+
+void IFDS1820BRead(int16_t param1_int) {
+	RegIFDS1820BRead(param1_int, WriteLineCallback);
+}
+
+void IFDS1820BTest(int16_t param1_int) {
+	RegIFDS1820BTest(param1_int, WriteLineCallback);
 }
 
 uint8_t LookupBlockLabel(char* lookup_string) {

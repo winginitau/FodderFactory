@@ -38,11 +38,12 @@
 
 #ifdef PLATFORM_ARDUINO
 	#define ASSERT(x,y) ASSERT_ARDUINO(x,y)
+	#define ASSERT_INT(x,y) ASSERT_INT_ARDUINO(x,y)
 	#define ARDUINO_VEDIRECT
 	#define VE_DIRECT
 	#define IF_ARDUINO_VEDIRECT
 	#define ARDUINO_PROGMEM
-	#define ARDUINO_HIGH_PROGMEM
+	//#define ARDUINO_HIGH_PROGMEM
 	//#define ARDUINO_LCD
 #endif //PLATFORM_ARDUINO
 
@@ -228,6 +229,10 @@
 
 #define EVENT_BUFFER_SIZE 1
 
+// Temperature thresholds for sanity checking
+#define TEMP_C_HIGH 80
+#define TEMP_C_LOW -80
+
 // Initialisers
 #define UINT8_INIT 0xFF
 #define UINT16_INIT 0xFFFF
@@ -236,7 +241,7 @@
 #define INT32_INIT (int32_t)0xFFFFFFFF
 #define FLOAT_INIT (float)255.000000
 #define BLOCK_ID_INIT UINT16_INIT
-#define CMD_INIT UINT8_INIT
+//#define CMD_INIT UINT8_INIT
 
 //Reserved block IDs
 #define BLOCK_ID_BASE 1000

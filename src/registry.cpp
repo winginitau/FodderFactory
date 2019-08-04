@@ -15,6 +15,7 @@
 #include <controllers.h>
 #include <debug_ff.h>
 #include <display.h>
+#include <interfaces.h>
 #include <inputs.h>
 #include <monitors.h>
 #include <outputs.h>
@@ -63,6 +64,8 @@ typedef struct FF_STATE_REGISTER {
 ************************************************/
 static uint16_t block_count = 0;	// Increments to assign block_id. TODO remove once static BIDs is implemented
 static BlockNode *bll = NULL;		// Block Linked List - variant record block list
+static InterfaceNode *ill = NULL;
+
 
 #ifdef ARDUINO_LCD
 	static FFStateRegister sr;
@@ -71,6 +74,42 @@ static BlockNode *bll = NULL;		// Block Linked List - variant record block list
 /************************************************
  Functions
 ************************************************/
+
+void BlockDispatcher(void (*func)(BlockNode*)) {
+	BlockNode* block_ptr;
+
+	block_ptr = bll;
+
+	while (block_ptr != NULL) {
+		func(block_ptr);
+		block_ptr = block_ptr->next;
+	}
+}
+
+void InterfaceDispatcher(void (*func)(InterfaceNode*)) {
+	InterfaceNode* interface_ptr;
+
+	interface_ptr = ill;
+
+	while (interface_ptr != NULL) {
+		func(interface_ptr);
+		interface_ptr = interface_ptr->next;
+	}
+}
+
+void SetupInterface(InterfaceNode* b) {
+	if (b->status == STATUS_DISABLED_INIT) {
+		switch(b->type) {
+			case IF_ONEWIRE_BUS:
+				InterfaceONEWIRE_BUS_Setup(b);
+				break;
+			case IF_DS1820B:
+				InterfaceDS1820B_Setup(b);
+		}
+	} else {
+		EventMsg(b->id, E_WARNING, M_SETUP_ON_BLOCK_NOT_DISABLED_INIT);
+	}
+}
 
 void Setup(BlockNode *b) {
 	// Called on blocks to configure their initial run-time settings (not config)
@@ -84,7 +123,7 @@ void Setup(BlockNode *b) {
 	// 	a final set post config is to move the blocks to STATUS_DISABLED_INIT. Otherwise,
 	//	blocks could become operational prematurely.
 
-	switch (b->block_cat) {
+	switch (b->cat) {
 	case FF_SYSTEM:
 		#ifdef UI_ATTACHED
 		UpdateUI();
@@ -95,21 +134,21 @@ void Setup(BlockNode *b) {
 		if (b->status == STATUS_DISABLED_INIT) {
 			InputSetup(b);
 		} else {
-			EventMsg(b->block_id, E_WARNING, M_SETUP_ON_BLOCK_NOT_DISABLED_INIT);
+			EventMsg(b->id, E_WARNING, M_SETUP_ON_BLOCK_NOT_DISABLED_INIT);
 		}
 		break;
 	case FF_MONITOR:
 		if (b->status == STATUS_DISABLED_INIT) {
 			MonitorSetup(b);
 		} else {
-			EventMsg(b->block_id, E_WARNING, M_SETUP_ON_BLOCK_NOT_DISABLED_INIT);
+			EventMsg(b->id, E_WARNING, M_SETUP_ON_BLOCK_NOT_DISABLED_INIT);
 		}
 		break;
 	case FF_SCHEDULE: {
 		if (b->status == STATUS_DISABLED_INIT) {
 			ScheduleSetup(b);
 		} else {
-			EventMsg(b->block_id, E_WARNING, M_SETUP_ON_BLOCK_NOT_DISABLED_INIT);
+			EventMsg(b->id, E_WARNING, M_SETUP_ON_BLOCK_NOT_DISABLED_INIT);
 		}
 	}
 		break;
@@ -117,7 +156,7 @@ void Setup(BlockNode *b) {
 		if (b->status == STATUS_DISABLED_INIT) {
 			RuleSetup(b);
 		} else {
-			EventMsg(b->block_id, E_WARNING, M_SETUP_ON_BLOCK_NOT_DISABLED_INIT);
+			EventMsg(b->id, E_WARNING, M_SETUP_ON_BLOCK_NOT_DISABLED_INIT);
 		}
 	}
 		break;
@@ -125,14 +164,14 @@ void Setup(BlockNode *b) {
 		if (b->status == STATUS_DISABLED_INIT) {
 			ControllerSetup(b);
 		} else {
-			EventMsg(b->block_id, E_WARNING, M_SETUP_ON_BLOCK_NOT_DISABLED_INIT);
+			EventMsg(b->id, E_WARNING, M_SETUP_ON_BLOCK_NOT_DISABLED_INIT);
 		}
 		break;
 	case FF_OUTPUT:
 		if (b->status == STATUS_DISABLED_INIT) {
 			OutputSetup(b);
 		} else {
-			EventMsg(b->block_id, E_WARNING, M_SETUP_ON_BLOCK_NOT_DISABLED_INIT);
+			EventMsg(b->id, E_WARNING, M_SETUP_ON_BLOCK_NOT_DISABLED_INIT);
 		}
 		break;
 	default:
@@ -152,7 +191,7 @@ void Operate(BlockNode *b) {
 	//  STATUS_DISABLED_INIT -> may have Setup called (all other states reject Setup())
 	//	Setup -> STATUS_ENABLED_INIT and lower.
 
-	switch (b->block_cat) {
+	switch (b->cat) {
 	case FF_SYSTEM: {
 		#ifdef UI_ATTACHED
 		UpdateUI();
@@ -196,22 +235,17 @@ void Operate(BlockNode *b) {
 	}
 }
 
-void InitDisable(BlockNode* b) {
+void InitDisableInterface(InterfaceNode * b) {
 	// Change blocks from their current status to
 	// STATUS_DISABLED_INIT which means that Operate() will not be
 	// 	called on them.
 	b->status = STATUS_DISABLED_INIT;
 }
-
-void ProcessDispatcher(void(*func)(BlockNode*)) {
-	BlockNode* block_ptr;
-
-	block_ptr = bll;
-
-	while (block_ptr != NULL) {
-		func(block_ptr);
-		block_ptr = block_ptr->next_block;
-	}
+void InitDisable(BlockNode* b) {
+	// Change blocks from their current status to
+	// STATUS_DISABLED_INIT which means that Operate() will not be
+	// 	called on them.
+	b->status = STATUS_DISABLED_INIT;
 }
 
 BlockNode* GetLastBlockAddr(void) {
@@ -220,8 +254,8 @@ BlockNode* GetLastBlockAddr(void) {
 	block_ptr = bll;
 
 	if (block_ptr != NULL) {
-		while (block_ptr->next_block != NULL) {
-			block_ptr = block_ptr->next_block;
+		while (block_ptr->next != NULL) {
+			block_ptr = block_ptr->next;
 		}
 		return block_ptr;
 	} else {
@@ -235,24 +269,66 @@ BlockNode* GetBlockByID(BlockNode *head, uint16_t block_id) {
 	BlockNode* walker;
 	walker = head;
 	while(walker != NULL) {
-		if(walker->block_id == block_id) {
+		if(walker->id == block_id) {
 			return walker;
 		} else {
-			walker = walker->next_block;
+			walker = walker->next;
 		}
 	}
 	return walker;
+}
+
+InterfaceNode* GetInterfaceByID(InterfaceNode *head, uint16_t block_id) {
+	// Iterative rather than recursive to save stack space
+	// Returns NULL if end of block list reached without matching
+	InterfaceNode* walker;
+	walker = head;
+	while(walker != NULL) {
+		if(walker->id == block_id) {
+			return walker;
+		} else {
+			walker = walker->next;
+		}
+	}
+	return walker;
+}
+
+InterfaceNode* GetInterfaceByID(uint16_t id) {
+	InterfaceNode* walker;
+	walker = ill;
+	while(walker != NULL) {
+		if(walker->id == id) {
+			return walker;
+		} else {
+			walker = walker->next;
+		}
+	}
+	return walker;
+}
+
+uint16_t GetInterfaceIDByLabel(const char* label) {
+	// Returns 0 if end of block list reached without matching
+	InterfaceNode* walker;
+	walker = ill;
+	while(walker != NULL) {
+		if(strcmp(walker->label, label) == 0) {
+			return walker->id;
+		} else {
+			walker = walker->next;
+		}
+	}
+	return 0;
 }
 
 uint8_t SetCommand(uint16_t block_id, uint8_t cmd_msg) {
 	BlockNode *b;
 	b = GetBlockByID(bll, block_id);
 	if (b) {
-		if (b->block_cat == FF_OUTPUT) {
+		if (b->cat == FF_OUTPUT) {
 			b->settings.out.command = cmd_msg;
 			return cmd_msg;
 		} else {
-			DebugLog(b->block_id, E_ERROR, M_CMD_TO_BLOCK_NOT_OUTPUT);
+			DebugLog(b->id, E_ERROR, M_CMD_TO_BLOCK_NOT_OUTPUT);
 			return M_FF_ERROR;
 		}
 	} else {
@@ -301,18 +377,28 @@ uint16_t GetBlockIDByLabel(const char* label, bool report_fail) {
 	// Within itch this is being called to check for existence of complete
 	// labels in the parser and is called with report_fail = false for normal
 	// itch behaviour when looking up partial labels
-	BlockNode* temp;
+	BlockNode* b;
+	InterfaceNode* i;
 	char debug_msg[MAX_LOG_LINE_LENGTH];
 
-	temp = bll;
+	b = bll;
+	i = ill;
 
-	while (temp != NULL) {
-		if (strcmp(temp->block_label, label) == 0) {
-			return temp->block_id;
+	while (b != NULL) {
+		if (strcmp(b->label, label) == 0) {
+			return b->id;
 		} else {
-			temp = temp->next_block;
+			b = b->next;
 		}
 	}
+	while (i != NULL) {
+		if (strcmp(i->label, label) == 0) {
+			return i->id;
+		} else {
+			i = i->next;
+		}
+	}
+
 	if (report_fail == true) {
 		char msg_str[31];
 		strcpy_hal(msg_str, F("ERROR: B-Label Not Found: [%s]"));
@@ -323,6 +409,14 @@ uint16_t GetBlockIDByLabel(const char* label, bool report_fail) {
 }
 
 char const* GetBlockLabelString(uint16_t block_id) {
+	// Return a pointer to the label string of the block
+	// identified by block_id
+
+	BlockNode* b;
+	InterfaceNode *i;
+	char debug_msg[MAX_LOG_LINE_LENGTH];
+	b = bll;
+	i = ill;
 
 	if (block_id == BLOCK_ID_NA) {
 		return "NA";
@@ -332,27 +426,36 @@ char const* GetBlockLabelString(uint16_t block_id) {
 		return "\0";
 	}
 
-	BlockNode* temp;
-	char debug_msg[MAX_LOG_LINE_LENGTH];
-	temp = bll;
-	while (temp != NULL) {
-		if (temp->block_id == block_id) {
-				return temp->block_label;
-			} else {
-				temp = temp->next_block;
-			}
+	while (b != NULL) {
+		if (b->id == block_id) {
+				return b->label;
 		}
-		// Block Label not found
-		if (block_id == SSS) {
-			// Possibly pre-config message
-			return "SYSTEM-NOCONFIG";
+		b = b->next;
+	}
+
+	// not found in bll
+
+	while (i != NULL) {
+		if (i->id == block_id) {
+				return i->label;
 		}
-		char msg_str[30];
-		strcpy_hal(msg_str, F("ERROR: B-ID Not Found: [%d]"));
-		sprintf(debug_msg, msg_str, block_id);
-		// XXX This should raise an Event Message too
-		DebugLog(debug_msg);
+		i = i->next;
+	}
+
+	char msg_str[30];
+	// Block Label not found
+	if (block_id == SSS) {
+		// Possibly pre-config message
+		//return "SYSTEM-NOCONFIG";
+		//XXX
 		return NULL;
+	}
+
+	strcpy_hal(msg_str, F("ERROR: B-ID Not Found: [%d]"));
+	sprintf(debug_msg, msg_str, block_id);
+	// XXX This should raise an Event Message too
+	DebugLog(debug_msg);
+	return NULL;
 }
 
 
@@ -360,131 +463,478 @@ BlockNode* GetBlockListHead(void) {
 	return bll;
 }
 
-BlockNode* AddBlockNode(BlockNode** head_ref, uint8_t block_cat, const char *block_label) {
-	BlockNode* new_block;
-
-	if (*head_ref == NULL) {   //empty list or end of list - add the block
-		// common settings and setting holders for all blocks
-		new_block = (BlockNode *) malloc(sizeof(BlockNode));
-		if (new_block == NULL) {
-			DebugLog(SSS, E_STOP, M_ADDBLOCK_ERROR);
-			while (1)
-				;
-		} else {
-//			DebugLog("(AddBlock) malloc OK");
-		}
-		new_block->next_block = NULL;
-		new_block->block_label = NULL;
-		#ifndef	EXCLUDE_DISPLAYNAME
-			new_block->display_name = NULL;
-		#endif
-		#ifndef EXCLUDE_DESCRIPTION
-			new_block->description = NULL;
-		#endif
-
-		new_block->block_cat = block_cat;
-		new_block->block_type = UINT8_INIT;
-
-		// initialise operational, run-time block data
-		new_block->active = 0;
-		new_block->bool_val = 0;
-		new_block->int_val = INT32_INIT;
-		new_block->f_val = FLOAT_INIT;
-		new_block->last_update = UINT32_INIT;
-		new_block->last_logged = UINT32_INIT;
-		// New blocks are disabled by default
-		new_block->status = STATUS_DISABLED_INIT;
-
-		if (block_cat != FF_GENERIC_BLOCK) {
-
-			if (block_cat == FF_SYSTEM) {
-				new_block->block_id = SSS;
-			} else {
-				new_block->block_id = BLOCK_ID_BASE + block_count;
-				block_count++;
-			}
-
-			//strcpy(new_block->block_label, block_label);
-
-			if(block_label != NULL) {
-				// XXX add null checks
-				new_block->block_label = (char *)malloc( (strlen(block_label)+1) * sizeof(char) );
-				strcpy(new_block->block_label, block_label);
-			} else {
-				new_block->block_label = NULL;
-			}
-
-			#ifndef	EXCLUDE_DISPLAYNAME
-			//new_block->display_name[0] = '\0';
-			new_block->display_name = NULL;
-			#endif
-			#ifndef EXCLUDE_DESCRIPTION
-			//new_block->description[0] = '\0';
-			new_block->description = NULL;
-			#endif
-
-			switch (block_cat) {
-				case FF_SYSTEM:
-					new_block->settings.sys.language = ENGLISH;
-					new_block->settings.sys.temp_scale = UNIT_ERROR;
-					new_block->settings.sys.week_start = SUN;
-					new_block->settings.sys.start_delay = 0;
-					break;
-				case FF_INPUT:
-					new_block->settings.in.interface = IF_ERROR;
-					new_block->settings.in.if_num = UINT8_INIT;
-					new_block->settings.in.log_rate = TV_TYPE_INIT;
-					new_block->settings.in.poll_rate = TV_TYPE_INIT;
-					new_block->settings.in.data_units = UNIT_ERROR;
-					new_block->settings.in.data_type = UINT8_INIT;
-					break;
-				case FF_MONITOR:
-					new_block->settings.mon.input1 = BLOCK_ID_INIT;
-					new_block->settings.mon.input2 = BLOCK_ID_INIT;
-					new_block->settings.mon.input3 = BLOCK_ID_INIT;
-					new_block->settings.mon.input4 = BLOCK_ID_INIT;
-					new_block->settings.mon.act_val = FLOAT_INIT;
-					new_block->settings.mon.deact_val = FLOAT_INIT;
-					break;
-				case FF_SCHEDULE:
-					for (int i = 0; i < LAST_DAY; i++)
-					new_block->settings.sch.days[i] = UINT8_INIT;
-					new_block->settings.sch.time_start = UINT32_INIT;
-					new_block->settings.sch.time_end = UINT32_INIT;
-					new_block->settings.sch.time_duration = 0;
-					new_block->settings.sch.time_repeat = 0;
-					break;
-				case FF_RULE:
-					new_block->settings.rl.param1 = BLOCK_ID_INIT;
-					new_block->settings.rl.param2 = BLOCK_ID_INIT;
-					new_block->settings.rl.param3 = BLOCK_ID_INIT;
-					new_block->settings.rl.param_not = BLOCK_ID_INIT;
-					break;
-				case FF_CONTROLLER:
-					new_block->settings.con.rule = BLOCK_ID_INIT;
-					new_block->settings.con.output = BLOCK_ID_INIT;
-					new_block->settings.con.act_cmd = CMD_ERROR;
-					new_block->settings.con.deact_cmd = CMD_ERROR;
-					break;
-				case FF_OUTPUT:
-					new_block->settings.out.interface = IF_ERROR;
-					new_block->settings.out.if_num = UINT8_INIT;
-					break;
-			} //switch
-		} // != FF_GENERIC_BLOCK
-		*head_ref = new_block;
-		return new_block;
-	}
-	return AddBlockNode(&((*head_ref)->next_block), block_cat, block_label);
-
+InterfaceNode* GetInterfaceListHead(void) {
+	return ill;
 }
 
-uint8_t GetBlockCatIDByName(char* name) {
+BlockNode* NewBlockNode(uint8_t block_cat, const char *block_label) {
+	BlockNode* new_block;
+
+	// common settings and setting holders for all blocks
+	new_block = (BlockNode *) malloc(sizeof(BlockNode));
+	if (new_block == NULL) {
+		DebugLog(SSS, E_STOP, M_ADDBLOCK_ERROR);
+		while (1)
+			;
+	} else {
+		//			DebugLog("(AddBlock) malloc OK");
+	}
+	new_block->next = NULL;
+	new_block->label = NULL;
+	#ifndef	EXCLUDE_DISPLAYNAME
+		new_block->display_name = NULL;
+	#endif
+	#ifndef EXCLUDE_DESCRIPTION
+		new_block->description = NULL;
+	#endif
+
+	new_block->cat = block_cat;
+	new_block->type = UINT8_INIT;
+
+	// initialise operational, run-time block data
+	new_block->active = 0;
+	new_block->bool_val = 0;
+	new_block->int_val = INT32_INIT;
+	new_block->f_val = FLOAT_INIT;
+	//new_block->last_update = UINT32_INIT;
+	//new_block->last_logged = UINT32_INIT;
+	// New blocks are disabled by default
+	new_block->status = STATUS_DISABLED_INIT;
+
+	if (block_cat != FF_GENERIC_BLOCK) {
+
+		if (block_cat == FF_SYSTEM) {
+			new_block->id = SSS;
+		} else {
+			new_block->id = BLOCK_ID_BASE + block_count;
+			block_count++;
+		}
+
+		if(block_label != NULL) {
+			// XXX add null checks
+			new_block->label = (char *)malloc( (strlen(block_label)+1) * sizeof(char) );
+			strcpy(new_block->label, block_label);
+		} else {
+			new_block->label = NULL;
+		}
+
+#ifndef	EXCLUDE_DISPLAYNAME
+		//new_block->display_name[0] = '\0';
+		new_block->display_name = NULL;
+#endif
+#ifndef EXCLUDE_DESCRIPTION
+		//new_block->description[0] = '\0';
+		new_block->description = NULL;
+#endif
+
+		switch (block_cat) {
+			case FF_SYSTEM:
+				new_block->settings.sys.language = ENGLISH;
+				new_block->settings.sys.temp_scale = UNIT_ERROR;
+				new_block->settings.sys.week_start = SUN;
+				new_block->settings.sys.start_delay = 0;
+				break;
+			case FF_INPUT:
+				new_block->settings.in.interface = BLOCK_ID_INIT;
+				//new_block->settings.in.if_num = UINT8_INIT;
+				new_block->settings.in.log_rate = UINT16_INIT;
+				new_block->settings.in.poll_rate = UINT16_INIT;
+				new_block->settings.in.last_polled = UINT32_INIT;
+				new_block->settings.in.last_logged = UINT32_INIT;
+
+				new_block->settings.in.data_units = UNIT_ERROR;
+				new_block->settings.in.data_type = UINT8_INIT;
+				break;
+			case FF_MONITOR:
+				new_block->settings.mon.input1 = BLOCK_ID_INIT;
+				new_block->settings.mon.input2 = BLOCK_ID_INIT;
+				new_block->settings.mon.input3 = BLOCK_ID_INIT;
+				new_block->settings.mon.input4 = BLOCK_ID_INIT;
+				new_block->settings.mon.act_val = FLOAT_INIT;
+				new_block->settings.mon.deact_val = FLOAT_INIT;
+				break;
+			case FF_SCHEDULE:
+				for (int i = 0; i < LAST_DAY; i++)
+					new_block->settings.sch.days[i] = UINT8_INIT;
+				new_block->settings.sch.time_start = UINT32_INIT;
+				new_block->settings.sch.time_end = UINT32_INIT;
+				new_block->settings.sch.time_duration = 0;
+				new_block->settings.sch.time_repeat = 0;
+				break;
+			case FF_RULE:
+				new_block->settings.rl.param1 = BLOCK_ID_INIT;
+				new_block->settings.rl.param2 = BLOCK_ID_INIT;
+				new_block->settings.rl.param3 = BLOCK_ID_INIT;
+				new_block->settings.rl.param_not = BLOCK_ID_INIT;
+				break;
+			case FF_CONTROLLER:
+				new_block->settings.con.rule = BLOCK_ID_INIT;
+				new_block->settings.con.output = BLOCK_ID_INIT;
+				new_block->settings.con.act_cmd = CMD_ERROR;
+				new_block->settings.con.deact_cmd = CMD_ERROR;
+				break;
+			case FF_OUTPUT:
+				new_block->settings.out.interface = IF_ERROR;
+				new_block->settings.out.if_num = UINT8_INIT;
+				new_block->settings.out.command = CMD_INIT;
+				break;
+		} //switch
+	} // != FF_GENERIC_BLOCK
+
+	return new_block;
+}
+
+InterfaceNode* NewInterfaceNode(uint8_t if_type, const char *label) {
+	InterfaceNode* new_if;
+
+	new_if = (InterfaceNode *) malloc(sizeof(InterfaceNode));
+	if (new_if == NULL) {
+		DebugLog(SSS, E_STOP, M_ADDBLOCK_ERROR);
+		while (1)
+			;
+	}
+	new_if->next = NULL;
+	new_if->label = NULL;
+	#ifndef	EXCLUDE_DISPLAYNAME
+	new_if->display_name = NULL;
+	#endif
+	#ifndef EXCLUDE_DESCRIPTION
+	new_if->description = NULL;
+	#endif
+
+	new_if->type = if_type;
+	new_if->status = STATUS_DISABLED_INIT;
+
+	new_if->id = BLOCK_ID_BASE + block_count;
+	block_count++;
+
+	if (label != NULL) {
+		// XXX add null checks
+		new_if->label = (char *) malloc((strlen(label) + 1) * sizeof(char));
+		strcpy(new_if->label, label);
+	} else {
+		new_if->label = NULL;
+	}
+
+	switch (new_if->type) {
+		case IF_WIFI: {
+			//"IF_WIFI"
+			InterfaceWIFI* ifs; 	// IF Settings
+			ifs = (InterfaceWIFI *)malloc(sizeof(InterfaceWIFI));
+			if (ifs) {
+				//ifs->gateway_staic = {0, 0, 0, 0};
+				//ifs->ip_static = {0, 0, 0, 0};
+				//ifs->netmask_static = {0, 0, 0, 0};
+				//ifs->static_address = 0;
+				//ifs->wifi_ssid = "";
+				//ifs->wpa_psk = "";
+				new_if->IFSettings = ifs;
+			} else {
+				EventMsg(SSS, E_STOP, M_ADDIFS_MALLOC_NULL);
+				#ifdef PLATFORM_ARDUINO
+					while(1);
+				#endif
+				#ifdef PLATFORM_LINUX
+					exit(-1);
+				#endif
+			}
+			break;
+		}
+		case IF_ETHERNET: {
+			//"IF_ETHERNET"
+			InterfaceETHERNET* ifs; 	// IF Settings
+			ifs = (InterfaceETHERNET *)malloc(sizeof(InterfaceETHERNET));
+			if (ifs) {
+				//ifs->ip_gateway = (0, 0, 0, 0);
+				//ifs->ip_static = {0, 0, 0, 0};
+				//ifs->ip_netmask = {0, 0, 0, 0};
+				ifs->static_address = 0;
+				new_if->IFSettings = ifs;
+			} else {
+				EventMsg(SSS, E_STOP, M_ADDIFS_MALLOC_NULL);
+				#ifdef PLATFORM_ARDUINO
+					while(1);
+				#endif
+				#ifdef PLATFORM_LINUX
+					exit(-1);
+				#endif
+			}
+			break;
+		}
+		case IF_PWM_IN: {
+			//"IF_PWM_IN"
+			InterfacePWM_IN* ifs; 	// IF Settings
+			ifs = (InterfacePWM_IN *)malloc(sizeof(InterfacePWM_IN));
+			if (ifs) {
+				// Field initialisers here
+				new_if->IFSettings = ifs;
+			} else {
+				EventMsg(SSS, E_STOP, M_ADDIFS_MALLOC_NULL);
+				#ifdef PLATFORM_ARDUINO
+					while(1);
+				#endif
+				#ifdef PLATFORM_LINUX
+					exit(-1);
+				#endif
+			}
+			break;
+		}
+		case IF_PWM_OUT: {
+			//"IF_PWM_OUT"
+			InterfacePWM_OUT* ifs; 	// IF Settings
+			ifs = (InterfacePWM_OUT *)malloc(sizeof(InterfacePWM_OUT));
+			if (ifs) {
+				// Field initialisers here
+				new_if->IFSettings = ifs;
+			} else {
+				EventMsg(SSS, E_STOP, M_ADDIFS_MALLOC_NULL);
+				#ifdef PLATFORM_ARDUINO
+					while(1);
+				#endif
+				#ifdef PLATFORM_LINUX
+					exit(-1);
+				#endif
+			}
+			break;
+		}
+		case IF_PPM_IN: {
+			//"IF_PPM_IN"
+			InterfacePPM_IN* ifs; 	// IF Settings
+			ifs = (InterfacePPM_IN *)malloc(sizeof(InterfacePPM_IN));
+			if (ifs) {
+				// Field initialisers here
+				new_if->IFSettings = ifs;
+			} else {
+				EventMsg(SSS, E_STOP, M_ADDIFS_MALLOC_NULL);
+				#ifdef PLATFORM_ARDUINO
+					while(1);
+				#endif
+				#ifdef PLATFORM_LINUX
+					exit(-1);
+				#endif
+			}
+			break;
+		}
+		case IF_PPM_OUT: {
+			//"IF_PPM_OUT"
+			InterfacePPM_OUT* ifs; 	// IF Settings
+			ifs = (InterfacePPM_OUT *)malloc(sizeof(InterfacePPM_OUT));
+			if (ifs) {
+				// Field initialisers here
+				new_if->IFSettings = ifs;
+			} else {
+				EventMsg(SSS, E_STOP, M_ADDIFS_MALLOC_NULL);
+				#ifdef PLATFORM_ARDUINO
+					while(1);
+				#endif
+				#ifdef PLATFORM_LINUX
+					exit(-1);
+				#endif
+			}
+			break;
+		}
+		case IF_DS1820B: {
+			//"IF_DS1820B"
+			InterfaceDS1820B* ifs; 	// IF Settings
+			ifs = (InterfaceDS1820B *)malloc(sizeof(InterfaceDS1820B));
+			if (ifs) {
+				// Field initialisers here
+				ifs->bus_pin = UINT8_INIT;
+				DallasAddressStringToArray("00:00:00:00:00:00:00:00", ifs->dallas_address);
+				ifs->in_progress = 0;
+				new_if->IFSettings = ifs;
+			} else {
+				EventMsg(SSS, E_STOP, M_ADDIFS_MALLOC_NULL);
+				#ifdef PLATFORM_ARDUINO
+					while(1);
+				#endif
+				#ifdef PLATFORM_LINUX
+					exit(-1);
+				#endif
+			}
+			break;
+		}
+		case IF_ONEWIRE_BUS: {
+			//"IF_ONEWIRE_BUS"
+			InterfaceONEWIRE_BUS* ifs; 	// IF Settings
+			ifs = (InterfaceONEWIRE_BUS *)malloc(sizeof(InterfaceONEWIRE_BUS));
+			if (ifs) {
+				ifs->bus_pin = UINT8_INIT;
+				ifs->device_count = UINT8_INIT;
+				new_if->IFSettings = ifs;
+			} else {
+				EventMsg(SSS, E_STOP, M_ADDIFS_MALLOC_NULL);
+				#ifdef PLATFORM_ARDUINO
+					while(1);
+				#endif
+				#ifdef PLATFORM_LINUX
+					exit(-1);
+				#endif
+			}
+			break;
+		}
+		case IF_DIG_PIN_IN: {
+			//"IF_DIG_PIN_IN"
+			InterfaceDIG_PIN_IN* ifs; 	// IF Settings
+			ifs = (InterfaceDIG_PIN_IN *)malloc(sizeof(InterfaceDIG_PIN_IN));
+			if (ifs) {
+				// Field initialisers here
+				new_if->IFSettings = ifs;
+			} else {
+				EventMsg(SSS, E_STOP, M_ADDIFS_MALLOC_NULL);
+				#ifdef PLATFORM_ARDUINO
+					while(1);
+				#endif
+				#ifdef PLATFORM_LINUX
+					exit(-1);
+				#endif
+			}
+			break;
+		}
+		case IF_DIG_PIN_OUT: {
+			//"IF_DIG_PIN_OUT"
+			InterfaceDIG_PIN_OUT* ifs; 	// IF Settings
+			ifs = (InterfaceDIG_PIN_OUT *)malloc(sizeof(InterfaceDIG_PIN_OUT));
+			if (ifs) {
+				// Field initialisers here
+				new_if->IFSettings = ifs;
+			} else {
+				EventMsg(SSS, E_STOP, M_ADDIFS_MALLOC_NULL);
+				#ifdef PLATFORM_ARDUINO
+					while(1);
+				#endif
+				#ifdef PLATFORM_LINUX
+					exit(-1);
+				#endif
+			}
+			break;
+		}
+		case IF_VED_VOLTAGE: {
+			//"IF_VED_VOLTAGE"
+			InterfaceVED_VOLTAGE* ifs; 	// IF Settings
+			ifs = (InterfaceVED_VOLTAGE *)malloc(sizeof(InterfaceVED_VOLTAGE));
+			if (ifs) {
+				// Field initialisers here
+				new_if->IFSettings = ifs;
+			} else {
+				EventMsg(SSS, E_STOP, M_ADDIFS_MALLOC_NULL);
+				#ifdef PLATFORM_ARDUINO
+					while(1);
+				#endif
+				#ifdef PLATFORM_LINUX
+					exit(-1);
+				#endif
+			}
+			break;
+		}
+		case IF_VED_CURRENT: {
+			//"IF_VED_CURRENT"
+			InterfaceVED_CURRENT* ifs; 	// IF Settings
+			ifs = (InterfaceVED_CURRENT *)malloc(sizeof(InterfaceVED_CURRENT));
+			if (ifs) {
+				// Field initialisers here
+				new_if->IFSettings = ifs;
+			} else {
+				EventMsg(SSS, E_STOP, M_ADDIFS_MALLOC_NULL);
+				#ifdef PLATFORM_ARDUINO
+					while(1);
+				#endif
+				#ifdef PLATFORM_LINUX
+					exit(-1);
+				#endif
+			}
+			break;
+		}
+		case IF_VED_POWER: {
+			//"IF_VED_POWER"
+			InterfaceVED_POWER* ifs; 	// IF Settings
+			ifs = (InterfaceVED_POWER *)malloc(sizeof(InterfaceVED_POWER));
+			if (ifs) {
+				// Field initialisers here
+				new_if->IFSettings = ifs;
+			} else {
+				EventMsg(SSS, E_STOP, M_ADDIFS_MALLOC_NULL);
+				#ifdef PLATFORM_ARDUINO
+					while(1);
+				#endif
+				#ifdef PLATFORM_LINUX
+					exit(-1);
+				#endif
+			}
+			break;
+		}
+		case IF_VED_SOC: {
+			//"IF_VED_SOC"
+			InterfaceVED_SOC* ifs; 	// IF Settings
+			ifs = (InterfaceVED_SOC *)malloc(sizeof(InterfaceVED_SOC));
+			if (ifs) {
+				// Field initialisers here
+				new_if->IFSettings = ifs;
+			} else {
+				EventMsg(SSS, E_STOP, M_ADDIFS_MALLOC_NULL);
+				#ifdef PLATFORM_ARDUINO
+					while(1);
+				#endif
+				#ifdef PLATFORM_LINUX
+					exit(-1);
+				#endif
+			}
+			break;
+		}
+		case IF_HW_SERIAL: {
+			//"IF_VED_SOC"
+			InterfaceHW_SERIAL* ifs; 	// IF Settings
+			ifs = (InterfaceHW_SERIAL *)malloc(sizeof(InterfaceHW_SERIAL));
+			if (ifs) {
+				// Field initialisers here
+				new_if->IFSettings = ifs;
+			} else {
+				EventMsg(SSS, E_STOP, M_ADDIFS_MALLOC_NULL);
+				#ifdef PLATFORM_ARDUINO
+					while(1);
+				#endif
+				#ifdef PLATFORM_LINUX
+					exit(-1);
+				#endif
+			}
+			break;
+		}
+		default:
+			return 0; // catch-all error
+	}
+	return new_if;
+}
+
+uint8_t GetBlockCatIdxByBID(uint16_t bid) {
+	BlockNode* b;
+	InterfaceNode* i;
+
+	b = bll;
+	i = ill;
+
+	while (b != NULL) {
+		if (b->id == bid) {
+			return b->cat;
+		} else {
+			b = b->next;
+		}
+	}
+	while (i != NULL) {
+		if (i->id == bid)  {
+			return FF_INTERFACE;
+		} else {
+			i = i->next;
+		}
+	}
+	return FF_ERROR_CAT;
+}
+
+uint8_t GetBlockCatIdxByBlockCatName(char* name) {
 	uint8_t id = LAST_BLOCK_CAT - 1;
 	char cat_name[MAX_LABEL_LENGTH];
 
  	for (; id > 0; id--) {
-		strcpy_hal(cat_name, block_cat_names[id].text);
+		strcpy_hal(cat_name, block_cat_strings[id].text);
 		if (strcasecmp(name, cat_name) == 0) {
 			return id;
 		}
@@ -493,59 +943,122 @@ uint8_t GetBlockCatIDByName(char* name) {
 }
 
 uint8_t DeleteBlockByID(uint16_t bid) {
-	BlockNode* walker = bll;
-	BlockNode* previous = bll;
-	while (walker != NULL) {
-		if(walker->block_id == bid) {
+	BlockNode* bwalker = bll;
+	BlockNode* bprevious = bll;
+
+	InterfaceNode* iwalker = ill;
+	InterfaceNode* iprevious = ill;
+
+	// Check normal block list first
+	while (bwalker != NULL) {
+		if(bwalker->id == bid) {
 			//found - delete it
-			if (walker == bll) {
+			if (bwalker == bll) {
 				//special case - head of list
-				bll = walker->next_block;
-				free(walker->block_label);
-				free(walker);
+				bll = bwalker->next;
+				free(bwalker->label);
+				free(bwalker);
 				return 1;
 			} else {
 				//delete and relink previous to next
-				previous->next_block = walker->next_block;
-				free(walker->block_label);
-				free(walker);
+				bprevious->next = bwalker->next;
+				free(bwalker->label);
+				free(bwalker);
 				return 1;
 			}
 		} else {
-			// wasn't that one, move to next keeping track of previous
-			previous = walker;
-			walker = walker->next_block;
+			// wasn't that one, move to next keeping track of bprevious
+			bprevious = bwalker;
+			bwalker = bwalker->next;
 		}
 	}
-	return 0; //error
+	if (bwalker == NULL) {
+		// Search interface list
+		while (iwalker != NULL) {
+			if(iwalker->id == bid) {
+				//found - delete it
+				if (iwalker == ill) {
+					//special case - head of list
+					ill = iwalker->next;
+					free(iwalker->label);
+					free(iwalker->IFSettings);
+					free(iwalker);
+					return 1;
+				} else {
+					//delete and relink previous to next
+					iprevious->next = iwalker->next;
+					free(iwalker->label);
+					free(iwalker->IFSettings);
+					free(iwalker);
+					return 1;
+				}
+			} else {
+				// wasn't that one, move to next keeping track of previous
+				iprevious = iwalker;
+				iwalker = iwalker->next;
+			}
+		}
+
+	}
+	return 0; // ID not found
 }
 
 uint8_t DeleteBlockByLabel(const char *label) {
 	// In an edge case of a duplicate block ID with a different label
 	// this deletes based on label search rather than a label lookup
 	// for ID and then delete by ID
-	BlockNode* walker = bll;
-	BlockNode* previous = bll;
-	while (walker != NULL) {
-		if(strcmp(walker->block_label, label) == 0) {
+	BlockNode* bwalker = bll;
+	BlockNode* bprevious = bll;
+
+	InterfaceNode* iwalker = ill;
+	InterfaceNode* iprevious = ill;
+
+	// Check normal block list first
+	while (bwalker != NULL) {
+		if(strcmp(bwalker->label, label) == 0) {
 			//found - delete it
-			if (walker == bll) {
+			if (bwalker == bll) {
 				//special case - head of list
-				bll = walker->next_block;
-				free(walker->block_label);
-				free(walker);
+				bll = bwalker->next;
+				free(bwalker->label);
+				free(bwalker);
 				return 1;
 			} else {
 				//delete and relink previous to next
-				previous->next_block = walker->next_block;
-				free(walker->block_label);
-				free(walker);
+				bprevious->next = bwalker->next;
+				free(bwalker->label);
+				free(bwalker);
 				return 1;
 			}
 		} else {
 			// wasn't that one, move to next keeping track of previous
-			previous = walker;
-			walker = walker->next_block;
+			bprevious = bwalker;
+			bwalker = bwalker->next;
+		}
+		if (bwalker == NULL) {
+			// search the interface list
+			while (iwalker != NULL) {
+				if(strcmp(iwalker->label, label) == 0) {
+					//found - delete it
+					if (iwalker == ill) {
+						//special case - head of list
+						ill = iwalker->next;
+						free(iwalker->label);
+						free(iwalker);
+						return 1;
+					} else {
+						//delete and relink previous to next
+						iprevious->next = iwalker->next;
+						free(iwalker->label);
+						free(iwalker);
+						return 1;
+					}
+				} else {
+					// wasn't that one, move to next keeping track of previous
+					iprevious = iwalker;
+					iwalker = iwalker->next;
+				}
+			}
 		}
 	}
 	return 0; //error
@@ -559,14 +1072,37 @@ BlockNode* AddBlock(uint8_t block_cat, const char *block_label) {
 	//  and only call AddBlockNode function once at the end of the list
 
 	if (bll == NULL) {
-		return AddBlockNode(&bll, block_cat, block_label);
+		bll = NewBlockNode(block_cat, block_label);
+		return bll;
 	} else {
 
 		BlockNode* walker = bll;
-		while(walker->next_block != NULL) {
-			walker = walker->next_block;
+		while(walker->next != NULL) {
+			walker = walker->next;
 		}
-		return AddBlockNode(&(walker->next_block), block_cat, block_label);
+		walker->next = NewBlockNode(block_cat, block_label);
+		return walker->next;
+	}
+}
+
+InterfaceNode* AddInterface(uint8_t if_type, const char *label) {
+	// Low level function to add an interface to the list
+	// Note: no checking for duplicates or existence.
+	// Use higher level function ConfigureIFBlock for safer application
+	// Implementation: to save stack memory, iterate down the block list
+	//  and only call AddBlockNode function once at the end of the list
+
+	if (ill == NULL) {
+		ill = NewInterfaceNode(if_type, label);
+		return ill;
+	} else {
+
+		InterfaceNode* walker = ill;
+		while(walker->next != NULL) {
+			walker = walker->next;
+		}
+		walker->next = NewInterfaceNode(if_type, label);
+		return walker->next;
 	}
 }
 
@@ -578,12 +1114,12 @@ char* UpdateBlockLabel(BlockNode* b, const char * block_label) {
 	// b->label != NULL and block_label == NULL - free b->label (Existing label to be NULL'd and freed)
 	// b->label != NULL and block_label != NULL - realloc b->label (Different label - free and re-malloc)
 
-	if (b->block_label == NULL) {
+	if (b->label == NULL) {
 		// not previously malloced
 		if (block_label != NULL) {
-			b->block_label = (char *)malloc( (strlen(block_label)+1) * sizeof(char) );
+			b->label = (char *)malloc( (strlen(block_label)+1) * sizeof(char) );
 			// XXX add null check and debug throw
-			strcpy(b->block_label, block_label);
+			strcpy(b->label, block_label);
 		} else {
 			// block_label is NULL
 			return NULL;
@@ -592,18 +1128,18 @@ char* UpdateBlockLabel(BlockNode* b, const char * block_label) {
 		// b->block label already assigned
 		if(block_label == NULL) {
 			// update to NULL
-			free(b->block_label);
-			b->block_label = NULL;
+			free(b->label);
+			b->label = NULL;
 			return NULL;
 		} else {
 			// XXX realloc fails at link time. Workaround: free and malloc again
-			free(b->block_label);
-			b->block_label = (char *)malloc( (strlen(block_label)+1) * sizeof(char) );
+			free(b->label);
+			b->label = (char *)malloc( (strlen(block_label)+1) * sizeof(char) );
 			// XXX add null check and debug throw
-			strcpy(b->block_label, block_label);
+			strcpy(b->label, block_label);
 		}
 	}
-	return b->block_label;
+	return b->label;
 }
 
 #ifndef EXCLUDE_DISPLAYNAME
@@ -688,10 +1224,10 @@ BlockNode* GetBlockNodeByLabel(BlockNode *head, const char *block_label) {
 	BlockNode* walker;
 	walker = head;
 	while(walker != NULL) {
-		if (strcmp(walker->block_label, block_label) == 0) {
+		if (strcmp(walker->label, block_label) == 0) {
 			return walker;
 		} else {
-			walker = walker->next_block;
+			walker = walker->next;
 		}
 	}
 	return walker;
@@ -701,6 +1237,43 @@ BlockNode* GetBlockByLabel(const char *block_label) {
 	return GetBlockNodeByLabel(bll, block_label);
 }
 
+InterfaceNode* GetInterfaceNodeByLabel(InterfaceNode *head, const char* label) {
+	InterfaceNode* walker;
+	walker = head;
+	while(walker != NULL) {
+		if (strcmp(walker->label, label) == 0) {
+			return walker;
+		} else {
+			walker = walker->next;
+		}
+	}
+	return walker;
+}
+
+InterfaceNode* GetInterfaceByLabel(const char* label) {
+	return GetInterfaceNodeByLabel(ill, label);
+}
+
+uint16_t GetInterfaceWithMatchingDallas(uint8_t addr[8]) {
+	// Scan the interface list searching IF_DS1820B types
+	// compare the address and if the same return the block_id
+	// else return 0
+	InterfaceNode *b;
+	InterfaceDS1820B *ifs;
+	b = ill;
+	while (b != NULL) {
+		if (b->type == IF_DS1820B) {
+			ifs = (InterfaceDS1820B *)b->IFSettings;
+			if (DallasCompare(addr, ifs->dallas_address) == 0) {
+				return b->id;
+			}
+		}
+		b = b->next;
+	}
+	return 0;
+}
+
+
 void DropBlockList(void) {
 	BlockNode* block_ptr;
 	BlockNode* next_ptr;
@@ -708,8 +1281,8 @@ void DropBlockList(void) {
 	block_ptr = bll;
 
 	while (block_ptr != NULL) {
-		next_ptr = block_ptr->next_block;
-		free(block_ptr->block_label);
+		next_ptr = block_ptr->next;
+		free(block_ptr->label);
 		#ifndef	EXCLUDE_DISPLAYNAME
 			free(block_ptr->display_name);
 		#endif
@@ -722,6 +1295,27 @@ void DropBlockList(void) {
 	bll = NULL;
 }
 
+void DropInterfaceList(void) {
+	InterfaceNode* block_ptr;
+	InterfaceNode* next_ptr;
+
+	block_ptr = ill;
+
+	while (block_ptr != NULL) {
+		next_ptr = block_ptr->next;
+		free(block_ptr->label);
+		free(block_ptr->IFSettings);
+		#ifndef	EXCLUDE_DISPLAYNAME
+			free(block_ptr->display_name);
+		#endif
+		#ifndef EXCLUDE_DESCRIPTION
+			free(block_ptr->description);
+		#endif
+		free(block_ptr);
+		block_ptr = next_ptr;
+	}
+	ill = NULL;
+}
 
 /********************************************************************************************
  * ITCH Integration Handlers
@@ -732,46 +1326,187 @@ uint8_t RegLookupBlockLabel(const char* lookup_string) {
 }
 
 void RegShowBlocks(void(*Callback)(const char *)) {
-	BlockNode* b;
-	b = bll;
-	char out[MAX_LOG_LINE_LENGTH];
-	char fmt_str[20];
+	// XXX this whole business of calculating field widths and manipulating
+	// endless strings is complete overkill merely to optimise a diagnostic
+	// display.
+	// Error checking on valid ranges is however critical - especially
+	//  when reading out blocks that have a config file mismatched to firmware
+	//  version.
 
-	if (b == NULL) {
-		strcpy_hal(out, F("Empty List"));
+	BlockNode* b;
+	InterfaceNode* i;
+
+	char out[MAX_LOG_LINE_LENGTH];
+	char fmt[9];
+
+	uint8_t w_id = 0;
+	uint8_t w_label = 0;
+	uint8_t w_cat = 0;
+	uint8_t w_type = 0;
+	uint8_t w_status = 0;
+	uint8_t w_active = 0;
+
+	// Calculate min field widths
+	// Common to all
+	w_id = 4;		// nnnn
+	w_active = 3;	// "OFF: For Heading "ACT"
+
+	w_cat = strlen_hal(block_cat_strings[FF_INTERFACE].text);
+
+	i = ill;
+	while (i != NULL) {
+		// Label is in RAM
+		if (strlen(i->label) > w_label) {
+			w_label = strlen(i->label);
+		}
+		if (i->type < LAST_INTERFACE) {
+			if (strlen_hal(interface_type_strings[i->type].text) > w_type) {
+				w_type = strlen_hal(interface_type_strings[i->type].text);
+			}
+		} else {
+			w_type = strlen_hal(interface_type_strings[IF_ERROR].text);
+		}
+
+		if (i->status < LAST_STATUS) {
+			if (strlen_hal(status_strings[i->status].text) > w_status) {
+				w_status = strlen_hal(status_strings[i->status].text);
+			}
+		} else {
+			w_status = strlen_hal(status_strings[STATUS_ERROR].text);
+		}
+
+		i = i->next;
+	}
+
+	b = bll;
+	while (b != NULL) {
+		if (b->cat < LAST_BLOCK_CAT) {
+			if (strlen_hal(block_cat_strings[b->cat].text) > w_cat) {
+				w_cat = strlen_hal(block_cat_strings[b->cat].text);
+			}
+		} else {
+			w_cat = strlen_hal(block_cat_strings[FF_ERROR_CAT].text);
+		}
+
+		// label is in RAM
+		if (strlen(b->label) > w_label) {
+			w_label = strlen(b->label);
+		}
+
+		if (b->type < LAST_BLOCK_TYPE) {
+			if (strlen_hal(block_type_strings[b->type].text) > w_type) {
+				w_type = strlen_hal(block_type_strings[b->type].text);
+			}
+		} else {
+			w_type = strlen_hal(block_type_strings[BT_ERROR].text);
+		}
+
+		if (b->status < LAST_STATUS) {
+			if (strlen_hal(status_strings[b->status].text) > w_status) {
+				w_status = strlen_hal(status_strings[b->status].text);
+			}
+		} else {
+			w_status = strlen_hal(status_strings[LAST_STATUS].text);
+		}
+
+		b = b->next;
+	}
+
+	b = bll;
+	i = ill;
+	if ((b != NULL) || (i != NULL)) {
+		strcpy_hal(out, F("\t"));
+		strcatpad_hal(out, F("BID"), (w_id +2));
+		strcatpad_hal(out, F("LABEL"), (w_label +2));
+		strcatpad_hal(out, F("ACT"), (w_active +2));
+		strcatpad_hal(out, F("CAT"), (w_cat +2));
+		strcatpad_hal(out, F("TYPE"), (w_type +2));
+		strcatpad_hal(out, F("STATUS"), (w_status +2));
+		Callback(out);
+	}
+
+	i = ill;
+	if (i == NULL) {
+		strcpy_hal(out, F("No Interfaces"));
 		Callback(out);
 	} else {
-		strcpy_hal(out, F("\tBID\tLABEL\t\tCAT\t\tTYPE"));
-		Callback(out);
-		while(b != NULL) {
-			//strcpy_hal(fmt_str, F("\t%d\t%d\t%d\t%s"));
-			strcpy_hal(fmt_str, F("\t%d\t"));
-			sprintf(out, fmt_str, b->block_id);
+		while (i != NULL) {
+			// id is in RAM on all platforms. fmt from PROGMEM on AVR
+			strcpy_hal(fmt, F("\t%-4d  "));
+			sprintf(out, fmt, i->id);
+			// TODO - write a proper int to string func that pads
 
-			strcat(out, b->block_label);
+			// label is in RAM
+			strcatpad(out, i->label, w_label+2);
 
-			if (strlen(out) <= 20) {
-				strcat_hal(out, F("\t\t"));
+			// Active is NA for Interfaces
+			strcatpad_hal(out, F("NA"), w_active+2);
+
+			// Category string in PROGMEM on AVR
+			strcatpad_hal(out, block_cat_strings[FF_INTERFACE].text, w_cat+2);
+
+			// type string in PROGMEM on AVR
+			if (i->type < LAST_INTERFACE) {
+				strcatpad_hal(out, interface_type_strings[i->type].text, w_type+2);
 			} else {
-				strcat_hal(out, F("\t"));
+				strcatpad_hal(out, interface_type_strings[IF_ERROR].text, w_type+2);
 			}
 
-			strcat_hal(out, block_cat_names[b->block_cat].text);
-
-			if (strlen(out) > 31) {
-				strcat_hal(out, F("\t"));
+			// status string in PROGMEM on AVR
+			if (i->status < LAST_STATUS) {
+				strcatpad_hal(out, status_strings[i->status].text, w_status);
 			} else {
-				//if (strlen(out) > 29) {
-					strcat_hal(out, F("\t\t"));
-				//} else {
-				//	strcat_hal(out, F("\t\t\t"));
-				//}
+				strcatpad_hal(out, status_strings[STATUS_ERROR].text, w_status);
 			}
-			strcat_hal(out, block_type_strings[b->block_type].text);
 
-			//sprintf(out, fmt_str, b->block_id, b->block_cat, b->block_type, b->block_label);
 			Callback(out);
-			b = b->next_block;
+			i = i->next;
+		}
+	}
+
+	b = bll;
+	if (b == NULL) {
+		strcpy_hal(out, F("No Blocks"));
+		Callback(out);
+	} else {
+		while(b != NULL) {
+			// id is in RAM on all platforms. fmt from PROGMEM on AVR
+			strcpy_hal(fmt, F("\t%-4d  "));
+			sprintf(out, fmt, b->id);
+
+			// label is in RAM
+			strcatpad(out, b->label, w_label+2);
+
+			// Active is NA for Interfaces
+			if (b->active) {
+				strcatpad_hal(out, F("ON"), w_active+2);
+			} else {
+				strcatpad_hal(out, F("OFF"), w_active+2);
+			}
+
+			// Category string in PROGMEM on AVR
+			if (b->cat < LAST_BLOCK_CAT) {
+				strcatpad_hal(out, block_cat_strings[b->cat].text, w_cat+2);
+			} else {
+				strcatpad_hal(out, block_cat_strings[FF_ERROR_CAT].text, w_cat+2);
+			}
+
+			// type string in PROGMEM on AVR
+			if (b->type < LAST_BLOCK_TYPE) {
+				strcatpad_hal(out, block_type_strings[b->type].text, w_type+2);
+			} else {
+				strcatpad_hal(out, block_type_strings[BT_ERROR].text, w_type+2);
+			}
+
+			// status string in PROGMEM on AVR
+			if (b->status < LAST_STATUS) {
+				strcatpad_hal(out, status_strings[b->status].text, w_status);
+			} else {
+				strcatpad_hal(out, status_strings[STATUS_ERROR].text, w_status);
+			}
+
+			Callback(out);
+			b = b->next;
 		}
 	}
 }
@@ -787,37 +1522,48 @@ void RegShowBlockByLabel(const char* block_label, void(*Callback)(const char *))
 void RegShowBlockByID(uint16_t id, void(*Callback)(const char *)) {
 	char out_str[MAX_MESSAGE_STRING_LENGTH];	// 80
 	char fmt_str[MAX_LABEL_LENGTH];
-	//char label_str[MAX_LABEL_LENGTH];
 
 	BlockNode *b;
-	b = GetBlockByID(bll, id);
+	InterfaceNode *i;
 
-	if (b == NULL) {
+	uint8_t bcat = GetBlockCatIdxByBID(id);
+
+	if (bcat == FF_ERROR_CAT) {
 		strcpy_hal(fmt_str, F("Error: %d is not a valid block ID"));
 		sprintf(out_str, fmt_str, id);
 		Callback(out_str);
 	} else {
-
-		switch (b->block_cat) {
-			case (FF_SYSTEM):
+		switch (bcat) {
+			case FF_INTERFACE:
+				i = GetInterfaceByID(ill, id);
+				InterfaceShow(i, Callback);
+				break;
+			case FF_SYSTEM:
+				b = GetBlockByID(bll, id);
 				SystemShow(b, Callback);
 				break;
 			case FF_INPUT:
+				b = GetBlockByID(bll, id);
 				InputShow(b, Callback);
 				break;
 			case FF_MONITOR:
+				b = GetBlockByID(bll, id);
 				MonitorShow(b, Callback);
 				break;
 			case FF_SCHEDULE:
+				b = GetBlockByID(bll, id);
 				ScheduleShow(b, Callback);
 				break;
 			case FF_RULE:
+				b = GetBlockByID(bll, id);
 				RuleShow(b, Callback);
 				break;
 			case FF_CONTROLLER:
+				b = GetBlockByID(bll, id);
 				ControllerShow(b, Callback);
 				break;
 			case FF_OUTPUT:
+				b = GetBlockByID(bll, id);
 				OutputShow(b, Callback);
 				break;
 		}
@@ -836,6 +1582,75 @@ void RegSetCommandOnBlockLabel(const char* block_label, uint16_t command, void(*
 		Callback(out_str);
 	} else {
 		RegSetCommandOnBlockID(block_id, command, Callback);
+	}
+}
+
+void RegIFOneWireScanBID(int16_t param1_int, void(*Callback)(const char*)) {
+	(void)Callback; // not used
+	InterfaceNode *i;
+	i = GetInterfaceByID(ill, param1_int);
+	if (i) {
+		ScanAndMatchDallasSensors(i, 1);
+	} else {
+		ITCHWriteLine(F("Unknown Interface ID"));
+	}
+}
+
+void RegIFOneWireScanLabel(char* BLOCK_LABEL, void(*Callback)(const char*)) {
+	(void)Callback; // not used
+	uint16_t id;
+	id = GetInterfaceIDByLabel(BLOCK_LABEL);
+	if (id) {
+		RegIFOneWireScanBID(id, WriteLineCallback);
+	} else {
+		ITCHWriteLine(F("Unknown Interface Label"));
+	}
+}
+
+void RegIFOneWireAssignBID(int16_t param1_int, int16_t param2_int, void(*Callback)(const char*)) {
+	(void)Callback; // not used
+	InterfaceNode *s;
+	InterfaceNode *t;
+	s = GetInterfaceByID(ill, param1_int);
+	t = GetInterfaceByID(ill, param2_int);
+	if (s && t) {
+		AssignDallasSensor(s, t, 1);
+	} else {
+		ITCHWriteLine(F("Unknown Interface ID"));
+	}
+}
+
+void RegIFDS1820BRead(int16_t param1_int, void(*Callback)(const char*)) {
+	(void)Callback;
+
+	char out[MAX_LOG_LINE_LENGTH];
+	float tempC = 0.0;
+	uint8_t result;
+	result = InterfaceDS1820B_Read(&tempC, param1_int, 1);
+	ITCHWrite(F("Result Code: "));
+	Serial.println(result);
+	FFFloatToCString(out, tempC);
+	ITCHWrite(F("Temperature C: "));
+	ITCHWriteLine(out);
+}
+
+void RegIFDS1820BTest(int16_t param1_int, void(*Callback)(const char*)) {
+	(void)Callback;
+
+	char out[MAX_LOG_LINE_LENGTH];
+	float tempC = 0.0;
+	uint8_t result = 0;
+	uint16_t tries = 500;
+
+	while ( (result != 1) && (tries > 0) ) {
+		result = InterfaceDS1820B_Read(&tempC, param1_int, 0);
+		Serial.print(result);
+		tries --;
+	}
+	if (result == 1) {
+		FFFloatToCString(out, tempC);
+		ITCHWrite(F("Temperature C: "));
+		ITCHWriteLine(out);
 	}
 }
 
@@ -868,10 +1683,7 @@ void RegSetCommandOnBlockID(uint16_t id, uint16_t command, void(*Callback)(const
 				EventMsg(SSS, id, E_ADMIN, M_ADMIN_CMD_NOT_SUPPORTED);
 				break;
 		}
-
-
 	}
-
 }
 
 void RegShowTime(void(*Callback)(const char*)) {
@@ -1025,8 +1837,11 @@ void RegConfigClear(void(*Callback)(const char*)) {
 	DropBlockList();
 	strcpy_hal(out_str, F("Block List Reset"));
 	Callback(out_str);
-}
 
+	DropInterfaceList();
+	strcpy_hal(out_str, F("Interface List Reset"));
+	Callback(out_str);
+}
 
 void RegConfigLoad(void(*Callback)(const char*)) {
 	(void)Callback; 		//not used
@@ -1053,12 +1868,35 @@ void RegConfigSave(void(*Callback)(const char*)) {
 	InitConfigSave();
 }
 
+void RegConfigShow(void(*Callback)(const char*)) {
+	(void)Callback; 		//not used
+	InitConfigShow();
+}
+
 #ifdef RESURRECT_DEPRECIATED
 void RegConfigSaveBinary(void(*Callback)(const char*)) {
 	(void)Callback; 		//not used
 	InitConfigSaveBinary();
 }
 #endif //RESURRECT_DEPRECIATED
+
+void RegConfigInterface(const char* param1_string, uint16_t IF_CONFIG, const char* param2_string, void(*Callback)(const char*)) {
+	char out_str[MAX_MESSAGE_STRING_LENGTH];	// 80
+	char key[MAX_LABEL_LENGTH];
+
+	strcpy_hal(key, if_config_keys[IF_CONFIG].text);
+	if (ConfigureInterface(param1_string, key, param2_string) == 0) {
+		GetMessageString(out_str, M_CONFIGURE_BLOCK_ERROR);
+		Callback(out_str);
+		strcpy_hal(out_str, F(" >>> CONFIG system "));
+		strcat(out_str, param1_string);
+		strcat_hal(out_str, F(" "));
+		strcat(out_str, key);
+		strcat_hal(out_str, F(" "));
+		strcat(out_str, param2_string);
+		Callback(out_str);
+	}
+}
 
 void RegConfigBlockSystem(const char* param1_string, uint16_t SYS_CONFIG, const char* param2_string, void(*Callback)(const char*)) {
 	char out_str[MAX_MESSAGE_STRING_LENGTH];	// 80
@@ -1068,10 +1906,10 @@ void RegConfigBlockSystem(const char* param1_string, uint16_t SYS_CONFIG, const 
 	if (ConfigureBlock(FF_SYSTEM, param1_string, key, param2_string) == 0) {
 		GetMessageString(out_str, M_CONFIGURE_BLOCK_ERROR);
 		Callback(out_str);
-		strcpy_hal(out_str, F(" >>> CONFIG system "));
+		strcpy_hal(out_str, F(" >>> CONFIG interface "));
 		strcat(out_str, param1_string);
 		strcat_hal(out_str, F(" "));
-		strcat_hal(out_str, key);
+		strcat(out_str, key);
 		strcat_hal(out_str, F(" "));
 		strcat(out_str, param2_string);
 		Callback(out_str);
@@ -1089,7 +1927,7 @@ void RegConfigBlockInput(const char* param1_string, uint16_t IN_CONFIG, const ch
 		strcpy_hal(out_str, F(" >>> CONFIG input "));
 		strcat(out_str, param1_string);
 		strcat_hal(out_str, F(" "));
-		strcat_hal(out_str, key);
+		strcat(out_str, key);
 		strcat_hal(out_str, F(" "));
 		strcat(out_str, param2_string);
 		Callback(out_str);
@@ -1107,7 +1945,7 @@ void RegConfigBlockMonitor(const char* param1_string, uint16_t MON_CONFIG, const
 		strcpy_hal(out_str, F(" >>> CONFIG monitor "));
 		strcat(out_str, param1_string);
 		strcat_hal(out_str, F(" "));
-		strcat_hal(out_str, key);
+		strcat(out_str, key);
 		strcat_hal(out_str, F(" "));
 		strcat(out_str, param2_string);
 		Callback(out_str);
@@ -1125,7 +1963,7 @@ void RegConfigBlockSchedule(const char* param1_string, uint16_t SCH_CONFIG, cons
 		strcpy_hal(out_str, F(" >>> CONFIG schedule "));
 		strcat(out_str, param1_string);
 		strcat_hal(out_str, F(" "));
-		strcat_hal(out_str, key);
+		strcat(out_str, key);
 		strcat_hal(out_str, F(" "));
 		strcat(out_str, param2_string);
 		Callback(out_str);
@@ -1143,7 +1981,7 @@ void RegConfigBlockRule(const char* param1_string, uint16_t RL_CONFIG, const cha
 		strcpy_hal(out_str, F(" >>> CONFIG rule "));
 		strcat(out_str, param1_string);
 		strcat_hal(out_str, F(" "));
-		strcat_hal(out_str, key);
+		strcat(out_str, key);
 		strcat_hal(out_str, F(" "));
 		strcat(out_str, param2_string);
 		Callback(out_str);
@@ -1161,7 +1999,7 @@ void RegConfigBlockController(const char* param1_string, uint16_t CON_CONFIG, co
 		strcpy_hal(out_str, F(" >>> CONFIG controller "));
 		strcat(out_str, param1_string);
 		strcat_hal(out_str, F(" "));
-		strcat_hal(out_str, key);
+		strcat(out_str, key);
 		strcat_hal(out_str, F(" "));
 		strcat(out_str, param2_string);
 		Callback(out_str);
@@ -1179,7 +2017,7 @@ void RegConfigBlockOutput(const char* param1_string, uint16_t OUT_CONFIG, const 
 		strcpy_hal(out_str, F(" >>> CONFIG output "));
 		strcat(out_str, param1_string);
 		strcat_hal(out_str, F(" "));
-		strcat_hal(out_str, key);
+		strcat(out_str, key);
 		strcat_hal(out_str, F(" "));
 		strcat(out_str, param2_string);
 		Callback(out_str);
@@ -1189,83 +2027,116 @@ void RegConfigBlockOutput(const char* param1_string, uint16_t OUT_CONFIG, const 
 
 void RegInitSetupAll(void(*Callback)(const char*)) {
 	(void)Callback; 		//not used
-	ProcessDispatcher(Setup);
+	InterfaceDispatcher(SetupInterface);
+	BlockDispatcher(Setup);
 }
 
 void RegInitSetupBID(uint16_t block_id, void(*Callback)(const char*)) {
 	char out_str[MAX_MESSAGE_STRING_LENGTH];
 	BlockNode *b;
+	InterfaceNode *i;
 	b = GetBlockByID(bll, block_id);
 	if (b != NULL) {
 		Setup(b);
 	} else {
-		strcpy_hal(out_str, F("Unknown Block ID"));
-		Callback(out_str);
+		i = GetInterfaceByID(ill, block_id);
+		if (i != NULL) {
+			SetupInterface(i);
+		} else {
+			strcpy_hal(out_str, F("Unknown Block ID"));
+			Callback(out_str);
+		}
 	}
 }
 
 void RegInitValidateAll(void(*Callback)(const char*)) {
 	(void)Callback; 		//not used
-	ProcessDispatcher(Validate);
+	InterfaceDispatcher(ValidateInterface);
+	BlockDispatcher(Validate);
 }
 
 void RegInitValidateBID(uint16_t block_id, void(*Callback)(const char*)) {
 	char out_str[MAX_MESSAGE_STRING_LENGTH];
 	BlockNode *b;
+	InterfaceNode *i;
 	b = GetBlockByID(bll, block_id);
 	if (b != NULL) {
 		Validate(b);
 	} else {
-		strcpy_hal(out_str, F("Unknown Block ID"));
-		Callback(out_str);
+		i = GetInterfaceByID(ill, block_id);
+		if (i != NULL) {
+			ValidateInterface(i);
+		} else {
+			strcpy_hal(out_str, F("Unknown Block ID"));
+			Callback(out_str);
+		}
 	}
 }
 
 void RegInitDisableAll(void(*Callback)(const char*)) {
 	(void)Callback; 		//not used
-	ProcessDispatcher(InitDisable);
+	InterfaceDispatcher(InitDisableInterface);
+	BlockDispatcher(InitDisable);
 }
 
 void RegInitDisableBID(uint16_t block_id, void(*Callback)(const char*)) {
 	char out_str[MAX_MESSAGE_STRING_LENGTH];
 	BlockNode *b;
+	InterfaceNode *i;
 	b = GetBlockByID(bll, block_id);
 	if (b != NULL) {
 		InitDisable(b);
 	} else {
-		strcpy_hal(out_str, F("Unknown Block ID"));
-		Callback(out_str);
+		i = GetInterfaceByID(ill, block_id);
+		if (i != NULL) {
+			InitDisableInterface(i);
+		} else {
+			strcpy_hal(out_str, F("Unknown Block ID"));
+			Callback(out_str);
+		}
 	}
 }
 
 void RegAdminDisableBID(uint16_t block_id, void(*Callback)(const char*)) {
 	char out_str[MAX_MESSAGE_STRING_LENGTH];
 	BlockNode *b;
+	InterfaceNode *i;
 	b = GetBlockByID(bll, block_id);
 	if (b != NULL) {
 		b->status = STATUS_DISABLED_ADMIN;
 	} else {
-		strcpy_hal(out_str, F("Unknown Block ID"));
-		Callback(out_str);
+		i = GetInterfaceByID(ill, block_id);
+		if (i != NULL) {
+			b->status = STATUS_DISABLED_ADMIN;
+		} else {
+			strcpy_hal(out_str, F("Unknown Block ID"));
+			Callback(out_str);
+		}
 	}
 }
 
 void RegAdminEnableBID(uint16_t block_id, void(*Callback)(const char*)) {
 	char out_str[MAX_MESSAGE_STRING_LENGTH];
 	BlockNode *b;
+	InterfaceNode *i;
 	b = GetBlockByID(bll, block_id);
 	if (b != NULL) {
 		b->status = STATUS_DISABLED_INIT;
 	} else {
-		strcpy_hal(out_str, F("Unknown Block ID"));
-		Callback(out_str);
+		i = GetInterfaceByID(ill, block_id);
+		if (i != NULL) {
+			b->status = STATUS_DISABLED_INIT;
+		} else {
+			strcpy_hal(out_str, F("Unknown Block ID"));
+			Callback(out_str);
+		}
 	}
 }
 
-void RegAdminDeleteBID(uint16_t block_id, void(*Callback)(const char*)) {
+void RegConfigDeleteBID(uint16_t block_id, void(*Callback)(const char*)) {
 	char out_str[MAX_MESSAGE_STRING_LENGTH];
 	if (DeleteBlockByID(block_id) == 1) {
-		strcpy_hal(out_str, F("Block Deleted"));
+		strcpy_hal(out_str, F("Block / Interface Deleted"));
 		Callback(out_str);
 	} else {
 		strcpy_hal(out_str, F("DeleteBlockByID Reported an Error"));
@@ -1273,17 +2144,16 @@ void RegAdminDeleteBID(uint16_t block_id, void(*Callback)(const char*)) {
 	}
 }
 
-void RegAdminDeleteBlockLabel(const char* BLOCK_LABEL, void(*Callback)(const char*)) {
+void RegConfigDeleteBlockLabel(const char* BLOCK_LABEL, void(*Callback)(const char*)) {
 	char out_str[MAX_MESSAGE_STRING_LENGTH];
 	if (DeleteBlockByLabel(BLOCK_LABEL) == 1) {
-		strcpy_hal(out_str, F("Block Deleted"));
+		strcpy_hal(out_str, F("Block / Interface Deleted"));
 		Callback(out_str);
 	} else {
 		strcpy_hal(out_str, F("DeleteBlockByLabel Reported an Error"));
 		Callback(out_str);
 	}
 }
-
 
 void RegSystemReboot(void(*Callback)(const char*)) {
 	(void)Callback; 		//not used

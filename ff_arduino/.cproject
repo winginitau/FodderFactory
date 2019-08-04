@@ -22,15 +22,16 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/itch}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/DallasTemperature}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/OneWire}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/RTClib}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/core/core}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/core/variant}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/SPI/src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/Wire/src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/SdFat/src}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/VictronVEDirectArduino}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/grammar_out}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/VictronVEDirectArduino/src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/Arduino-Temperature-Control-Library}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/OneWire}&quot;"/>
 								</option>
 								<inputType id="io.sloeber.compiler.cpp.sketch.input.1479664372" name="CPP source files" superClass="io.sloeber.compiler.cpp.sketch.input"/>
 							</tool>
@@ -39,7 +40,6 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/itch}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/DallasTemperature}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/OneWire}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/RTClib}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/core/core}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/core/variant}&quot;"/>
@@ -47,6 +47,9 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/Wire/src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/SdFat/src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/grammar_out}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/VictronVEDirectArduino/src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/Arduino-Temperature-Control-Library}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/OneWire}&quot;"/>
 								</option>
 								<inputType id="io.sloeber.compiler.c.sketch.input.951723203" name="C Source Files" superClass="io.sloeber.compiler.c.sketch.input"/>
 							</tool>
@@ -54,16 +57,16 @@
 								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="io.sloeber.compiler.asm.sketch.option.incpath.1170656612" name="Include Paths (-I)" superClass="io.sloeber.compiler.asm.sketch.option.incpath" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/itch}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/DallasTemperature}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/OneWire}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/RTClib}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/core/core}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/core/variant}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/SPI/src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/Wire/src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/SdFat/src}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/VictronVEDirectArduino}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/grammar_out}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/VictronVEDirectArduino/src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/Arduino-Temperature-Control-Library}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ff_arduino/libraries/OneWire}&quot;"/>
 								</option>
 								<inputType id="io.sloeber.compiler.S.sketch.input.1581110193" name="Assembly source files" superClass="io.sloeber.compiler.S.sketch.input"/>
 							</tool>
@@ -78,11 +81,11 @@
 					<fileInfo id="io.sloeber.core.toolChain.release.1923527009.13354924" name="TokenList.h" rcbsApplicability="disable" resourcePath="itch/TokenList.h" toolsToInvoke=""/>
 					<fileInfo id="io.sloeber.core.toolChain.release.1923527009.474712256" name="IniFile_ff.h" rcbsApplicability="disable" resourcePath="src/IniFile_ff.h" toolsToInvoke=""/>
 					<sourceEntries>
-						<entry excluding="grammar_out|VictronVEDirectArduino|libraries/RTClib/1.2.0.mod|libraries/DallasTemperature/3.7.6.mod|libraries/SD/.github|libraries/OneWire/util|itch|glitch|src|libraries/?*/**/?xamples/**|libraries/?*/**/?xtras/**|libraries/?*/**/test*/**|libraries/?*/**/third-party/**|libraries/**/._*|libraries/?*/utility/*/*" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
-						<entry excluding="sloeber.ino.cpp|example.ino" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="VictronVEDirectArduino"/>
+						<entry excluding="libraries/OneWire/docs|libraries/OneWire/.git|libraries/Arduino-Temperature-Control-Library/.git|libraries/?*/**/test*/**|grammar_out|libraries/DallasTemperature/3.7.6.mod|VictronVEDirectArduino|libraries/SD/.github|itch|libraries/?*/**/?xamples/**|glitch|libraries/?*/**/?xtras/**|src|libraries/RTClib/1.2.0.mod|libraries/OneWire/util|libraries/?*/**/third-party/**|libraries/?*/utility/*/*|libraries/**/._*" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="VictronVEDirectArduino/src"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="grammar_out"/>
 						<entry excluding="example.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="itch"/>
-						<entry excluding="bucket.cpp|IniFile_ff.h|IniFile_ff.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
+						<entry excluding="IniFile_ff.cpp|IniFile_ff.h|bucket.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>

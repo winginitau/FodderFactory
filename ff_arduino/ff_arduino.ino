@@ -61,7 +61,7 @@
 
 void loop() {
 	// Operate each block forever
-	ProcessDispatcher(Operate);
+	BlockDispatcher(Operate);
 	//TODO - remove dead and/or requested blocks from the run-time in
 	// a larger continuously running system
 	#ifdef USE_ITCH
@@ -114,7 +114,8 @@ int main(void) {
 
 	// Run the Validate function on each block
 	// currently uses assert() - which will bomb the run if failed on embedded
-	ProcessDispatcher(Validate);
+	InterfaceDispatcher(ValidateInterface);
+	BlockDispatcher(Validate);
 	// After validate, its safe to declare start up success (if not correctness)
 	DebugLog(SSS, E_INFO, M_DISP_VALIDATE);
 
@@ -123,7 +124,8 @@ int main(void) {
 	// 2. trigger callbacks to any hardware that requires an initialisation process
 	// 		particularly ins and outs. Eg a ONEWIRE bus
 	DebugLog(SSS, E_INFO, M_DISP_SETUP);
-	ProcessDispatcher(Setup);
+	InterfaceDispatcher(SetupInterface);
+	BlockDispatcher(Setup);
 
 	// TODO would re-run validate with a post setup modality
 	// Checking for valid array index values
@@ -133,7 +135,7 @@ int main(void) {
 	// before handing off to a processing loop or. This provides a
 	// Convenient stop point for development.
 	DebugLog(SSS, E_INFO, M_DISP_OPER_1ST);
-	ProcessDispatcher(Operate);
+	BlockDispatcher(Operate);
 	DebugLog(SSS, E_INFO, M_DISP_OPER_LOOP);
 
 	#ifdef PLATFORM_LINUX

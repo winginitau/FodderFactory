@@ -39,16 +39,16 @@
 
 void OutputSetup(BlockNode *b) {
 
-	switch (b->block_type) {
+	switch (b->type) {
 
 		case OUT_DIGITAL: {
 			b->active = 0;
-			b->last_update = TimeNow();
+			//b->last_update = TimeNow();
 			b->settings.out.command = UINT8_INIT;
 			HALInitDigitalOutput(b->settings.out.if_num);
-			EventMsg(b->block_id, E_DEACT);
+			EventMsg(b->id, E_DEACT);
 			#ifdef DISABLE_OUTPUTS
-				EventMsg(b->block_id, E_WARNING, M_OUTPUT_DISABLED);
+				EventMsg(b->id, E_WARNING, M_OUTPUT_DISABLED);
 			#else
 				HALDigitalWrite (b->settings.out.if_num, DIG_LOW);
 			#endif
@@ -69,16 +69,16 @@ void OutputSetup(BlockNode *b) {
 
 void OutputOperate(BlockNode *b) {
 
-	switch (b->block_type) {
+	switch (b->type) {
 
 		case OUT_DIGITAL: {
 			if (b->settings.out.command == CMD_OUTPUT_ON) {
 				if (b->active == 0) {
 					b->active = 1;
-					b->last_update = TimeNow();
-					EventMsg(b->block_id, E_ACT);
+					//b->last_update = TimeNow();
+					EventMsg(b->id, E_ACT);
 					#ifdef DISABLE_OUTPUTS
-						EventMsg(b->block_id, E_WARNING, M_OUTPUT_DISABLED);
+						EventMsg(b->id, E_WARNING, M_OUTPUT_DISABLED);
 					#else
 						HALDigitalWrite (b->settings.out.if_num, DIG_HIGH);
 					#endif
@@ -86,10 +86,10 @@ void OutputOperate(BlockNode *b) {
 			} else {
 				if (b->active == 1) {
 					b->active = 0;
-					b->last_update = TimeNow();
-					EventMsg(b->block_id, E_DEACT);
+					//b->last_update = TimeNow();
+					EventMsg(b->id, E_DEACT);
 					#ifdef DISABLE_OUTPUTS
-						EventMsg(b->block_id, E_WARNING, M_OUTPUT_DISABLED);
+						EventMsg(b->id, E_WARNING, M_OUTPUT_DISABLED);
 					#else
 						HALDigitalWrite (b->settings.out.if_num, DIG_LOW);
 					#endif
@@ -119,7 +119,7 @@ void OutputShow(BlockNode *b, void(Callback(const char *))) {
 	Callback(out_str);
 
 	strcpy_hal(fmt_str, F(" interface:    %s (%d)"));
-	strcpy_hal(label_str, interface_strings[b->settings.out.interface].text);
+	strcpy_hal(label_str, interface_type_strings[b->settings.out.interface].text);
 	sprintf(out_str, fmt_str, label_str, b->settings.out.interface);
 	Callback(out_str);
 

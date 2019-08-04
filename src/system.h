@@ -13,7 +13,6 @@
 #ifndef SYSTEM_H_
 #define SYSTEM_H_
 
-
 void SystemSetup(BlockNode* b);
 void SystemOperate(BlockNode* b);
 void SystemShow(BlockNode *b, void(Callback(const char *)));

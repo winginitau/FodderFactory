@@ -41,10 +41,10 @@
 
 void ControllerSetup(BlockNode *b) {
 
-	switch (b->block_type) {
+	switch (b->type) {
 		case CON_ONOFF: {
 			b->active = 0;
-			b->last_update = TimeNow();
+			//b->last_update = TimeNow();
 			b->status = STATUS_ENABLED_INIT;
 		}
 			break;
@@ -64,23 +64,23 @@ void ControllerSetup(BlockNode *b) {
 
 void ControllerOperate(BlockNode *b) {
 
-	switch (b->block_type) {
+	switch (b->type) {
 
 		case CON_ONOFF: {
 			if (IsActive(b->settings.con.rule)) {
 				if (b->active == 0) {
 					b->active = 1;
-					b->last_update = TimeNow();
+					//b->last_update = TimeNow();
 					// XXX Resolve: using event messages to send commands or not?
 					SetCommand(b->settings.con.output, b->settings.con.act_cmd);
-					EventMsg(b->block_id, b->settings.con.output, E_COMMAND, M_CMD_ACT);
+					EventMsg(b->id, b->settings.con.output, E_COMMAND, M_CMD_ACT);
 				}
 			} else {
 				if (b->active == 1) {
 					b->active = 0;
-					b->last_update = TimeNow();
+					//b->last_update = TimeNow();
 					SetCommand(b->settings.con.output, b->settings.con.deact_cmd);
-					EventMsg(b->block_id, b->settings.con.output, E_COMMAND, M_CMD_DEACT);
+					EventMsg(b->id, b->settings.con.output, E_COMMAND, M_CMD_DEACT);
 				}
 			}
 			break;

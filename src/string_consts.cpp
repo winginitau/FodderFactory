@@ -109,7 +109,7 @@ void GetMessageString(char *str_buf, int message_enum) {
 uint8_t DayStringArrayIndex(const char* key) {
 	// TODO - revisit for error catching (0 == SUN rather than DAY_ERROR)
 	for (int i = 0; i < LAST_DAY; i++) {
-		if (strcmp_hal(key, day_strings[i].text) == 0) {
+		if (strcasecmp_hal(key, day_strings[i].text) == 0) {
 			return i;
 		}
 	}
@@ -119,7 +119,7 @@ uint8_t DayStringArrayIndex(const char* key) {
 
 uint8_t UnitStringArrayIndex(const char* key) {
 	for (int i = 0; i < LAST_UNIT; i++) {
-		if (strcmp_hal(key, unit_strings[i].text) == 0) {
+		if (strcasecmp_hal(key, unit_strings[i].text) == 0) {
 			return i;
 		}
 	}
@@ -128,7 +128,7 @@ uint8_t UnitStringArrayIndex(const char* key) {
 
 uint8_t CommandStringArrayIndex(const char* key) {
 	for (int i = 0; i < LAST_COMMAND; i++) {
-		if (strcmp_hal(key, command_strings[i].text) == 0) {
+		if (strcasecmp_hal(key, command_strings[i].text) == 0) {
 			return i;
 		}
 	}
@@ -137,17 +137,16 @@ uint8_t CommandStringArrayIndex(const char* key) {
 
 uint8_t LanguageStringArrayIndex(const char* key) {
 	for (int i = 0; i < LAST_LANGUAGE; i++) {
-		if (strcmp_hal(key, language_strings[i].text) == 0) {
+		if (strcasecmp_hal(key, language_strings[i].text) == 0) {
 			return i;
 		}
 	}
 	return 0; // DEFAULT ENGLISH == 0
 }
 
-uint8_t InterfaceStringArrayIndex(const char* key) {
-	//
+uint8_t InterfaceTypeStringArrayIndex(const char* key) {
 	for (uint8_t i = 0; i < LAST_INTERFACE; i++) {
-		if (strcmp_hal(key, interface_strings[i].text) == 0) {
+		if (strcasecmp_hal(key, interface_type_strings[i].text) == 0) {
 			return i;
 		}
 	}
@@ -156,7 +155,7 @@ uint8_t InterfaceStringArrayIndex(const char* key) {
 
 uint8_t BlockTypeStringArrayIndex(const char* key) {
 	for (int i = 0; i < LAST_BLOCK_TYPE; i++) {
-		if (strcmp_hal(key, block_type_strings[i].text) == 0) {
+		if (strcasecmp_hal(key, block_type_strings[i].text) == 0) {
 			return i;
 		}
 	}
@@ -171,8 +170,16 @@ uint8_t BlockTypeStringArrayIndex(const char* key) {
 // The hal form should only be used for source or 2nd parameter strings
 // that are known to be in PROGMEM on AVR platforms.
 
+size_t strlen_hal(const char *s) {
+	#ifdef PLATFORM_ARDUINO
+		return strlen_P(s);
+	#else
+		return strlen(s);
+	#endif
+}
+
 char *strcpy_hal(char *dest, const char *src) {
-	#ifdef ARDUINO
+	#ifdef PLATFORM_ARDUINO
 		return strcpy_P(dest, src);
 	#else
 		return strcpy(dest, src);
@@ -180,7 +187,7 @@ char *strcpy_hal(char *dest, const char *src) {
 }
 
 char *strcat_hal(char *dest, const char *src) {
-	#ifdef ARDUINO
+	#ifdef PLATFORM_ARDUINO
 		return strcat_P(dest, src);
 	#else
 		return strcat(dest, src);
@@ -188,7 +195,7 @@ char *strcat_hal(char *dest, const char *src) {
 }
 
 int strcmp_hal(const char *s1, const char *s2) {
-	#ifdef ARDUINO
+	#ifdef PLATFORM_ARDUINO
 		return strcmp_P(s1, s2);
 	#else
 		return strcmp(s1, s2);
@@ -196,7 +203,7 @@ int strcmp_hal(const char *s1, const char *s2) {
 }
 
 int strcasecmp_hal(const char *s1, const char *s2) {
-	#ifdef ARDUINO
+	#ifdef PLATFORM_ARDUINO
 		return strcasecmp_P(s1, s2);
 	#else
 		return strcasecmp(s1, s2);
@@ -204,14 +211,14 @@ int strcasecmp_hal(const char *s1, const char *s2) {
 }
 
 void *memcpy_hal(void *dest, const void *src, size_t sz) {
-	#ifdef ARDUINO
+	#ifdef PLATFORM_ARDUINO
 		return memcpy_P(dest, src, sz);
 	#else
 		return memcpy(dest, src, sz);
 	#endif
 }
 
-#ifdef ARDUINO
+#ifdef PLATFORM_ARDUINO
 // These are for the form strxxx_hal(char* dest, F("String in PROGMEM"))
 //  and overload when that form is used.
 // When compiling for non-PROGMEM platforms (linux) an F macro is defined
@@ -233,5 +240,5 @@ int strcasecmp_hal(const char *s1, const __FlashStringHelper *s2) {
 	return strcasecmp_P(s1, (const char *)s2);
 }
 
-#endif
+#endif //PLATFORM_ARDUINO
 

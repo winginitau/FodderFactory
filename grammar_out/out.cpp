@@ -63,64 +63,85 @@ uint16_t CallFunction(uint8_t func_xlat, ParamUnion params[]) {
 			ConfigSave();
 			break;
 		case 13:
-			ConfigBlockSystem(params[0].param_char_star, params[1].param_uint16_t, params[2].param_char_star);
+			ConfigShow();
 			break;
 		case 14:
-			ConfigBlockInput(params[0].param_char_star, params[1].param_uint16_t, params[2].param_char_star);
+			ConfigDeleteBID(params[0].param_int16_t);
 			break;
 		case 15:
-			ConfigBlockMonitor(params[0].param_char_star, params[1].param_uint16_t, params[2].param_char_star);
+			ConfigDeleteBlockLabel(params[0].param_char_star);
 			break;
 		case 16:
-			ConfigBlockSchedule(params[0].param_char_star, params[1].param_uint16_t, params[2].param_char_star);
+			ConfigInterface(params[0].param_char_star, params[1].param_uint16_t, params[2].param_char_star);
 			break;
 		case 17:
-			ConfigBlockRule(params[0].param_char_star, params[1].param_uint16_t, params[2].param_char_star);
+			ConfigBlockSystem(params[0].param_char_star, params[1].param_uint16_t, params[2].param_char_star);
 			break;
 		case 18:
-			ConfigBlockController(params[0].param_char_star, params[1].param_uint16_t, params[2].param_char_star);
+			ConfigBlockInput(params[0].param_char_star, params[1].param_uint16_t, params[2].param_char_star);
 			break;
 		case 19:
-			ConfigBlockOutput(params[0].param_char_star, params[1].param_uint16_t, params[2].param_char_star);
+			ConfigBlockMonitor(params[0].param_char_star, params[1].param_uint16_t, params[2].param_char_star);
 			break;
 		case 20:
-			InitSetupAll();
-			break;
-		case 23:
-			InitSetupBID(params[0].param_int16_t);
+			ConfigBlockSchedule(params[0].param_char_star, params[1].param_uint16_t, params[2].param_char_star);
 			break;
 		case 21:
-			InitValidateAll();
-			break;
-		case 24:
-			InitValidateBID(params[0].param_int16_t);
+			ConfigBlockRule(params[0].param_char_star, params[1].param_uint16_t, params[2].param_char_star);
 			break;
 		case 22:
-			InitDisableAll();
+			ConfigBlockController(params[0].param_char_star, params[1].param_uint16_t, params[2].param_char_star);
 			break;
-		case 25:
-			InitDisableBID(params[0].param_int16_t);
+		case 23:
+			ConfigBlockOutput(params[0].param_char_star, params[1].param_uint16_t, params[2].param_char_star);
 			break;
-		case 26:
-			AdminDisableBID(params[0].param_int16_t);
+		case 24:
+			InitSetupAll();
 			break;
 		case 27:
-			AdminEnableBID(params[0].param_int16_t);
+			InitSetupBID(params[0].param_int16_t);
+			break;
+		case 25:
+			InitValidateAll();
 			break;
 		case 28:
-			AdminDeleteBID(params[0].param_int16_t);
+			InitValidateBID(params[0].param_int16_t);
+			break;
+		case 26:
+			InitDisableAll();
 			break;
 		case 29:
-			AdminDeleteBlockLabel(params[0].param_char_star);
+			InitDisableBID(params[0].param_int16_t);
 			break;
 		case 30:
-			AdminCmdOnBID(params[0].param_int16_t);
+			AdminDisableBID(params[0].param_int16_t);
 			break;
 		case 31:
-			AdminCmdOffBID(params[0].param_int16_t);
+			AdminEnableBID(params[0].param_int16_t);
 			break;
 		case 32:
+			AdminCmdOnBID(params[0].param_int16_t);
+			break;
+		case 33:
+			AdminCmdOffBID(params[0].param_int16_t);
+			break;
+		case 34:
 			SystemReboot();
+			break;
+		case 35:
+			IFOneWireScanBID(params[0].param_int16_t);
+			break;
+		case 36:
+			IFOneWireScanLabel(params[0].param_char_star);
+			break;
+		case 37:
+			IFOneWireAssignBID(params[0].param_int16_t, params[1].param_int16_t);
+			break;
+		case 38:
+			IFDS1820BRead(params[0].param_int16_t);
+			break;
+		case 39:
+			IFDS1820BTest(params[0].param_int16_t);
 			break;
 		default:
 			return PE_FUNC_XLAT_NOT_MATCHED_IN_CALLFUNCTION;
@@ -187,9 +208,9 @@ uint16_t LookupIdentifierMembers(uint16_t ident_xlat, char* lookup_string, uint8
 		case 0: {
 			while (idx < LAST_BLOCK_CAT) {
 				#ifdef PLATFORM_ARDUINO
-					memcpy_P(&temp, &block_cat_names[idx], sizeof(SimpleStringArray));
+					memcpy_P(&temp, &block_cat_strings[idx], sizeof(SimpleStringArray));
 				#else
-					memcpy(&temp, &block_cat_names[idx], sizeof(SimpleStringArray));
+					memcpy(&temp, &block_cat_strings[idx], sizeof(SimpleStringArray));
 				#endif //PLATFORM_ARDUINO
 				if(strnlen(temp.text, MAX_AST_IDENTIFIER_SIZE) == str_len) {
 					if(strncasecmp(lookup_string, temp.text, str_len) == 0) {
@@ -283,9 +304,9 @@ uint16_t LookupIdentifierMembers(uint16_t ident_xlat, char* lookup_string, uint8
 		case 6: {
 			while (idx < LAST_INTERFACE) {
 				#ifdef PLATFORM_ARDUINO
-					memcpy_P(&temp, &interface_strings[idx], sizeof(SimpleStringArray));
+					memcpy_P(&temp, &interface_type_strings[idx], sizeof(SimpleStringArray));
 				#else
-					memcpy(&temp, &interface_strings[idx], sizeof(SimpleStringArray));
+					memcpy(&temp, &interface_type_strings[idx], sizeof(SimpleStringArray));
 				#endif //PLATFORM_ARDUINO
 				if(strnlen(temp.text, MAX_AST_IDENTIFIER_SIZE) == str_len) {
 					if(strncasecmp(lookup_string, temp.text, str_len) == 0) {
@@ -313,6 +334,22 @@ uint16_t LookupIdentifierMembers(uint16_t ident_xlat, char* lookup_string, uint8
 		}
 			break;
 		case 8: {
+			while (idx < LAST_IF_CONFIG) {
+				#ifdef PLATFORM_ARDUINO
+					memcpy_P(&temp, &if_config_keys[idx], sizeof(SimpleStringArray));
+				#else
+					memcpy(&temp, &if_config_keys[idx], sizeof(SimpleStringArray));
+				#endif //PLATFORM_ARDUINO
+				if(strnlen(temp.text, MAX_AST_IDENTIFIER_SIZE) == str_len) {
+					if(strncasecmp(lookup_string, temp.text, str_len) == 0) {
+						return idx;
+					}
+				}
+				idx++;
+			}
+		}
+			break;
+		case 9: {
 			while (idx < LAST_SYS_CONFIG) {
 				#ifdef PLATFORM_ARDUINO
 					memcpy_P(&temp, &sys_config_keys[idx], sizeof(SimpleStringArray));
@@ -328,7 +365,7 @@ uint16_t LookupIdentifierMembers(uint16_t ident_xlat, char* lookup_string, uint8
 			}
 		}
 			break;
-		case 9: {
+		case 10: {
 			while (idx < LAST_IN_CONFIG) {
 				#ifdef PLATFORM_ARDUINO
 					memcpy_P(&temp, &in_config_keys[idx], sizeof(SimpleStringArray));
@@ -344,7 +381,7 @@ uint16_t LookupIdentifierMembers(uint16_t ident_xlat, char* lookup_string, uint8
 			}
 		}
 			break;
-		case 10: {
+		case 11: {
 			while (idx < LAST_MON_CONFIG) {
 				#ifdef PLATFORM_ARDUINO
 					memcpy_P(&temp, &mon_config_keys[idx], sizeof(SimpleStringArray));
@@ -360,7 +397,7 @@ uint16_t LookupIdentifierMembers(uint16_t ident_xlat, char* lookup_string, uint8
 			}
 		}
 			break;
-		case 11: {
+		case 12: {
 			while (idx < LAST_SCH_CONFIG) {
 				#ifdef PLATFORM_ARDUINO
 					memcpy_P(&temp, &sch_config_keys[idx], sizeof(SimpleStringArray));
@@ -376,7 +413,7 @@ uint16_t LookupIdentifierMembers(uint16_t ident_xlat, char* lookup_string, uint8
 			}
 		}
 			break;
-		case 12: {
+		case 13: {
 			while (idx < LAST_RL_CONFIG) {
 				#ifdef PLATFORM_ARDUINO
 					memcpy_P(&temp, &rl_config_keys[idx], sizeof(SimpleStringArray));
@@ -392,7 +429,7 @@ uint16_t LookupIdentifierMembers(uint16_t ident_xlat, char* lookup_string, uint8
 			}
 		}
 			break;
-		case 13: {
+		case 14: {
 			while (idx < LAST_CON_CONFIG) {
 				#ifdef PLATFORM_ARDUINO
 					memcpy_P(&temp, &con_config_keys[idx], sizeof(SimpleStringArray));
@@ -408,7 +445,7 @@ uint16_t LookupIdentifierMembers(uint16_t ident_xlat, char* lookup_string, uint8
 			}
 		}
 			break;
-		case 14: {
+		case 15: {
 			while (idx < LAST_OUT_CONFIG) {
 				#ifdef PLATFORM_ARDUINO
 					memcpy_P(&temp, &out_config_keys[idx], sizeof(SimpleStringArray));

@@ -5,6 +5,7 @@
 #define _RTCLIB_H_
 
 #include <Arduino.h>
+#include <Wire.h>
 class TimeSpan;
 
 

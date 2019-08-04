@@ -63,14 +63,14 @@
 			<locationURI>ECLIPSE_HOME/arduinoPlugin/packages/arduino/hardware/avr/1.6.23/variants/mega</locationURI>
 		</link>
 		<link>
-			<name>libraries/DallasTemperature</name>
+			<name>libraries/Arduino-Temperature-Control-Library</name>
 			<type>2</type>
-			<locationURI>PARENT-1-PROJECT_LOC/arduino.priv/libraries/DallasTemperature</locationURI>
+			<location>/home/brendan/git/Arduinolib/Arduino-Temperature-Control-Library</location>
 		</link>
 		<link>
 			<name>libraries/OneWire</name>
 			<type>2</type>
-			<locationURI>ECLIPSE_HOME/arduinoPlugin/libraries/OneWire/2.3.4</locationURI>
+			<location>/home/brendan/git/Arduinolib/OneWire</location>
 		</link>
 		<link>
 			<name>libraries/RTClib</name>

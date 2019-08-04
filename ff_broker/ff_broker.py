@@ -168,7 +168,7 @@ class LinuxSerialPort(Interface):
                     self.output_string.strip('\n\r')
                     self.output_string += '\n'
                     self.output_array = self.output_string.encode()
-                    self.connection.flush()
+                    #self.connection.flush()
                     #sleep(0.3)
                     #print("Writing Line to Serial Port")
                     self.connection.write(self.output_array)
@@ -183,7 +183,7 @@ class Adaptor():
         self.brokerToInterfaceQ = deque()
         self.interfaceToBrokerQ = deque()
         self.last_line_sent = ""
-    def config(self, interfaceObj, logQ, timeout=5):
+    def config(self, interfaceObj, logQ, timeout=20):
         #self.name = name
         self.interface = interfaceObj
         self.interfaceRxQ = interfaceObj.rxQ
@@ -197,7 +197,10 @@ class Adaptor():
     def sendNextLineToInterface(self):
         if len(self.brokerToInterfaceQ) > 0:
             self.last_line_sent = self.brokerToInterfaceQ.popleft()
+            # Trim trailing space
+            self.last_line_sent = self.last_line_sent.strip()
             self.interfaceTxQ.append(self.last_line_sent)
+            print(self.last_line_sent)
     def lineAvailableFromInterface(self):
         return (len(self.interfaceRxQ) > 0)
     def appendForSendingToInterface(self, line):
@@ -221,6 +224,7 @@ class FodderArduino(Adaptor, Utils):
         self.itchActivated = False 
         self.response_list = []
         self.command = "RunLinemode"
+        self.config_ack = False
     def setup(self):
         self.interface.config("/dev/ttyACM0", 9600)
     def mode_command(self, cmd="RunLinemode"):
@@ -280,41 +284,45 @@ class FodderArduino(Adaptor, Utils):
                 return 
         while len(self.brokerToInterfaceQ) > 0:
             self.sendNextLineToInterface()
-            self.response_list.append(self.last_line_sent)
+            self.config_ack = False
+            #self.response_list.append(self.last_line_sent)
+            #print(self.last_line_sent)
             self.timeout_start()
             while not self.timeout():
-                if self.lineAvailableFromInterface():
-                    self.response = self.getLineFromInterface()
-                    self.appendForBrokerCollection(self.response)
-                    if self.response in self.response_list:
-                        #print("got echo")
+                #if self.lineAvailableFromInterface():
+                    #self.response = self.getLineFromInterface()
+                    #self.appendForBrokerCollection(self.response)
+                    #if self.response in self.response_list:
+                    #    print("got echo")
                         # echo of send now reieved back
                         # look for command prompt return
                         # ignoring anything else
-                        self.tries = 100
-                        while self.tries > 0:
-                            if self.lineAvailableFromInterface():
-                                self.tries -= 1
-                                self.response = self.getLineFromInterface()
-                                #print("Got a line, sending it")
-                                self.appendForBrokerCollection(self.response)
-                                if self.response == "OK":
-                                    #print("got prompt again")
-                                    break
-                        else:
-                            self.appendForBrokerCollection("Adaptor:FodderArduino:processConfigCommands: "
-                                                           "100 reponses without command prompt return")
-                        self.response_list.clear()
-                        #print("breaking timeout loop")
-                        break
-                    else:
-                        break    
-                else: #line not yet avail
-                    pass
+                self.tries = 100
+                while self.tries > 0:
+                    if self.lineAvailableFromInterface():
+                        self.tries -= 1
+                        self.response = self.getLineFromInterface()
+                        #print("Got a line, sending it")
+                        self.appendForBrokerCollection(self.response)
+                        if self.response == "OK":
+                            #print("got OK")
+                            self.config_ack = True
+                            break
+                        if self.response == "ERROR":
+                            #print("got ERROR")
+                            self.config_ack = True
+                            break
+                else:
+                    self.appendForBrokerCollection("Adaptor:FodderArduino:processConfigCommands: "
+                                                    "100 reponses without OK or ERROR prompt return")
+                #self.response_list.clear()
+                #print("breaking timeout loop")
+                if self.config_ack:
+                    break
             else: 
                 self.appendForBrokerCollection("Adaptor:FodderArduino:processConfigCommands: "
                                                "Timed out waiting for reponse from command send")
-            sleep(0.300)
+            #sleep(0.500)
 
 class Broker():
     def __init__(self, **kwargs):
@@ -391,6 +399,7 @@ class System():
                     self.line_clean = self.input_string.rstrip('\n\r')
                     #print(self.line_clean)
                     self.mainBus.append(self.line_clean)
+                    #sleep(0.300)
                 self.mainBus.append("config save")
                 #self.mainBus.append("init val all")
                 #self.mainBus.append("init set all")

@@ -73,8 +73,7 @@ U8G2_ST7920_128X64_1_SW_SPI lcd_128_64(U8G2_R0, /* clock=*/ 40 /* A4 */ , /* dat
 //U8X8_ST7920_128X64_SW_SPI u8x8(40, 42, 44, U8X8_PIN_NONE);
 #endif //ARDUINO_LCD
 
-//RTC_DS1307 rtc;				// Global singleton
-unsigned long g_last_milli_val;	// used to pad calls to TimeNow so that the RTC isn't smashed
+uint32_t g_last_milli_val;	// used to pad calls to TimeNow so that the RTC isn't smashed
 time_t g_epoch_time;
 #endif //PLATFORM_ARDUINO
 
@@ -95,7 +94,6 @@ ITCH itch;					// Global singleton
 ************************************************/
 
 uint8_t HALSaveEventBuffer(void) {
-
 	uint8_t save_success = 0;
 
 #ifdef PLATFORM_ARDUINO
@@ -229,12 +227,10 @@ uint8_t HALInitSerial(uint8_t port, uint16_t baudrate) {
 }
 
 uint8_t HALEventSerialSend(EventNode* e, uint8_t port) {
-
 	char e_str[MAX_LOG_LINE_LENGTH];
 	FormatEventMessage(e, e_str);
 
 	#ifdef PLATFORM_ARDUINO
-
 	// Serial begin now in InitSerial, so that when ITCH is in use
 	// it can be open listening all the time
 
@@ -405,9 +401,9 @@ void HALDebugLCD(String log_entry) {
 #endif
 #endif //PLATFORM_ARDUINO
 
+
 //XXX Temporary hard coding of device addresses until itch can support
 // device addresses as part of config processing
-
 
 // 2018-09-18 - Swapped Water heat into Top Temp after top temp gurney damage.
 //Bus 5 Device Count: 2
@@ -786,31 +782,34 @@ void HALDrawDataScreenCV(const UIDataSet* uids, time_t dt) {
 /********************************************************************
  * Time and Date Functions
  ********************************************************************/
+#ifdef PLATFORM_ARDUINO
+time_t GetRTCTime() {
+	RTC_DS1307 rtc;
+	DateTime rtcDT;
+	rtcDT = rtc.now();
+	return rtcDT.secondstime();
+}
+#endif //PLATFORM_ARDUINO
 
 time_t TimeNow(void) {
 #ifdef PLATFORM_ARDUINO
-	RTC_DS1307 rtc;
-	time_t epoch_time;
-	unsigned long milli_now = millis();
-	DateTime rtcDT;
-
-	if(milli_now < g_last_milli_val) {
+	if(millis() < g_last_milli_val) {
 		// Assume millis has rolled over to zero (every 59 days)
-		rtcDT = rtc.now();
-		g_epoch_time = rtcDT.secondstime();
-		epoch_time = g_epoch_time;
-		g_last_milli_val = milli_now;
+		// Reset g_epoch_time and g_last_milli_val
+		g_epoch_time = GetRTCTime();
+		g_last_milli_val = millis();
+		return g_epoch_time;
 	} else {
-		if((milli_now - g_last_milli_val) > RTC_POLL_INTERVAL) {
-			rtcDT = rtc.now();
-			g_epoch_time = rtcDT.secondstime();
-			epoch_time = g_epoch_time;
-			g_last_milli_val = milli_now;
+		if((millis() - g_last_milli_val) > RTC_POLL_INTERVAL) {
+			// Time to poll the RTC again
+			g_epoch_time = GetRTCTime();
+			g_last_milli_val = millis();
+			return g_epoch_time;
 		} else {
-			epoch_time = g_epoch_time + ((milli_now - g_last_milli_val) / 1000);
+			// Calculate and return epoch time plus delta millis
+			return (g_epoch_time + ((millis() - g_last_milli_val) / 1000));
 		}
 	}
-	return epoch_time;
 #endif //PLATFORM_ARDUINO
 
 #ifdef PLATFORM_LINUX
@@ -855,15 +854,11 @@ void HALInitRTC(void) {
 	//setup the Real Time Clock
 	//TODO check for sensible RTC result - in all cases the RTC value should be later
 	// than the compile time date time hard coded directives
-	//TODO substitute this section and all time references to use system time rather than RTC
-	// and sync system time to RTC periodically - that way time still progresses even if RTC broken
 	RTC_DS1307 rtc;
 	DateTime rtcDT;
-	//Wire.begin();
 	if (rtc.begin()) {
-		//EventMsg(SSS, E_INFO, M_RTC_DETECT, 0, 0);
 		if (rtc.isrunning()) {
-			// Store the current millis timer value - used to avoid calling on the RTC
+			// Store the current time and millis timer value - used to avoid calling on the RTC
 			// 	for every time query which drains the rtc battery
 			rtcDT = rtc.now();
 			g_epoch_time = rtcDT.secondstime();
@@ -875,12 +870,8 @@ void HALInitRTC(void) {
 			rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
 			EventMsg(SSS, E_WARNING, M_WARN_RTC_HARD_CODED, 0, 0);
 			#endif
-			//HALSetSysTimeToRTC();
 		} else {
 			EventMsg(SSS, E_WARNING, M_RTC_NOT_RUNNING, 0, 0);
-			// following line sets the RTC to the date & time this sketch was compiled
-			rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
-			EventMsg(SSS, E_WARNING, M_WARN_RTC_HARD_CODED, 0, 0);
 		};
 		   /**
 		        Initialize the system time. Examples are...

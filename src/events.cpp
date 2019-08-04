@@ -52,10 +52,12 @@ const char* FormatEventMessage (EventNode* e, char* e_str) {
 	char hms_str[12];
 	const char* source_str;
 	const char* destination_str;
-	char msg_type_str[MAX_MESSAGE_STRING_LENGTH];
+	char msg_type_str[13];
 	char msg_str[MAX_MESSAGE_STRING_LENGTH];
 	char float_str[20];
 	char fmt_str[25];
+	char no_cfg_str[16];
+
 
 	strcpy_hal(fmt_str, F("%Y-%m-%d"));
 	strftime(ymd_str, 14, fmt_str, localtime(&(e->time_stamp)));
@@ -63,6 +65,10 @@ const char* FormatEventMessage (EventNode* e, char* e_str) {
 	strftime(hms_str, 12, fmt_str, localtime(&(e->time_stamp)));
 
 	source_str = GetBlockLabelString(e->source);
+	if (source_str == NULL) {
+		strcpy_hal(no_cfg_str, F("SYSTEM-NOCONFIG"));
+		source_str = no_cfg_str;
+	}
 	destination_str = GetBlockLabelString(e->destination);
 	GetMessageTypeString(msg_type_str, e->message_type);
 	GetMessageString(msg_str, e->message);

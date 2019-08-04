@@ -69,7 +69,7 @@ all: DallasExamples
 DallasExamples: $(HEX)
 	@echo 'Building target: $@'
 	@echo 'Printing size:'
-	"/home/brendan/eclipse/cpp-oxygen/eclipse//arduinoPlugin/packages/arduino/tools/avr-gcc/4.9.2-atmel3.5.4-arduino2/bin/avr-size" -A "/home/brendan/git/FodderFactory/DallasExamples/Release/DallasExamples.elf"
+	"/home/brendan/eclipse/cpp-2019-03/eclipse//arduinoPlugin/packages/arduino/tools/avr-gcc/4.9.2-atmel3.5.4-arduino2/bin/avr-size" -A "/home/brendan/git/FodderFactory/DallasExamples/Release/DallasExamples.elf"
 	@echo 'Finished building target: $@'
 	@echo ' '
 
@@ -86,7 +86,7 @@ DallasExamples.elf: $(LINK_OBJ) $(AR)
 	@echo ' '
 
 DallasExamples.hex: $(ELF)
-	@echo 'Create eeprom image'
+	@echo 'Do all objcopy commands'
 	${A.RECIPE.OBJCOPY.EEP.PATTERN}
 	${A.RECIPE.OBJCOPY.HEX.PATTERN}
 	@echo 'Finished building: $@'

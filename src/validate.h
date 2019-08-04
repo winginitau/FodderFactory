@@ -26,8 +26,9 @@
  Function prototypes
  ************************************************/
 
-
+void ValidateInterface(InterfaceNode* b);
 void Validate(BlockNode* b);
+
 
 
 #endif /* VALIDATE_H_ */

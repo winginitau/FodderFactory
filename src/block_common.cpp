@@ -45,22 +45,22 @@ void CommonShow(BlockNode *b, void(Callback(const char *))) {
 	strcpy_hal(out_str, F("Base Data"));
 	Callback(out_str);
 
-	strcpy_hal(fmt_str, F(" block_id:     %d"));
-	sprintf(out_str, fmt_str, b->block_id);
+	strcpy_hal(fmt_str, F(" id:           %d"));
+	sprintf(out_str, fmt_str, b->id);
 	Callback(out_str);
 
-	strcpy_hal(fmt_str, F(" block_cat:    %s (%d)"));
-	strcpy_hal(label_str, block_cat_names[b->block_cat].text);
-	sprintf(out_str, fmt_str, label_str, b->block_cat);
+	strcpy_hal(fmt_str, F(" cat:          %s (%d)"));
+	strcpy_hal(label_str, block_cat_strings[b->cat].text);
+	sprintf(out_str, fmt_str, label_str, b->cat);
 	Callback(out_str);
 
-	strcpy_hal(fmt_str, F(" block_type:   %s (%d)"));
-	strcpy_hal(label_str, block_type_strings[b->block_type].text);
-	sprintf(out_str, fmt_str, label_str, b->block_type);
+	strcpy_hal(fmt_str, F(" type:         %s (%d)"));
+	strcpy_hal(label_str, block_type_strings[b->type].text);
+	sprintf(out_str, fmt_str, label_str, b->type);
 	Callback(out_str);
 
-	strcpy_hal(fmt_str, F(" block_label:  %s"));
-	sprintf(out_str, fmt_str, b->block_label);
+	strcpy_hal(fmt_str, F(" label:        %s"));
+	sprintf(out_str, fmt_str, b->label);
 	Callback(out_str);
 
 #ifndef EXCLUDE_DISPLAYNAME
@@ -95,7 +95,6 @@ void CommonShow(BlockNode *b, void(Callback(const char *))) {
 	sprintf(out_str, fmt_str, label_str, b->bool_val);
 	Callback(out_str);
 
-
 	if (b->int_val == INT32_INIT) {
 		strcpy_hal(out_str, F(" int_val:      INT32_INIT"));
 	} else {
@@ -110,24 +109,6 @@ void CommonShow(BlockNode *b, void(Callback(const char *))) {
 		FFFloatToCString(label_str, b->f_val);
 		strcpy_hal(fmt_str, F(" f_val:        %s"));
 		sprintf(out_str, fmt_str, label_str);
-	}
-	Callback(out_str);
-
-	if (b->last_update == TV_TYPE_INIT) {
-		strcpy_hal(out_str, F(" last_update:  TV_TYPE_INIT"));
-	} else {
-		strcpy_hal(fmt_str, F(" last_update:  %s (%lu)"));
-		CTimeToISODateTimeString(label_str, b->last_update);
-		sprintf(out_str, fmt_str, label_str, b->last_update);
-	}
-	Callback(out_str);
-
-	if (b->last_logged == TV_TYPE_INIT) {
-		strcpy_hal(out_str, F(" last_logged:  TV_TYPE_INIT"));
-	} else {
-		strcpy_hal(fmt_str, F(" last_logged:  %s (%lu)"));
-		CTimeToISODateTimeString(label_str, b->last_logged);
-		sprintf(out_str, fmt_str, label_str, b->last_logged);
 	}
 	Callback(out_str);
 

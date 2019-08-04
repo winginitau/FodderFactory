@@ -15,17 +15,17 @@
 #include <common_config.h>
 
 #define MAX_AST_IDENTIFIER_SIZE 28
-#define MAX_AST_LABEL_SIZE 19
-#define MAX_AST_ACTION_SIZE 25
-#define AST_NODE_COUNT 72
+#define MAX_AST_LABEL_SIZE 23
+#define MAX_AST_ACTION_SIZE 26
+#define AST_NODE_COUNT 90
 #define MAX_PARAM_COUNT 3
 
 #define MAX_GRAMMAR_DEPTH 5
 
 #define MAX_XLAT_LABEL_SIZE 28
-#define XLAT_IDENT_MAP_COUNT 15
+#define XLAT_IDENT_MAP_COUNT 16
 #define XLAT_LOOKUP_MAP_COUNT 1
-#define XLAT_FUNC_MAP_COUNT 33
+#define XLAT_FUNC_MAP_COUNT 40
 #if defined(PLATFORM_LINUX)
 #elif defined(PLATFORM_ARDUINO)
 #include <Arduino.h>
@@ -95,9 +95,9 @@ enum {
 };
 
 #ifdef PLATFORM_ARDUINO
-const SimpleStringArray block_cat_names [LAST_BLOCK_CAT] PROGMEM = {
+const SimpleStringArray block_cat_strings [LAST_BLOCK_CAT] PROGMEM = {
 #else
-const SimpleStringArray block_cat_names [LAST_BLOCK_CAT] = {
+const SimpleStringArray block_cat_strings [LAST_BLOCK_CAT] = {
 #endif //PLATFORM_ARDUINO
 	"ERROR_CAT",
 	"GENERIC",
@@ -166,6 +166,7 @@ const SimpleStringArray block_type_strings [LAST_BLOCK_TYPE] = {
 
 enum {
 	CMD_ERROR = 0,
+	CMD_INIT,
 	CMD_OUTPUT_OFF,
 	CMD_OUTPUT_ON,
 	CMD_RESET_MIN_MAX,
@@ -178,6 +179,7 @@ const SimpleStringArray command_strings [LAST_COMMAND] PROGMEM = {
 const SimpleStringArray command_strings [LAST_COMMAND] = {
 #endif //PLATFORM_ARDUINO
 	"CMD_ERROR",
+	"CMD_INIT",
 	"CMD_OUTPUT_OFF",
 	"CMD_OUTPUT_ON",
 	"CMD_RESET_MIN_MAX",
@@ -296,50 +298,59 @@ const SimpleStringArray day_strings [LAST_DAY] = {
 
 enum {
 	IF_ERROR = 0,
+	IF_WIFI,
+	IF_ETHERNET,
 	IF_PWM_IN,
 	IF_PWM_OUT,
 	IF_PPM_IN,
 	IF_PPM_OUT,
-	IF_ONEWIRE,
+	IF_DS1820B,
+	IF_ONEWIRE_BUS,
 	IF_DIG_PIN_IN,
 	IF_DIG_PIN_OUT,
-	IF_SYSTEM_FUNCTION,
 	IF_VED_VOLTAGE,
 	IF_VED_CURRENT,
 	IF_VED_POWER,
 	IF_VED_SOC,
+	IF_HW_SERIAL,
 	LAST_INTERFACE,
 };
 
 #ifdef PLATFORM_ARDUINO
-const SimpleStringArray interface_strings [LAST_INTERFACE] PROGMEM = {
+const SimpleStringArray interface_type_strings [LAST_INTERFACE] PROGMEM = {
 #else
-const SimpleStringArray interface_strings [LAST_INTERFACE] = {
+const SimpleStringArray interface_type_strings [LAST_INTERFACE] = {
 #endif //PLATFORM_ARDUINO
 	"IF_ERROR",
-	"PWM_IN",
-	"PWM_OUT",
-	"PPM_IN",
-	"PPM_OUT",
-	"ONEWIRE",
-	"DIG_PIN_IN",
-	"DIG_PIN_OUT",
-	"SYSTEM_FUNCTION",
+	"IF_WIFI",
+	"IF_ETHERNET",
+	"IF_PWM_IN",
+	"IF_PWM_OUT",
+	"IF_PPM_IN",
+	"IF_PPM_OUT",
+	"IF_DS1820B",
+	"IF_ONEWIRE_BUS",
+	"IF_DIG_PIN_IN",
+	"IF_DIG_PIN_OUT",
 	"IF_VED_VOLTAGE",
 	"IF_VED_CURRENT",
 	"IF_VED_POWER",
 	"IF_VED_SOC",
+	"IF_HW_SERIAL",
 };
 
 enum {
 	STATUS_ERROR = 0,
 	STATUS_ENABLED,
+	STATUS_ENABLED_RUN,
+	STATUS_ENABLED_BUSY,
 	STATUS_ENABLED_INIT,
 	STATUS_ENABLED_VALID_DATA,
 	STATUS_ENABLED_INVALID_DATA,
 	STATUS_DISABLED,
 	STATUS_DISABLED_INIT,
 	STATUS_DISABLED_ERROR,
+	STATUS_DISABLED_ASSERT,
 	STATUS_DISABLED_ADMIN,
 	LAST_STATUS,
 };
@@ -351,13 +362,59 @@ const SimpleStringArray status_strings [LAST_STATUS] = {
 #endif //PLATFORM_ARDUINO
 	"STATUS_ERROR",
 	"STATUS_ENABLED",
+	"STATUS_ENABLED_RUN",
+	"STATUS_ENABLED_BUSY",
 	"STATUS_ENABLED_INIT",
 	"STATUS_ENABLED_VALID_DATA",
 	"STATUS_ENABLED_INVALID_DATA",
 	"STATUS_DISABLED",
 	"STATUS_DISABLED_INIT",
 	"STATUS_DISABLED_ERROR",
+	"STATUS_DISABLED_ASSERT",
 	"STATUS_DISABLED_ADMIN",
+};
+
+enum {
+	IF_CONFIG_ERROR = 0,
+	IF_CONFIG_TYPE,
+	IF_CONFIG_DISABLE,
+	IF_CONFIG_DISPLAY_NAME,
+	IF_CONFIG_DESCRIPTION,
+	IF_CONFIG_STATIC_ADDR,
+	IF_CONFIG_IP_STATIC,
+	IF_CONFIG_IP_NETMASK,
+	IF_CONFIG_IP_GATEWAY,
+	IF_CONFIG_WIFI_SSID,
+	IF_CONFIG_WPS_PSK,
+	IF_CONFIG_BUS_PIN,
+	IF_CONFIG_DEVICE_COUNT,
+	IF_CONFIG_DALLAS_ADDR,
+	IF_CONFIG_PORT_NUM,
+	IF_CONFIG_SPEED,
+	LAST_IF_CONFIG,
+};
+
+#ifdef PLATFORM_ARDUINO
+const SimpleStringArray if_config_keys [LAST_IF_CONFIG] PROGMEM = {
+#else
+const SimpleStringArray if_config_keys [LAST_IF_CONFIG] = {
+#endif //PLATFORM_ARDUINO
+	"INT_CONFIG_ERROR",
+	"type",
+	"disable",
+	"display_name",
+	"description",
+	"static_address",
+	"ip_static",
+	"ip_netmask",
+	"ip_gateway",
+	"wifi_ssid",
+	"wps_psk",
+	"bus_pin",
+	"device_count",
+	"dallas_address",
+	"port_num",
+	"speed",
 };
 
 enum {
@@ -582,6 +639,10 @@ void SetDate(char* param1_date);
 void ConfigClear(void);
 void ConfigLoad(void);
 void ConfigSave(void);
+void ConfigShow(void);
+void ConfigDeleteBID(int16_t param1_int);
+void ConfigDeleteBlockLabel(char* BLOCK_LABEL);
+void ConfigInterface(char* param1_string, uint16_t IF_CONFIG, char* param2_string);
 void ConfigBlockSystem(char* param1_string, uint16_t SYS_CONFIG, char* param2_string);
 void ConfigBlockInput(char* param1_string, uint16_t IN_CONFIG, char* param2_string);
 void ConfigBlockMonitor(char* param1_string, uint16_t MON_CONFIG, char* param2_string);
@@ -597,17 +658,20 @@ void InitDisableAll(void);
 void InitDisableBID(int16_t param1_int);
 void AdminDisableBID(int16_t param1_int);
 void AdminEnableBID(int16_t param1_int);
-void AdminDeleteBID(int16_t param1_int);
-void AdminDeleteBlockLabel(char* BLOCK_LABEL);
 void AdminCmdOnBID(int16_t param1_int);
 void AdminCmdOffBID(int16_t param1_int);
 void SystemReboot(void);
+void IFOneWireScanBID(int16_t param1_int);
+void IFOneWireScanLabel(char* BLOCK_LABEL);
+void IFOneWireAssignBID(int16_t param1_int, int16_t param2_int);
+void IFDS1820BRead(int16_t param1_int);
+void IFDS1820BTest(int16_t param1_int);
 
 // id, type, label, actionable, parent, first_child, next_sibling, action_id
 #ifdef PLATFORM_ARDUINO
-const ASTA_Node asta [72] PROGMEM = {
+const ASTA_Node asta [90] PROGMEM = {
 #else
-const ASTA_Node asta [72] = {
+const ASTA_Node asta [90] = {
 #endif //PLATFORM_ARDUINO
 	1, 1, "SHOW", 0, 0, 2, 6, "",
 	2, 1, "BLOCKS", 1, 1, 0, 3, "SHOW_BLOCKS",
@@ -626,83 +690,102 @@ const ASTA_Node asta [72] = {
 	15, 1, "DATE", 1, 0, 16, 18, "SHOW_DATE",
 	16, 1, "SET", 0, 15, 17, 0, "",
 	17, 4, "param-date", 1, 16, 0, 0, "SET_DATE",
-	18, 1, "CONFIG", 0, 0, 19, 50, "",
+	18, 1, "CONFIG", 0, 0, 19, 58, "",
 	19, 1, "CLEAR", 1, 18, 0, 20, "CONFIG_CLEAR",
 	20, 1, "LOAD", 1, 18, 0, 21, "CONFIG_LOAD",
 	21, 1, "SAVE", 1, 18, 0, 22, "CONFIG_SAVE",
-	22, 1, "system", 0, 18, 23, 26, "",
-	23, 13, "param-string", 0, 22, 24, 0, "",
-	24, 2, "sys_config_keys", 0, 23, 25, 0, "",
-	25, 13, "param-string", 1, 24, 0, 0, "CONFIG_BLOCK_SYSTEM",
-	26, 1, "input", 0, 18, 27, 30, "",
+	22, 1, "SHOW", 1, 18, 0, 23, "CONFIG_SHOW",
+	23, 1, "DELETE", 0, 18, 24, 26, "",
+	24, 6, "param-integer", 1, 23, 0, 25, "CONFIG_DELETE_BID",
+	25, 3, "BLOCK_LABEL", 1, 23, 0, 0, "CONFIG_DELETE_BLOCK_LABEL",
+	26, 1, "interface", 0, 18, 27, 30, "",
 	27, 13, "param-string", 0, 26, 28, 0, "",
-	28, 2, "in_config_keys", 0, 27, 29, 0, "",
-	29, 13, "param-string", 1, 28, 0, 0, "CONFIG_BLOCK_INPUT",
-	30, 1, "monitor", 0, 18, 31, 34, "",
+	28, 2, "if_config_keys", 0, 27, 29, 0, "",
+	29, 13, "param-string", 1, 28, 0, 0, "CONFIG_INTERFACE",
+	30, 1, "system", 0, 18, 31, 34, "",
 	31, 13, "param-string", 0, 30, 32, 0, "",
-	32, 2, "mon_config_keys", 0, 31, 33, 0, "",
-	33, 13, "param-string", 1, 32, 0, 0, "CONFIG_BLOCK_MONITOR",
-	34, 1, "schedule", 0, 18, 35, 38, "",
+	32, 2, "sys_config_keys", 0, 31, 33, 0, "",
+	33, 13, "param-string", 1, 32, 0, 0, "CONFIG_BLOCK_SYSTEM",
+	34, 1, "input", 0, 18, 35, 38, "",
 	35, 13, "param-string", 0, 34, 36, 0, "",
-	36, 2, "sch_config_keys", 0, 35, 37, 0, "",
-	37, 13, "param-string", 1, 36, 0, 0, "CONFIG_BLOCK_SCHEDULE",
-	38, 1, "rule", 0, 18, 39, 42, "",
+	36, 2, "in_config_keys", 0, 35, 37, 0, "",
+	37, 13, "param-string", 1, 36, 0, 0, "CONFIG_BLOCK_INPUT",
+	38, 1, "monitor", 0, 18, 39, 42, "",
 	39, 13, "param-string", 0, 38, 40, 0, "",
-	40, 2, "rl_config_keys", 0, 39, 41, 0, "",
-	41, 13, "param-string", 1, 40, 0, 0, "CONFIG_BLOCK_RULE",
-	42, 1, "controller", 0, 18, 43, 46, "",
+	40, 2, "mon_config_keys", 0, 39, 41, 0, "",
+	41, 13, "param-string", 1, 40, 0, 0, "CONFIG_BLOCK_MONITOR",
+	42, 1, "schedule", 0, 18, 43, 46, "",
 	43, 13, "param-string", 0, 42, 44, 0, "",
-	44, 2, "con_config_keys", 0, 43, 45, 0, "",
-	45, 13, "param-string", 1, 44, 0, 0, "CONFIG_BLOCK_CONTROLLER",
-	46, 1, "output", 0, 18, 47, 0, "",
+	44, 2, "sch_config_keys", 0, 43, 45, 0, "",
+	45, 13, "param-string", 1, 44, 0, 0, "CONFIG_BLOCK_SCHEDULE",
+	46, 1, "rule", 0, 18, 47, 50, "",
 	47, 13, "param-string", 0, 46, 48, 0, "",
-	48, 2, "out_config_keys", 0, 47, 49, 0, "",
-	49, 13, "param-string", 1, 48, 0, 0, "CONFIG_BLOCK_OUTPUT",
-	50, 1, "INIT", 0, 0, 51, 60, "",
-	51, 1, "SETUP", 0, 50, 52, 54, "",
-	52, 1, "ALL", 1, 51, 0, 53, "INIT_SETUP_ALL",
-	53, 6, "param-integer", 1, 51, 0, 0, "INIT_SETUP_BID",
-	54, 1, "VALIDATE", 0, 50, 55, 57, "",
-	55, 1, "ALL", 1, 54, 0, 56, "INIT_VALIDATE_ALL",
-	56, 6, "param-integer", 1, 54, 0, 0, "INIT_VALIDATE_BID",
-	57, 1, "DISABLE", 0, 50, 58, 0, "",
-	58, 1, "ALL", 1, 57, 0, 59, "INIT_DISABLE_ALL",
-	59, 6, "param-integer", 1, 57, 0, 0, "INIT_DISABLE_BID",
-	60, 1, "ADMIN", 0, 0, 61, 72, "",
-	61, 1, "DISABLE", 0, 60, 62, 63, "",
-	62, 6, "param-integer", 1, 61, 0, 0, "ADMIN_DISABLE_BID",
-	63, 1, "ENABLE", 0, 60, 64, 65, "",
-	64, 6, "param-integer", 1, 63, 0, 0, "ADMIN_ENABLE_BID",
-	65, 1, "DELETE", 0, 60, 66, 68, "",
-	66, 6, "param-integer", 1, 65, 0, 67, "ADMIN_DELETE_BID",
-	67, 3, "BLOCK_LABEL", 1, 65, 0, 0, "ADMIN_DELETE_BLOCK_LABEL",
-	68, 1, "ON", 0, 60, 69, 70, "",
-	69, 6, "param-integer", 1, 68, 0, 0, "ADMIN_CMD_ON_BID",
-	70, 1, "OFF", 0, 60, 71, 0, "",
-	71, 6, "param-integer", 1, 70, 0, 0, "ADMIN_CMD_OFF_BID",
-	72, 1, "REBOOT", 1, 0, 0, 0, "REBOOT",
+	48, 2, "rl_config_keys", 0, 47, 49, 0, "",
+	49, 13, "param-string", 1, 48, 0, 0, "CONFIG_BLOCK_RULE",
+	50, 1, "controller", 0, 18, 51, 54, "",
+	51, 13, "param-string", 0, 50, 52, 0, "",
+	52, 2, "con_config_keys", 0, 51, 53, 0, "",
+	53, 13, "param-string", 1, 52, 0, 0, "CONFIG_BLOCK_CONTROLLER",
+	54, 1, "output", 0, 18, 55, 0, "",
+	55, 13, "param-string", 0, 54, 56, 0, "",
+	56, 2, "out_config_keys", 0, 55, 57, 0, "",
+	57, 13, "param-string", 1, 56, 0, 0, "CONFIG_BLOCK_OUTPUT",
+	58, 1, "INIT", 0, 0, 59, 68, "",
+	59, 1, "SETUP", 0, 58, 60, 62, "",
+	60, 1, "ALL", 1, 59, 0, 61, "INIT_SETUP_ALL",
+	61, 6, "param-integer", 1, 59, 0, 0, "INIT_SETUP_BID",
+	62, 1, "VALIDATE", 0, 58, 63, 65, "",
+	63, 1, "ALL", 1, 62, 0, 64, "INIT_VALIDATE_ALL",
+	64, 6, "param-integer", 1, 62, 0, 0, "INIT_VALIDATE_BID",
+	65, 1, "DISABLE", 0, 58, 66, 0, "",
+	66, 1, "ALL", 1, 65, 0, 67, "INIT_DISABLE_ALL",
+	67, 6, "param-integer", 1, 65, 0, 0, "INIT_DISABLE_BID",
+	68, 1, "ADMIN", 0, 0, 69, 77, "",
+	69, 1, "DISABLE", 0, 68, 70, 71, "",
+	70, 6, "param-integer", 1, 69, 0, 0, "ADMIN_DISABLE_BID",
+	71, 1, "ENABLE", 0, 68, 72, 73, "",
+	72, 6, "param-integer", 1, 71, 0, 0, "ADMIN_ENABLE_BID",
+	73, 1, "ON", 0, 68, 74, 75, "",
+	74, 6, "param-integer", 1, 73, 0, 0, "ADMIN_CMD_ON_BID",
+	75, 1, "OFF", 0, 68, 76, 0, "",
+	76, 6, "param-integer", 1, 75, 0, 0, "ADMIN_CMD_OFF_BID",
+	77, 1, "REBOOT", 1, 0, 0, 78, "REBOOT",
+	78, 1, "INTERFACE", 0, 0, 79, 0, "",
+	79, 1, "ONEWIRE", 0, 78, 80, 86, "",
+	80, 1, "SCAN", 0, 79, 81, 83, "",
+	81, 6, "param-integer", 1, 80, 0, 82, "IF_ONEWIRE_SCAN_BID",
+	82, 3, "BLOCK_LABEL", 1, 80, 0, 0, "IF_ONEWIRE_SCAN_LABEL",
+	83, 1, "ASSIGN", 0, 79, 84, 0, "",
+	84, 6, "param-integer", 0, 83, 85, 0, "",
+	85, 6, "param-integer", 1, 84, 0, 0, "IF_ONEWIRE_ASSIGN_BID",
+	86, 1, "DS1820B", 0, 78, 87, 0, "",
+	87, 1, "READ", 0, 86, 88, 89, "",
+	88, 6, "param-integer", 1, 87, 0, 0, "IF_DS1820B_READ",
+	89, 1, "TEST", 0, 86, 90, 0, "",
+	90, 6, "param-integer", 1, 89, 0, 0, "IF_DS1820B_TEST",
 };
 
 #ifdef PLATFORM_ARDUINO
-const XLATMap ident_map [15] PROGMEM = {
+const XLATMap ident_map [16] PROGMEM = {
 #else
-const XLATMap ident_map [15] = {
+const XLATMap ident_map [16] = {
 #endif //PLATFORM_ARDUINO
-	"block_cat_names", 0,
+	"block_cat_strings", 0,
 	"block_type_strings", 1,
 	"command_strings", 2,
 	"unit_strings", 3,
 	"unit_abbr_strings", 4,
 	"day_strings", 5,
-	"interface_strings", 6,
+	"interface_type_strings", 6,
 	"status_strings", 7,
-	"sys_config_keys", 8,
-	"in_config_keys", 9,
-	"mon_config_keys", 10,
-	"sch_config_keys", 11,
-	"rl_config_keys", 12,
-	"con_config_keys", 13,
-	"out_config_keys", 14,
+	"if_config_keys", 8,
+	"sys_config_keys", 9,
+	"in_config_keys", 10,
+	"mon_config_keys", 11,
+	"sch_config_keys", 12,
+	"rl_config_keys", 13,
+	"con_config_keys", 14,
+	"out_config_keys", 15,
 };
 
 #ifdef PLATFORM_ARDUINO
@@ -714,9 +797,9 @@ const XLATMap lookup_map [1] = {
 };
 
 #ifdef PLATFORM_ARDUINO
-const XLATMap func_map [33] PROGMEM = {
+const XLATMap func_map [40] PROGMEM = {
 #else
-const XLATMap func_map [33] = {
+const XLATMap func_map [40] = {
 #endif //PLATFORM_ARDUINO
 	"SHOW_BLOCKS", 0,
 	"SHOW_SYSTEM", 1,
@@ -731,26 +814,33 @@ const XLATMap func_map [33] = {
 	"CONFIG_CLEAR", 10,
 	"CONFIG_LOAD", 11,
 	"CONFIG_SAVE", 12,
-	"CONFIG_BLOCK_SYSTEM", 13,
-	"CONFIG_BLOCK_INPUT", 14,
-	"CONFIG_BLOCK_MONITOR", 15,
-	"CONFIG_BLOCK_SCHEDULE", 16,
-	"CONFIG_BLOCK_RULE", 17,
-	"CONFIG_BLOCK_CONTROLLER", 18,
-	"CONFIG_BLOCK_OUTPUT", 19,
-	"INIT_SETUP_ALL", 20,
-	"INIT_VALIDATE_ALL", 21,
-	"INIT_DISABLE_ALL", 22,
-	"INIT_SETUP_BID", 23,
-	"INIT_VALIDATE_BID", 24,
-	"INIT_DISABLE_BID", 25,
-	"ADMIN_DISABLE_BID", 26,
-	"ADMIN_ENABLE_BID", 27,
-	"ADMIN_DELETE_BID", 28,
-	"ADMIN_DELETE_BLOCK_LABEL", 29,
-	"ADMIN_CMD_ON_BID", 30,
-	"ADMIN_CMD_OFF_BID", 31,
-	"REBOOT", 32,
+	"CONFIG_SHOW", 13,
+	"CONFIG_DELETE_BID", 14,
+	"CONFIG_DELETE_BLOCK_LABEL", 15,
+	"CONFIG_INTERFACE", 16,
+	"CONFIG_BLOCK_SYSTEM", 17,
+	"CONFIG_BLOCK_INPUT", 18,
+	"CONFIG_BLOCK_MONITOR", 19,
+	"CONFIG_BLOCK_SCHEDULE", 20,
+	"CONFIG_BLOCK_RULE", 21,
+	"CONFIG_BLOCK_CONTROLLER", 22,
+	"CONFIG_BLOCK_OUTPUT", 23,
+	"INIT_SETUP_ALL", 24,
+	"INIT_VALIDATE_ALL", 25,
+	"INIT_DISABLE_ALL", 26,
+	"INIT_SETUP_BID", 27,
+	"INIT_VALIDATE_BID", 28,
+	"INIT_DISABLE_BID", 29,
+	"ADMIN_DISABLE_BID", 30,
+	"ADMIN_ENABLE_BID", 31,
+	"ADMIN_CMD_ON_BID", 32,
+	"ADMIN_CMD_OFF_BID", 33,
+	"REBOOT", 34,
+	"IF_ONEWIRE_SCAN_BID", 35,
+	"IF_ONEWIRE_SCAN_LABEL", 36,
+	"IF_ONEWIRE_ASSIGN_BID", 37,
+	"IF_DS1820B_READ", 38,
+	"IF_DS1820B_TEST", 39,
 };
 
 uint16_t LookupIdentMap (char* key);

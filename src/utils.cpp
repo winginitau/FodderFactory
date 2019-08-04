@@ -19,6 +19,7 @@
 #include <string_consts.h>
 #include <utils.h>
 #include <debug_ff.h>
+#include <HAL.h>
 
 #ifdef PLATFORM_LINUX
 #include <stdint.h>
@@ -58,6 +59,8 @@ uint8_t VarianceExceedsAbsolute(int32_t old_val, int32_t new_val, uint16_t thres
 	var_abs = var_abs * ((var_abs > 0) - (var_abs < 0));
 	return (var_abs > thres_abs);
 }
+
+
 
 
 char* FlagToDayStr(char* day_str, uint8_t day_flag[7]) {
@@ -171,7 +174,7 @@ uint8_t DayStrToFlag(uint8_t day_flag[7], const char* day_str) {
 
 #ifdef PLATFORM_ARDUINO
 char* FFFloatToCString(char* buf, float f) {
-	return dtostrf(f,-7,2,buf);
+	return dtostrf(f,-4,2,buf);
 }
 #endif //PLATFORM_ARDUINO
 #ifdef PLATFORM_LINUX
@@ -210,9 +213,9 @@ char* CTimeToLocalTimeString(char *t_str, time_t t) {
 	return t_str;
 }
 
-TV_TYPE StringToTimeValue(const char* time_str) {
+uint32_t StringToTimeValue(const char* time_str) {
 	int hh, mm, ss;
-	TV_TYPE tv = 0;
+	uint32_t tv = 0;
 	char fmt_str[10];
 
 	strcpy_hal(fmt_str, F("%d:%d:%d"));
@@ -235,7 +238,223 @@ char* TimeValueToTimeString(char *HMSStr, const time_t tv) {
 	return HMSStr;
 }
 
+uint32_t NextTime(uint32_t sch_start, uint32_t sch_repeat) {
+	// Takes a start, repeat time schedule and returns the next
+	// 	scheduled start time relative to time now.
+	// Inputs:
+	//  sch_start: seconds since zero (00:00:00) today
+	//  sch_repeat: seconds
+	// Returns: time_t of next start (unix/epoch time - varies by platform)
 
+	struct tm *zero_today_tm;
+	time_t zero_today_t;
+	time_t now_t;
+
+	//char debug[50];
+
+	#ifdef PLATFORM_ARDUINO
+		now_t = TimeNow();
+	#else
+		now_t = time(NULL);
+	#endif //PLATFORM_ARDUINO
+
+	zero_today_tm = localtime(&now_t);
+	zero_today_tm->tm_hour = 0;
+	zero_today_tm->tm_min = 0;
+	zero_today_tm->tm_sec = 0;
+
+	zero_today_t = mktime(zero_today_tm);
+
+	uint32_t secs_since_zero_today;
+	uint32_t last_period_num;
+	uint32_t next_period_start_t;
+
+	secs_since_zero_today = now_t - zero_today_t;
+	last_period_num = (secs_since_zero_today - sch_start) / sch_repeat;
+	next_period_start_t = zero_today_t + sch_start + ((last_period_num +1) * sch_repeat);
+
+	// For Tests
+	//printf("Time now_t: %s\n", CTimeToISODateTimeString(debug, now_t));
+	//printf("Zero Today_t: %s\n", CTimeToISODateTimeString(debug, zero_today_t));
+	//printf("Last Period Num: %d\n", last_period_num);
+	//printf("Next Period Start_t: %s\n", CTimeToISODateTimeString(debug, next_period_start_t));
+
+	return next_period_start_t;
+}
+
+uint32_t LastTime(uint32_t sch_start, uint32_t sch_repeat) {
+	// Takes a start, repeat time schedule and returns the most
+	// 	recent scheduled start time relative to time now.
+	// Inputs:
+	//  sch_start: seconds since zero (00:00:00) today
+	//  sch_repeat: seconds
+	// Returns: time_t of last scheduled start (unix/epoch time - varies by platform)
+
+	struct tm *zero_today_tm;
+	time_t zero_today_t;
+	time_t now_t;
+
+	#ifdef PLATFORM_ARDUINO
+	now_t = TimeNow();
+	#else
+	now_t = time(NULL);
+	#endif //PLATFORM_ARDUINO
+
+	zero_today_tm = localtime(&now_t);
+	zero_today_tm->tm_hour = 0;
+	zero_today_tm->tm_min = 0;
+	zero_today_tm->tm_sec = 0;
+
+	zero_today_t = mktime(zero_today_tm);
+
+	uint32_t secs_since_zero_today;
+	uint32_t last_period_num;
+	uint32_t last_period_start_t;
+
+	secs_since_zero_today = now_t - zero_today_t;
+	last_period_num = (secs_since_zero_today - sch_start) / sch_repeat;
+	last_period_start_t = zero_today_t + sch_start + (last_period_num * sch_repeat);
+
+	return last_period_start_t;
+}
+
+uint8_t DallasAddressStringToArray(const char *addr_str, uint8_t addr[8]) {
+	// Form is: 28:FF:68:23:85:16:03:6C
+	char cpy[24];
+	strncpy(cpy, addr_str, 24);
+	// terminate it in case it overran
+	cpy[23] = '\0';
+
+	char* tok;
+	char* res;
+
+	tok = strtok(cpy, ":");
+	for (uint8_t i = 0; i < 8; i++) {
+		if (tok != NULL) {
+			addr[i] = strtol(tok, &res, 16);
+			if (*res != '\0') return 0; //error
+			tok = strtok(NULL, ":");
+		} else {
+			// tok == NULL
+			return 0;
+		}
+	}
+	return 1;
+}
+
+char* DallasAddressArrayToString(char *addr_str, uint8_t addr[8]) {
+	addr_str[0] = '\0';
+	char temp[3] = "\0";
+
+	for (uint8_t i = 0; i < 8; i++) {
+	    // zero pad the address if necessary
+	    if (addr[i] < 16) {
+	    	strcat(addr_str, "0");
+	    }
+	    sprintf(temp, "%x", addr[i]);
+	    strcat(addr_str, temp);
+	    if (i < 7) {
+	    	strcat(addr_str, ":");
+	    }
+	  }
+	return addr_str;
+}
+
+uint8_t DallasCompare(uint8_t a1[8], uint8_t a2[8]) {
+	for (uint8_t i = 0; i < 8; i++) {
+		if (a1[i] != a2[i]) return 1;
+	}
+	return 0;
+}
+
+void DallasCopy(uint8_t s[8], uint8_t d[8]) {
+	for (uint8_t i = 0; i < 8; i++) {
+		d[i] = s[i];
+	}
+}
+
+char *strpad(char *s, uint8_t w) {
+	// ***** Untested *****
+	// Add spaces to a null terminated string until it is
+	// w length. Re-terminate.
+	char *i = s;
+	while (i < (s+w)) {
+		if (*i == '\0') {
+			*i++ = ' ';
+			*i = '\0';
+		}
+	}
+	return s;
+}
+
+char *strcatpad_hal(char *d, const char *s, uint8_t w) {
+	// Concatenate s to d with trailing spaces for a total
+	// field width of s being w long.
+	#ifdef PLATFORM_ARDUINO
+		int16_t pad = w - strlen_P(s);
+		if (pad < 0) {
+			// String is longer than field width
+			// Only concatenate w bytes of s
+			strncat_P(d, s, w);
+			return d;
+		} else {
+			strcat_P(d, s);
+		}
+	#else
+		int16_t pad = w - strlen(s);
+		if (pad < 0) {
+			// String is longer than field width
+			// Only concatenate w bytes of s
+			strncat(d, s, w);
+			return d;
+		} else {
+			strcat(d, s);
+		}
+	#endif //PLATFORM_ARDUINO
+	char *i = d;
+	while (*i != '\0') {
+		i++;
+	}
+	for (; pad-- > 0 ;) {
+		*i++ = ' ';
+		*i = '\0';
+	}
+	return d;
+}
+
+char *strcatpad(char *d, const char *s, uint8_t w) {
+	// Concatenate s to d with trailing spaces for a total
+	// field width of s being w long.
+
+	int16_t pad = w - strlen(s);
+	if (pad < 0) {
+		// String is longer than field width
+		// Only concatenate w bytes of s
+		strncat(d, s, w);
+		return d;
+	} else {
+		strcat(d, s);
+	}
+
+	char *i = d;
+	while (*i != '\0') {
+		i++;
+	}
+	for (; pad-- > 0 ;) {
+		*i++ = ' ';
+		*i = '\0';
+	}
+	return d;
+}
+
+#ifdef PLATFORM_ARDUINO
+char *strcatpad_hal(char *d, const __FlashStringHelper *s, uint8_t w) {
+	// Arduino overload where F macro is used
+	// Concatenate s to d with trailing spaces for a total
+	// field width of s being w long.
+	return strcatpad_hal(d, (const char *)s, w);
+}
+#endif //PLATFORM_ARDUINO
 
 /*
 #ifdef PLATFORM_ARDUINO

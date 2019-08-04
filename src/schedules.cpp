@@ -44,10 +44,10 @@
 
 void ScheduleSetup(BlockNode *b) {
 
-	switch (b->block_type) {
+	switch (b->type) {
 		case SCH_START_STOP:
 			b->active = 0;
-			b->last_update = TimeNow();
+			//b->last_update = TimeNow();
 			b->status = STATUS_ENABLED_INIT;
 			break;
 
@@ -57,18 +57,18 @@ void ScheduleSetup(BlockNode *b) {
 			// it may not been seen by recipients unless it is held activated for a period
 			// in which case debounce logic would then need to be implemented.
 			b->active = 0;
-			b->last_update = TimeNow();
+			//b->last_update = TimeNow();
 			b->status = STATUS_ENABLED_INIT;
 			break;
 
 		case SCH_START_DURATION_REPEAT: {
 			char fmt_str[32];
 			b->active = 0;
-			b->last_update = TimeNow();
+			//b->last_update = TimeNow();
 			if (b->settings.sch.time_duration >= b->settings.sch.time_repeat) {
 				char log_message[MAX_LOG_LINE_LENGTH];
 				strcpy_hal(fmt_str, F("[%s] WARNING Duration >= Repeat"));
-				sprintf(log_message, fmt_str, b->block_label);
+				sprintf(log_message, fmt_str, b->label);
 				DebugLog(log_message);
 			}
 			b->status = STATUS_ENABLED_INIT;
@@ -86,17 +86,13 @@ void ScheduleOperate(BlockNode *b) {
 	tm* now_tm;
 	tm zero_tm = {0, 0, 0, 0, 0, 0, 0, 0, 0};
 
-	time_t start;
-	time_t end;
-	time_t zero_today;
-	time_t now;
+	time_t start_t;
+	time_t end_t;
+	time_t zero_today_t;
+	time_t now_t;
 
-	now = TimeNow();
-	now_tm = localtime(&now);
-
-//	D("now", now);
-//	D("now_tm", now_tm);
-
+	now_t = TimeNow();
+	now_tm = localtime(&now_t);
 
 	zero_tm.tm_year = now_tm->tm_year;
 	zero_tm.tm_mon = now_tm->tm_mon;
@@ -105,34 +101,24 @@ void ScheduleOperate(BlockNode *b) {
 	zero_tm.tm_min = 0;
 	zero_tm.tm_sec = 0;
 
-//	D("zero_locatime", &zero_tm);
-
-	zero_today = mktime(&zero_tm);
-
-
-//	D("zero_today", zero_today);
-//	D("zero_locatime", &zero_tm);
-
-
-	//now = TimeNow();
-	//now_tm = localtime(&now);
+	zero_today_t = mktime(&zero_tm);
 
 
 	uint8_t target_state = UINT8_INIT;
 	uint8_t today_num = now_tm->tm_wday;
 	uint8_t yesterday_num = ((today_num - 1) + 7) % 7;
 
-	switch (b->block_type) {
+	switch (b->type) {
 		case SCH_START_STOP: {
 
 			// convert start and end times to time_t values
-			start = zero_today + b->settings.sch.time_start;
-			end = zero_today + b->settings.sch.time_end;
+			start_t = zero_today_t + b->settings.sch.time_start;
+			end_t = zero_today_t + b->settings.sch.time_end;
 
 			// Determine the pattern - a schedule contained within today (end >= start) or one that
 			//	crosses midnight (end < start).
 
-			if (end >= start) { //schedule contained within this 24hr period
+			if (end_t >= start_t) { //schedule contained within this 24hr period
 				// is today an active day?
 				//XXX align day num conversion
 				if (b->settings.sch.days[today_num] == 1) {
@@ -140,12 +126,12 @@ void ScheduleOperate(BlockNode *b) {
 					//	1 - before start time (start > now && end >= now)
 					//	2 - during the active period (start < now && end >= now)
 					//	3 - after the active period (start < now && end < now)
-					if (start > now && end >= now) target_state = 0;
-					if (start <= now && end > now) target_state = 1;
-					if (start <= now && end < now) target_state = 0;
+					if (start_t > now_t && end_t >= now_t) target_state = 0;
+					if (start_t <= now_t && end_t > now_t) target_state = 1;
+					if (start_t <= now_t && end_t < now_t) target_state = 0;
 				}
 			} else {
-				if (end < start) {
+				if (end_t < start_t) {
 					//schedule must be a midnight crossing pattern
 					// Now could be in 1 of 3 periods
 					//	1 - before end time today where it started yesterday
@@ -155,25 +141,25 @@ void ScheduleOperate(BlockNode *b) {
 					// was yesterday an active day? (ie. active period started yesterday)
 					if (b->settings.sch.days[yesterday_num] == 1) {
 						// start an active period from yesterday that should be still running
-						if (start >= now && end > now) target_state = 1;
+						if (start_t >= now_t && end_t > now_t) target_state = 1;
 						// time to turn it off?
-						if (start >= now && end < now) target_state = 0;
+						if (start_t >= now_t && end_t < now_t) target_state = 0;
 					}
 					// is today active?
 					if (b->settings.sch.days[today_num]) {
-						if (start <= now && end < now) target_state = 1;
+						if (start_t <= now_t && end_t < now_t) target_state = 1;
 					}
 				}
 			}
 				if (target_state == 1 && b->active == 0) {				//all conditions met, go active
 					b->active = 1;
-					b->last_update = now;
-					EventMsg(b->block_id, E_ACT);
+					//b->last_update = now;
+					EventMsg(b->id, E_ACT);
 				}
 				if (target_state == 0 && b->active == 1) { //deact
 					b->active = 0;
-					b->last_update = now;
-					EventMsg(b->block_id, E_DEACT);
+					//b->last_update = now;
+					EventMsg(b->id, E_DEACT);
 				}
 
 			break;
@@ -181,52 +167,39 @@ void ScheduleOperate(BlockNode *b) {
 		case SCH_ONE_SHOT: {
 
 			// convert start and end times to time_t values
-			start = zero_today + b->settings.sch.time_start;
-			end = start + ONE_SHOT_DURATION; 	// accommodate loop delays longer than 1 second
+			start_t = zero_today_t + b->settings.sch.time_start;
+			end_t = start_t + ONE_SHOT_DURATION; 	// accommodate loop delays longer than 1 second
 
 			if (b->settings.sch.days[today_num] == 1) {
-				if (start <= now && end >= now) {
+				if (start_t <= now_t && end_t >= now_t) {
 					target_state = 1;
 				} else target_state = 0;
 			} else target_state = 0;
 
 			if (target_state == 1 && b->active == 0) {				//all conditions met, go active
 				b->active = 1;
-				b->last_update = now;
-				EventMsg(b->block_id, E_ACT);
+				//b->last_update = now;
+				EventMsg(b->id, E_ACT);
 				//XXX work around for reset min max without having a full block sequence in the config
-				if (strcmp(b->block_label, RESET_MINMAX_SCH_BLOCK) == 0) {
-					EventMsg(b->block_id, SSS, E_COMMAND, CMD_RESET_MINMAX);
+				if (strcmp(b->label, RESET_MINMAX_SCH_BLOCK) == 0) {
+					EventMsg(b->id, SSS, E_COMMAND, CMD_RESET_MINMAX);
 				}
 			}
 			if (target_state == 0 && b->active == 1) { //deact
 				b->active = 0;
-				b->last_update = now;
-				EventMsg(b->block_id, E_DEACT);
+				//b->last_update = now;
+				EventMsg(b->id, E_DEACT);
 			}
 			break;
 		}
 		case SCH_START_DURATION_REPEAT: {
-
-			// XXX HACK
-			//if(strcmp_hal(b->block_label, F("SCH_WATERING_BOTTOM_SCHEDULE")) == 0) {
-			//	uint16_t mon_id;
-			//	mon_id = GetBlockIDByLabel("MON_INSIDE_BOTTOM_TOO_COLD");
-			//	if(IsActive(mon_id)) {
-			//		b->settings.sch.time_duration = 60;
-			//	} else {
-			//		b->settings.sch.time_duration = 20;
-			//	}
-			//}
-
 			TV_TYPE last_start_time;
 			TV_TYPE sched_start;
 			TV_TYPE repeat;
 			TV_TYPE secs_today_now;
 			TV_TYPE last_start_num;
 
-//			secs_today_now = (now_tm->tm_sec) + (now_tm->tm_min * 60) + (now_tm->tm_hour * 60 * 60);
-			secs_today_now = now - zero_today;
+			secs_today_now = now_t - zero_today_t;
 
 			sched_start = b->settings.sch.time_start;
 			repeat = b->settings.sch.time_repeat;
@@ -234,34 +207,25 @@ void ScheduleOperate(BlockNode *b) {
 			last_start_num = (secs_today_now - sched_start) / repeat;
 			last_start_time = sched_start + (last_start_num * repeat);
 
-			start = last_start_time + zero_today;
-			end = start + b->settings.sch.time_duration;
-
+			start_t = last_start_time + zero_today_t;
+			end_t = start_t + b->settings.sch.time_duration;
 
 			if (b->settings.sch.days[today_num] == 1) {
-				if (start <= now && end > now) {
+				if (start_t <= now_t && end_t > now_t) {
 					target_state = 1;
 				} else target_state = 0;
 			} else target_state = 0;
 
 			if (target_state == 1 && b->active == 0) {				//all conditions met, go active
 				b->active = 1;
-				b->last_update = now;
-				EventMsg(b->block_id, E_ACT);
-				//XXX HACK
-				//if(strcmp_hal(b->block_label, F("SCH_WATERING_BOTTOM_SCHEDULE")) == 0) {
-				//	EventMsg(SSS, E_WARNING, M_HACK_SCH_WATERING_BOTTOM_SCHEDULE);
-				//}
+				//b->last_update = now;
+				EventMsg(b->id, E_ACT);
 			}
 
-			if (target_state == 0 && b->active == 1) { //deact
+			if (target_state == 0 && b->active == 1) { 				//deact
 				b->active = 0;
-				b->last_update = now;
-				EventMsg(b->block_id, E_DEACT);
-				//XXX HACK
-				//if(strcmp_hal(b->block_label, F("SCH_WATERING_BOTTOM_SCHEDULE")) == 0) {
-				//	EventMsg(SSS, E_WARNING, M_HACK_SCH_WATERING_BOTTOM_SCHEDULE);
-				//}
+				//b->last_update = now;
+				EventMsg(b->id, E_DEACT);
 			}
 			break;
 		}
@@ -269,7 +233,6 @@ void ScheduleOperate(BlockNode *b) {
 			EventMsg(SSS, E_ERROR, M_UNKNOWN_BLOCK_TYPE);
 			break;
 	}
-
 }
 
 void ScheduleShow(BlockNode *b, void(Callback(const char *))) {
