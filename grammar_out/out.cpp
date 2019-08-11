@@ -36,111 +36,114 @@ uint16_t CallFunction(uint8_t func_xlat, ParamUnion params[]) {
 			ShowBlockByID(params[0].param_int16_t);
 			break;
 		case 4:
-			SetCommandOnBlockLabel(params[0].param_char_star, params[1].param_uint16_t);
+			ShowMemory();
 			break;
 		case 5:
-			SetCommandOnBlockID(params[0].param_int16_t, params[1].param_uint16_t);
+			SetCommandOnBlockLabel(params[0].param_char_star, params[1].param_uint16_t);
 			break;
 		case 6:
-			ShowTime();
+			SetCommandOnBlockID(params[0].param_int16_t, params[1].param_uint16_t);
 			break;
 		case 7:
-			SetTime(params[0].param_char_star);
+			ShowTime();
 			break;
 		case 8:
-			ShowDate();
+			SetTime(params[0].param_char_star);
 			break;
 		case 9:
-			SetDate(params[0].param_char_star);
+			ShowDate();
 			break;
 		case 10:
-			ConfigClear();
+			SetDate(params[0].param_char_star);
 			break;
 		case 11:
-			ConfigLoad();
+			ConfigClear();
 			break;
 		case 12:
-			ConfigSave();
+			ConfigLoad();
 			break;
 		case 13:
-			ConfigShow();
+			ConfigSave();
 			break;
 		case 14:
-			ConfigDeleteBID(params[0].param_int16_t);
+			ConfigShow();
 			break;
 		case 15:
-			ConfigDeleteBlockLabel(params[0].param_char_star);
+			ConfigDeleteBID(params[0].param_int16_t);
 			break;
 		case 16:
-			ConfigInterface(params[0].param_char_star, params[1].param_uint16_t, params[2].param_char_star);
+			ConfigDeleteBlockLabel(params[0].param_char_star);
 			break;
 		case 17:
-			ConfigBlockSystem(params[0].param_char_star, params[1].param_uint16_t, params[2].param_char_star);
+			ConfigInterface(params[0].param_char_star, params[1].param_uint16_t, params[2].param_char_star);
 			break;
 		case 18:
-			ConfigBlockInput(params[0].param_char_star, params[1].param_uint16_t, params[2].param_char_star);
+			ConfigBlockSystem(params[0].param_char_star, params[1].param_uint16_t, params[2].param_char_star);
 			break;
 		case 19:
-			ConfigBlockMonitor(params[0].param_char_star, params[1].param_uint16_t, params[2].param_char_star);
+			ConfigBlockInput(params[0].param_char_star, params[1].param_uint16_t, params[2].param_char_star);
 			break;
 		case 20:
-			ConfigBlockSchedule(params[0].param_char_star, params[1].param_uint16_t, params[2].param_char_star);
+			ConfigBlockMonitor(params[0].param_char_star, params[1].param_uint16_t, params[2].param_char_star);
 			break;
 		case 21:
-			ConfigBlockRule(params[0].param_char_star, params[1].param_uint16_t, params[2].param_char_star);
+			ConfigBlockSchedule(params[0].param_char_star, params[1].param_uint16_t, params[2].param_char_star);
 			break;
 		case 22:
-			ConfigBlockController(params[0].param_char_star, params[1].param_uint16_t, params[2].param_char_star);
+			ConfigBlockRule(params[0].param_char_star, params[1].param_uint16_t, params[2].param_char_star);
 			break;
 		case 23:
-			ConfigBlockOutput(params[0].param_char_star, params[1].param_uint16_t, params[2].param_char_star);
+			ConfigBlockController(params[0].param_char_star, params[1].param_uint16_t, params[2].param_char_star);
 			break;
 		case 24:
-			InitSetupAll();
-			break;
-		case 27:
-			InitSetupBID(params[0].param_int16_t);
+			ConfigBlockOutput(params[0].param_char_star, params[1].param_uint16_t, params[2].param_char_star);
 			break;
 		case 25:
-			InitValidateAll();
+			InitSetupAll();
 			break;
 		case 28:
-			InitValidateBID(params[0].param_int16_t);
+			InitSetupBID(params[0].param_int16_t);
 			break;
 		case 26:
-			InitDisableAll();
+			InitValidateAll();
 			break;
 		case 29:
-			InitDisableBID(params[0].param_int16_t);
+			InitValidateBID(params[0].param_int16_t);
+			break;
+		case 27:
+			InitDisableAll();
 			break;
 		case 30:
-			AdminDisableBID(params[0].param_int16_t);
+			InitDisableBID(params[0].param_int16_t);
 			break;
 		case 31:
-			AdminEnableBID(params[0].param_int16_t);
+			AdminDisableBID(params[0].param_int16_t);
 			break;
 		case 32:
-			AdminCmdOnBID(params[0].param_int16_t);
+			AdminEnableBID(params[0].param_int16_t);
 			break;
 		case 33:
-			AdminCmdOffBID(params[0].param_int16_t);
+			AdminCmdOnBID(params[0].param_int16_t);
 			break;
 		case 34:
-			SystemReboot();
+			AdminCmdOffBID(params[0].param_int16_t);
 			break;
 		case 35:
-			IFOneWireScanBID(params[0].param_int16_t);
+			SystemReboot();
 			break;
 		case 36:
-			IFOneWireScanLabel(params[0].param_char_star);
+			IFOneWireScanBID(params[0].param_int16_t);
 			break;
 		case 37:
-			IFOneWireAssignBID(params[0].param_int16_t, params[1].param_int16_t);
+			IFOneWireScanLabel(params[0].param_char_star);
 			break;
 		case 38:
-			IFDS1820BRead(params[0].param_int16_t);
+			IFOneWireAssignBID(params[0].param_int16_t, params[1].param_int16_t);
 			break;
 		case 39:
+			IFDS1820BRead(params[0].param_int16_t);
+			break;
+		case 40:
 			IFDS1820BTest(params[0].param_int16_t);
 			break;
 		default:

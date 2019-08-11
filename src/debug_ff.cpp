@@ -46,40 +46,33 @@
  Functions
 ************************************************/
 
+
+
 #ifdef DEBUG
 
-#ifdef PLATFORM_ARDUINO
-#ifdef DEBUG_MEMORY
-char* GetMemPointers(char* str) {
-/* This function places the current value of the heap and stack pointers in the
- * variables. You can call it from any place in your code and save the data for
- * outputting or displaying later. This allows you to check at different parts of
- * your program flow.
- * The stack pointer starts at the top of RAM and grows downwards. The heap pointer
- * starts just above the static variables etc. and grows upwards. SP should always
- * be larger than HP or you'll be in big trouble! The smaller the gap, the more
- * careful you need to be. Julian Gall 6-Feb-2009.
- */
-
-	uint8_t * heapptr, * stackptr, *bll_tail;
-
-	bll_tail = (uint8_t *)GetLastBlockAddr();
-	stackptr = (uint8_t *)malloc(4);          // use stackptr temporarily
-	heapptr = stackptr;                     // save value of heap pointer
-	free(stackptr);      // free up the memory again (sets stackptr to 0)
-	stackptr =  (uint8_t *)(SP);           // save value of stack pointer
-	char fmt_str[26];
-	strcpy_hal(fmt_str, F("BLL: %d  SP: %d >< %d :HP"));
-	sprintf(str, fmt_str, (int)bll_tail, (int)stackptr, (int)heapptr);
-	return str;
+void DebugShowMemory(const char* msg) {
+	char out_str[MAX_MESSAGE_STRING_LENGTH];
+	GetMemPointers(out_str);
+	ITCHWrite(out_str);
+	ITCHWrite(F("  "));
+	ITCHWriteLine(msg);
 }
-#endif //DEBUG_MEMORY
+
+#ifdef PLATFORM_ARDUINO
+void DebugShowMemory(const __FlashStringHelper *msg) {
+	char out_str[MAX_MESSAGE_STRING_LENGTH];
+	GetMemPointers(out_str);
+	ITCHWrite(out_str);
+	ITCHWrite(F("  "));
+	ITCHWriteLine(msg);
+}
 #endif //PLATFORM_ARDUINO
 
 #ifdef DEBUG_SERIAL
 void DebugSerial(char *log_entry) {
 	#ifdef USE_ITCH
-		HALItchWriteLnImmediate(log_entry);
+		ITCHWriteLine(log_entry);
+		//ITCHWriteLine(F("After Writing DEBUG Line"));
 	#else
 		int loop = 5000;
 		while (loop > 0) {
@@ -95,7 +88,6 @@ void DebugSerial(char *log_entry) {
 		};
 		//Serial.end();
 	#endif
-
 }
 #endif // DEBUG_SERIAL
 
@@ -105,17 +97,16 @@ void DebugConsole (const char* str) {
 }
 #endif //DEBUG_CONSOLE
 
-#ifdef ARDUINO
+#ifdef PLATFORM_ARDUINO
 void DebugLog(const __FlashStringHelper *log_message) {
 	char log_entry[MAX_DEBUG_LENGTH];
-	strcpy_P(log_entry, (char *)log_message);
+	strcpy_hal(log_entry, log_message);
 	DebugLog(log_entry);
 }
-#endif
+#endif //PLATFORM_ARDUINO
 
 void DebugLog(const char* log_message) {
 	//Base function - add date and time to a string and send to defined debug destinations
-
 	char log_entry[MAX_DEBUG_LENGTH];
 	char dt[24];
 	time_t now;
@@ -125,18 +116,18 @@ void DebugLog(const char* log_message) {
 	strftime(dt, 24, fmt_str, localtime(&now));		//yyyy-mm-dd, 00:00:00
 	#ifdef DEBUG_MEMORY
 		char mem_str[MAX_DEBUG_LENGTH];
-		//WriteLineDirect(log_message);
-		//WriteLineDirect("Before GetMemPointers()");
+		//ITCHWriteLine(log_message);
+		//ITCHWriteLine(F("Before GetMemPointers()"));
 		GetMemPointers(mem_str);
-		//WriteLineDirect("After GetMemPointers()");
+		//ITCHWriteLine(F("After GetMemPointers()"));
 		strcpy_hal(fmt_str, F("%s, DEBUG, (%s) %s"));
 		sprintf(log_entry, fmt_str, dt, mem_str, log_message);  				//assemble log entry with time stamp
 	#else
 		strcpy_hal(fmt_str, F("%s, DEBUG, %s"));
 		sprintf(log_entry, fmt_str, dt, log_message);  				//assemble log entry with time stamp
 	#endif
-		//WriteLineDirect(log_entry);
-		//WriteLineDirect("Before DebugSerial()");
+		//ITCHWriteLine(log_entry);
+		//ITCHWriteLine(F("Before DebugSerial()"));
 	#ifdef DEBUG_SERIAL
 		DebugSerial(log_entry);
 	#endif
@@ -155,11 +146,12 @@ void DebugLog(const char* log_message) {
 	#endif
 }
 
-
 void DebugLog(uint16_t source, uint16_t destination, uint8_t msg_type, uint8_t msg_str, int32_t i_val, float f_val) {
 	char fmt_str[28];
 	char msg_type_string[MAX_MESSAGE_STRING_LENGTH];
 	char msg_string[MAX_MESSAGE_STRING_LENGTH];
+	char no_cfg_str[16];
+	const char * source_str;
 	// Full version - mirrors event message format
 	if (msg_type >= DEBUG_LEVEL) {
 		char debug_log_message[MAX_DEBUG_LENGTH];
@@ -167,22 +159,28 @@ void DebugLog(uint16_t source, uint16_t destination, uint8_t msg_type, uint8_t m
 		GetMessageTypeString(msg_type_string, msg_type);
 		GetMessageString(msg_string, msg_str);
 
+		source_str = GetBlockLabelString(source);
+		if (source_str == NULL) {
+			strcpy_hal(no_cfg_str, F("SYSTEM-NOCONFIG"));
+			source_str = no_cfg_str;
+		}
+
 		if (destination != UINT16_INIT) {
 			FFFloatToCString(f_str, f_val);
 			strcpy_hal(fmt_str, F("[%s]->[%s], %s, %s, %ld, %s"));
-			sprintf(debug_log_message, fmt_str, GetBlockLabelString(source), GetBlockLabelString(destination), msg_type_string, msg_string, i_val, f_str);
+			sprintf(debug_log_message, fmt_str, source_str, GetBlockLabelString(destination), msg_type_string, msg_string, i_val, f_str);
 		} else {
 			if (msg_str == M_NULL) {
 				strcpy_hal(fmt_str, F("[%s] %s"));
-				sprintf(debug_log_message, fmt_str, GetBlockLabelString(source), msg_type_string);
+				sprintf(debug_log_message, fmt_str, source_str, msg_type_string);
 			} else {
 				if (i_val == (int32_t)INT32_INIT) {
 					strcpy_hal(fmt_str, F("[%s], %s, %s"));
-					sprintf(debug_log_message, fmt_str, GetBlockLabelString(source), msg_type_string, msg_string);
+					sprintf(debug_log_message, fmt_str, source_str, msg_type_string, msg_string);
 				} else {
 					FFFloatToCString(f_str, f_val);
 					strcpy_hal(fmt_str, F("[%s], %s, %s, %ld, %s"));
-					sprintf(debug_log_message, fmt_str, GetBlockLabelString(source), msg_type_string, msg_string, i_val, f_str);
+					sprintf(debug_log_message, fmt_str, source_str, msg_type_string, msg_string, i_val, f_str);
 				}
 			}
 		}
@@ -196,18 +194,35 @@ void DebugLog(uint16_t source, uint8_t msg_type, uint8_t msg_str, int32_t i_val,
 }
 
 
-void DebugLog(uint16_t source, uint8_t msg_type, uint8_t msg_str) {
+void DebugLog(uint16_t source, uint8_t msg_type, uint8_t msg_num) {
 	// Simplified version
-	char fmt_str[15];
+	char fmt_str[13];
+	const char * source_str;
 	char msg_type_string[MAX_MESSAGE_STRING_LENGTH];
 	char msg_string[MAX_MESSAGE_STRING_LENGTH];
+	char debug_log_message[MAX_DEBUG_LENGTH];
+	char no_cfg_str[16];
 
 	if (msg_type >= DEBUG_LEVEL) {
-		char debug_log_message[MAX_DEBUG_LENGTH];
+
 		GetMessageTypeString(msg_type_string, msg_type);
-		GetMessageString(msg_string, msg_str);
+		//ITCHWrite(F("msg_type_string: "));
+		//ITCHWriteLine(msg_type_string);
+
+		GetMessageString(msg_string, msg_num);
+		//ITCHWrite(F("msg_string: "));
+		//ITCHWriteLine(msg_string);
+
 		strcpy_hal(fmt_str, F("[%s], %s, %s"));
-		sprintf(debug_log_message, fmt_str, GetBlockLabelString(source), msg_type_string, msg_string);
+
+		source_str = GetBlockLabelString(source);
+		if (source_str == NULL) {
+			strcpy_hal(no_cfg_str, F("SYSTEM-NOCONFIG"));
+			source_str = no_cfg_str;
+		}
+
+		sprintf(debug_log_message, fmt_str, source_str, msg_type_string, msg_string);
+
 		DebugLog(debug_log_message);
 	}
 }
@@ -243,16 +258,16 @@ void Dump(BlockNode *b, char* tag) {
 	sprintf(debug_log_message, "    ");
 	DebugLog(debug_log_message);
 
-	sprintf(debug_log_message, "    %s label:\t %s", tag, b->block_label);
+	sprintf(debug_log_message, "    %s label:\t %s", tag, b->label);
 	DebugLog(debug_log_message);
 
-	sprintf(debug_log_message, "    %s id:\t %u", tag, b->block_id);
+	sprintf(debug_log_message, "    %s id:\t %u", tag, b->id);
 	DebugLog(debug_log_message);
 
-	sprintf(debug_log_message, "    %s cat:\t %u", tag, b->block_cat);
+	sprintf(debug_log_message, "    %s cat:\t %u", tag, b->cat);
 	DebugLog(debug_log_message);
 
-	sprintf(debug_log_message, "    %s type:\t %u", tag, b->block_type);
+	sprintf(debug_log_message, "    %s type:\t %u", tag, b->type);
 	DebugLog(debug_log_message);
 
 	sprintf(debug_log_message, "    %s act:\t %u", tag, b->active);
@@ -263,6 +278,14 @@ void Dump(BlockNode *b, char* tag) {
 
 #ifndef DEBUG
 // XXX Debug Stubs for when DEBUG is not declared at all but calls remain in the code base
+
+void DebugShowMemory(const char* msg) {
+	(void)msg;
+}
+
+void DebugShowMemory(const __FlashStringHelper *msg) {
+	(void)msg;
+}
 
 void DebugLog(const char* log_message) {
 	(void)log_message;
@@ -291,5 +314,8 @@ void DebugLog(uint16_t source, uint8_t msg_type, uint8_t msg_str) {
 	(void)msg_str;
 };
 
+void DebugLog(const __FlashStringHelper *log_message) {
+	(void)log_message;
+}
 
 #endif

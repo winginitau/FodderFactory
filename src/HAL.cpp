@@ -73,8 +73,8 @@ U8G2_ST7920_128X64_1_SW_SPI lcd_128_64(U8G2_R0, /* clock=*/ 40 /* A4 */ , /* dat
 //U8X8_ST7920_128X64_SW_SPI u8x8(40, 42, 44, U8X8_PIN_NONE);
 #endif //ARDUINO_LCD
 
-uint32_t g_last_milli_val;	// used to pad calls to TimeNow so that the RTC isn't smashed
-time_t g_epoch_time;
+uint32_t previous_millis;	// used to pad calls to TimeNow so that the RTC isn't smashed
+time_t base_real_time;
 #endif //PLATFORM_ARDUINO
 
 uint8_t rtc_status = 0;		// assume dead until we can find it and talk to it
@@ -782,33 +782,77 @@ void HALDrawDataScreenCV(const UIDataSet* uids, time_t dt) {
 /********************************************************************
  * Time and Date Functions
  ********************************************************************/
+
+//uint8_t rtc_count_temp = 0;
+
 #ifdef PLATFORM_ARDUINO
 time_t GetRTCTime() {
 	RTC_DS1307 rtc;
+	//DateTime futureDT(2020,01,01);
 	DateTime rtcDT;
+
+	/*
+	if( rtc_count_temp++ > 2) {
+		// for testing garbage catch
+		rtc_count_temp = 0;
+		return futureDT.secondstime();
+	}
+	*/
+
 	rtcDT = rtc.now();
 	return rtcDT.secondstime();
 }
 #endif //PLATFORM_ARDUINO
 
+
+/*
+if all your time calculations are done as:
+if  ((later_time - earlier_time ) >=duration ) {action}
+then the rollover does generally not come into play.
+
+For ease of understanding think in bytes ( 0.. 255 ), instead of unsigned longs.
+Example: If your old time was at 250 and now you're at 5 ,
+you calculate (5 - 250) and interpret the result as an unsigned byte, the result is 11.
+
+Are there instances where the rollover does come into play?
+When duration is >= the rollover period.
+(Or if you use signed comparison, >= 1/2 the rollover period).
+ */
+
 time_t TimeNow(void) {
 #ifdef PLATFORM_ARDUINO
-	if(millis() < g_last_milli_val) {
-		// Assume millis has rolled over to zero (every 59 days)
-		// Reset g_epoch_time and g_last_milli_val
-		g_epoch_time = GetRTCTime();
-		g_last_milli_val = millis();
-		return g_epoch_time;
-	} else {
-		if((millis() - g_last_milli_val) > RTC_POLL_INTERVAL) {
-			// Time to poll the RTC again
-			g_epoch_time = GetRTCTime();
-			g_last_milli_val = millis();
-			return g_epoch_time;
+	uint32_t current_millis;
+	current_millis = millis();
+
+	//DebugShowMemory(F("MemCheck"));
+
+	if((current_millis - previous_millis) >= RTC_POLL_INTERVAL) {
+		// Time to poll the RTC again
+		//DebugShowMemory(F("MemCheck - Resynch Time"));
+		uint32_t current_real_time;
+		current_real_time = GetRTCTime();
+
+		// Sanity checks for when the RTC reports wrong time
+		// due for example to low battery state
+		if ( (current_real_time - base_real_time) > (RTC_POLL_INTERVAL + 5000) \
+		  || (current_real_time < base_real_time) ) {
+			//DebugShowMemory(F("MemCheck - Garbage RTC Time"));
+			// garbage RTC result - adjust previous_real_time with millis
+			current_real_time = base_real_time + ((current_millis - previous_millis) / 1000);
+			base_real_time = current_real_time;
+			previous_millis = current_millis;
+			EventMsg(SSS, E_ERROR, M_ERROR_RTC_GARBAGE);
+			return current_real_time;
 		} else {
-			// Calculate and return epoch time plus delta millis
-			return (g_epoch_time + ((millis() - g_last_milli_val) / 1000));
+			//DebugShowMemory(F("MemCheck - After RTC call"));
+			base_real_time = current_real_time;
+			previous_millis = current_millis;
+			EventMsg(SSS, E_INFO, M_TIME_SYNCH_RTC);
+			return current_real_time;
 		}
+	} else {
+		// Calculate and return previous real time plus delta millis
+		return (base_real_time + ((current_millis - previous_millis) / 1000));
 	}
 #endif //PLATFORM_ARDUINO
 
@@ -861,9 +905,9 @@ void HALInitRTC(void) {
 			// Store the current time and millis timer value - used to avoid calling on the RTC
 			// 	for every time query which drains the rtc battery
 			rtcDT = rtc.now();
-			g_epoch_time = rtcDT.secondstime();
-			g_last_milli_val = millis();
-			EventMsg(SSS, E_INFO, M_RTC_REPORT_RUNNING, 0, 0);
+			base_real_time = rtcDT.secondstime();
+			previous_millis = millis();
+			EventMsg(SSS, E_INFO, M_TIME_SYNCH_RTC, 0, 0);
 			#ifdef SET_RTC
 			EventMsg(SSS, E_WARNING, M_WARN_SET_RTC, 0, 0);
 			// following line sets the RTC localtime() to the date & time this sketch was compiled

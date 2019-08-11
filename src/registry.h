@@ -289,6 +289,7 @@ void RegIFOneWireScanLabel(char* BLOCK_LABEL, void(*Callback)(const char*));
 void RegIFOneWireAssignBID(int16_t param1_int, int16_t param2_int, void(*Callback)(const char*));
 void RegIFDS1820BRead(int16_t param1_int, void(*Callback)(const char*));
 void RegIFDS1820BTest(int16_t param1_int, void(*Callback)(const char*));
+void RegShowMemory(void(*Callback)(const char *));
 void RegSetCommandOnBlockLabel(const char* block_label, uint16_t command, void(*Callback)(const char *));
 void RegSetCommandOnBlockID(uint16_t id, uint16_t command, void(*Callback)(const char*));
 void RegShowTime(void(*Callback)(const char*));
@@ -332,6 +333,7 @@ void RegSystemReboot(void(*Callback)(const char*));
 // Other misc functions
 void UpdateStateRegister(uint16_t source, uint8_t msg_type, uint8_t msg_str, int i_val, float f_val);
 void InitStateRegister(void);
+char* GetMemPointers(char* str);
 
 #ifdef ARDUINO_LCD
 UIDataSet* GetUIDataSet(void);

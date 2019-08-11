@@ -31,6 +31,10 @@ void ShowBlockByID(int16_t param1_int) {
 	RegShowBlockByID(param1_int, WriteLineCallback);
 }
 
+void ShowMemory(void) {
+	RegShowMemory(WriteLineCallback);
+}
+
 void SetCommandOnBlockLabel(char* BLOCK_LABEL, uint16_t COMMAND_STRING) {
 	RegSetCommandOnBlockLabel(BLOCK_LABEL, COMMAND_STRING, WriteLineCallback);
 }

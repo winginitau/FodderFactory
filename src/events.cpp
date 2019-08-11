@@ -238,7 +238,9 @@ void EventMsg(uint16_t source, uint8_t msg_type, uint8_t msg_str) {
 
 void EventBufferInit(void) {
 	// Initalise the event buffer
+	//ITCHWriteLine(F("Before DebugLog M_INIT_EVENT_BUF"));
 	DebugLog(SSS, E_VERBOSE, M_INIT_EVENT_BUF);
+	//ITCHWriteLine(F("After DebugLog M_INIT_EVENT_BUF"));
 	event_buffer.head = 0;
 	event_buffer.tail = 0;
 	event_buffer.size = EVENT_BUFFER_SIZE;

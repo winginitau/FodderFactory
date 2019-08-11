@@ -34,9 +34,12 @@
  Function Prototypes
 ************************************************/
 
-#ifdef ARDUINO
+void DebugShowMemory(const char* msg);
+
+#ifdef PLATFORM_ARDUINO
+void DebugShowMemory(const __FlashStringHelper *msg);
 void DebugLog(const __FlashStringHelper *log_message);
-#endif
+#endif //PLATFORM_ARDUINO
 
 void DebugLog(const char* log_message);
 

@@ -34,8 +34,8 @@ uint8_t GetLanguage(void) {
 
 void GetMessageTypeString(char *str_buf, int message_type_enum) {
 #ifdef USE_PROGMEM
-	//XXX
 	//StringArray temp;
+
 	//memcpy_P(&temp, &message_type_strings[message_type_enum], sizeof(temp));
 	//strcpy(str_buf, temp.text[GetLanguage()]);
 	strcpy_hal(str_buf, message_type_strings[message_type_enum].text[GetLanguage()]);

@@ -404,6 +404,7 @@ uint16_t GetBlockIDByLabel(const char* label, bool report_fail) {
 		strcpy_hal(msg_str, F("ERROR: B-Label Not Found: [%s]"));
 		sprintf(debug_msg, msg_str, label);
 		DebugLog(debug_msg);
+		EventMsg(SSS, E_ERROR, M_BLOCK_ID_NOT_FOUND);
 	}
 	return M_FF_ERROR;
 }
@@ -414,10 +415,12 @@ char const* GetBlockLabelString(uint16_t block_id) {
 
 	BlockNode* b;
 	InterfaceNode *i;
-	char debug_msg[MAX_LOG_LINE_LENGTH];
+	//char debug_msg[MAX_LOG_LINE_LENGTH];
+	//char msg_str[30];
 	b = bll;
 	i = ill;
 
+	/*
 	if (block_id == BLOCK_ID_NA) {
 		return "NA";
 	}
@@ -425,6 +428,7 @@ char const* GetBlockLabelString(uint16_t block_id) {
 	if (block_id == UINT16_INIT) {
 		return "\0";
 	}
+	 */
 
 	while (b != NULL) {
 		if (b->id == block_id) {
@@ -442,7 +446,7 @@ char const* GetBlockLabelString(uint16_t block_id) {
 		i = i->next;
 	}
 
-	char msg_str[30];
+	/*
 	// Block Label not found
 	if (block_id == SSS) {
 		// Possibly pre-config message
@@ -450,11 +454,14 @@ char const* GetBlockLabelString(uint16_t block_id) {
 		//XXX
 		return NULL;
 	}
+	*/
 
+	/*
 	strcpy_hal(msg_str, F("ERROR: B-ID Not Found: [%d]"));
 	sprintf(debug_msg, msg_str, block_id);
-	// XXX This should raise an Event Message too
 	DebugLog(debug_msg);
+	EventMsg(SSS, E_ERROR, M_BLOCK_ID_NOT_FOUND);
+	*/
 	return NULL;
 }
 
@@ -1570,6 +1577,13 @@ void RegShowBlockByID(uint16_t id, void(*Callback)(const char *)) {
 	}
 }
 
+void RegShowMemory(void(*Callback)(const char *)) {
+	(void)Callback;
+	char out_str[MAX_MESSAGE_STRING_LENGTH];
+	GetMemPointers(out_str);
+	ITCHWriteLine(out_str);
+}
+
 void RegSetCommandOnBlockLabel(const char* block_label, uint16_t command, void(*Callback)(const char *)) {
 	char out_str[MAX_MESSAGE_STRING_LENGTH];	// 80
 	uint16_t block_id;
@@ -1729,22 +1743,22 @@ void RegSetTime(const char* time_str, void(*Callback)(const char*)) {
 			    t = mktime(tmptr);
 			    rc = stime(&t);
 			    if(rc==0) {
-			        sprintf(out_str, "System stime() successful.\n");
+			        sprintf(out_str, "System stime() successful.");
 			        Callback(out_str);
 			    }
 			    else {
-			        sprintf(out_str, "Error: stime() failed, errno = %d: %s\n",errno, strerror(errno));
+			        sprintf(out_str, "Error: stime() failed, errno = %d: %s",errno, strerror(errno));
 			        Callback(out_str);
 			    }
 #endif //PLATFORM_LINUX
 #ifdef PLATFORM_ARDUINO
 			    uint8_t rc = HALSetRTCTime(time_str);
 			    if(rc==0) {
-					strcpy_hal(out_str, F("HALSetRTCTime() successful.\n"));
+					strcpy_hal(out_str, F("HALSetRTCTime() successful"));
 			        Callback(out_str);
 			    }
 			    else {
-					strcpy_hal(out_str, F("Error: HALSetRTCTime() failed.\n"));
+					strcpy_hal(out_str, F("Error: HALSetRTCTime() failed"));
 			        Callback(out_str);
 			    }
 #endif //PLATFORM_ARDUINO
@@ -1753,7 +1767,7 @@ void RegSetTime(const char* time_str, void(*Callback)(const char*)) {
 		}
 	}
 	if (err) {
-		strcpy_hal(out_str, F("Error: Time String not valid."));
+		strcpy_hal(out_str, F("Error: Time String not valid"));
 		Callback(out_str);
 	}
 
@@ -1802,21 +1816,21 @@ void RegSetDate(const char* date_str, void(*Callback)(const char*)) {
 			    t = mktime(tmptr);
 			    rc = stime(&t);
 			    if(rc==0) {
-					strcpy(out_str, "System stime() successful.\n");
+					strcpy(out_str, "System stime() successful.");
 			        Callback(out_str);
 			    }
 			    else {
-			        sprintf(out_str, "Error: stime() failed, errno = %d: %s\n", errno, strerror(errno));
+			        sprintf(out_str, "Error: stime() failed, errno = %d: %s", errno, strerror(errno));
 			        Callback(out_str);
 			    }
 #else
 			    uint8_t rc = HALSetRTCDate(date_str);
 			    if(rc==0) {
-			    	strcpy_hal(out_str, F("HALSetRTCDate() successful.\n"));
+			    	strcpy_hal(out_str, F("HALSetRTCDate() successful"));
 			        Callback(out_str);
 			    }
 			    else {
-					strcpy_hal(out_str, F("Error: HALSetRTCDate() failed.\n"));
+					strcpy_hal(out_str, F("Error: HALSetRTCDate() failed"));
 			        Callback(out_str);
 			    }
 #endif //ifndef PLATFORM_ARDUINO
@@ -2301,6 +2315,32 @@ void InitStateRegister(void) {
 	//sr.ui_data.water_heater_flag = 0;
 #endif //ARDUINO_LCD
 }
+
+
+#ifdef PLATFORM_ARDUINO
+char* GetMemPointers(char* str) {
+/* This function places the current value of the heap and stack pointers in the
+ * variables. You can call it from any place in your code and save the data for
+ * outputting or displaying later. This allows you to check at different parts of
+ * your program flow.
+ * The stack pointer starts at the top of RAM and grows downwards. The heap pointer
+ * starts just above the static variables etc. and grows upwards. SP should always
+ * be larger than HP or you'll be in big trouble! The smaller the gap, the more
+ * careful you need to be. Julian Gall 6-Feb-2009.
+ */
+	uint8_t * heapptr, * stackptr, *bll_tail;
+
+	bll_tail = (uint8_t *)GetLastBlockAddr();
+	stackptr = (uint8_t *)malloc(4);          // use stackptr temporarily
+	heapptr = stackptr;                     // save value of heap pointer
+	free(stackptr);      // free up the memory again (sets stackptr to 0)
+	stackptr =  (uint8_t *)(SP);           // save value of stack pointer
+	char fmt_str[33];
+	strcpy_hal(fmt_str, F("ILL: %d  BLL: %d  SP: %d  HP: %d"));
+	sprintf(str, fmt_str, (uint16_t)ill, (uint16_t)bll_tail, (uint16_t)stackptr, (uint16_t)heapptr);
+	return str;
+}
+#endif //PLATFORM_ARDUINO
 
 
 

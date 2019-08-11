@@ -213,6 +213,25 @@ char* CTimeToLocalTimeString(char *t_str, time_t t) {
 	return t_str;
 }
 
+/* interesting snippet:
+currentMillis = millis();
+if ( (currentMillis - previousMillis) >= 1000){
+previousMillis = previousMillis + 1000;
+seconds = seconds +1;
+if (seconds == 60){
+seconds = 0;
+minutes = minutes +1;
+if(minutes == 60){
+minutes = 0;
+hours = hours +1;
+if (hours == 24){
+hours = 0;
+} // end hrs check
+} // end minutes check
+} // end seconds check
+} // end time check
+*/
+
 uint32_t StringToTimeValue(const char* time_str) {
 	int hh, mm, ss;
 	uint32_t tv = 0;

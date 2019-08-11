@@ -345,6 +345,7 @@ LAST_OUT_CONFIG
 %action-define SHOW_SYSTEM ShowSystem
 %action-define SHOW_BLOCK_LABEL ShowBlockByLabel
 %action-define SHOW_BLOCK_ID ShowBlockByID
+%action-define SHOW_MEMORY ShowMemory
 
 %1 keyword SHOW
 %2 keyword BLOCKS 
@@ -355,6 +356,8 @@ LAST_OUT_CONFIG
 %action SHOW_BLOCK_LABEL
 %2 param-integer 
 %action SHOW_BLOCK_ID
+%2 keyword MEMORY
+%action SHOW_MEMORY
 
 # -----------------------SET / MESSAGE GRAMMAR-------------------------------------------
 

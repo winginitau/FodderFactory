@@ -124,15 +124,15 @@ const StringArray message_type_strings[LAST_MESSAGE_TYPE] PROGMEM = {
 const StringArray message_type_strings[LAST_MESSAGE_TYPE] = {
 #endif
 
-	12, { "ZERO_ERROR",			"" },
+	12, { "ZERO_ERROR",			"ZERO_ERROR" },
 	12, { "DEBUG",				"DEBUGGEN" },
-	12, { "VERBOSE"				"" },
+	12, { "VERBOSE",			"VERBOSE" },
 	12, { "INFO",				"INFO" },
 	12, { "DATA",				"DATEN" },
-	12, { "ACTIVATED",			"" },
-	12, { "DEACTIVATED", 		"" },
-	12, { "COMMAND", 			"" },
-	12, { "ADMIN", 				"" },
+	12, { "ACTIVATED",			"ACTIVATED" },
+	12, { "DEACTIVATED", 		"DEACTIVATED" },
+	12, { "COMMAND", 			"COMMAND" },
+	12, { "ADMIN", 				"ADMIN" },
 	10, { "WARNING",			"WARNUNG" },
 	12, { "ERROR",				"FEHLER" },
 	12, { "STOP",				"HALT" },
@@ -146,7 +146,7 @@ typedef enum {
 	M_FF_AWAKE,					//001
 	M_D_SERIAL,					//002
 	M_RTC_DETECT,				//003
-	M_RTC_REPORT_RUNNING,		//004
+	M_TIME_SYNCH_RTC,	 		//004
 	M_WARN_SET_RTC,				//005
 	M_WARN_RTC_HARD_CODED,		//006
 	M_RTC_NOT_RUNNING,			//007
@@ -245,8 +245,8 @@ typedef enum {
 	M_DS1820B_INIT_FAIL,				//M100
 	M_DALLAS_DETECTED,					//M101
 	M_DS1820B_BID_NULL,					//M102
-	M103,								//M103
-	M104,								//M104
+	M_ERROR_RTC_GARBAGE,				//M103
+	M_BLOCK_ID_NOT_FOUND,				//M104
 	M105,								//M105
 	M106,								//M106
 	M107,								//M107
@@ -286,7 +286,7 @@ const uint64_t PAD16K2[] HIGHPROGMEM8 = {
 	22, { "Fodder Factory Awake",				"M1" },
 	12, { "Debug Serial Declared",				"M2" },
 	12, { "RTC Detected",						"M3" },
-	10, { "RTC Reports as Running",				"M4" },
+	10, { "Time Synchronised to RTC",			"M4" },
 	12, { "SET_RTC DEFINED",					"M5" },
 	24, { "HARD CODED TIME SET",				"M6" },
 	24,	{ "RTC Not Running - Hard Coding",		"M7" },
@@ -346,7 +346,7 @@ const uint64_t PAD16K2[] HIGHPROGMEM8 = {
 	14, { "(ConfigureCommonSetting) key_idx = zero error",	"M61" },
 	14, { "(ConfigureBlock) Invalid Block Category",		"M62" },
 	14, { "(ConfigureBlock/IFBlock) Add returned NULL",		"M63" },
-	14, { "Block Configuraton Read from Binary File",		"M64" },
+	14, { "Block Configuration Read from Binary File",		"M64" },
 	14, { "(AddBlock) malloc returned NULL",				"M65" },
 	14, { "CMD_RESET_MINMAX",								"M66" },
 	14, { "(UpdateS..R..) MinMax Display Registers Reset",	"M67" },
@@ -385,8 +385,8 @@ const uint64_t PAD16K2[] HIGHPROGMEM8 = {
 	14, { "Specified DS1820B was not detected on Onewire bus",			"M100" },
 	14, { "DS1820B Device Detected",									"M101" },
 	14, { "DS1820B Read GetBlockByID returned NULL",					"M102" },
-	14, { "M103",														"M103" },
-	14, { "M104",														"M104" },
+	14, { "RTC Returned Invalid Time",									"M103" },
+	14, { "Block ID not found",											"M104" },
 	14, { "M105",														"M105" },
 	14, { "M106",														"M106" },
 	14, { "M107",														"M107" },

@@ -120,7 +120,7 @@
 #define EXCLUDE_DESCRIPTION			// to save .data segment and heap space on arduino
 #define EXCLUDE_DISPLAYNAME			// to save .data segment and heap space on arduino
 
-#define RTC_POLL_INTERVAL 30000		// milliseconds between calls to the rtc
+#define RTC_POLL_INTERVAL 600000	// milliseconds between calls to the rtc
 
 #define VE_LOG_RATE 120				// how many seconds between VE.Direct energy system logging
 #define VE_POLL_RATE 10				// how many seconds between VE.Direct energy system polling
@@ -145,7 +145,7 @@
 
 #ifdef DEBUG
 //Optionallly:
-#define SUPRESS_EVENT_MESSAGES
+//#define SUPRESS_EVENT_MESSAGES
 
 //#define IN_LOGRATE_OVERRIDE 30				// seconds. Override defined logging rate (for debug)
 
